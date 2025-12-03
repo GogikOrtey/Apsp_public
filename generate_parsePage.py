@@ -420,7 +420,23 @@ def main_generate_parsePage():
         finding_element = current_element["count_of_page_on_pagination"]        
         pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = False)
 
-        print("pagination_selctor = " + pagination_selctor)
+
+
+
+
+
+
+
+
+        print("pagination_selctor = " + pagination_selctor) ###############
+        # Получается некорректно. Нужно выписать дубль функции, отдельно под извлечение пагинации
+
+
+
+
+
+
+
 
         checked_value = get_element_from_selector(set_item["page_html"], pagination_selctor)
         print("Проверили, и нашли такой элемент по найденному селектору пагинации: " + checked_value)
@@ -447,6 +463,10 @@ def main_generate_parsePage():
         #     ).strip()
         #     accuracy_pagin_selsctor = send_message_to_AI_agent(request_AI, no_hint=True)
         #     print("accuracy_pagin_selsctor = " + accuracy_pagin_selsctor)
+
+        # И если мы далее будем использовать 
+        # let totalPages = Math.max(...$("").get().map(item => +$(item).text().trim()).filter(Boolean))
+        # То нужно проверить, работает ли это на этой странице
 
         result_pagination_block = "" #######
 
