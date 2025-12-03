@@ -7,24 +7,7 @@ from urllib.parse import parse_qs, urlparse, urlsplit, urlunsplit
 from textwrap import dedent
 
 
-
-"""
-
-Парсинг поиска написать реально намного проще
-    Даже можно дигинетику далеко на потом оставить (когда научимся открывать внутренний браузер)
-
-Если нет извлечения items в parsePage, то удалить эту логику из parse
-Но оставить ко на будущее, который это добавляет
-
-TODO На потом: Проверять, приходят ли данные товара где-либо ещё, кроме html страницы поиска
-и если да, то уже задействовать json-парсеры, и геттеры
-
-
-"""
-
-
-
-
+#TODO Потом интегрировать это в вынесенный файл с данными
 
 # Данные с сайта 5
 data_input_table = {
@@ -38,7 +21,7 @@ data_input_table = {
             "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0+%D0%B0%D0%BA%D1%80%D0%B8%D0%BB%D0%BE%D0%B2%D0%B0%D1%8F&PAGEN_1=2",
             "count_of_page_on_pagination": "0",
             # Число последней страницы, если оно отображается в блоке пагинации внизу
-            "total_count_of_results": "575",
+            "total_count_of_results": "576",
             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
             "links_items": [
                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
@@ -49,7 +32,8 @@ data_input_table = {
                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_30kh0_70_ultra_130_/",
             ]
         }
-    ]
+    ],
+    "timestamp": 1764753782
 }
 
 # # Данные с сайта 1
@@ -229,6 +213,10 @@ def generate_parsePage(set_item):
 
 
 def main_generate_parsePage():
+    if(((time.time() - data_input_table.get("timestamp")) / 3600) > 6):
+        print(f"Текущий timestamp = {int(time.time())}")
+        raise ErrorHandler("Данные для генерации parsePage старше 6 часов, и скорее всего не актуальны")
+
     # Тут надо будет как-то обработать, что у нас не 1 пример, а 5
 
     # Извлекает url параметры поиска и пагинации из вхоящей ссылки
@@ -299,81 +287,81 @@ def main_generate_parsePage():
     
 
     
-    # # Извлекаем селектор для пагинации
-    # if(current_element["count_of_page_on_pagination"]) != "0":
-    #     print("Извлекаем селектор кол-ва страниц")
+    # Извлекаем селектор для пагинации
+    if(current_element["count_of_page_on_pagination"]) != "0":
+        print("Извлекаем селектор кол-ва страниц")
 
-    #     result_pagination_block = "" #######
-    # else:
-    #     print("Извлекаем селектор кол-ва товаров по запросу")
+        result_pagination_block = "" #######
+    else:
+        print("Извлекаем селектор кол-ва товаров по запросу")
 
-    #     finding_element = current_element["total_count_of_results"]
+        finding_element = current_element["total_count_of_results"]
         
-    #     pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = False)
-    #     print("pagination_selctor: " )
-    #     print(pagination_selctor)
+        pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = False)
+        print("pagination_selctor: " )
+        print(pagination_selctor)
 
-    #     # Проверяем, получаем ли мы по селектору именно нужный элемент
-    #     checked_selector = get_element_from_selector(set_item["page_html"], pagination_selctor)
-    #     print("Проверили, и нашли такой элемент по найденному селектору: " + checked_selector)
+        # Проверяем, получаем ли мы по селектору именно нужный элемент
+        checked_selector = get_element_from_selector(set_item["page_html"], pagination_selctor)
+        print("Проверили, и нашли такой элемент по найденному селектору: " + checked_selector)
 
-    #     if(finding_element == checked_selector):
-    #         print("Селектор корректен")
-    #         extracting_pagination_1 = f'let totalItems = $("{pagination_selctor}")?.first()?.text()?.trim()'
-    #     elif(checked_selector == ""):
-    #         raise ErrorHandler("Ошибка, элемент числа товаров для пагинации не найден по селектору!")
-    #     else:
-    #         print("Нужное значение и извлекаемый элемент совпадают неточно, запускаю AI")
-    #         js_code_extract_pagination = f'let totalItems = $("{pagination_selctor}")?.first()?.text()?.trim()'
-    #         print("js_code_extract_pagination = " + js_code_extract_pagination)
+        if(finding_element == checked_selector):
+            print("Селектор корректен")
+            extracting_pagination_1 = f'let totalItems = $("{pagination_selctor}")?.first()?.text()?.trim()'
+        elif(checked_selector == ""):
+            raise ErrorHandler("Ошибка, элемент числа товаров для пагинации не найден по селектору!")
+        else:
+            print("Нужное значение и извлекаемый элемент совпадают неточно, запускаю AI")
+            js_code_extract_pagination = f'let totalItems = $("{pagination_selctor}")?.first()?.text()?.trim()'
+            print("js_code_extract_pagination = " + js_code_extract_pagination)
             
-    #         request_AI = dedent(
-    #             f"""
-    #             Есть такой код на JS: 
-    #             {js_code_extract_pagination}
-    #             Однако он извлекает "{checked_selector}"
-    #             А должен извлекать: "{finding_element}"
-    #             Измени исходный код, что бы он делал это.
-    #             """
-    #         ).strip()
-    #         # print(request_AI)
-    #         extracting_pagination_1 = send_message_to_AI_agent(request_AI)
-    #         # Значение len_of_products_on_this_page проверяю и валидирую выше (если нет, то кидаю ошибку)
-    #         extracting_pagination_2 = f'let totalPages = Math.ceil(+totalItems / {len_of_products_on_this_page})'
+            request_AI = dedent(
+                f"""
+                Есть такой код на JS: 
+                {js_code_extract_pagination}
+                Однако он извлекает "{checked_selector}"
+                А должен извлекать: "{finding_element}"
+                Измени исходный код, что бы он делал это.
+                """
+            ).strip()
+            # print(request_AI)
+            extracting_pagination_1 = send_message_to_AI_agent(request_AI)
+            # Значение len_of_products_on_this_page проверяю и валидирую выше (если нет, то кидаю ошибку)
+            extracting_pagination_2 = f'let totalPages = Math.ceil(+totalItems / {len_of_products_on_this_page})'
             
-    #         result_pagination_block = extracting_pagination_1 + "\n" + extracting_pagination_2
+            result_pagination_block = extracting_pagination_1 + "\n" + extracting_pagination_2
 
-    #     # На этом этапе мы получили первую строку, которая извлекает количество товаров на одной странице
-    #     # Далее, нам нужно проверить, сколько элементов подгружается на странице
-    #     # И для этого, нам нужно извлечь селектор, который указывает на товар
-    #     # (а точнее на ссылку на товар)
+        # На этом этапе мы получили первую строку, которая извлекает количество товаров на одной странице
+        # Далее, нам нужно проверить, сколько элементов подгружается на странице
+        # И для этого, нам нужно извлечь селектор, который указывает на товар
+        # (а точнее на ссылку на товар)
 
-    # # print("result_pagination_block = \n\n" + result_pagination_block) 
+    # print("result_pagination_block = \n\n" + result_pagination_block) 
 
-    # set_item["result_pagination_block"] = result_pagination_block
-    # set_item["product_selector"] = product_selector
+    set_item["result_pagination_block"] = result_pagination_block
+    set_item["product_selector"] = product_selector
 
+    generate_parsePage(set_item)
+
+
+
+
+
+    ######################
+    # В целом, кажется всё работает
+    # Нужно прописать ветку извлечения пагинации с количеством страниц
+
+
+
+
+
+    # Извлекает селектор для товара
+
+    # Добавить обработчик для finalProductLink
+        # чаще всего там будет просто '$(product)?.attr("href")', но надо будет проверять, что это работает
+
+    # # Генерирует итоговый кусок кода parsePage
     # generate_parsePage(set_item)
-
-
-
-
-
-    # ######################
-    # # В целом, кажется всё работает
-    # # Нужно прописать ветку извлечения пагинации с количеством страниц
-
-
-
-
-
-    # # Извлекает селектор для товара
-
-    # # Добавить обработчик для finalProductLink
-    #     # чаще всего там будет просто '$(product)?.attr("href")', но надо будет проверять, что это работает
-
-    # # # Генерирует итоговый кусок кода parsePage
-    # # generate_parsePage(set_item)
 
 
 
