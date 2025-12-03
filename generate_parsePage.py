@@ -61,13 +61,11 @@ data_input_table = {
 # }
 
 
-
 def extract_params(url: str) -> dict:
     parsed = urlparse(url)
     params = parse_qs(parsed.query, keep_blank_values=True)
 
     return {k: v[0] if len(v) == 1 else v for k, v in params.items()} # Преобразуем [""] → ""
-
 
 def strip_host(url: str) -> str:
     """
@@ -76,8 +74,7 @@ def strip_host(url: str) -> str:
     parts = urlsplit(url)
     return urlunsplit(("", "", parts.path, parts.query, parts.fragment))
 
-
-
+# region Extract URL
 def generate_parsePage_search_requests(data_input_table):
     set_item = {}
 
@@ -213,15 +210,11 @@ def generate_parsePage_search_requests(data_input_table):
 
     #TODO Потом переписать покрасивее тут всё
 
-    
-
-# generate_parsePage_search_requests()
 
 
 
 
-
-
+# region Final gen template
 def generate_parsePage(set_item):
     template_parseCard = Template("""
     async parsePage(set: SetType) {
@@ -263,9 +256,9 @@ def generate_parsePage(set_item):
         
         result_pagination_block_value = set_item["result_pagination_block"],
         productSelector = set_item["product_selector"],
-        finalProductLink = '$(product)?.attr("href")' # Наверное надо будет проверить, верно ли она извлекается
+        #TODO Как-то проверить, что товар извлекается по $(product)?.attr("href")
+        finalProductLink = '$(product)?.attr("href")'
         # Если в селкторе есть href в [] - то значит верно, также может быть src или текст
-
     )
 
     print(result)
@@ -274,25 +267,22 @@ def generate_parsePage(set_item):
 
 
 
+# region Main gen parsePage
 def main_generate_parsePage():
     if(((time.time() - data_input_table.get("timestamp")) / 3600) > 6):
         print(f"Текущий timestamp = {int(time.time())}")
         raise ErrorHandler("Данные для генерации parsePage старше 6 часов, и скорее всего не актуальны")
 
-    # Тут надо будет как-то обработать, что у нас не 1 пример, а 5
+    #TODO Тут надо будет как-то обработать, что у нас не 1 пример, а 5
 
     # Извлекает url параметры поиска и пагинации из вхоящей ссылки
-    set_item = generate_parsePage_search_requests(data_input_table) 
-    return ###############################
+    set_item = generate_parsePage_search_requests(data_input_table)
 
     # Получает страницу
     set_item["page_html"] = get_html(set_item["link"]) 
 
     # print(set_item["page_html"][:1000])
-
     current_element = data_input_table["search_requests"][0]
-
-    
 
     # Извлекаем product_selector
     processed_url_product = strip_host(current_element["links_items"][0])
@@ -340,27 +330,29 @@ def main_generate_parsePage():
         print(f"Совпадение ссылок = {coverage_ratio:.2f} ({len(matched_links)}/{len(links_items_set)})")
         if coverage_ratio < 0.6:
             raise ErrorHandler("Меньше 60% ссылок совпадают, считаем что на странице найдены неверные результаты")
-
-
-
-
-    # Далее нужно работать со 2 примером - пагинация по страницам, а точнее извлечение селектора максимальной страницы
-    
-    
-    
-
     
     # Извлекаем селектор для пагинации
-    if(current_element["count_of_page_on_pagination"]) != "0":
+    if(current_element["count_of_page_on_pagination"]) != "0": # region Ex selector pagin
         print("Извлекаем селектор кол-ва страниц")
 
+        # Далее нужно работать со 2 примером - пагинация по страницам, а точнее извлечение селектора максимальной страницы
         result_pagination_block = "" #######
-    else:
-        print("Извлекаем селектор кол-ва товаров по запросу")
 
+
+
+
+
+
+    else: # region Ex selector count
+        print("Извлекаем селектор кол-ва товаров по запросу")
+        
         finding_element = current_element["total_count_of_results"]
         
         pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = False)
+        if(pagination_selctor == ""):
+            raise ErrorHandler("Не нашли селектора для извлечения количества найленных товаров")
+            # Такая ошибка может возникнуть, если данные во входном массиве устарели, и на странице новое число
+            #TODO Потенциальная ошибка
         print("pagination_selctor: " )
         print(pagination_selctor)
 
@@ -399,34 +391,13 @@ def main_generate_parsePage():
         # И для этого, нам нужно извлечь селектор, который указывает на товар
         # (а точнее на ссылку на товар)
 
-    # print("result_pagination_block = \n\n" + result_pagination_block) 
+    print("result_pagination_block = \n\n" + result_pagination_block) 
 
-    set_item["result_pagination_block"] = result_pagination_block
-    set_item["product_selector"] = product_selector
+    # set_item["result_pagination_block"] = result_pagination_block
+    # set_item["product_selector"] = product_selector
 
-    generate_parsePage(set_item)
-
-
-
-
-
-    ######################
-    # В целом, кажется всё работает
-    # Нужно прописать ветку извлечения пагинации с количеством страниц
-
-
-
-
-
-    # Извлекает селектор для товара
-
-    # Добавить обработчик для finalProductLink
-        # чаще всего там будет просто '$(product)?.attr("href")', но надо будет проверять, что это работает
-
-    # # Генерирует итоговый кусок кода parsePage
+    # # Генерирует итоговый шаблон parsePage
     # generate_parsePage(set_item)
-
-
 
 
 
