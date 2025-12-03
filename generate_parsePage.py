@@ -61,10 +61,43 @@ from textwrap import dedent
 #     "timestamp": 1764753782
 # }
 
-# Данные с сайта 2
-#TODO Здесь надо внедрять установку оффсета
-# Проверять, если явной пагинации нет, но оффсет есть - то выислять разницу между 2 и 3й страницами
-# и привязывать его к пагинации
+
+#TODO У сайта 3 нет пагинации вообще, при поиске
+# Надо найти кол-во найденных товаров
+# И сверить с кол-вом товаров на странице
+# И если при какой-то галочке, то пропускаем 
+
+
+# # Данные с сайта 2
+# #TODO Здесь надо внедрять установку оффсета
+# # Проверять, если явной пагинации нет, но оффсет есть - то выислять разницу между 2 и 3й страницами
+# # и привязывать его к пагинации
+# data_input_table = {
+#     "host": "",
+#     "links": {
+
+#     },
+#     "search_requests": [
+#         {
+#             "query": "Ванна",
+#             "url_search_query_page_2": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24",
+#             "url_search_query_page_3": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=48",
+#             "count_of_page_on_pagination": "6",
+#             # Число последней страницы, если оно отображается в блоке пагинации внизу
+#             "total_count_of_results": "0",
+#             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
+#             "links_items": [
+#                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
+#             ]
+#         }
+#     ],
+#     "timestamp": 1764753782
+# }
+
+# Данные с сайта 4
 data_input_table = {
     "host": "",
     "links": {
@@ -73,23 +106,18 @@ data_input_table = {
     "search_requests": [
         {
             "query": "Ванна",
-            "url_search_query_page_2": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24",
-            "url_search_query_page_3": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=48",
-            "count_of_page_on_pagination": "6",
-            # Число последней страницы, если оно отображается в блоке пагинации внизу
+            "url_search_query_page_2": "https://kotel-nasos.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
+            "count_of_page_on_pagination": "115",
             "total_count_of_results": "0",
-            # Если нет последней страницы пагинации, то общее кол-во найденых товаров
             "links_items": [
-                # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
+                "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-54/",
+                "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-48/",
+                "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-42/",
             ]
         }
     ],
     "timestamp": 1764753782
 }
-
 
 def extract_params(url: str) -> dict:
     parsed = urlparse(url)
@@ -175,6 +203,7 @@ def generate_parsePage_search_requests(data_input_table):
                 В таком запросе: {current_url}
                 Есть такие параметры: "{all_http_params}"
                 {instruction}
+                Обязательное правило:
                 Не пиши никаких комментариев, пояснений, вариантов и текста вокруг, потому что я вставлю твой ответ сразу в код. 
                 В результате выдай только один параметр.
                 """
@@ -347,10 +376,10 @@ def main_generate_parsePage():
     if link_list and set_item["host"] not in link_list[0]:
         link_list = [f'{set_item["host"]}{value}' for value in link_list]
         
-    # # Печать уже из массива
-    # for value in link_list:
-    #     print(value)
-    print(link_list)
+    # # # Печать уже из массива
+    # # for value in link_list:
+    # #     print(value)
+    # print(link_list)
 
     # Рассчёт доли совпадающих ссылок на странице поиска, и во входном массиве
     # и проверка, что мы нашли верный селектор, и извлекаем верные ссылки
@@ -381,20 +410,45 @@ def main_generate_parsePage():
 
 
 
-    
+
 
 
     # region Ex selector pagin
     if(current_element["count_of_page_on_pagination"]) != "0": 
         print("Извлекаем селектор кол-ва страниц")
 
-        # Далее нужно работать со 2 примером - пагинация по страницам, а точнее извлечение селектора максимальной страницы
+        finding_element = current_element["count_of_page_on_pagination"]        
+        pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = False)
+
+        print("pagination_selctor = " + pagination_selctor)
+
+        checked_value = get_element_from_selector(set_item["page_html"], pagination_selctor)
+        print("Проверили, и нашли такой элемент по найденному селектору пагинации: " + checked_value)
+
+        if(checked_value != finding_element):
+            print("Это неточный селектор, уточняем его")
+            if finding_element not in checked_value:
+                raise ErrorHandler("Селектор пагинации полностью неверный")
+
+            # Получаем HTML кода элемента по найденному селектору
+            elems = tree.cssselect(pagination_selctor)
+            element_html = html_lx.tostring(elems[0], encoding="unicode") if elems else ""
+
+            request_AI = dedent(
+                f"""
+                У меня есть такой селектор: {pagination_selctor}
+                Он возвращает такой html код: {element_html}
+                Однако, мне нужно уточнить селектор, что бы он возвращал только номер последней страницы
+                в текущем случае - это "{finding_element}"
+                Дополни этот селектор так, что бы он возвращал нужный элемент
+                Обязательное правило:
+                Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только итоговый селектор
+                """
+            ).strip()
+            accuracy_pagin_selsctor = send_message_to_AI_agent(request_AI, no_hint=True)
+            print("accuracy_pagin_selsctor = " + accuracy_pagin_selsctor)
+
         result_pagination_block = "" #######
-
-
-
-
-
 
     else: 
         # region Ex selector count
@@ -433,8 +487,8 @@ def main_generate_parsePage():
                 Измени исходный код, что бы он делал это.
                 """
             ).strip()
-            # print(request_AI)
             extracting_pagination_1 = send_message_to_AI_agent(request_AI)
+
             # Значение len_of_products_on_this_page проверяю и валидирую выше (если нет, то кидаю ошибку)
             extracting_pagination_2 = f'let totalPages = Math.ceil(+totalItems / {len_of_products_on_this_page})'
             
