@@ -4,7 +4,7 @@ from addedFunc import *
 
 # Универсальная функция: send_message_to_AI_agent(str)
 
-def send_message_to_AI_agent(prompt: str):
+def send_message_to_AI_agent(prompt: str, no_hint = False):
     end_hint = """
 Обязательные правила:
 — Используй только опциональную цепочку ?. и не используй просто .
@@ -13,7 +13,8 @@ def send_message_to_AI_agent(prompt: str):
 строку или фрагмент кода.
     """
 
-    prompt = prompt + end_hint
+    if no_hint == False:
+        prompt = prompt + end_hint
     result = sendMessageToYandexGPT(prompt)
     return result.replace("`", "").strip()
 
