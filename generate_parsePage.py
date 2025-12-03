@@ -9,34 +9,7 @@ from textwrap import dedent
 
 #TODO Потом интегрировать это в вынесенный файл с данными
 
-# Данные с сайта 5
-data_input_table = {
-    "host": "",
-    "links": {
-
-    },
-    "search_requests": [
-        {
-            "query": "Ванна акриловая",
-            "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0+%D0%B0%D0%BA%D1%80%D0%B8%D0%BB%D0%BE%D0%B2%D0%B0%D1%8F&PAGEN_1=2",
-            "count_of_page_on_pagination": "0",
-            # Число последней страницы, если оно отображается в блоке пагинации внизу
-            "total_count_of_results": "576",
-            # Если нет последней страницы пагинации, то общее кол-во найденых товаров
-            "links_items": [
-                # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-                "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_lorena_1_5x0_7_pryamougolnaya_bez_nozhek_panel/",
-                "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_20kh0_70_standart_120/",
-                "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_50kh0_70_standart_150/",
-                "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_60kh0_70_standart_160/",
-                "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_30kh0_70_ultra_130_/",
-            ]
-        }
-    ],
-    "timestamp": 1764753782
-}
-
-# # Данные с сайта 1
+# # Данные с сайта 5
 # data_input_table = {
 #     "host": "",
 #     "links": {
@@ -44,21 +17,49 @@ data_input_table = {
 #     },
 #     "search_requests": [
 #         {
-#             "query": "Ванна",
-#             "url_search_query_page_2": "https://vodomirural.ru/search/?tags=&how=r&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
-#             "count_of_page_on_pagination": "6",
+#             "query": "Ванна акриловая",
+#             "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0+%D0%B0%D0%BA%D1%80%D0%B8%D0%BB%D0%BE%D0%B2%D0%B0%D1%8F&PAGEN_1=2",
+#             "count_of_page_on_pagination": "0",
 #             # Число последней страницы, если оно отображается в блоке пагинации внизу
-#             "total_count_of_results": "0",
+#             "total_count_of_results": "576",
 #             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
 #             "links_items": [
 #                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108576",
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108576",
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108576",
+#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_lorena_1_5x0_7_pryamougolnaya_bez_nozhek_panel/",
+#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_20kh0_70_standart_120/",
+#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_50kh0_70_standart_150/",
+#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_60kh0_70_standart_160/",
+#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_30kh0_70_ultra_130_/",
 #             ]
 #         }
-#     ]
+#     ],
+#     "timestamp": 1764753782
 # }
+
+# Данные с сайта 1
+data_input_table = {
+    "host": "",
+    "links": {
+
+    },
+    "search_requests": [
+        {
+            "query": "Ванна",
+            "url_search_query_page_2": "https://vodomirural.ru/search/?tags=&how=r&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
+            "count_of_page_on_pagination": "6",
+            # Число последней страницы, если оно отображается в блоке пагинации внизу
+            "total_count_of_results": "0",
+            # Если нет последней страницы пагинации, то общее кол-во найденых товаров
+            "links_items": [
+                # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108576",
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108576",
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108576",
+            ]
+        }
+    ],
+    "timestamp": 1764753782
+}
 
 
 def extract_params(url: str) -> dict:
@@ -269,7 +270,7 @@ def generate_parsePage(set_item):
 
 # region Main gen parsePage
 def main_generate_parsePage():
-    if(((time.time() - data_input_table.get("timestamp")) / 3600) > 6):
+    if not data_input_table["timestamp"] or (((time.time() - data_input_table["timestamp"])) / 3600) > 6):
         print(f"Текущий timestamp = {int(time.time())}")
         raise ErrorHandler("Данные для генерации parsePage старше 6 часов, и скорее всего не актуальны")
 
