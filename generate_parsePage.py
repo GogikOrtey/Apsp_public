@@ -98,47 +98,48 @@ def generate_parsePage_search_requests(data_input_table):
     search_param = None
     pagination_param = None
 
-    ################################################################################## вернуть
-    # # Ищем, какой из параметров присутствует, по прямому совпадению
-    # for name in search_param_names:
-    #     if name in data:
-    #         search_param = name
-    #         break
+    #TODO Потом ещё дополнительно тестировать это, и на других сайтах
 
-    # for name in pagination_param_names:
-    #     if name in data:
-    #         pagination_param = name
-    #         break
+    # Ищем, какой из параметров присутствует, по прямому совпадению
+    for name in search_param_names:
+        if name in data:
+            search_param = name
+            break
 
-    # # Ищем по подстрокам 
-    # if not search_param:
-    #     search_substrings = ["query", "search"]
-    #     found_search_keys = []
-    #     for key in data.keys():
-    #         key_upper = key.upper()
-    #         for substring in search_substrings:
-    #             if substring.upper() in key_upper:
-    #                 found_search_keys.append(key)
-    #                 break
+    for name in pagination_param_names:
+        if name in data:
+            pagination_param = name
+            break
+
+    # Если не нашли прямым совпадением, ищем по подстрокам 
+    if not search_param:
+        search_substrings = ["query", "search"]
+        found_search_keys = []
+        for key in data.keys():
+            key_upper = key.upper()
+            for substring in search_substrings:
+                if substring.upper() in key_upper:
+                    found_search_keys.append(key)
+                    break
         
-    #     if len(found_search_keys) == 1:
-    #         search_param = found_search_keys[0]
-    #     elif len(found_search_keys) >= 2:
-    #         print(f"🟧 Найдено {len(found_search_keys)} ключей, содержащих подстроки для search_param: {found_search_keys}. Значение не присвоено.")
+        if len(found_search_keys) == 1:
+            search_param = found_search_keys[0]
+        elif len(found_search_keys) >= 2:
+            print(f"🟧 Найдено {len(found_search_keys)} ключей, содержащих подстроки для search_param: {found_search_keys}. Значение не присвоено.")
     
-    # if not pagination_param:
-    #     pagination_substring = "page"
-    #     found_pagination_keys = []
-    #     for key in data.keys():
-    #         if pagination_substring.upper() in key.upper():
-    #             found_pagination_keys.append(key)
+    if not pagination_param:
+        pagination_substring = "page"
+        found_pagination_keys = []
+        for key in data.keys():
+            if pagination_substring.upper() in key.upper():
+                found_pagination_keys.append(key)
         
-    #     if len(found_pagination_keys) == 1:
-    #         pagination_param = found_pagination_keys[0]
-    #     elif len(found_pagination_keys) >= 2:
-    #         print(f"🟧 Найдено {len(found_pagination_keys)} ключей, содержащих подстроку '{pagination_substring}' для pagination_param: {found_pagination_keys}. Значение не присвоено.")
+        if len(found_pagination_keys) == 1:
+            pagination_param = found_pagination_keys[0]
+        elif len(found_pagination_keys) >= 2:
+            print(f"🟧 Найдено {len(found_pagination_keys)} ключей, содержащих подстроку '{pagination_substring}' для pagination_param: {found_pagination_keys}. Значение не присвоено.")
 
-    # Используем ИИ
+    # Если и по подстрокам не нашли, то используем ИИ
 
     def _build_ai_request(instruction: str) -> str:
         for AI_attempts in range(3): # YandexGPT не максимально хорошо понимает это, и иногда выдаёт длинный ответ
