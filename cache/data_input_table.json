@@ -1,0 +1,21 @@
+{
+    "links": {
+        "simple": [
+            {
+                "link": "https://santehnica-vodoley.ru/catalog/vanny/vanny-akrilovye/vanna-aura-170-b530df76.html",
+                "name": "Акриловая ванна Triton Аура 170x70 (КОПЛЕКТ ванна,экрас,каркас) TRITON",
+                "price": "16 125",
+                "article": "00017728",
+                "brand": "TRITON",
+                "stock": "В наличии",
+                "_selectors": {
+                    "name": "#site",
+                    "price": "div.card_price_info:nth-of-type(1)",
+                    "article": "#site",
+                    "brand": "#site"
+                }
+            }
+        ]
+    },
+    "search_requests": []
+}

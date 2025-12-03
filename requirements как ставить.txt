@@ -1,0 +1,29 @@
+Для установки библиотек:
+
+python -m venv .venv
+.venv/bin/activate          # (или .venv\Scripts\activate на Windows)
+pip install -r requirements.txt
+
+Для сохранения библоитек:
+
+Посмотреть стандартный пакет
+
+----------------------------
+
+Как переустановить venv:
+
+Если возникла проблема с окружением, и мы его переустанавливаем, сначала делаем 
+deactivate
+
+rm -rf .venv
+python3 -m venv .venv
+source .venv/bin/activate
+
+Проверка:
+which python
+
+Должен вывести например 
+/home/orlov-ga/Desktop/APSP/.venv/bin/python
+
+Далее, установка зависимостей:
+pip install -r requirements.txt
