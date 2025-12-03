@@ -180,44 +180,44 @@
 
 
 
-# Данные с сайта 5
-data_input_table = {
-    "host": "",
-    "links": {
-        "simple": [
-            {
-                "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
-                "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
-                "price": "8 390 руб.",
-                "article": "U4031689", 
-                "brand": "ТРИТОН",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
-            },
-            {
-                "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
-                "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
-                "price": "1 860,10",
-                "oldPrice": "1 958",
-                "article": "B2508830", 
-                "brand": "Bonaparte",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
-            },
-            {
-                "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
-                "name": "Тумба напольная Агата 55 с умывальником Визит-55, белая EMMY",
-                "price": "9 400,00",
-                "oldPrice": "12 450,00",
-                "article": "U4079315", 
-                "brand": "EMMY",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
-            }
-        ]
-    },
-    "search_requests": []
-}
+# # Данные с сайта 5
+# data_input_table = {
+#     "host": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
+#                 "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
+#                 "price": "8 390 руб.",
+#                 "article": "U4031689", 
+#                 "brand": "ТРИТОН",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
+#             },
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
+#                 "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
+#                 "price": "1 860,10",
+#                 "oldPrice": "1 958",
+#                 "article": "B2508830", 
+#                 "brand": "Bonaparte",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
+#             },
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
+#                 "name": "Тумба напольная Агата 55 с умывальником Визит-55, белая EMMY",
+#                 "price": "9 400,00",
+#                 "oldPrice": "12 450,00",
+#                 "article": "U4079315", 
+#                 "brand": "EMMY",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
+#             }
+#         ]
+#     },
+#     "search_requests": []
+# }
 
 # # Сайт 6
 # data_input_table = {
@@ -360,3 +360,37 @@ data_input_table = {
 #     },
 #     "search_requests": []
 # }
+
+
+
+# Сайт 11
+data_input_table = {
+    "host": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/shpaklevki/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg/",
+                "name": "Шпаклевка финишная КНАУФ-Ротбанд Паста Профи 18 кг",
+                "price": "1 709 руб.",
+                "oldPrice": "1914.08 руб.",
+                "article": "MF1056",
+                "brand": "КНАУФ",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/232/c2vi4o77ijasd6bilvfj8kdnhtzqm5ye/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg.webp"
+            },
+            {
+                "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/kley_dlya_plitki_i_kamnya/kley_dlya_plitki_knauf_flizen_25_kg/",
+                "name": "Клей для плитки КНАУФ-Флизен 25 кг",
+                "price": "455 руб.",
+                "oldPrice": "509.60 руб.",
+                "article": "OA55",
+                "brand": "КНАУФ",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/dc5/7tkj4rzm90xetdl1io96kdwmrjzxano9/kley_dlya_plitki_knauf_flizen_25_kg.webp"
+            }
+        ]
+    },
+    "search_requests": []
+}
