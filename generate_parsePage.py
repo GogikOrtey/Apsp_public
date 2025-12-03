@@ -425,28 +425,28 @@ def main_generate_parsePage():
         checked_value = get_element_from_selector(set_item["page_html"], pagination_selctor)
         print("Проверили, и нашли такой элемент по найденному селектору пагинации: " + checked_value)
 
-        if(checked_value != finding_element):
-            print("Это неточный селектор, уточняем его")
-            if finding_element not in checked_value:
-                raise ErrorHandler("Селектор пагинации полностью неверный")
+        # if(checked_value != finding_element):
+        #     print("Это неточный селектор, уточняем его")
+        #     if finding_element not in checked_value:
+        #         raise ErrorHandler("Селектор пагинации полностью неверный")
 
-            # Получаем HTML кода элемента по найденному селектору
-            elems = tree.cssselect(pagination_selctor)
-            element_html = html_lx.tostring(elems[0], encoding="unicode") if elems else ""
+        #     # Получаем HTML кода элемента по найденному селектору
+        #     elems = tree.cssselect(pagination_selctor)
+        #     element_html = html_lx.tostring(elems[0], encoding="unicode") if elems else ""
 
-            request_AI = dedent(
-                f"""
-                У меня есть такой селектор: {pagination_selctor}
-                Он возвращает такой html код: {element_html}
-                Однако, мне нужно уточнить селектор, что бы он возвращал только номер последней страницы
-                в текущем случае - это "{finding_element}"
-                Дополни этот селектор так, что бы он возвращал нужный элемент
-                Обязательное правило:
-                Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только итоговый селектор
-                """
-            ).strip()
-            accuracy_pagin_selsctor = send_message_to_AI_agent(request_AI, no_hint=True)
-            print("accuracy_pagin_selsctor = " + accuracy_pagin_selsctor)
+        #     request_AI = dedent(
+        #         f"""
+        #         У меня есть такой селектор: {pagination_selctor}
+        #         Он возвращает такой html код: {element_html}
+        #         Однако, мне нужно уточнить селектор, что бы он возвращал только номер последней страницы
+        #         в текущем случае - это "{finding_element}"
+        #         Дополни этот селектор так, что бы он возвращал нужный элемент
+        #         Обязательное правило:
+        #         Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только итоговый селектор
+        #         """
+        #     ).strip()
+        #     accuracy_pagin_selsctor = send_message_to_AI_agent(request_AI, no_hint=True)
+        #     print("accuracy_pagin_selsctor = " + accuracy_pagin_selsctor)
 
         result_pagination_block = "" #######
 
