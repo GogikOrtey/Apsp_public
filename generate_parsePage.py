@@ -36,7 +36,35 @@ from textwrap import dedent
 #     "timestamp": 1764753782
 # }
 
-# Данные с сайта 1
+# # Данные с сайта 1
+# data_input_table = {
+#     "host": "",
+#     "links": {
+
+#     },
+#     "search_requests": [
+#         {
+#             "query": "Ванна",
+#             "url_search_query_page_2": "https://vodomirural.ru/search/?tags=&how=r&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
+#             "count_of_page_on_pagination": "6",
+#             # Число последней страницы, если оно отображается в блоке пагинации внизу
+#             "total_count_of_results": "0",
+#             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
+#             "links_items": [
+#                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
+#             ]
+#         }
+#     ],
+#     "timestamp": 1764753782
+# }
+
+# Данные с сайта 2
+#TODO Здесь надо внедрять установку оффсета
+# Проверять, если явной пагинации нет, но оффсет есть - то выислять разницу между 2 и 3й страницами
+# и привязывать его к пагинации
 data_input_table = {
     "host": "",
     "links": {
@@ -45,16 +73,17 @@ data_input_table = {
     "search_requests": [
         {
             "query": "Ванна",
-            "url_search_query_page_2": "https://vodomirural.ru/search/?tags=&how=r&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
+            "url_search_query_page_2": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24",
+            "url_search_query_page_3": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=48",
             "count_of_page_on_pagination": "6",
             # Число последней страницы, если оно отображается в блоке пагинации внизу
             "total_count_of_results": "0",
             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
             "links_items": [
                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108576",
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108576",
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108576",
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
             ]
         }
     ],
@@ -270,7 +299,10 @@ def generate_parsePage(set_item):
 
 # region Main gen parsePage
 def main_generate_parsePage():
-    if not data_input_table["timestamp"] or (((time.time() - data_input_table["timestamp"])) / 3600) > 6):
+    if (
+        not data_input_table.get("timestamp") 
+        or ((time.time() - data_input_table["timestamp"]) / 3600) > 6
+    ):
         print(f"Текущий timestamp = {int(time.time())}")
         raise ErrorHandler("Данные для генерации parsePage старше 6 часов, и скорее всего не актуальны")
 
@@ -315,10 +347,10 @@ def main_generate_parsePage():
     if link_list and set_item["host"] not in link_list[0]:
         link_list = [f'{set_item["host"]}{value}' for value in link_list]
         
-    # # # Печать уже из массива
-    # # for value in link_list:
-    # #     print(value)
-    # print(link_list)
+    # # Печать уже из массива
+    # for value in link_list:
+    #     print(value)
+    print(link_list)
 
     # Рассчёт доли совпадающих ссылок на странице поиска, и во входном массиве
     # и проверка, что мы нашли верный селектор, и извлекаем верные ссылки
@@ -329,11 +361,31 @@ def main_generate_parsePage():
         matched_links = links_items_set & link_list_set
         coverage_ratio = len(matched_links) / len(links_items_set) if links_items_set else 0
         print(f"Совпадение ссылок = {coverage_ratio:.2f} ({len(matched_links)}/{len(links_items_set)})")
+        #TODO На сайте 1 работает плохо - там скорее всего ссылки динамически меняются
+        # Надо подумать как проходить дальше этого
+        if coverage_ratio == 0:
+            raise ErrorHandler("Ни одной ссылки не совпало")
         if coverage_ratio < 0.6:
             raise ErrorHandler("Меньше 60% ссылок совпадают, считаем что на странице найдены неверные результаты")
     
     # Извлекаем селектор для пагинации
-    if(current_element["count_of_page_on_pagination"]) != "0": # region Ex selector pagin
+
+
+    #TODO Сюда ещё надо добавить вариант, когда у нас указан оффсет, но нет пагинации
+    # region Ex selector offset
+
+
+
+
+
+
+
+
+    
+
+
+    # region Ex selector pagin
+    if(current_element["count_of_page_on_pagination"]) != "0": 
         print("Извлекаем селектор кол-ва страниц")
 
         # Далее нужно работать со 2 примером - пагинация по страницам, а точнее извлечение селектора максимальной страницы
@@ -344,7 +396,8 @@ def main_generate_parsePage():
 
 
 
-    else: # region Ex selector count
+    else: 
+        # region Ex selector count
         print("Извлекаем селектор кол-ва товаров по запросу")
         
         finding_element = current_element["total_count_of_results"]
