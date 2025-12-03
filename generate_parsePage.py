@@ -93,23 +93,22 @@ def generate_parsePage_search_requests(data_input_table):
     # Возможные варианты названий параметров поиска и пагинации
     search_param_names = ["q", "query", "search"]
     pagination_param_names = ["page", "p", "PAGEN_1", "PAGEN", "page_num"]
-    # TODO Здесь сделать перебор потом по подстрокам, если не будет прямого совпадения
-    # TODO И далее, если не нашли - то запрос к ИИ, что бы он определил названия параметров
 
     # Переменные с найденными названиями параметров
     search_param = None
     pagination_param = None
 
-    # Ищем, какой из параметров присутствует, по прямому совпадению
-    for name in search_param_names:
-        if name in data:
-            search_param = name
-            break
+    ################################################################################## вернуть
+    # # Ищем, какой из параметров присутствует, по прямому совпадению
+    # for name in search_param_names:
+    #     if name in data:
+    #         search_param = name
+    #         break
 
-    for name in pagination_param_names:
-        if name in data:
-            pagination_param = name
-            break
+    # for name in pagination_param_names:
+    #     if name in data:
+    #         pagination_param = name
+    #         break
 
     # Ищем по подстрокам 
     if not search_param:
@@ -151,7 +150,7 @@ def generate_parsePage_search_requests(data_input_table):
             В таком запросе: {current_url}
             Есть такие параметры: "{all_http_params}"
             Верни мне параметр, в котором задаётся запрос на поиск.
-            Не пиши никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только 
+            Не пиши никаких комментариев, пояснений, вариантов и текста вокруг. В результате выдай только 
             один параметр.
             """
         ).strip()
@@ -168,7 +167,7 @@ def generate_parsePage_search_requests(data_input_table):
             В таком запросе: {current_url}
             Есть такие параметры: "{all_http_params}"
             Верни мне параметр, в котором задаётся текущая страница (в данном случае страница = 2.
-            Не пиши никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только 
+            Не пиши никаких комментариев, пояснений, вариантов и текста вокруг. В результате выдай только 
             один параметр.
             """
         ).strip()
@@ -285,6 +284,7 @@ def main_generate_parsePage():
 
     # Извлекает url параметры поиска и пагинации из вхоящей ссылки
     set_item = generate_parsePage_search_requests(data_input_table) 
+    raise ErrorHandler("Тестовая ошибка")
 
     # Получает страницу
     set_item["page_html"] = get_html(set_item["link"]) 
