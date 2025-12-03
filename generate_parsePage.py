@@ -253,8 +253,6 @@ def main_generate_parsePage():
     search_elem = tree.cssselect(product_selector)
     len_of_products_on_this_page = len(search_elem)
     print(f"len_of_products_on_this_page = {len_of_products_on_this_page}")
-    if len(link_list) < 6:
-        raise ErrorHandler("Скорее всего селектор неверный, элементов < 6")
 
     # Полчаем значения элементов, по этому селектороу
     match = re.search(r"\[(.*?)\]", product_selector)
@@ -267,6 +265,9 @@ def main_generate_parsePage():
         else:     # если просто тег — берём текст
             value = elem.text_content().strip()
         link_list.append(value)
+
+    if len(link_list) < 6:
+        raise ErrorHandler("Скорее всего селектор неверный, элементов < 6")
 
     # Добавляем хост ко всем ссылкам, если они извлекаются со страницы без него
     if link_list and set_item["host"] not in link_list[0]:
