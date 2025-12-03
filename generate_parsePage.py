@@ -110,69 +110,67 @@ def generate_parsePage_search_requests(data_input_table):
     #         pagination_param = name
     #         break
 
-    # Ищем по подстрокам 
-    if not search_param:
-        search_substrings = ["query", "search"]
-        found_search_keys = []
-        for key in data.keys():
-            key_upper = key.upper()
-            for substring in search_substrings:
-                if substring.upper() in key_upper:
-                    found_search_keys.append(key)
-                    break
+    # # Ищем по подстрокам 
+    # if not search_param:
+    #     search_substrings = ["query", "search"]
+    #     found_search_keys = []
+    #     for key in data.keys():
+    #         key_upper = key.upper()
+    #         for substring in search_substrings:
+    #             if substring.upper() in key_upper:
+    #                 found_search_keys.append(key)
+    #                 break
         
-        if len(found_search_keys) == 1:
-            search_param = found_search_keys[0]
-        elif len(found_search_keys) >= 2:
-            print(f"🟧 Найдено {len(found_search_keys)} ключей, содержащих подстроки для search_param: {found_search_keys}. Значение не присвоено.")
+    #     if len(found_search_keys) == 1:
+    #         search_param = found_search_keys[0]
+    #     elif len(found_search_keys) >= 2:
+    #         print(f"🟧 Найдено {len(found_search_keys)} ключей, содержащих подстроки для search_param: {found_search_keys}. Значение не присвоено.")
     
-    if not pagination_param:
-        pagination_substring = "page"
-        found_pagination_keys = []
-        for key in data.keys():
-            if pagination_substring.upper() in key.upper():
-                found_pagination_keys.append(key)
+    # if not pagination_param:
+    #     pagination_substring = "page"
+    #     found_pagination_keys = []
+    #     for key in data.keys():
+    #         if pagination_substring.upper() in key.upper():
+    #             found_pagination_keys.append(key)
         
-        if len(found_pagination_keys) == 1:
-            pagination_param = found_pagination_keys[0]
-        elif len(found_pagination_keys) >= 2:
-            print(f"🟧 Найдено {len(found_pagination_keys)} ключей, содержащих подстроку '{pagination_substring}' для pagination_param: {found_pagination_keys}. Значение не присвоено.")
+    #     if len(found_pagination_keys) == 1:
+    #         pagination_param = found_pagination_keys[0]
+    #     elif len(found_pagination_keys) >= 2:
+    #         print(f"🟧 Найдено {len(found_pagination_keys)} ключей, содержащих подстроку '{pagination_substring}' для pagination_param: {found_pagination_keys}. Значение не присвоено.")
 
     # Используем ИИ
 
+    def _build_ai_request(instruction: str) -> str:
+        for AI_attempts in range(3): # YandexGPT не максимально хорошо понимает это, и иногда выдаёт длинный ответ
+            AI_request = dedent(
+                f"""
+                В таком запросе: {current_url}
+                Есть такие параметры: "{all_http_params}"
+                {instruction}
+                Не пиши никаких комментариев, пояснений, вариантов и текста вокруг, потому что я вставлю твой ответ сразу в код. 
+                В результате выдай только один параметр.
+                """
+            ).strip()
+            AI_answer = send_message_to_AI_agent(AI_request, no_hint=True)
+            if(len(AI_answer) > 16):
+                print("ИИ дал неверный ответ, пробуем ещё раз")
+                continue
+            return AI_answer.strip()
+        return ""
+
+    all_http_params = ", ".join(data.keys())
+
     if not search_param:
-        print("Используем ИИ для поиска параметра, соответствующего запросу")
-        all_http_params = ""
-        for key in data.keys():
-            all_http_params += f"{key}, "
-        request_AI = dedent(
-            f"""
-            В таком запросе: {current_url}
-            Есть такие параметры: "{all_http_params}"
-            Верни мне параметр, в котором задаётся запрос на поиск.
-            Не пиши никаких комментариев, пояснений, вариантов и текста вокруг. В результате выдай только 
-            один параметр.
-            """
-        ).strip()
-        #TODO Небезопасный код
-        search_param = send_message_to_AI_agent(request_AI, no_hint=True)
+            print("Используем ИИ для поиска параметра, соответствующего запросу")
+            search_param = _build_ai_request("Верни мне параметр, в котором задаётся запрос на поиск.")
+    if not search_param:
+        raise ErrorHandler("Не смогли подобрать параметр для поиска, в запросе")
 
     if not pagination_param:
         print("Используем ИИ для поиска параметра, соответствующего текущей странице")
-        all_http_params = ""
-        for key in data.keys():
-            all_http_params += f"{key}, "
-        request_AI = dedent(
-            f"""
-            В таком запросе: {current_url}
-            Есть такие параметры: "{all_http_params}"
-            Верни мне параметр, в котором задаётся текущая страница (в данном случае страница = 2.
-            Не пиши никаких комментариев, пояснений, вариантов и текста вокруг. В результате выдай только 
-            один параметр.
-            """
-        ).strip()
-        #TODO Небезопасный код
-        pagination_param = send_message_to_AI_agent(request_AI, no_hint=True)
+        pagination_param = _build_ai_request("Верни мне параметр, в котором задаётся текущая страница (в данном случае страница = 2).")
+    if not pagination_param:
+        raise ErrorHandler("Не смогли подобрать параметр для пагинации")
 
     # Создаём копию словаря без этих ключей
     data_clean = {
@@ -284,7 +282,7 @@ def main_generate_parsePage():
 
     # Извлекает url параметры поиска и пагинации из вхоящей ссылки
     set_item = generate_parsePage_search_requests(data_input_table) 
-    raise ErrorHandler("Тестовая ошибка")
+    return ###############################
 
     # Получает страницу
     set_item["page_html"] = get_html(set_item["link"]) 

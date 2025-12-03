@@ -71,7 +71,7 @@ def sendMessageToYandexGPT(prompt: str, isSmartModel: bool = False, isPrint: boo
         # Потом можно будет вывести в словарь вместе с ответом
         if isPrint:
             # print(f"\n💫 PROMPT:\n{prompt}\n\n💬 AI ANSWER:\n{result_text}\n")
-            print(f"\n💬 AI ANSWER:\n{result_text}\n")
+            print(f'\n💬 AI ANSWER:\n"{result_text}"\n')
         return result_text
     else:
         raise Exception(f"Ошибка {response.status_code}: {response.text}")
