@@ -5,7 +5,8 @@
 # Подключение всех библиотек
 from import_all_libraries import * 
 
-isPrint = False
+# isPrint = False #############################################################################
+isPrint = True
 
 # region Доп. методы
 
@@ -460,6 +461,9 @@ def find_text_selector(
 
 def get_css_selector_from_text_value_element(html, finding_element, is_price=False, is_exact=True):
     print("")
+    if not finding_element:
+        print("Поле finding_element пусто, пропускаю получение селектора")
+        return ""
     if isPrint: print(f"🟦 Извлекли такие селекторы для поля \"{finding_element}\":")
     all_selectors = find_text_selector(html, 
                                        finding_element, 
@@ -525,7 +529,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
         # Проверяем совпадение текста
         if finding_element.strip() in result_text.strip():
             match_score = 1.0
-            if isPrint: print(f"✅ Строгое совпадение: [{result_text[:250]}]")
+            if isPrint: print(f"✅ Строгое совпадение: [{result_text[:250]}]{':250' if len(result_text) > 250 else ''}")
         else:
             match_score = compute_match_score(result_text, finding_element)
             if isPrint: print(f"⚪ Совпадение {match_score*100:.1f}%: [{result_text}]")
@@ -567,9 +571,10 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
 
     valid_selectors.sort(key=sort_key)
 
-    # print("\n🔵 Отсортированные селекторы:")
-    # for i, v in enumerate(valid_selectors, start=1):
-    #     print(f"{i}. {v['selector']} score: {v['score']:.2f}, percent: {v['percent']:.2%}, pos: {v['pos']:.4f}")
+    if isPrint:
+        print("\n🔵 Отсортированные селекторы:")
+        for i, v in enumerate(valid_selectors, start=1):
+            print(f"{i}. {v['selector']} score: {v['score']:.2f}, percent: {v['percent']:.2%}, pos: {v['pos']:.4f}")
 
     best = valid_selectors[0]
     if isPrint: print("")

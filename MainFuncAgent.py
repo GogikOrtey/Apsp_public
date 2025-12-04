@@ -35,7 +35,8 @@ def check_avialible_html():
         raise ErrorHandler("При открытии страницы 1 товара, на ней не было обнаружено названия товара", "4-1")
 
 # Проверяю, что html-страница доступна, и данные первого товара на ней есть
-check_avialible_html()
+# check_avialible_html() ################################################################# вернуть
+##########################################################################################
 
 
 # region Обр. всех ссылок
@@ -555,7 +556,7 @@ def save_content_html_to_cache(content_html, cache_file="cache.json"):
 
 
 
-
+isPrint = True
 
 
 # region Обр. всех sel
@@ -567,7 +568,7 @@ fill_selectors_for_items(
 
 # print_json(data_input_table["links"]["simple"])
 
-# result_select_best_selectors = select_best_selectors(data_input_table["links"]["simple"], content_html)
+result_select_best_selectors = select_best_selectors(data_input_table["links"]["simple"], content_html)
 
 print("")
 print("")
