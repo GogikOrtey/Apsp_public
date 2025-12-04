@@ -363,32 +363,65 @@
 
 
 
-# Сайт 11
+# # Сайт 11
+# data_input_table = {
+#     "host": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/shpaklevki/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg/",
+#                 "name": "Шпаклевка финишная КНАУФ-Ротбанд Паста Профи 18 кг",
+#                 "price": "1 709 руб.",
+#                 "oldPrice": "1914.08 руб.",
+#                 "article": "MF1056",
+#                 "brand": "КНАУФ",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/232/c2vi4o77ijasd6bilvfj8kdnhtzqm5ye/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg.webp"
+#             },
+#             {
+#                 "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/kley_dlya_plitki_i_kamnya/kley_dlya_plitki_knauf_flizen_25_kg/",
+#                 "name": "Клей для плитки КНАУФ-Флизен 25 кг",
+#                 "price": "455 руб.",
+#                 "oldPrice": "509.60 руб.",
+#                 "article": "OA55",
+#                 "brand": "КНАУФ",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/dc5/7tkj4rzm90xetdl1io96kdwmrjzxano9/kley_dlya_plitki_knauf_flizen_25_kg.webp"
+#             }
+#         ]
+#     },
+#     "search_requests": []
+# }
+
+
+# Сайт 12
 data_input_table = {
     "host": "",
     "links": {
         "simple": [
             {
-                "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/shpaklevki/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg/",
-                "name": "Шпаклевка финишная КНАУФ-Ротбанд Паста Профи 18 кг",
-                "price": "1 709 руб.",
-                "oldPrice": "1914.08 руб.",
-                "article": "MF1056",
-                "brand": "КНАУФ",
-                "InStock_trigger": "",
+                "link": "https://mbt-ug.ru/bytovye/split-sistemy-daichi/split-sistema-daichi-air-air25avq1",
+                "name": "Сплит-система Daichi AIR AIR25AVQ1",
+                "price": "27790 р.",
+                "oldPrice": "",
+                "article": "AIR25AVQ1/AIR25FV1",
+                "brand": "Daichi",
+                "InStock_trigger": "На складе",
                 "OutOfStock_trigger": "",
-                "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/232/c2vi4o77ijasd6bilvfj8kdnhtzqm5ye/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg.webp"
+                "imageLink": "https://mbt-ug.ru/image/cachewebp/catalog/easyphoto/8747/split-sistema-daichi-air-air20avq1air20avq1-air20fv1-8747-500x500.webp"
             },
             {
-                "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/kley_dlya_plitki_i_kamnya/kley_dlya_plitki_knauf_flizen_25_kg/",
-                "name": "Клей для плитки КНАУФ-Флизен 25 кг",
-                "price": "455 руб.",
-                "oldPrice": "509.60 руб.",
-                "article": "OA55",
-                "brand": "КНАУФ",
-                "InStock_trigger": "",
+                "link": "https://mbt-ug.ru/klimaticheskaya-texnika/split-sistemy/bytovye/split-sistemy-mdv/split-sistema-mdv-aurora-mdsa-09hrn1",
+                "name": "Сплит-система MDV Aurora MDSA-09HRN1",
+                "price": "31200 р.",
+                "oldPrice": "",
+                "article": "MDSA-09HRN1",
+                "brand": "Mdv",
+                "InStock_trigger": "На складе",
                 "OutOfStock_trigger": "",
-                "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/dc5/7tkj4rzm90xetdl1io96kdwmrjzxano9/kley_dlya_plitki_knauf_flizen_25_kg.webp"
+                "imageLink": "https://mbt-ug.ru/image/cachewebp/catalog/easyphoto/5591/split-sistema-mdv-aurora-mdsa-07hrn1mdsa-07hrn1-5591-500x500.webp"
             }
         ]
     },

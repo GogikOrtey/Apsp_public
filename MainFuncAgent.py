@@ -526,51 +526,51 @@ def save_content_html_to_cache(content_html, cache_file="cache.json"):
 
 
 
-# isPrint = True
+isPrint = True
 
-# elem_number = 0
-# html = get_html( data_input_table["links"]["simple"][elem_number]["link"])
-# # print(html[:500])
+elem_number = 0
+html = get_html( data_input_table["links"]["simple"][elem_number]["link"])
+# print(html[:500])
 
-# # substring = data_input_table["links"]["simple"][elem_number]["name"]
+# substring = data_input_table["links"]["simple"][elem_number]["name"]
 # substring = data_input_table["links"]["simple"][elem_number]["price"]
-# # substring = data_input_table["links"]["simple"][elem_number]["oldPrice"]
-# # substring = data_input_table["links"]["simple"][elem_number]["brand"]
-# # substring = data_input_table["links"]["simple"][elem_number]["article"]
-# # substring = data_input_table["links"]["simple"][elem_number]["imageLink"]
-# # substring = "/upload/dev2fun.imagecompress/webp/iblock/81e/yypuhdwg8uf7jtktf65opgzc4wthjo6w.webp"
+# substring = data_input_table["links"]["simple"][elem_number]["oldPrice"]
+# substring = data_input_table["links"]["simple"][elem_number]["brand"]
+substring = data_input_table["links"]["simple"][elem_number]["article"]
+# substring = data_input_table["links"]["simple"][elem_number]["imageLink"]
+# substring = "/upload/dev2fun.imagecompress/webp/iblock/81e/yypuhdwg8uf7jtktf65opgzc4wthjo6w.webp"
 
-# # selector_result = get_css_selector_from_text_value_element(html, substring)
+# selector_result = get_css_selector_from_text_value_element(html, substring)
 # selector_result = get_css_selector_from_text_value_element(html, substring, is_price = True)
-# # selector_result = get_css_selector_from_text_value_element(html, substring, is_exact=False)
+selector_result = get_css_selector_from_text_value_element(html, substring, is_exact=False)
+print("")
+print(f"🟩 selector_result = {selector_result}")
+
+
+
+
+
+
+
+
+
+
+
+# # region Обр. всех sel
+
+# fill_selectors_for_items(
+#     data_input_table,
+#     get_css_selector_from_text_value_element
+# )
+
+# print_json(data_input_table["links"]["simple"])
+
+# result_select_best_selectors = select_best_selectors(data_input_table["links"]["simple"], content_html)
+
 # print("")
-# print(f"🟩 selector_result = {selector_result}")
-
-
-
-
-
-
-
-
-
-
-
-# region Обр. всех sel
-
-fill_selectors_for_items(
-    data_input_table,
-    get_css_selector_from_text_value_element
-)
-
-print_json(data_input_table["links"]["simple"])
-
-result_select_best_selectors = select_best_selectors(data_input_table["links"]["simple"], content_html)
-
-print("")
-print("")
-print("✅ Итоговые селекторы:")
-print_json(result_select_best_selectors["result_selectors"])
+# print("")
+# print("✅ Итоговые селекторы:")
+# print_json(result_select_best_selectors["result_selectors"])
 
 
 

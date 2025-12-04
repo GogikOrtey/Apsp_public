@@ -253,100 +253,100 @@ def find_text_selector(
     return None
 
 
-# region Выбирает один sel
+# # region Выбирает один sel
 
-# Основная функция: Получает css селектор, по текстовому содержанию элемента
-# Эта функция get_css_selector_from_text_value_element получает на вход один элемент
-# Отправляет его в find_text_selector - получает набор css селекторов к этому элементу
-# Проверяет, что каждый селектор действительно верный, и сортирует их по точности совпадения
-# также сортирует по длине, чем короче тем лучше
-# Затем, найденный лучший селектор - дистиллирует
-def get_css_selector_from_text_value_element(html, finding_element, is_price = False, is_exact = True, is_multiply_sel_result = False):
-    print("")
-    if isPrint: print(f"🟦 Извлекли такие селекторы для поля \"{finding_element}\":")
-    all_selectors = find_text_selector(html, 
-                                       finding_element, 
-                                       return_all_selectors=True, 
-                                       isPriceHandle=is_price, 
-                                       exact=is_exact,
-                                       allow_complex_classes=False)
+# # Основная функция: Получает css селектор, по текстовому содержанию элемента
+# # Эта функция get_css_selector_from_text_value_element получает на вход один элемент
+# # Отправляет его в find_text_selector - получает набор css селекторов к этому элементу
+# # Проверяет, что каждый селектор действительно верный, и сортирует их по точности совпадения
+# # также сортирует по длине, чем короче тем лучше
+# # Затем, найденный лучший селектор - дистиллирует
+# def get_css_selector_from_text_value_element(html, finding_element, is_price = False, is_exact = True, is_multiply_sel_result = False):
+#     print("")
+#     if isPrint: print(f"🟦 Извлекли такие селекторы для поля \"{finding_element}\":")
+#     all_selectors = find_text_selector(html, 
+#                                        finding_element, 
+#                                        return_all_selectors=True, 
+#                                        isPriceHandle=is_price, 
+#                                        exact=is_exact,
+#                                        allow_complex_classes=False)
 
-    if not all_selectors:
-        if isPrint: print("🟡 Не найдено ни одного подходящего селектора")
-        return ""
+#     if not all_selectors:
+#         if isPrint: print("🟡 Не найдено ни одного подходящего селектора")
+#         return ""
 
-    print(f"Найдено {len(all_selectors)} возможных селекторов")
+#     print(f"Найдено {len(all_selectors)} возможных селекторов")
 
-    valid_selectors = []
+#     valid_selectors = []
 
-    # Проверяем каждый селектор
-    for selector in all_selectors:
-        if isPrint: print("")
-        if isPrint: print(f"🟢 Проверка селектора: {selector}")
-        result_text = get_element_from_selector(html, selector)
+#     # Проверяем каждый селектор
+#     for selector in all_selectors:
+#         if isPrint: print("")
+#         if isPrint: print(f"🟢 Проверка селектора: {selector}")
+#         result_text = get_element_from_selector(html, selector)
 
-        if not result_text:
-            if isPrint: print("❌ Элемент по селектору не найден или текст пуст")
-            continue
+#         if not result_text:
+#             if isPrint: print("❌ Элемент по селектору не найден или текст пуст")
+#             continue
 
-        # Безопасно приводим к строке
-        result_text = str(result_text)
+#         # Безопасно приводим к строке
+#         result_text = str(result_text)
 
-        # Проверяем наличие подстроки — строгое совпадение по содержанию
-        if finding_element.strip() in result_text.strip():
-            match_score = 1.0
-            if isPrint: print(f"✅ Строгое совпадение: [{result_text[:250]}]")
-        else:
-            # Если нет прямого вхождения — оцениваем схожесть
-            match_score = compute_match_score(result_text, finding_element)
-            if isPrint: print(f"⚪ Совпадение {match_score*100:.1f}%: [{result_text}]")
+#         # Проверяем наличие подстроки — строгое совпадение по содержанию
+#         if finding_element.strip() in result_text.strip():
+#             match_score = 1.0
+#             if isPrint: print(f"✅ Строгое совпадение: [{result_text[:250]}]")
+#         else:
+#             # Если нет прямого вхождения — оцениваем схожесть
+#             match_score = compute_match_score(result_text, finding_element)
+#             if isPrint: print(f"⚪ Совпадение {match_score*100:.1f}%: [{result_text}]")
 
-        valid_selectors.append({
-            "selector": selector,
-            "result": result_text,
-            "score": match_score
-        })
+#         valid_selectors.append({
+#             "selector": selector,
+#             "result": result_text,
+#             "score": match_score
+#         })
 
-    # Если ни один не подошёл
-    if not valid_selectors:
-        if isPrint: print("🔴 Не найдено корректных селекторов")
-        return ""
+#     # Если ни один не подошёл
+#     if not valid_selectors:
+#         if isPrint: print("🔴 Не найдено корректных селекторов")
+#         return ""
 
-    def sort_key(x):
-        selector = x["selector"]
-        score = x["score"]
-        starts_with_id = selector.strip().startswith("#")
-        length = len(selector)
-        # Проверяем, заканчивается ли селектор на атрибут (например, [data-id], [href])
-        ends_with_attr = selector.strip().endswith("]")
+#     def sort_key(x):
+#         selector = x["selector"]
+#         score = x["score"]
+#         starts_with_id = selector.strip().startswith("#")
+#         length = len(selector)
+#         # Проверяем, заканчивается ли селектор на атрибут (например, [data-id], [href])
+#         ends_with_attr = selector.strip().endswith("]")
 
-        # Сортируем:
-        # 1️⃣ По убыванию score
-        # 2️⃣ Сначала селекторы, начинающиеся с '#'
-        # 3️⃣ Для '#' — по возрастанию длины, для остальных — по убыванию
-        # 4️⃣ В конце селекторы, у которых в конце есть атрибуты в []
-        return (
-            -score,
-            not starts_with_id,            
-            ends_with_attr,  # False (нет атрибута) < True (есть атрибут)
-            length if starts_with_id else -length,
-        )
+#         # Сортируем:
+#         # 1️⃣ По убыванию score
+#         # 2️⃣ Сначала селекторы, начинающиеся с '#'
+#         # 3️⃣ Для '#' — по возрастанию длины, для остальных — по убыванию
+#         # 4️⃣ В конце селекторы, у которых в конце есть атрибуты в []
+#         return (
+#             -score,
+#             not starts_with_id,            
+#             ends_with_attr,  # False (нет атрибута) < True (есть атрибут)
+#             length if starts_with_id else -length,
+#         )
 
 
-    valid_selectors.sort(key=sort_key)
+#     valid_selectors.sort(key=sort_key)
 
-    # print("\n🔵 Отсортированные селекторы:")
-    # for i, v in enumerate(valid_selectors, start=1):
-    #     print(f"{i}. {v['selector']} score: {v['score']}")
+#     # print("\n🔵 Отсортированные селекторы:")
+#     # for i, v in enumerate(valid_selectors, start=1):
+#     #     print(f"{i}. {v['selector']} score: {v['score']}")
 
-    best = valid_selectors[0]
-    if isPrint: print("")
-    if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%)")
+#     best = valid_selectors[0]
+#     if isPrint: print("")
+#     if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%)")
 
-    # Дистилляция пути
-    # result_distill_selector = distill_selector(html, best["selector"], get_element_from_selector, finding_element)
-    result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector, is_multiply_sel_result)
-    return result_distill_selector
+#     # Дистилляция пути
+#     # result_distill_selector = distill_selector(html, best["selector"], get_element_from_selector, finding_element)
+#     result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector, is_multiply_sel_result)
+#     return result_distill_selector
 
 
 
@@ -442,12 +442,6 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price = F
 
 #     valid_selectors.sort(key=sort_key)
 
-#     # # 🔵 Вывод всех селекторов после сортировки
-#     # if isPrint:
-#     #     print("\n🔵 Отсортированные селекторы:")
-#     #     for i, v in enumerate(valid_selectors, start=1):
-#     #         print(f"{i}. {v['selector']}")
-
 #     print("\n🔵 Отсортированные селекторы:")
 #     for i, v in enumerate(valid_selectors, start=1):
 #         print(f"{i}. {v['selector']} score: {v['score']}, pos: {v['pos']}")
@@ -457,9 +451,133 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price = F
 #     if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%)")
 
 #     # Дистилляция пути
-#     # result_distill_selector = distill_selector(html, best["selector"], get_element_from_selector, finding_element)
 #     result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector)
 #     return result_distill_selector
+
+
+
+
+
+def get_css_selector_from_text_value_element(html, finding_element, is_price=False, is_exact=True):
+    print("")
+    if isPrint: print(f"🟦 Извлекли такие селекторы для поля \"{finding_element}\":")
+    all_selectors = find_text_selector(html, 
+                                       finding_element, 
+                                       return_all_selectors=True, 
+                                       isPriceHandle=is_price, 
+                                       exact=is_exact,
+                                       allow_complex_classes=False)
+
+    if not all_selectors:
+        if isPrint: print("🟡 Не найдено ни одного подходящего селектора")
+        return ""
+
+    print(f"Найдено {len(all_selectors)} возможных селекторов")
+
+    valid_selectors = []
+    seen_selectors = set()
+
+    # Проверяем каждый селектор
+    for selector in all_selectors:
+
+        # Пропускаем дубликаты селектора
+        if selector in seen_selectors:
+            if isPrint: print(f"Пропускаем дубликат селектора: {selector}")
+            continue
+        
+        # Сразу метим, что он встречен (даже если потом отфильтруется)
+        seen_selectors.add(selector)
+
+        if isPrint: print("")
+        if isPrint: print(f"🟢 Проверка селектора: {selector}")
+        result_text = get_element_from_selector(html, selector)
+
+        if not result_text:
+            if isPrint: print("❌ Элемент по селектору не найден или текст пуст")
+            continue
+
+        result_text = str(result_text)
+
+        # Рассчитываем процентное соотношение
+        if not is_exact:
+            # Находим, какой процент искомого текста составляет от всего найденного
+            finding_len = len(finding_element.strip())
+            result_len = len(result_text.strip())
+            
+            if finding_len == 0:
+                percent = 0
+            else:
+                # Проверяем, содержится ли искомый текст в результате
+                if finding_element.strip() in result_text.strip():
+                    # Находим максимальное вхождение искомого текста
+                    import re
+                    matches = re.finditer(re.escape(finding_element.strip()), result_text.strip())
+                    max_match_len = max([len(match.group()) for match in matches], default=0)
+                    percent = max_match_len / result_len if result_len > 0 else 0
+                else:
+                    # Если точного вхождения нет, используем коэффициент сходства
+                    match_score = compute_match_score(result_text, finding_element)
+                    percent = match_score * (finding_len / result_len) if result_len > 0 else 0
+        else:
+            # Если is_exact = True, устанавливаем фиктивное значение 1
+            percent = 1.0
+
+        # Проверяем совпадение текста
+        if finding_element.strip() in result_text.strip():
+            match_score = 1.0
+            if isPrint: print(f"✅ Строгое совпадение: [{result_text[:250]}]")
+        else:
+            match_score = compute_match_score(result_text, finding_element)
+            if isPrint: print(f"⚪ Совпадение {match_score*100:.1f}%: [{result_text}]")
+
+        # Находим позицию селектора элемента на странице
+        pos = html.find(result_text) if result_text else len(html)
+        pos_norm = pos / len(html)
+
+        valid_selectors.append({
+            "selector": selector,
+            "result": result_text,
+            "score": match_score,
+            "percent": percent,  # Добавляем процентное соотношение
+            "pos": pos_norm
+        })
+
+    # Если ни один не подошёл
+    if not valid_selectors:
+        if isPrint: print("🔴 Не найдено корректных селекторов")
+        return ""
+
+    def sort_key(x):
+        selector = x["selector"]
+        score = x["score"]
+        percent = x["percent"]  # Процентное соотношение
+        pos = x["pos"]
+        starts_with_id = selector.strip().startswith("#")
+        length = len(selector)
+        ends_with_attr = selector.strip().endswith("]")
+
+        return (
+            -percent,      # 0️⃣ По убыванию процентного соотношения (основной критерий при is_exact=False)
+            -score,       # 1️⃣ По убыванию score
+            pos,          # 2️⃣ По положению в документе (выше = меньше)
+            not starts_with_id,  # 3️⃣ Сначала селекторы с #
+            ends_with_attr,      # 4️⃣ Селекторы с атрибутами в конце
+            length if starts_with_id else -length,  # 5️⃣ Короткие селекторы лучше
+        )
+
+    valid_selectors.sort(key=sort_key)
+
+    print("\n🔵 Отсортированные селекторы:")
+    for i, v in enumerate(valid_selectors, start=1):
+        print(f"{i}. {v['selector']} score: {v['score']:.2f}, percent: {v['percent']:.2%}, pos: {v['pos']:.4f}")
+
+    best = valid_selectors[0]
+    if isPrint: print("")
+    if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%, процент содержания: {best['percent']:.1%})")
+
+    # Дистилляция пути
+    result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector)
+    return result_distill_selector
 
 
 
@@ -644,216 +762,6 @@ def simplify_selector_keep_value(
 
     
 
-
-# # region Дистилляция пути
-# # Дистилляция пути css селектора
-# # Принимает полный и точный селектор, очищает, и возвращает сокращённый
-# # удаляя все ненужные звенья
-# def simplify_selector_keep_value(html: str, selector: str, get_element_from_selector):
-#     """
-#     Пытается удалить ненужные звенья в селекторе (слева направо).
-#     Возвращает упрощённый селектор, который гарантированно возвращает
-#     такое же значение, как исходный селектор, по вызову get_element_from_selector.
-#     Параметры:
-#       - html: текст html страницы
-#       - selector: исходный строгий селектор (через '>')
-#       - get_element_from_selector: функция (html, selector) -> value (строка)
-#     """
-#     if isPrint:
-#         print(f"\n{'='*80}")
-#         print(f"🔧 ДИСТИЛЛЯЦИЯ СЕЛЕКТОРА")
-#         print(f"{'='*80}")
-#         print(f"📥 Исходный селектор: {selector}")
-
-#     def _split_selector_preserving_brackets(selector: str):
-#         """
-#         Разбивает селектор по '>' но игнорирует '>' внутри [], (), '' и "".
-#         Возвращает список звеньев (строк) без лишних пробелов по краям.
-#         """
-#         parts = []
-#         buf = []
-#         bracket_sq = 0  # []
-#         bracket_par = 0 # ()
-#         in_single = False
-#         in_double = False   
-
-#         i = 0
-#         while i < len(selector):
-#             ch = selector[i]    
-
-#             # переключение состояния строк
-#             if ch == "'" and not in_double:
-#                 in_single = not in_single
-#                 buf.append(ch)
-#                 i += 1
-#                 continue
-#             if ch == '"' and not in_single:
-#                 in_double = not in_double
-#                 buf.append(ch)
-#                 i += 1
-#                 continue    
-
-#             if not in_single and not in_double:
-#                 if ch == '[':
-#                     bracket_sq += 1
-#                     buf.append(ch)
-#                     i += 1
-#                     continue
-#                 if ch == ']':
-#                     if bracket_sq > 0:
-#                         bracket_sq -= 1
-#                     buf.append(ch)
-#                     i += 1
-#                     continue
-#                 if ch == '(':
-#                     bracket_par += 1
-#                     buf.append(ch)
-#                     i += 1
-#                     continue
-#                 if ch == ')':
-#                     if bracket_par > 0:
-#                         bracket_par -= 1
-#                     buf.append(ch)
-#                     i += 1
-#                     continue    
-
-#             # разделитель '>' только если мы не внутри скобок/строк
-#             if ch == '>' and not in_single and not in_double and bracket_sq == 0 and bracket_par == 0:
-#                 part = ''.join(buf).strip()
-#                 if part != '':
-#                     parts.append(part)
-#                 buf = []
-#                 # пропускаем возможные пробелы вокруг >
-#                 i += 1
-#                 # skip following spaces
-#                 while i < len(selector) and selector[i].isspace():
-#                     i += 1
-#                 continue    
-
-#             buf.append(ch)
-#             i += 1  
-
-#         last = ''.join(buf).strip()
-#         if last != '':
-#             parts.append(last)
-#         return parts
-
-#     # начальная проверка: получаем исходное значение
-#     try:
-#         original_value = get_element_from_selector(html, selector)
-#         if isPrint:
-#             print(f"✅ Исходное значение получено: [{original_value[:100]}{'...' if len(str(original_value)) > 100 else ''}]")
-#     except Exception as e:
-#         # если исходный селектор уже валидный, но функция кидает — лучше вернуть исходный
-#         if isPrint:
-#             print(f"❌ Ошибка при получении исходного значения: {e}")
-#             print(f"🔙 Возвращаем исходный селектор без изменений")
-#         return selector
-
-#     # Парсим дерево один раз для оценки уникальности совпадений
-#     tree = html_lx.fromstring(html)
-
-#     # разбиваем селектор корректно
-#     parts = _split_selector_preserving_brackets(selector)
-    
-#     if isPrint:
-#         print(f"📦 Селектор разбит на {len(parts)} частей:")
-#         for idx, part in enumerate(parts):
-#             print(f"   [{idx}] {part}")
-
-#     # если один сегмент — возвратим как есть
-#     if len(parts) <= 1:
-#         if isPrint:
-#             print(f"⏩ Селектор состоит из одного сегмента, упрощение невозможно")
-#         return selector.strip()
-
-#     i = 0
-#     if isPrint:
-#         print(f"\n🔄 Начинаем упрощение селектора...")
-    
-#     # проходим слева направо. Для каждого индекса пробуем удалить parts[i].
-#     # Если после удаления результат совпадает с original_value — применяем удаление и
-#     # остаёмся на том же i (т.к. дальше сдвинулись элементы).
-#     # Иначе переходим к следующему i.
-#     while i < len(parts) - 1:
-#         # нельзя удалить все звенья — должен остаться хотя бы одно
-#         if len(parts) == 1:
-#             if isPrint:
-#                 print(f"⏹️  Осталось только одно звено, завершаем упрощение")
-#             break
-
-#         candidate_parts = parts[:i] + parts[i+1:]
-#         candidate_selector = " > ".join(candidate_parts)
-        
-#         if isPrint:
-#             print(f"\n🔍 Попытка удалить звено [{i}]: {parts[i]}")
-#             print(f"   📋 Кандидат селектор: {candidate_selector}")
-
-#         # Проверяем, что кандидат возвращает ровно один элемент
-#         try:
-#             candidate_nodes = tree.cssselect(candidate_selector)
-#             if isPrint:
-#                 print(f"   📊 Найдено элементов по кандидату: {len(candidate_nodes)}")
-#         except Exception as e:
-#             candidate_nodes = []
-#             if isPrint:
-#                 print(f"   ❌ Ошибка при поиске элементов: {e}")
-
-#         candidate_value = None
-#         if len(candidate_nodes) == 1:
-#             try:
-#                 candidate_value = get_element_from_selector(html, candidate_selector)
-#                 if isPrint:
-#                     print(f"   📝 Значение кандидата: [{str(candidate_value)[:100]}{'...' if len(str(candidate_value)) > 100 else ''}]")
-#             except Exception as e:
-#                 candidate_value = None
-#                 if isPrint:
-#                     print(f"   ❌ Ошибка при получении значения: {e}")
-#         elif isPrint:
-#             print(f"   ⚠️  Не удалось получить значение (найдено {len(candidate_nodes)} элементов, нужно 1)")
-
-#         # сравнение: строгая эквивалентность и уникальность (ровно один матч)
-#         if len(candidate_nodes) == 1 and candidate_value == original_value:
-#             # удаление безопасно — применяем
-#             if isPrint:
-#                 print(f"   ✅ Удаление безопасно! Значения совпадают, удаляем звено [{i}]")
-#             parts = candidate_parts
-#             # Не инкрементируем i: нужно попытаться удалить новое звено на этой же позиции
-#             # (поведение: удаляем как можно больше подряд)
-#             # но если i теперь == len(parts) (удалили последний) - цикл завершится naturally
-#             if isPrint:
-#                 print(f"   📦 Осталось звеньев: {len(parts)}")
-#             continue
-#         else:
-#             # удаление ломает — оставляем звено и идём дальше
-#             if isPrint:
-#                 if len(candidate_nodes) != 1:
-#                     print(f"   ❌ Не удаляем: найдено {len(candidate_nodes)} элементов (нужно 1)")
-#                 elif candidate_value != original_value:
-#                     print(f"   ❌ Не удаляем: значение не совпадает")
-#                     print(f"      Ожидалось: [{str(original_value)[:100]}{'...' if len(str(original_value)) > 100 else ''}]")
-#                     print(f"      Получено:  [{str(candidate_value)[:100]}{'...' if len(str(candidate_value)) > 100 else ''}]")
-#                 else:
-#                     print(f"   ❌ Не удаляем: неизвестная причина")
-#             i += 1
-
-#     # собрать итоговый селектор
-#     simplified = " > ".join(parts)
-    
-#     if isPrint:
-#         print(f"\n{'='*80}")
-#         if simplified != selector:
-#             print(f"✅ Упрощение завершено!")
-#             print(f"📥 Было: {selector}")
-#             print(f"📤 Стало: {simplified}")
-#             print(f"📉 Удалено звеньев: {len(_split_selector_preserving_brackets(selector)) - len(parts)}")
-#         else:
-#             print(f"⚠️  Упрощение не удалось, селектор остался без изменений")
-#         print(f"{'='*80}\n")
-    
-#     return simplified
-
- 
 
 
 # region Проверка sel
