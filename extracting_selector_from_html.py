@@ -458,7 +458,7 @@ def find_text_selector(
 
 
 
-def get_css_selector_from_text_value_element(html, finding_element, is_price=False, is_exact=True):
+def get_css_selector_from_text_value_element(html, finding_element, is_price=False, is_exact=True, is_multiply_sel_result = False):
     print("")
     if not finding_element:
         print("Поле finding_element пусто, пропускаю получение селектора")
@@ -580,7 +580,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
     if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%, процент содержания: {best['percent']:.1%})")
 
     # Дистилляция пути
-    result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector)
+    result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector, is_multiply_sel_result)
     return result_distill_selector
 
 
