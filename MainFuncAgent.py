@@ -127,7 +127,6 @@ def fill_selectors_for_items(input_items, get_css_selector_from_text_value_eleme
 
 
 
-
 # region Результ. sel сайта
 
 # Перебирает все селекторы которые мы собрали со всех страничек, 
@@ -191,11 +190,42 @@ def select_best_selectors(input_data, content_html):
                 return text.strip()
         return ""
 
+    def compute_match_score_2(expected: str, extracted: str) -> float:
+        """Вычисляет процент совпадения строки с ожидаемым значением"""
+        if not expected or not extracted:
+            return 0.0
+        
+        expected_norm = normalize_text(expected)
+        extracted_norm = normalize_text(extracted)
+        
+        # Если строки полностью совпадают
+        if expected_norm == extracted_norm:
+            return 1.0
+        
+        # Вычисляем процент вхождения ожидаемой строки в извлеченную
+        if expected_norm in extracted_norm:
+            return len(expected_norm) / len(extracted_norm)
+        
+        # Вычисляем процент вхождения извлеченной строки в ожидаемую
+        if extracted_norm in expected_norm:
+            return len(extracted_norm) / len(expected_norm)
+        
+        return 0.0
+
+    def normalize_price(price_str: str) -> str:
+        """Нормализация ценовой строки"""
+        if not price_str:
+            return ""
+        # Удаляем все нецифровые символы, кроме точки и запятой
+        normalized = re.sub(r"[^\d.,]", "", price_str)
+        # Заменяем запятую на точку
+        normalized = normalized.replace(",", ".")
+        return normalized
+
     def resolve_selectors_across_examples(
             examples: List[Dict[str, Any]],
             fields: Iterable[str] = None,
             html_fetcher: Callable[[str], str] = None,
-            max_combination_size: int = None,
             verbose: bool = True,
         ) -> Dict[str, Any]:
 
@@ -277,12 +307,10 @@ def select_best_selectors(input_data, content_html):
                 if field in ("price", "oldPrice"):
                     match = normalize_price(expected) == normalize_price(extracted_any)
                 else:
-                    # # match = normalize_text(expected) == normalize_text(extracted_any)
-                    # # match = compute_match_score(expected, extracted_any) >= 0.7
-                    # score_match = compute_match_score(expected, extracted_any)
                     score_match = compute_match_score_2(expected, extracted_any)
-                    if(field == "imageLink"): # Пониженный порог соответствия для imageLink
-                        print(f"score_match imageLink = {score_match}")
+                    if field == "imageLink":  # Пониженный порог соответствия для imageLink
+                        if verbose and print_fail_report:
+                            print(f"score_match imageLink = {score_match}")
                         if score_match >= 0.5:
                             score_match = 1
                     match = expected in extracted_any or extracted_any in expected or score_match >= 0.8
@@ -297,64 +325,108 @@ def select_best_selectors(input_data, content_html):
                         print(f"  искали: '{str(expected)[:200]}' ")
                         print(f"  нашли:  '{str(extracted_any)[:200]}' ")
                         print(f"  селектор: {str(sel_set)[:200]}")
-                        # print(f"  score_match = '{score_match:.3f}' ")                        
 
             return fails == 0
 
         result_selectors = {}
         report = {"tried": {}}
 
-        # лимит на размер комбинаций
-        n_examples = len(examples)
-        if max_combination_size is None:
-            max_combination_size = n_examples - 1  # если равен n_examples => ошибка по условию
-
         for field in fields:
             cand_list = candidates.get(field, [])
             report["tried"][field] = {"singles": [], "combinations": []}
 
-            # сначала пробуем одиночные селекторы в порядке приоритета
-            found = False
+            # Если селекторов 1 или 0 - старая логика
+            if len(cand_list) <= 1:
+                found = False
+                for s in cand_list:
+                    report["tried"][field]["singles"].append(s)
+                    if check_selector_set_for_field(field, (s,)):
+                        result_selectors[field] = [s]
+                        found = True
+                        break
+                if not found:
+                    result_selectors[field] = []
+                    if verbose:
+                        print(f"[WARN] Для поля {field} не найден селектор(ы).")
+                continue
+
+            # Если селекторов больше 1 - новая логика
+            # Сначала пробуем найти селектор, который работает на всех страницах
+            found_single_for_all = False
             for s in cand_list:
                 report["tried"][field]["singles"].append(s)
                 if check_selector_set_for_field(field, (s,)):
                     result_selectors[field] = [s]
-                    found = True
+                    found_single_for_all = True
                     break
-            if found:
+            
+            if found_single_for_all:
                 continue
-
-            # если одиночные не прошли — пробуем комбинации размера 2..max_combination_size
-            # Перебираем комбинации из кандидатов (если кандидатов мало, то возможны все комбинации)
-            for size in range(2, max_combination_size + 1):
-                if size > len(cand_list):
-                    break
-                if verbose:
-                    print(f"Пробуем комбинации size={size} для поля {field} (всего {len(cand_list)} кандидатов)")
-                ok = False
-                # ограничим число комбинаций, чтобы не взорвать время: если кандидатов много — используем лучшую часть
-                max_cands_for_comb = 12
-                use_candidates = cand_list[:max_cands_for_comb] if len(cand_list) > max_cands_for_comb else cand_list
-                for combo in itertools.combinations(use_candidates, size):
-                    report["tried"][field]["combinations"].append(combo)
-                    if check_selector_set_for_field(field, combo):
-                        result_selectors[field] = list(combo)
-                        ok = True
-                        break
-                if ok:
-                    found = True
-                    break
-
-            if not found:
-                # если минимальный возмож размер равен числу примеров -> это ошибка
-                if max_combination_size >= n_examples:
-                    raise RuntimeError(f"Для поля '{field}' не найден валидный набор селекторов; "
-                                       f"минимальный размер комбинации достиг {n_examples} — селекторы вероятно неверные.")
+            
+            # Если ни один селектор не работает на всех страницах
+            # Собираем статистику по каждому селектору
+            selector_stats = []
+            
+            for selector in cand_list:
+                hits = 0  # сколько раз сработал
+                total_with_expected = 0  # сколько страниц с ожидаемым значением
+                total_score = 0.0  # суммарный процент совпадения
+                
+                for url, tree, ex in trees:
+                    expected = ex.get(field, "")
+                    if not expected:
+                        continue
+                        
+                    total_with_expected += 1
+                    extracted = extract_using_selector(tree, selector)
+                    
+                    if extracted:
+                        hits += 1
+                        # Вычисляем качество совпадения
+                        if field in ("price", "oldPrice"):
+                            if normalize_price(expected) == normalize_price(extracted):
+                                match_score = 1.0
+                            else:
+                                match_score = compute_match_score_2(expected, extracted)
+                        else:
+                            match_score = compute_match_score_2(expected, extracted)
+                            if field == "imageLink" and match_score >= 0.5:
+                                match_score = 1.0
+                        
+                        total_score += match_score
+                
+                if hits > 0:
+                    avg_score = total_score / hits
                 else:
-                    # оставляем пустой и отчётим
-                    result_selectors[field] = []
-                    if verbose:
-                        print(f"[WARN] Для поля {field} не найден селектор(ы).")
+                    avg_score = 0.0
+                    
+                selector_stats.append({
+                    "selector": selector,
+                    "hits": hits,
+                    "total_pages": total_with_expected,
+                    "avg_score": avg_score
+                })
+            
+            # Фильтруем селекторы, которые сработали хотя бы раз
+            working_selectors = [s for s in selector_stats if s["hits"] > 0]
+            
+            if not working_selectors:
+                result_selectors[field] = []
+                if verbose:
+                    print(f"[WARN] Для поля {field} нет селекторов, которые сработали бы хоть раз.")
+                continue
+            
+            # Сортируем: сначала по возрастанию количества срабатываний (реже = лучше),
+            # затем по убыванию качества совпадения
+            working_selectors.sort(key=lambda x: (x["hits"], -x["avg_score"]))
+            
+            # Формируем массив селекторов
+            result_selectors[field] = [s["selector"] for s in working_selectors]
+            
+            if verbose:
+                print(f"[INFO] Для поля {field} выбраны селекторы (по возрастанию частоты срабатывания):")
+                for s in working_selectors:
+                    print(f"  - {s['selector']}: сработал {s['hits']} из {s['total_pages']}, качество: {s['avg_score']:.2f}")
 
         return {"result_selectors": result_selectors, "report": report}
 
@@ -388,11 +460,9 @@ def select_best_selectors(input_data, content_html):
         verbose=True
     )
 
-    # Собираю результаты селекторы по каждому полю в строку, через запятую
-    for key, value in result["result_selectors"].items():
-        if isinstance(value, list):
-            result["result_selectors"][key] = ", ".join(value) if value else ""
-
+    # Убираем преобразование в строку через запятую, возвращаем массив
+    # (как и требуется в задании)
+    
     # Сохраняем страницы в кеш
     save_content_html_to_cache(content_html)
 
