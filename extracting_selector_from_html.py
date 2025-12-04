@@ -5,8 +5,7 @@
 # Подключение всех библиотек
 from import_all_libraries import * 
 
-# isPrint = False #############################################################################
-isPrint = True
+isPrint = False 
 
 # region Доп. методы
 
@@ -493,8 +492,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
         seen_selectors.add(selector)
 
         if isPrint: print("")
-        # if isPrint: print(f"🟢 Проверка селектора: {selector}")
-        ############################################### вернуть
+        if isPrint: print(f"🟢 Проверка селектора: {selector}")
         result_text = get_element_from_selector(html, selector)
 
         if not result_text:
@@ -530,8 +528,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
         # Проверяем совпадение текста
         if finding_element.strip() in result_text.strip():
             match_score = 1.0
-            # if isPrint: print(f"✅ Строгое совпадение: [{result_text[:250]}]{':250' if len(result_text) > 250 else ''}")
-            ############################################### вернуть
+            if isPrint: print(f"✅ Строгое совпадение: [{result_text[:250]}]{':250' if len(result_text) > 250 else ''}")
         else:
             match_score = compute_match_score(result_text, finding_element)
             if isPrint: print(f"⚪ Совпадение {match_score*100:.1f}%: [{result_text}]")
