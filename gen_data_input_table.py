@@ -456,16 +456,16 @@ data_input_table = {
     "host": "",
     "links": {
         "simple": [
-            {
-                "link": "https://mbt-ug.ru/bytovye/split-sistemy-daichi/split-sistema-daichi-air-air25avq1",
-                "price": "27790 р.",
-                "oldPrice": "",
-            },
-            {
-                "link": "https://mbt-ug.ru/klimaticheskaya-texnika/split-sistemy/bytovye/split-sistemy-mdv/split-sistema-mdv-aurora-mdsa-09hrn1",
-                "price": "31200 р.",
-                "oldPrice": "",
-            },
+            # {
+            #     "link": "https://mbt-ug.ru/bytovye/split-sistemy-daichi/split-sistema-daichi-air-air25avq1",
+            #     "price": "27790 р.",
+            #     "oldPrice": "",
+            # },
+            # {
+            #     "link": "https://mbt-ug.ru/klimaticheskaya-texnika/split-sistemy/bytovye/split-sistemy-mdv/split-sistema-mdv-aurora-mdsa-09hrn1",
+            #     "price": "31200 р.",
+            #     "oldPrice": "",
+            # },
             {
                 "link": "https://mbt-ug.ru/klimaticheskaya-texnika/split-sistemy/bytovye/split-sistemy-kentatsu/split-sistema-kentatsu-kanami-inverter-ksga35hzrn1",
                 "price": "32500 р.",
