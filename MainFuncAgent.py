@@ -35,7 +35,8 @@ def check_avialible_html():
         raise ErrorHandler("При открытии страницы 1 товара, на ней не было обнаружено названия товара", "4-1")
 
 # Проверяю, что html-страница доступна, и данные первого товара на ней есть
-check_avialible_html() 
+# check_avialible_html() 
+#######################################################
 
 
 # region Обр. всех ссылок
@@ -123,6 +124,19 @@ def fill_selectors_for_items(input_items, get_css_selector_from_text_value_eleme
 
         # Записываем обратно
         item["_selectors"] = selectors
+
+
+
+
+def normalize_image_url(s: str) -> str:
+    # убираем домен и протокол
+    s = re.sub(r'^https?://[^/]+', '', s)
+    return s
+
+def similarity_percent_smart(a: str, b: str) -> float:
+    a_n = normalize_image_url(a)
+    b_n = normalize_image_url(b)
+    return SequenceMatcher(None, a_n, b_n).ratio() * 100
 
 
 
@@ -307,12 +321,16 @@ def select_best_selectors(input_data, content_html):
                     match = normalize_price(expected) == normalize_price(extracted_any)
                 else:
                     score_match = compute_match_score_2(expected, extracted_any)
-                    if field == "imageLink":  # Пониженный порог соответствия для imageLink
-                        if verbose and print_fail_report:
-                            print(f"score_match imageLink = {score_match}")
-                        if score_match >= 0.5:
-                            score_match = 1
-                    match = expected in extracted_any or extracted_any in expected or score_match >= 0.8
+
+                    if field == "imageLink":
+                        match_score_imageLink = similarity_percent_smart(expected, extracted_any)
+                        if verbose:
+                            if isPrint: print(f"match_score_imageLink = {match_score_imageLink}")
+
+                        # similarity возвращает проценты (0–100)
+                        if match_score_imageLink >= 50:
+                            score_match = 1      # ставим абсолютное совпадение
+                    match = score_match >= 0.8 or expected in extracted_any or extracted_any in expected
 
                 if not match:
                     if not expected and not extracted_any:
@@ -389,8 +407,12 @@ def select_best_selectors(input_data, content_html):
                                 match_score = compute_match_score_2(expected, extracted)
                         else:
                             match_score = compute_match_score_2(expected, extracted)
-                            if field == "imageLink" and match_score >= 0.5:
-                                match_score = 1.0
+                            
+                            if field == "imageLink":
+                                match_score_imageLink = similarity_percent_smart(expected, extracted)
+                                if isPrint: print(f"match_score_imageLink = {match_score_imageLink}")
+                                if match_score_imageLink >= 0.5:
+                                    match_score = 1.0
                         
                         total_score += match_score
                 
@@ -624,7 +646,7 @@ def save_content_html_to_cache(content_html, cache_file="cache.json"):
 
 
 
-
+#############################################
 isPrint = True
 
 

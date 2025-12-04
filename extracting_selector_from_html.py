@@ -5,7 +5,8 @@
 # Подключение всех библиотек
 from import_all_libraries import * 
 
-isPrint = False 
+#############################################################
+isPrint = True
 
 # region Доп. методы
 
@@ -485,7 +486,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
 
         # Пропускаем дубликаты селектора
         if selector in seen_selectors:
-            if isPrint: print(f"Пропускаем дубликат селектора: {selector}")
+            # if isPrint: print(f"Пропускаем дубликат селектора: {selector}")
             continue
         
         # Сразу метим, что он встречен (даже если потом отфильтруется)
