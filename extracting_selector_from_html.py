@@ -253,7 +253,7 @@ def find_text_selector(
     return None
 
 
-# # region Выбирает один sel
+# region Выбирает один sel
 
 # # Основная функция: Получает css селектор, по текстовому содержанию элемента
 # # Эта функция get_css_selector_from_text_value_element получает на вход один элемент
@@ -576,6 +576,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
             print(f"{i}. {v['selector']} score: {v['score']:.2f}, percent: {v['percent']:.2%}, pos: {v['pos']:.4f}")
 
     best = valid_selectors[0]
+
     if isPrint: print("")
     if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%, процент содержания: {best['percent']:.1%})")
 
@@ -768,6 +769,41 @@ def simplify_selector_keep_value(
 
 
 
+# # region Проверка sel
+# # Получает и возвращает значение элемента по селектору
+# def get_element_from_selector(html, selector, is_ret_len=False):
+#     # Проверяем, что селектор не пустой
+#     if not selector or not selector.strip():
+#         if is_ret_len:
+#             return {"result": "", "length_elem": 0}
+#         return ""
+    
+#     tree = html_lx.fromstring(html)
+#     search_elem = tree.cssselect(selector)
+#     if len(search_elem) == 0:
+#         if is_ret_len:
+#             return {"result": "", "length_elem": 0}
+#         return ""
+    
+#     element = search_elem[0]
+
+#     # Проверяем, есть ли в селекторе указание атрибута в []
+#     attr_match = re.search(r"\[([a-zA-Z0-9_-]+)\]", selector)
+
+#     if attr_match:
+#         attr_name = attr_match.group(1)
+#         result = element.get(attr_name)
+#     else:
+#         result = element.text_content().strip()
+    
+#     if not is_ret_len:
+#         return result
+#     else:
+#         return {"result": result, "length_elem": len(search_elem)}
+
+
+
+
 # region Проверка sel
 # Получает и возвращает значение элемента по селектору
 def get_element_from_selector(html, selector):
@@ -793,3 +829,30 @@ def get_element_from_selector(html, selector):
         result = element.text_content().strip()
     
     return result
+
+
+
+# Возвращает элемент, и его длину
+def get_element_from_selector_and_len(html, selector):
+    # Проверяем, что селектор не пустой
+    if not selector or not selector.strip():
+        return {"result": "", "length_elem": 0}
+
+    tree = html_lx.fromstring(html)
+    search_elem = tree.cssselect(selector)
+    if len(search_elem) == 0:
+        return {"result": "", "length_elem": 0}
+    
+    element = search_elem[0]
+
+    # Проверяем, есть ли в селекторе указание атрибута в []
+    attr_match = re.search(r"\[([a-zA-Z0-9_-]+)\]", selector)
+
+    if attr_match:
+        attr_name = attr_match.group(1)
+        result = element.get(attr_name)
+    else:
+        result = element.text_content().strip()
+    
+    return {"result": result, "length_elem": len(search_elem)}
+    # Сделал 2 процедуры, потому что на оригинальную get_element_from_selector завязано очень много всего
