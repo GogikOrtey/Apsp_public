@@ -961,6 +961,9 @@ def result_file_JS(result_selectors, host):
 
     
 
+    Проверить вот такой код для характеристик:
+    const article = $('.extended-characteristic > table tr:contains("Артикул") > td').eq(1).text().trim()
+
 
 
     
