@@ -567,9 +567,9 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
 
     valid_selectors.sort(key=sort_key)
 
-    print("\n🔵 Отсортированные селекторы:")
-    for i, v in enumerate(valid_selectors, start=1):
-        print(f"{i}. {v['selector']} score: {v['score']:.2f}, percent: {v['percent']:.2%}, pos: {v['pos']:.4f}")
+    # print("\n🔵 Отсортированные селекторы:")
+    # for i, v in enumerate(valid_selectors, start=1):
+    #     print(f"{i}. {v['selector']} score: {v['score']:.2f}, percent: {v['percent']:.2%}, pos: {v['pos']:.4f}")
 
     best = valid_selectors[0]
     if isPrint: print("")

@@ -422,6 +422,28 @@ data_input_table = {
                 "InStock_trigger": "На складе",
                 "OutOfStock_trigger": "",
                 "imageLink": "https://mbt-ug.ru/image/cachewebp/catalog/easyphoto/5591/split-sistema-mdv-aurora-mdsa-07hrn1mdsa-07hrn1-5591-500x500.webp"
+            },
+            {
+                "link": "https://mbt-ug.ru/klimaticheskaya-texnika/split-sistemy/bytovye/split-sistemy-kentatsu/split-sistema-kentatsu-kanami-inverter-ksga35hzrn1",
+                "name": "Сплит-система Kentatsu KANAMI inverter KSGA35HZRN1",
+                "price": "32500 р.",
+                "oldPrice": "47590 р.",
+                "article": " KSGA35HZRN1",
+                "brand": "Kentatsu",
+                "InStock_trigger": "На складе",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://mbt-ug.ru/image/cachewebp/catalog/easyphoto/7107/split-sistema-kentatsu-kanami-inverter-ksga21hzrn1ksga21hzrn1-7107-500x500.webp"
+            },
+            {
+                "link": "https://mbt-ug.ru/bytovye/split-sistema-tosot-natal-t28h-snn2",
+                "name": "Сплит-система Tosot Natal T28H-SnN2",
+                "price": "135000 р.",
+                "oldPrice": "",
+                "article": "T28H-SnN2/I/T28H-SnN2/O",
+                "brand": "Tosot",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "Под заказ",
+                "imageLink": "https://mbt-ug.ru/image/cachewebp/catalog/easyphoto/6795/split-sistema-tosot-natal-t07h-snnt07h-snn-i-t07h-snn-o-6795-500x500.webp"
             }
         ]
     },
