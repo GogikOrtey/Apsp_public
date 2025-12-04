@@ -68,36 +68,10 @@ from textwrap import dedent
 # И если при какой-то галочке, то пропускаем 
 
 
-# # Данные с сайта 2
-# #TODO Здесь надо внедрять установку оффсета
-# # Проверять, если явной пагинации нет, но оффсет есть - то выислять разницу между 2 и 3й страницами
-# # и привязывать его к пагинации
-# data_input_table = {
-#     "host": "",
-#     "links": {
-
-#     },
-#     "search_requests": [
-#         {
-#             "query": "Ванна",
-#             "url_search_query_page_2": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24",
-#             "url_search_query_page_3": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=48",
-#             "count_of_page_on_pagination": "6",
-#             # Число последней страницы, если оно отображается в блоке пагинации внизу
-#             "total_count_of_results": "0",
-#             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
-#             "links_items": [
-#                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
-#             ]
-#         }
-#     ],
-#     "timestamp": 1764753782
-# }
-
-# Данные с сайта 4
+# Данные с сайта 2
+#TODO Здесь надо внедрять установку оффсета
+# Проверять, если явной пагинации нет, но оффсет есть - то выислять разницу между 2 и 3й страницами
+# и привязывать его к пагинации
 data_input_table = {
     "host": "",
     "links": {
@@ -106,18 +80,44 @@ data_input_table = {
     "search_requests": [
         {
             "query": "Ванна",
-            "url_search_query_page_2": "https://kotel-nasos.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
-            "count_of_page_on_pagination": "115",
+            "url_search_query_page_2": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24",
+            "url_search_query_page_3": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=48",
+            "count_of_page_on_pagination": "6",
+            # Число последней страницы, если оно отображается в блоке пагинации внизу
             "total_count_of_results": "0",
+            # Если нет последней страницы пагинации, то общее кол-во найденых товаров
             "links_items": [
-                "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-54/",
-                "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-48/",
-                "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-42/",
+                # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
+                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
             ]
         }
     ],
-    "timestamp": 1764839602
+    "timestamp": 1764872654
 }
+
+# # Данные с сайта 4
+# data_input_table = {
+#     "host": "",
+#     "links": {
+
+#     },
+#     "search_requests": [
+#         {
+#             "query": "Ванна",
+#             "url_search_query_page_2": "https://kotel-nasos.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
+#             "count_of_page_on_pagination": "115",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-54/",
+#                 "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-48/",
+#                 "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-42/",
+#             ]
+#         }
+#     ],
+#     "timestamp": 1764839602
+# }
 
 def extract_params(url: str) -> dict:
     parsed = urlparse(url)
@@ -146,7 +146,7 @@ def generate_parsePage_search_requests(data_input_table):
     data = extracted_params_from_url
 
     # Возможные варианты названий параметров поиска и пагинации
-    search_param_names = ["q", "query", "search"]
+    search_param_names = ["q", "query", "search", "find"]
     pagination_param_names = ["page", "p", "PAGEN_1", "PAGEN", "page_num"]
 
     # Переменные с найденными названиями параметров
@@ -342,13 +342,20 @@ def main_generate_parsePage():
 
     # Получает страницу
     set_item["page_html"] = get_html(set_item["link"]) 
-
-    # print(set_item["page_html"][:1000])
     current_element = data_input_table["search_requests"][0]
 
     # Извлекаем product_selector
     processed_url_product = strip_host(current_element["links_items"][0])
     product_selector = get_css_selector_from_text_value_element(set_item["page_html"], processed_url_product, is_exact = False, is_multiply_sel_result = True)
+    if not product_selector:
+        raise ErrorHandler("Не был найден селектор для товара")
+        # Это может быть, если сортировка товаров может меняться
+        # TODO Как это можно обойти: 
+            # Собрать все ссылки из страницы
+            # И выделить те, которые указывают на товары
+            # Можно сравнивать их с теми, что пришли по задаче для parseCard
+            # И потом с использованием ИИ выделить их, и уже найти их селекторы
+    
     print("\nproduct_selector = " + product_selector)
 
     # Проверяем, сколько товаров на этой странице
@@ -399,12 +406,33 @@ def main_generate_parsePage():
     
     # Извлекаем селектор для пагинации
 
+    #TODO Также может быть такая ситуация, что вообще нет параметров в поиске
+    # это значит всё ищется запросами, и нужно будет смотреть их
 
     #TODO Сюда ещё надо добавить вариант, когда у нас указан оффсет, но нет пагинации
     # region Ex selector offset
 
+    # Проверить на том сайте, №2 
+    # Сейчас детектить, и кидать ошибку генерации parsePage
+    # Надо будет дополнительно подумать о том, как это можно детектить, если у нас
+    # есть только одна ссылка на вторую страницу
+
+    # Можно вообще заменить извлечение параметров запроса - сделать через ИИ
+    # Написать подробное задание, с примерами под каждый кейс
+    # и что бы он выводил ответ в json формате
+
+    """
+        Если это ссылка на вторую страницу поиска товаров: https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24 То сгенерируй ссылку на третью страницу Не пиши никаких комментариев, пояснений, вариантов и текста вокруг. В результате выдай только одну ссылку
+    """
 
 
+    """
+        Если у нас есть такая ссылка, на поиск товаров, на вторую страницу:
+
+        https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24
+
+        Ответь на вопрос, в этой ссылке используется параметр оффсета, при котором мы задаём не номер страницы, а смещение выдачи относительно первого товара? Обязательное правило: Не пиши никаких комментариев, пояснений, вариантов и текста вокруг. Выдай ответ "Нет", если здесь не используется параметр оффсета, и выдай в ответе этот параметр, если он есть - без каких либо пояснений
+    """
 
 
 

@@ -560,11 +560,11 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
         ends_with_attr = selector.strip().endswith("]")
 
         return (
-            -percent,      # 0️⃣ По убыванию процентного соотношения (основной критерий при is_exact=False)
-            -score,       # 1️⃣ По убыванию score
-            pos,          # 2️⃣ По положению в документе (выше = меньше)
-            not starts_with_id,  # 3️⃣ Сначала селекторы с #
-            ends_with_attr,      # 4️⃣ Селекторы с атрибутами в конце
+            -percent,                               # 0️⃣ По убыванию процентного соотношения соответствия исходному тексту (при is_exact=False)
+            -score,                                 # 1️⃣ По убыванию score
+            pos,                                    # 2️⃣ По положению в документе (выше = меньше)
+            not starts_with_id,                     # 3️⃣ Сначала селекторы с #
+            ends_with_attr,                         # 4️⃣ Селекторы с атрибутами в конце
             length if starts_with_id else -length,  # 5️⃣ Короткие селекторы лучше
         )
 
