@@ -166,4 +166,4 @@ result_selectors = {
     ]
 }
 
-# parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
