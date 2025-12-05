@@ -55,13 +55,10 @@ from string import Template
 # Собирает финальный код для вставки в шаблон
 def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     print("Проверяем селекторы, и генерируем parseCard")
-    #print_json(result_selectors)  # по желанию раскомментировать
+    #print_json(result_selectors)  
 
     # Подготовка множества триггеров InStock (строки)
     all_inStock_selectors = {elem.get("InStock_trigger") for elem in data_input_table["links"]["simple"] if elem.get("InStock_trigger")}
-    # all_inStock_selectors содержит значения из data_input_table (если они там в виде строки или списка) --
-    # предполагаю, что это строки, как в вашем примере. Если там массивы — можно будет адаптировать.
-    # Для безопасности приведём к set строк:
     all_inStock_selectors = {s if isinstance(s, str) else ",".join(s) for s in all_inStock_selectors}
     count_of_unical_text_selectors = len(all_inStock_selectors)
 
@@ -88,6 +85,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             return "src"
         return None
 
+    # region stock
     # Генератор куска для триггера наличия
     def using_InStock_triggers_value(result_selectors_local, use_OutOfStock=False):
         key_stock = "InStock_trigger" if not use_OutOfStock else "OutOfStock_trigger"
@@ -105,26 +103,23 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         else:
             all_js = "[" + ", ".join(f'"{x}"' for x in all_inStock_selectors) + "]"
 
-        # если в all_inStock_selectors только одно значение — можно использовать .includes(single)
         if count_of_unical_text_selectors == 1:
             # условие: $("...").text()?.includes("needle")
             result_stock_selector = (
-                f'const stock = $("{sel_string}")'
-                f'.text()?.includes({all_js}) ? {true_value} : {false_value}'
+                f'const stock = $("{sel_string}").text()?.includes({all_js}) ? {true_value} : {false_value}'
             )
         else:
             # несколько триггеров: .some(s => $("...").text()?.includes(s))
             result_stock_selector = (
-                f'const stock = {all_js}.some(s => $("{sel_string}")'
-                f'.text()?.includes(s)) ? {true_value} : {false_value}'
+                f'const stock = {all_js}.some(s => $("{sel_string}").text()?.includes(s)) ? {true_value} : {false_value}'
             )
 
-        # если было несколько селекторов — добавим .first()
-        if isinstance(result_selectors_local.get(key_stock), list) and len(result_selectors_local.get(key_stock)) > 1:
-            # вставим .first() после $("/...") — заменим $("sel") на $("sel").first()
-            result_stock_selector = result_stock_selector.replace('$("', '$("', 1)
-            # более аккуратно — просто добавим .first() сразу после $("{sel_string}")
-            result_stock_selector = result_stock_selector.replace(f'$("{sel_string}")', f'$("{sel_string}").first()')
+        # # если было несколько селекторов — добавим .first()
+        # if isinstance(result_selectors_local.get(key_stock), list) and len(result_selectors_local.get(key_stock)) > 1:
+        #     # вставим .first() после $("/...") — заменим $("sel") на $("sel").first()
+        #     result_stock_selector = result_stock_selector.replace('$("', '$("', 1)
+        #     # более аккуратно — просто добавим .first() сразу после $("{sel_string}")
+        #     result_stock_selector = result_stock_selector.replace(f'$("{sel_string}")', f'$("{sel_string}").first()')
         return result_stock_selector
 
     # Обработка логики наличия
@@ -147,6 +142,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         print("Есть только триггер OutOfStock, используем его")
         result_stock_selector = using_InStock_triggers_value(result_selectors, use_OutOfStock=True)
 
+    # region Остальные поля
     # Начинаем собирать varFromSelector для всех остальных полей
     lines = []
     # добавляем строку stock
@@ -190,6 +186,20 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             * Для imageLink проверить, есть ли хост в ссылке
                 * Если нет, то добавлять его, но прописать проверку на то, получили ли мы данные
 
+            * Уделить внимание обработке price и oldPrice
+                * Надо проверить, что если после чистки значения получается корректная цена
+                    * Проверить, что она соответствует нормам
+                    * Если нет, то отправить в ИИ, что бы он дополнил код для этой строки
+                * Не забыть про запятые
+                    * Если есть запятая, которая отделяет копейки от основной суммы, то мы её передаём
+                      как аргумент в .formatPrice(",") 
+                    * Но если запятая отделяет тысячи, то не передаём
+
+            * Когда есть элемент у селектора, например [href] - мы извлекаем его через .attr, но 
+              не удаляем из селектора
+
+            * Просмотреть на 20-30 примерах написанных парсеров
+
         """
 
 
@@ -202,6 +212,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
 
+    # region Генерируем шаблон
     # Собираем финальную строку varFromSelector
     value_field = "\n".join(lines) + "\n"
 
@@ -242,11 +253,40 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     print(result)
     return result
 
+    # # Сделал так, что форматирую код при создании
     # formatted = format_js(result)
     # print(formatted)
     # return formatted
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# region Пример result_selectors
 # Пример использования (тот же, что вы дали)
 result_selectors = {
     "name": [
