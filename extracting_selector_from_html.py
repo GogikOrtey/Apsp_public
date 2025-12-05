@@ -889,7 +889,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
 def simplify_selector_keep_value(
     html: str,
     selector: str,
-    get_element_from_selector,
+    get_element_from_selector_universal,
     is_multiply_sel_result: bool = False,
 ):
     """
@@ -979,7 +979,7 @@ def simplify_selector_keep_value(
 
     # начальная проверка: получаем исходное значение
     try:
-        original_value = get_element_from_selector(html, selector)
+        original_value = get_element_from_selector_universal(html, selector)
     except Exception:
         # если исходный селектор уже валидный, но функция кидает — лучше вернуть исходный
         return selector
@@ -1029,7 +1029,7 @@ def simplify_selector_keep_value(
                 and len(candidate_nodes) == original_count
             ):
                 try:
-                    candidate_value = get_element_from_selector(
+                    candidate_value = get_element_from_selector_universal(
                         html, candidate_selector
                     )
                 except Exception:
@@ -1038,7 +1038,7 @@ def simplify_selector_keep_value(
         else:
             if len(candidate_nodes) == 1:
                 try:
-                    candidate_value = get_element_from_selector(
+                    candidate_value = get_element_from_selector_universal(
                         html, candidate_selector
                     )
                 except Exception:
