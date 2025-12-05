@@ -170,15 +170,37 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         attr = detect_attr_selector(sel_array)
         # если найден attr, используем .attr('href'/'src'), иначе .text()?.trim()
         selector_expr = f'$("{sel_string}")'
-        # если несколько селекторов — ставим .first()
-        if len(sel_array) > 1:
-            selector_expr = selector_expr + '.first()'
+        # # если несколько селекторов — ставим .first()
+        # if len(sel_array) > 1:
+        #     selector_expr = selector_expr + '?.first()'
+
+
+
+        """
+            * Вот здесь нужно проверить, если у селектора больше 1 результата, то добавляем 
+                * selector_expr = selector_expr + '?.first()'
+
+            * И далее здесь проверить, если селектор возвращает на всех страницах именно то что нужно
+                * то всё ок, его и вставляем
+                * но если он возвращает данные, в которых есть то что нужно, то мы
+                * отправляем это всё на обработку в ИИ для уточнения строчки кода
+
+            * Также поля нужно будет отсортировать, и написать в том порядке, в котором 
+
+            * Для imageLink проверить, есть ли хост в ссылке
+                * Если нет, то добавлять его, но прописать проверку на то, получили ли мы данные
+
+        """
+
 
         if attr:
-            lines.append(f'const {key} = {selector_expr}.attr("{attr}")?.trim()')
+            lines.append(f'\tconst {key} = {selector_expr}?.attr("{attr}")?.trim()')
         else:
             # используем optional chaining (?.) чтобы не упасть при undefined
-            lines.append(f'const {key} = {selector_expr}.text()?.trim()')
+            lines.append(f'\tconst {key} = {selector_expr}.text()?.trim()')
+
+
+
 
     # Собираем финальную строку varFromSelector
     value_field = "\n".join(lines) + "\n"
@@ -217,11 +239,12 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         varFromSelector=value_field,
     )
 
-    # print(result)
-    # return result
-    formatted = format_js(result)
-    print(formatted)
-    return formatted
+    print(result)
+    return result
+
+    # formatted = format_js(result)
+    # print(formatted)
+    # return formatted
 
 
 # Пример использования (тот же, что вы дали)
