@@ -363,37 +363,37 @@
 
 
 
-# Сайт 11
-data_input_table = {
-    "host": "",
-    "links": {
-        "simple": [
-            {
-                "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/shpaklevki/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg/",
-                "name": "Шпаклевка финишная КНАУФ-Ротбанд Паста Профи 18 кг",
-                "price": "1 709 руб.",
-                "oldPrice": "1914.08 руб.",
-                "article": "MF1056",
-                "brand": "КНАУФ",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/232/c2vi4o77ijasd6bilvfj8kdnhtzqm5ye/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg.webp"
-            },
-            {
-                "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/kley_dlya_plitki_i_kamnya/kley_dlya_plitki_knauf_flizen_25_kg/",
-                "name": "Клей для плитки КНАУФ-Флизен 25 кг",
-                "price": "455 руб.",
-                "oldPrice": "509.60 руб.",
-                "article": "OA55",
-                "brand": "КНАУФ",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/dc5/7tkj4rzm90xetdl1io96kdwmrjzxano9/kley_dlya_plitki_knauf_flizen_25_kg.webp"
-            }
-        ]
-    },
-    "search_requests": []
-}
+# # Сайт 11
+# data_input_table = {
+#     "host": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/shpaklevki/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg/",
+#                 "name": "Шпаклевка финишная КНАУФ-Ротбанд Паста Профи 18 кг",
+#                 "price": "1 709 руб.",
+#                 "oldPrice": "1914.08 руб.",
+#                 "article": "MF1056",
+#                 "brand": "КНАУФ",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/232/c2vi4o77ijasd6bilvfj8kdnhtzqm5ye/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg.webp"
+#             },
+#             {
+#                 "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/kley_dlya_plitki_i_kamnya/kley_dlya_plitki_knauf_flizen_25_kg/",
+#                 "name": "Клей для плитки КНАУФ-Флизен 25 кг",
+#                 "price": "455 руб.",
+#                 "oldPrice": "509.60 руб.",
+#                 "article": "OA55",
+#                 "brand": "КНАУФ",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://sks.spb.ru/upload/resize_cache/webp/iblock/dc5/7tkj4rzm90xetdl1io96kdwmrjzxano9/kley_dlya_plitki_knauf_flizen_25_kg.webp"
+#             }
+#         ]
+#     },
+#     "search_requests": []
+# }
 
 
 # # Сайт 12
