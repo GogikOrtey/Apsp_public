@@ -288,21 +288,17 @@ def select_best_selectors(input_data, content_html):
                         extracted_any = got
                         break
                     
-                # 💡 Обработка ценовых полей
-                if field in ("price", "oldPrice"):
-                    match = normalize_price(expected) == normalize_price(extracted_any)
-                else:
-                    score_match = compute_match_score_2(expected, extracted_any)
+                score_match = compute_match_score_2(expected, extracted_any)
+                print(f"score_match = {score_match} для '{expected}' и '{extracted_any}'")
 
-                    if field == "imageLink":
-                        match_score_imageLink = similarity_percent_smart(expected, extracted_any)
-                        if verbose:
-                            if isPrint: print(f"match_score_imageLink = {match_score_imageLink}")
+                if field == "imageLink":
+                    match_score_imageLink = similarity_percent_smart(expected, extracted_any)
+                    if verbose:
+                        if isPrint: print(f"match_score_imageLink = {match_score_imageLink}")
 
-                        # similarity возвращает проценты (0–100)
-                        if match_score_imageLink >= 50:
-                            score_match = 1      # ставим абсолютное совпадение
-                    match = score_match >= 0.8 or expected in extracted_any or extracted_any in expected
+                    if match_score_imageLink >= 50:
+                        score_match = 1
+                match = score_match >= 0.8 or expected in extracted_any or extracted_any in expected or normalize_price(expected) == normalize_price(extracted_any)
 
                 if not match:
                     if not expected and not extracted_any:

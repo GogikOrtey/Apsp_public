@@ -102,6 +102,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # OutOfStock_trigger в полях прописывается, их нужно чистить от этих объектов
     # и заменять на stock
 
+    # и не забыть проверить на единственность. Если нет, то ставим .first()
+
 
     # В конце
     value_field = value_field.rstrip("\n")
@@ -139,15 +141,29 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     return result
 
 
-# # Для примера
-# result_selectors = {
-#     "name": "h1.name",
-#     "price": ".b",
-#     "article": ".char > p",
-#     "brand": "li:nth-of-type(4) > a",
-#     "InStock_trigger": ".nal.y",
-#     "imageLink": "a.fancybox[href]",
-#     "oldPrice": ".thr"
-# }
+# Для примера
+result_selectors = {
+    "name": [
+        "h1.name"
+    ],
+    "price": [
+        ".b"
+    ],
+    "article": [
+        ".char > p:nth-of-type(1)"
+    ],
+    "brand": [
+        ".char > p:nth-of-type(2)"
+    ],
+    "InStock_trigger": [
+        ".nal.y"
+    ],
+    "imageLink": [
+        "html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href]"
+    ],
+    "oldPrice": [
+        ".thr"
+    ]
+}
 
 # parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
