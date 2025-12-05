@@ -1,4 +1,5 @@
 from typing import Callable, Dict, List, Any, Iterable, Tuple
+from parsel import Selector as ParselSelector
 from collections import Counter, defaultdict
 from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timedelta
