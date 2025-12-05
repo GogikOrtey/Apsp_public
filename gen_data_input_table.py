@@ -450,3 +450,24 @@
 #     "search_requests": []
 # }
 
+
+# Сайт 13
+data_input_table = {
+    "host": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://tdnws.ru/catalog/santekhnika/smesiteli/smesitel_dlya_rakoviny_d_k_bayern_m_nchen_da1562108_belyy/",
+                "name": "Смеситель для раковины D&K Bayern.München белый (DA1562108)",
+                "price": "7 810 руб.",
+                "oldPrice": "",
+                "article": "DA1562108",
+                "brand": "DQ",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://tdnws.ru/upload/resize_cache/webp/iblock/c4a/c4a461f3faa99700e5da9214dc49b30d.webp"
+            }
+        ]
+    },
+    "search_requests": []
+}
