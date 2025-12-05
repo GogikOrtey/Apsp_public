@@ -661,7 +661,8 @@ result_select_best_selectors = select_best_selectors(data_input_table["links"]["
 # print("content_html =", str(content_html)[:1000])
 # Извлекаем HTML из первой страницы словаря content_html
 html_text = content_html['simple'][0]['html_content'] if content_html.get('simple') and len(content_html['simple']) > 0 else ''
-result_new_selector = get_element_from_selector_universal(html_text, 'tr:has(td:contains("Производитель/Бренд")) td:nth-child(2)')
+# result_new_selector = get_element_from_selector_universal(html_text, 'tr:has(td:contains("Производитель/Бренд")) td:nth-child(2)')
+result_new_selector = get_element_from_selector_universal(html_text, '.table tr:has(td:contains("Производитель/Бренд")) > td:nth-child(2)')
 print("result_new_selector = " + result_new_selector)
 
 print("")

@@ -70,13 +70,197 @@ content_html = {
 
 
 # region Поиск селекторов
+# def find_text_selector(
+#     html: str,
+#     text: str,
+#     exact: bool = True,
+#     return_all_selectors: bool = False,
+#     isPriceHandle: bool = False,
+#     allow_complex_classes: bool = False  # Использовать ли сложные аттрибуты, типо [class*="..."]
+# ):
+#     # Игнорируем атрибуты, содержащие эти подстроки, при поиске css пути
+#     IGNORED_SUBSTRS = ["data", "src", "href", "alt", "title", "content", "title"]
+#     PRIORITY_ATTRS = ["name", "property", "itemprop", "id"]
+
+#     if isPriceHandle:
+#         html = clean_html(html)
+#         text = normalize_price(text)
+
+#     DANGEROUS_CHARS = set(':[]/%%()#') 
+
+#     def class_is_dangerous(cls: str) -> bool:
+#         if not cls:
+#             return False
+#         # Класс содержит опасные символы
+#         if any(ch in cls for ch in DANGEROUS_CHARS):
+#             return True
+#         # Класс содержит кавычки или пробел
+#         if '"' in cls or "'" in cls or " " in cls:
+#             return True
+#         # Класс начинается с цифры
+#         if cls[0].isdigit():
+#             return True
+#         return False
+
+#     def escape_attr_value(val: str) -> str:
+#         return val.replace('"', '\\"')
+
+#     def get_css_path(element):
+#         path = []
+#         while element and element.name and element.name != "[document]":
+#             selector = element.name
+
+#             # Если есть id — используем его
+#             if element.has_attr("id"):
+#                 selector = f"#{element['id']}"
+#                 path.append(selector)
+#                 break
+
+#             # Классы
+#             if element.has_attr("class"):
+#                 cls_parts = []
+#                 for cls in element.get("class", []):
+#                     if not cls:
+#                         continue
+#                     # если класс опасный
+#                     if class_is_dangerous(cls):
+#                         if allow_complex_classes:
+#                             cls_parts.append(f'[class*="{escape_attr_value(cls)}"]')
+#                         else:
+#                             continue  # ❌ пропускаем опасные классы
+#                     else:
+#                         cls_parts.append(f'.{cls}')
+#                 selector += "".join(cls_parts)
+
+#             # Проверяем наличие значимых атрибутов
+#             has_significant_attr = any(
+#                 (
+#                     attr in PRIORITY_ATTRS or not any(sub in attr for sub in IGNORED_SUBSTRS)
+#                 )
+#                 for attr in element.attrs.keys()
+#             )
+
+#             if not has_significant_attr:
+#                 siblings = element.find_previous_siblings(element.name)
+#                 if siblings:
+#                     selector += f":nth-of-type({len(siblings) + 1})"
+
+#             path.append(selector)
+#             element = element.parent
+
+#         return " > ".join(reversed(path))
+
+#     def normalize_text(s):
+#         return " ".join(s.split())
+
+#     def similarity(a, b):
+#         return SequenceMatcher(None, normalize_text(a), normalize_text(b)).ratio()
+
+#     def make_selector(el, base_selector, attr_name):
+#         parts = [base_selector]
+#         is_ignored = any(sub in attr_name for sub in IGNORED_SUBSTRS)
+
+#         element_id = el.get("id")
+#         has_id_in_base = element_id and f"#{element_id}" in base_selector
+
+#         if is_ignored:
+#             for alt_attr in PRIORITY_ATTRS:
+#                 if el.has_attr(alt_attr):
+#                     if alt_attr == "id" and has_id_in_base:
+#                         continue
+#                     val = el.get(alt_attr)
+#                     if isinstance(val, list):
+#                         val = " ".join(val)
+#                     if isinstance(val, str):
+#                         parts.append(f'[{alt_attr}="{escape_attr_value(val.strip())}"]')
+#                     break
+#             parts.append(f'[{attr_name}]')
+#         else:
+#             val = el.get(attr_name)
+#             if isinstance(val, list):
+#                 val = " ".join(val)
+#             if isinstance(val, str):
+#                 if attr_name == "id" and has_id_in_base:
+#                     return "".join(parts)
+#                 parts.append(f'[{attr_name}="{escape_attr_value(val.strip())}"]')
+#             else:
+#                 parts.append(f'[{attr_name}]')
+
+#         return "".join(parts)
+
+#     # --- Парсим HTML ---
+#     soup = BeautifulSoup(html, "html.parser")
+#     selectors = []
+
+#     # --- Основной поиск (точное совпадение) ---
+#     for el in soup.find_all(True):
+#         element_text = el.get_text(strip=True)
+#         if element_text:
+#             check_value = normalize_price(element_text) if isPriceHandle else element_text
+#             match = (text == check_value) if exact else (text in check_value)
+#             if match:
+#                 selector = get_css_path(el)
+#                 if return_all_selectors:
+#                     selectors.append(selector)
+#                 else:
+#                     return selector
+
+#         for attr_name, attr_val in el.attrs.items():
+#             if isinstance(attr_val, list):
+#                 attr_val = " ".join(attr_val)
+#             if isinstance(attr_val, str):
+#                 check_value = normalize_price(attr_val) if isPriceHandle else attr_val
+#                 match = (text == check_value) if exact else (text in check_value)
+#                 if match:
+#                     base_selector = get_css_path(el)
+#                     selector = make_selector(el, base_selector, attr_name)
+#                     if return_all_selectors:
+#                         selectors.append(selector)
+#                     else:
+#                         return selector
+
+#     # --- Нестрогий поиск ---
+#     if not selectors:
+#         threshold = 0.7
+#         for el in soup.find_all(True):
+#             element_text = el.get_text(strip=True)
+#             if element_text:
+#                 check_value = normalize_price(element_text) if isPriceHandle else element_text
+#                 score = similarity(text, check_value)
+#                 if score >= threshold:
+#                     selector = get_css_path(el)
+#                     if return_all_selectors:
+#                         selectors.append(selector)
+#                     else:
+#                         return selector
+
+#             for attr_name, attr_val in el.attrs.items():
+#                 if isinstance(attr_val, list):
+#                     attr_val = " ".join(attr_val)
+#                 if isinstance(attr_val, str):
+#                     check_value = normalize_price(attr_val) if isPriceHandle else attr_val
+#                     score = similarity(text, check_value)
+#                     if score >= threshold:
+#                         base_selector = get_css_path(el)
+#                         selector = make_selector(el, base_selector, attr_name)
+#                         if return_all_selectors:
+#                             selectors.append(selector)
+#                         else:
+#                             return selector
+
+#     if return_all_selectors:
+#         return selectors if selectors else None
+#     return None
+
+
 def find_text_selector(
     html: str,
     text: str,
     exact: bool = True,
     return_all_selectors: bool = False,
     isPriceHandle: bool = False,
-    allow_complex_classes: bool = False  # Использовать ли сложные аттрибуты, типо [class*="..."]
+    allow_complex_classes: bool = False,
+    use_table_context: bool = True
 ):
     # Игнорируем атрибуты, содержащие эти подстроки, при поиске css пути
     IGNORED_SUBSTRS = ["data", "src", "href", "alt", "title", "content", "title"]
@@ -91,13 +275,10 @@ def find_text_selector(
     def class_is_dangerous(cls: str) -> bool:
         if not cls:
             return False
-        # Класс содержит опасные символы
         if any(ch in cls for ch in DANGEROUS_CHARS):
             return True
-        # Класс содержит кавычки или пробел
         if '"' in cls or "'" in cls or " " in cls:
             return True
-        # Класс начинается с цифры
         if cls[0].isdigit():
             return True
         return False
@@ -105,48 +286,157 @@ def find_text_selector(
     def escape_attr_value(val: str) -> str:
         return val.replace('"', '\\"')
 
-    def get_css_path(element):
-        path = []
-        while element and element.name and element.name != "[document]":
-            selector = element.name
-
-            # Если есть id — используем его
-            if element.has_attr("id"):
-                selector = f"#{element['id']}"
-                path.append(selector)
+    def get_simple_table_selector(table_element, target_cell):
+        """Создает простой селектор для таблиц"""
+        # Находим строку, содержащую целевую ячейку
+        row = target_cell.find_parent('tr')
+        if not row:
+            return None
+        
+        # Получаем все ячейки в строке
+        cells = row.find_all(['td', 'th'])
+        if len(cells) < 2:
+            return None
+        
+        # Находим индекс целевой ячейки
+        target_index = None
+        for idx, cell in enumerate(cells, 1):
+            if target_cell in cell.find_all(recursive=True) or target_cell == cell:
+                target_index = idx
                 break
+        
+        if not target_index:
+            return None
+        
+        # Ищем ячейку с описанием (не целевую)
+        description_text = None
+        for cell in cells:
+            cell_text = cell.get_text(strip=True)
+            if cell_text and text not in cell_text:
+                description_text = cell_text
+                break
+        
+        if not description_text:
+            return None
+        
+        # Создаем базовый селектор для таблицы
+        table_selector = get_css_path_basic(table_element)
+        
+        # Экранируем текст описания
+        desc_escaped = description_text.replace('"', '\\"')
+        
+        # Создаем простой селектор
+        return f'{table_selector} tr:has(td:contains("{desc_escaped}")) > td:nth-child({target_index})'
+
+    def get_css_path_basic(element):
+        """Упрощенный путь без :nth-of-type"""
+        path = []
+        current_element = element
+        
+        while current_element and current_element.name and current_element.name != "[document]":
+            selector = current_element.name
+            
+            # ID имеет высший приоритет
+            if current_element.has_attr("id"):
+                element_id = current_element["id"]
+                if element_id and not class_is_dangerous(element_id):
+                    path.append(f"#{element_id}")
+                    break
+            
+            # Добавляем безопасные классы
+            if current_element.has_attr("class"):
+                cls_parts = []
+                for cls in current_element.get("class", []):
+                    if cls and not class_is_dangerous(cls):
+                        cls_parts.append(f'.{cls}')
+                if cls_parts:
+                    selector += "".join(cls_parts)
+            
+            # Добавляем другие значимые атрибуты
+            added_attr = False
+            for attr_name in PRIORITY_ATTRS:
+                if current_element.has_attr(attr_name):
+                    attr_value = current_element[attr_name]
+                    if isinstance(attr_value, list):
+                        attr_value = " ".join(attr_value)
+                    if isinstance(attr_value, str) and attr_value.strip():
+                        selector += f'[{attr_name}="{escape_attr_value(attr_value.strip())}"]'
+                        added_attr = True
+                        break
+            
+            path.append(selector)
+            current_element = current_element.parent
+        
+        return " > ".join(reversed(path))
+
+    def get_css_path(element, use_table_context=True):
+        """Основная функция построения CSS пути с обработкой таблиц"""
+        # Проверяем, находится ли элемент внутри таблицы
+        if use_table_context:
+            table_element = element.find_parent('table')
+            if table_element:
+                # Пытаемся найти ячейку таблицы, содержащую элемент
+                cell_element = element
+                while cell_element and cell_element.name not in ['td', 'th']:
+                    cell_element = cell_element.parent
+                    if not cell_element or cell_element.name == 'table':
+                        break
+                
+                if cell_element and cell_element.name in ['td', 'th']:
+                    table_selector = get_simple_table_selector(table_element, cell_element)
+                    if table_selector:
+                        return table_selector
+        
+        # Если не таблица или не удалось создать селектор для таблицы, используем стандартный путь
+        path = []
+        current_element = element
+        
+        while current_element and current_element.name and current_element.name != "[document]":
+            selector = current_element.name
+
+            # ID имеет высший приоритет
+            if current_element.has_attr("id"):
+                element_id = current_element["id"]
+                if element_id and not class_is_dangerous(element_id):
+                    path.append(f"#{element_id}")
+                    break
 
             # Классы
-            if element.has_attr("class"):
+            if current_element.has_attr("class"):
                 cls_parts = []
-                for cls in element.get("class", []):
+                for cls in current_element.get("class", []):
                     if not cls:
                         continue
-                    # если класс опасный
                     if class_is_dangerous(cls):
                         if allow_complex_classes:
                             cls_parts.append(f'[class*="{escape_attr_value(cls)}"]')
                         else:
-                            continue  # ❌ пропускаем опасные классы
+                            continue
                     else:
                         cls_parts.append(f'.{cls}')
-                selector += "".join(cls_parts)
+                if cls_parts:
+                    selector += "".join(cls_parts)
 
             # Проверяем наличие значимых атрибутов
             has_significant_attr = any(
                 (
                     attr in PRIORITY_ATTRS or not any(sub in attr for sub in IGNORED_SUBSTRS)
                 )
-                for attr in element.attrs.keys()
+                for attr in current_element.attrs.keys()
             )
 
-            if not has_significant_attr:
-                siblings = element.find_previous_siblings(element.name)
-                if siblings:
-                    selector += f":nth-of-type({len(siblings) + 1})"
+            if not has_significant_attr and current_element.parent:
+                siblings = [sib for sib in current_element.parent.find_all(current_element.name, recursive=False) 
+                          if sib.name == current_element.name]
+                if len(siblings) > 1:
+                    try:
+                        index = siblings.index(current_element) + 1
+                        selector += f":nth-of-type({index})"
+                    except ValueError:
+                        pass
 
             path.append(selector)
-            element = element.parent
+            current_element = current_element.parent
 
         return " > ".join(reversed(path))
 
@@ -199,7 +489,7 @@ def find_text_selector(
             check_value = normalize_price(element_text) if isPriceHandle else element_text
             match = (text == check_value) if exact else (text in check_value)
             if match:
-                selector = get_css_path(el)
+                selector = get_css_path(el, use_table_context)
                 if return_all_selectors:
                     selectors.append(selector)
                 else:
@@ -212,7 +502,7 @@ def find_text_selector(
                 check_value = normalize_price(attr_val) if isPriceHandle else attr_val
                 match = (text == check_value) if exact else (text in check_value)
                 if match:
-                    base_selector = get_css_path(el)
+                    base_selector = get_css_path(el, use_table_context)
                     selector = make_selector(el, base_selector, attr_name)
                     if return_all_selectors:
                         selectors.append(selector)
@@ -228,7 +518,7 @@ def find_text_selector(
                 check_value = normalize_price(element_text) if isPriceHandle else element_text
                 score = similarity(text, check_value)
                 if score >= threshold:
-                    selector = get_css_path(el)
+                    selector = get_css_path(el, use_table_context)
                     if return_all_selectors:
                         selectors.append(selector)
                     else:
@@ -241,7 +531,7 @@ def find_text_selector(
                     check_value = normalize_price(attr_val) if isPriceHandle else attr_val
                     score = similarity(text, check_value)
                     if score >= threshold:
-                        base_selector = get_css_path(el)
+                        base_selector = get_css_path(el, use_table_context)
                         selector = make_selector(el, base_selector, attr_name)
                         if return_all_selectors:
                             selectors.append(selector)
@@ -251,7 +541,6 @@ def find_text_selector(
     if return_all_selectors:
         return selectors if selectors else None
     return None
-
 
 # region Выбирает один sel
 
@@ -859,7 +1148,7 @@ def get_element_from_selector_and_len(html, selector):
 
 
 
-
+# Реализация поиска элемента по селектору, которая умеет искать по сложным аттрибутам, таким как :contains() и :has()
 def get_element_from_selector_universal(html, selector):
     # Пустой селектор → пустая строка
     if not selector or not selector.strip():
