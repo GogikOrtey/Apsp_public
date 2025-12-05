@@ -11,6 +11,14 @@ from import_all_libraries import *
 
 
 
+
+
+
+
+
+
+
+
 # Тут будет шаблон основного кода
 
 # Получаем базовые переменные - список полей, название парсера, хост
@@ -31,6 +39,40 @@ from import_all_libraries import *
 # И затем, проверка линтером (на синтаксические ошибки)
 
 # После этого можно уже возвращать готовый результат
+
+
+
+
+
+# Сохраняет результирующий код парсера в файл
+def result_file_JS(result_selectors, host):
+    # Собираем название для файла парсера
+
+    # Как нужно чистим домен
+    parser_file_name = host.split("://")[1].split("/")[0]
+    parser_file_name = parser_file_name.replace("www.", "")
+    parser_file_name = parser_file_name.replace(".", "").replace("-", "")
+    # TODO регионы потом удалять, но это сильно позже
+
+    base_name_part = "JS_Base_" + parser_file_name
+    print(base_name_part)
+
+    # parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+
+
+
+
+
+
+
+
+
+
+
+
+# # result_file_JS(result_selectors, "https://megapteka.ru/basket")
+# result_file_JS(result_selectors, "https://www.perekrestok.ru/cat/")
+
 
 
 """
