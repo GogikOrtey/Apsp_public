@@ -13,6 +13,7 @@ from string import Template
 from pprint import pprint
 import html as std_html
 from lxml import etree
+import jsbeautifier
 import itertools
 import requests
 import json
