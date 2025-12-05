@@ -6,6 +6,7 @@
 from import_all_libraries import * 
 
 isPrint = False
+# isPrint = True #################################################################
 
 # region Доп. методы
 
@@ -782,7 +783,8 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
 
         if isPrint: print("")
         if isPrint: print(f"🟢 Проверка селектора: {selector}")
-        result_text = get_element_from_selector(html, selector)
+        result_text = get_element_from_selector_universal(html, selector)
+        ############################
 
         if not result_text:
             if isPrint: print("❌ Элемент по селектору не найден или текст пуст")
@@ -870,7 +872,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
     if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%, процент содержания: {best['percent']:.1%})")
 
     # Дистилляция пути
-    result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector, is_multiply_sel_result)
+    result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector_universal, is_multiply_sel_result)
     return result_distill_selector
 
 
