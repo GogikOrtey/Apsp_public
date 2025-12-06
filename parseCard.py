@@ -196,7 +196,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             continue
         # предполагаем, что sel_array — list
         if not isinstance(sel_array, (list, tuple)):
-            sel_array = [sel_array] if sel_array else []
+            sel_array = [sel_array] if sel_array else [] 
 
         # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
         sel_array, attr = extract_and_remove_attr_from_selector(sel_array)
