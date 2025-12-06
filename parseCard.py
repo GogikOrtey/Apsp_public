@@ -131,7 +131,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     #     return None
 
     # region stock
-    # Генератор куска для триггера наличия
+    # Генератор куска для триггера наличия 
     def using_InStock_triggers_value(result_selectors_local, use_OutOfStock=False):
         key_stock = "InStock_trigger" if not use_OutOfStock else "OutOfStock_trigger"
         true_value = '"InStock"' if not use_OutOfStock else '"OutOfStock"'
