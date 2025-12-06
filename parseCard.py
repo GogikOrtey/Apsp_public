@@ -28,7 +28,7 @@ isPrint = False
 
 
 Если InStock_trigger и OutOfStock_trigger - одинаковые, то
-используем проверку на InStock_trigger, а по умолчанию оставляем занчение "OutOfStock"
+используем проверку на InStock_trigger, а по умолчанию оставляем значение "OutOfStock"
 
 Проверить, если ImageLink собирается без хоста, то добавить хост
 
