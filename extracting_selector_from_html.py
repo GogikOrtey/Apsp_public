@@ -946,11 +946,19 @@ def get_element_from_selector_and_len(html, selector):
 
 
 
+
+
 # Реализация поиска элемента по селектору, которая умеет искать по сложным аттрибутам, таким как :contains() и :has()
-def get_element_from_selector_universal(html, selector):
+def get_element_from_selector_universal(html, selector, is_ret_len=False):
+    # Вспомогательная функция для форматирования результата
+    def format_result(result_value, elements_count=0):
+        if is_ret_len:
+            return {"result": result_value, "length_elem": elements_count}
+        return result_value
+    
     # Пустой селектор → пустая строка
     if not selector or not selector.strip():
-        return ""
+        return format_result("", 0)
 
     sel = ParselSelector(html)
 
@@ -961,10 +969,12 @@ def get_element_from_selector_universal(html, selector):
     # Если пользователь сам указал ::attr(...) или ::text — используем как есть
     if "::attr(" in selector or "::text" in selector:
         try:
-            result = sel.css(selector).get()
-            return result.strip() if result else ""
+            # Получаем все элементы для подсчета
+            all_results = sel.css(selector).getall()
+            result = all_results[0].strip() if all_results and all_results[0] else ""
+            return format_result(result, len(all_results))
         except Exception:
-            return ""
+            return format_result("", 0)
 
     # Проверяем, содержит ли селектор сложные псевдоклассы, которые могут конфликтовать с ::text
     # К таким относятся: :has, :contains, и другие функциональные псевдоклассы с параметрами
@@ -1032,7 +1042,7 @@ def get_element_from_selector_universal(html, selector):
         # Удаляем квадратные скобки из селектора, иначе CSS будет путаться
         cleaned_selector = re.sub(r"\[[^\]]+\]", "", selector).strip()
         
-                # Если селектор содержит сложные псевдоклассы, используем XPath
+        # Если селектор содержит сложные псевдоклассы, используем XPath
         if has_complex_pseudo:
             try:
                 # Преобразуем в XPath и ищем элемент
@@ -1042,17 +1052,20 @@ def get_element_from_selector_universal(html, selector):
                     elements = tree.xpath(xpath)
                     if elements and len(elements) > 0:
                         result = elements[0].get(attr_name)
-                        return result.strip() if result else ""
-                return ""
+                        result = result.strip() if result else ""
+                        return format_result(result, len(elements))
+                return format_result("", 0)
             except Exception:
-                return ""
+                return format_result("", 0)
         else:
             try:
                 css = f"{cleaned_selector}::attr({attr_name})"
-                result = sel.css(css).get()
-                return result.strip() if result else ""
+                # Получаем все элементы для подсчета
+                all_results = sel.css(css).getall()
+                result = all_results[0].strip() if all_results and all_results[0] else ""
+                return format_result(result, len(all_results))
             except Exception:
-                return ""
+                return format_result("", 0)
 
     # Функция для безопасного извлечения текста через XPath для сложных селекторов
     def extract_via_xpath():
@@ -1068,39 +1081,208 @@ def get_element_from_selector_universal(html, selector):
                 elements = tree.xpath(xpath)
                 if elements and len(elements) > 0:
                     result = elements[0].text_content()
-                    return result.strip() if result else ""
+                    result = result.strip() if result else ""
+                    return result, len(elements)
             
-            return ""
+            return "", 0
         except Exception as e:
             # В случае ошибки возвращаем пустую строку
-            return ""
+            return "", 0
 
     # Функция для безопасного извлечения текста через HTML элемент
     def extract_text_via_html():
         try:
-            element_html = sel.css(selector).get()
-            if element_html:
+            # Получаем все элементы для подсчета
+            all_elements = sel.css(selector).getall()
+            if all_elements and len(all_elements) > 0:
                 from lxml import html as html_lx
-                elem_tree = html_lx.fromstring(element_html)
+                elem_tree = html_lx.fromstring(all_elements[0])
                 result = elem_tree.text_content()
-                return result.strip() if result else ""
-            return ""
+                result = result.strip() if result else ""
+                return result, len(all_elements)
+            return "", 0
         except Exception:
-            return ""
+            return "", 0
 
     # Если селектор содержит сложные псевдоклассы, используем XPath
     if has_complex_pseudo:
-        result = extract_via_xpath()
+        result, count = extract_via_xpath()
         if result:
-            return result
+            return format_result(result, count)
         # Если XPath не сработал, пробуем через HTML
-        return extract_text_via_html()
+        result, count = extract_text_via_html()
+        return format_result(result, count)
 
     # Иначе — пробуем стандартный способ с ::text
     try:
         css = selector + "::text"
-        result = sel.css(css).get()
-        return result.strip() if result else ""
+        # Получаем все элементы для подсчета
+        all_results = sel.css(css).getall()
+        result = all_results[0].strip() if all_results and all_results[0] else ""
+        return format_result(result, len(all_results))
     except Exception:
         # Если добавление ::text вызвало ошибку, пробуем другой способ
-        return extract_text_via_html()
+        result, count = extract_text_via_html()
+        return format_result(result, count)
+
+
+
+
+# # Реализация поиска элемента по селектору, которая умеет искать по сложным аттрибутам, таким как :contains() и :has()
+# def get_element_from_selector_universal(html, selector, is_ret_len=False):
+#     # Пустой селектор → пустая строка
+#     if not selector or not selector.strip():
+#         return ""
+
+#     sel = ParselSelector(html)
+
+#     # Проверяем, есть ли атрибут в виде [attr]
+#     # (пример: div[data-id])
+#     attr_match = re.search(r"\[([a-zA-Z0-9_-]+)\]", selector)
+
+#     # Если пользователь сам указал ::attr(...) или ::text — используем как есть
+#     if "::attr(" in selector or "::text" in selector:
+#         try:
+#             result = sel.css(selector).get()
+#             return result.strip() if result else ""
+#         except Exception:
+#             return ""
+
+#     # Проверяем, содержит ли селектор сложные псевдоклассы, которые могут конфликтовать с ::text
+#     # К таким относятся: :has, :contains, и другие функциональные псевдоклассы с параметрами
+#     complex_pseudo_patterns = [
+#         r":has\s*\(",
+#         r":contains\s*\(",
+#     ]
+    
+#     has_complex_pseudo = any(re.search(pattern, selector, re.IGNORECASE) for pattern in complex_pseudo_patterns)
+
+#     # Функция для преобразования CSS селектора с :contains() и :has() в XPath
+#     def css_to_xpath_with_complex_pseudo(css_selector):
+#         """
+#         Преобразует CSS селектор с :contains() и :has() в XPath
+#         Пример: tr:has(td:contains("text")) td:nth-child(2) -> //tr[td[contains(text(), 'text')]]/td[2]
+#         """
+#         # Обработка селектора вида: tr:has(td:contains("text")) td:nth-child(2)
+#         # Паттерн для :has(td:contains("..."))
+#         has_contains_pattern = r':has\s*\(\s*td\s*:\s*contains\s*\(\s*"([^"]+)"\s*\)\s*\)'
+#         match = re.search(has_contains_pattern, css_selector, re.IGNORECASE)
+        
+#         if match:
+#             text_to_find = match.group(1)
+#             # Разделим селектор на части: до :has и после
+#             before_has = css_selector[:match.start()].strip()
+#             after_has = css_selector[match.end():].strip()
+            
+#             # Извлекаем тег перед :has (например, "tr")
+#             tag_before = before_has.split()[-1] if before_has.split() else "tr"
+            
+#             # Экранируем кавычки в тексте для XPath (если есть одинарные - используем двойные и наоборот)
+#             if "'" in text_to_find:
+#                 # Если есть одинарные кавычки, используем двойные и экранируем их
+#                 text_escaped = text_to_find.replace('"', '&quot;')
+#                 xpath = f'//{tag_before}[td[contains(text(), "{text_escaped}")]]'
+#             else:
+#                 # Используем одинарные кавычки
+#                 xpath = f"//{tag_before}[td[contains(text(), '{text_to_find}')]]"
+            
+#             # Обработаем часть после :has (например, " td:nth-child(2)")
+#             if after_has:
+#                 after_has = after_has.strip()
+#                 # Обработаем nth-child(n) - ищем паттерн вида "td:nth-child(2)"
+#                 nth_child_match = re.search(r'(\w+)\s*:\s*nth-child\s*\(\s*(\d+)\s*\)', after_has)
+#                 if nth_child_match:
+#                     tag = nth_child_match.group(1)
+#                     index = nth_child_match.group(2)
+#                     xpath += f"/{tag}[{index}]"
+#                 else:
+#                     # Если нет nth-child, но есть тег и другие селекторы
+#                     # Просто добавим остаток, заменив пробелы на /
+#                     parts = after_has.split()
+#                     for part in parts:
+#                         part = part.strip()
+#                         if part and not part.startswith(':'):
+#                             xpath += f"/{part}"
+            
+#             return xpath
+        
+#         return None
+
+#     # Если есть [attr], автоматически извлекаем атрибут
+#     if attr_match:
+#         attr_name = attr_match.group(1)
+#         # Удаляем квадратные скобки из селектора, иначе CSS будет путаться
+#         cleaned_selector = re.sub(r"\[[^\]]+\]", "", selector).strip()
+        
+#                 # Если селектор содержит сложные псевдоклассы, используем XPath
+#         if has_complex_pseudo:
+#             try:
+#                 # Преобразуем в XPath и ищем элемент
+#                 xpath = css_to_xpath_with_complex_pseudo(cleaned_selector)
+#                 if xpath:
+#                     tree = html_lx.fromstring(html)
+#                     elements = tree.xpath(xpath)
+#                     if elements and len(elements) > 0:
+#                         result = elements[0].get(attr_name)
+#                         return result.strip() if result else ""
+#                 return ""
+#             except Exception:
+#                 return ""
+#         else:
+#             try:
+#                 css = f"{cleaned_selector}::attr({attr_name})"
+#                 result = sel.css(css).get()
+#                 return result.strip() if result else ""
+#             except Exception:
+#                 return ""
+
+#     # Функция для безопасного извлечения текста через XPath для сложных селекторов
+#     def extract_via_xpath():
+#         try:
+#             # Используем уже импортированный html_lx через import_all_libraries
+#             tree = html_lx.fromstring(html)
+            
+#             # Пытаемся преобразовать CSS в XPath
+#             xpath = css_to_xpath_with_complex_pseudo(selector)
+            
+#             if xpath:
+#                 # Используем XPath для поиска элементов
+#                 elements = tree.xpath(xpath)
+#                 if elements and len(elements) > 0:
+#                     result = elements[0].text_content()
+#                     return result.strip() if result else ""
+            
+#             return ""
+#         except Exception as e:
+#             # В случае ошибки возвращаем пустую строку
+#             return ""
+
+#     # Функция для безопасного извлечения текста через HTML элемент
+#     def extract_text_via_html():
+#         try:
+#             element_html = sel.css(selector).get()
+#             if element_html:
+#                 from lxml import html as html_lx
+#                 elem_tree = html_lx.fromstring(element_html)
+#                 result = elem_tree.text_content()
+#                 return result.strip() if result else ""
+#             return ""
+#         except Exception:
+#             return ""
+
+#     # Если селектор содержит сложные псевдоклассы, используем XPath
+#     if has_complex_pseudo:
+#         result = extract_via_xpath()
+#         if result:
+#             return result
+#         # Если XPath не сработал, пробуем через HTML
+#         return extract_text_via_html()
+
+#     # Иначе — пробуем стандартный способ с ::text
+#     try:
+#         css = selector + "::text"
+#         result = sel.css(css).get()
+#         return result.strip() if result else ""
+#     except Exception:
+#         # Если добавление ::text вызвало ошибку, пробуем другой способ
+#         return extract_text_via_html()
