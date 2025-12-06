@@ -2,7 +2,7 @@
 from addedFunc import *
 from gen_data_input_table import data_input_table # Входные данные
 from extracting_selector_from_html import *
-from extraction_selectors import get_html_from_cache  # Импорт функции для работы с кешем 
+from saving_cache import * 
 
 # Подключение всех библиотек
 from import_all_libraries import * 
@@ -199,18 +199,36 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             ################################################## Добавить сообщения об ошибках
             continue
 
+        
         # Проверяем селектор на всех ссылках из кеша
+        count_page = 0
+        max_count_element_of_selectors = 0
         for link_item in data_input_table["links"]["simple"]:
+            count_page += 1  # увеличиваем счетчик
             link = link_item.get("link")
             if not link:
                 continue
             
             # Получаем HTML из кеша
             html = get_html_from_cache(link)
-            
-            # Здесь можно добавить проверку, что селектор корректно извлекает данные
-            # Например, проверить, что результат не пустой, или соответствует ожидаемому значению
-            # TODO: Добавить более детальную проверку селектора на всех страницах
+            print(f"Проверяем селектор {sel_string} на странице №{count_page}")
+            result_selector = get_element_from_selector_universal(html, sel_string, is_ret_len=True)
+            # Если элемент по селектору не был найден на одной или нескольких страницах, то это ничего страшного
+            max_count_element_of_selectors = result_selector["length_elem"]
+
+
+
+            ###### Вот здесь также проверяем что селектор выдаёт верные результаты, полностью совпадающие с данными
+                # И отдельная проверка, если это price или oldPrice
+
+        print(f"🟡 max_count_element_of_selectors = {max_count_element_of_selectors}") ### убрать
+        if max_count_element_of_selectors > 1:
+            # То тут добавляем .first() к селектору
+            a = 1
+        elif max_count_element_of_selectors == 0:
+            # Значит результатов нет, детектим ошибку генерации поля
+            a = 1
+        # Иначе всё ок
 
         # если найден attr, используем .attr('href'/'src'), иначе .text()?.trim()
         selector_expr = f'$("{sel_string}")'

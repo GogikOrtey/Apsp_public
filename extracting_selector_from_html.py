@@ -918,6 +918,8 @@ def get_element_from_selector(html, selector):
     return result
 
 
+# TODO Тут эти 3 процедуры устарели, их удалить
+
 
 # Возвращает элемент, и его длину
 def get_element_from_selector_and_len(html, selector):
