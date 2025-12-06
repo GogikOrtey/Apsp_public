@@ -12,6 +12,19 @@ isPrint = False
 
 
 
+# Транслированная функция format_price 
+def format_price(value: str, separator: str = ".") -> str:
+    # Удаляем все символы, кроме цифр и разделителя
+    cleaned = re.sub(rf"[^0-9{re.escape(separator)}]+", "", value)
+
+    # Заменяем разделитель на точку
+    cleaned = cleaned.replace(separator, ".")
+
+    # Ищем число с максимум 2 знаками после точки
+    match = re.search(r"\d+(?:\.\d{0,2})?", cleaned)
+
+    return match.group(0) if match else ""
+
 
 
 
@@ -76,14 +89,46 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         # объединяем через запятую — это корректно для cheerio/jQuery
         return ", ".join(sel_array)
 
-    # Вспомог: если селектор содержит hint на атрибут (href/src) — используем attr
-    def detect_attr_selector(sel_array):
-        joined = " ".join(sel_array).lower()
-        if "href" in joined:
-            return "href"
-        if "src" in joined:
-            return "src"
-        return None
+    # Вспомог: извлекает атрибут из квадратных скобок в селекторе и удаляет его
+    def extract_and_remove_attr_from_selector(sel_array):
+        """
+        Ищет атрибут в квадратных скобках в селекторе.
+        Например: '.img > a.fancybox[href]' -> ('.img > a.fancybox', 'href')
+        Возвращает: (очищенный массив селекторов, имя атрибута или None)
+        """
+        import re
+        cleaned_array = []
+        found_attr = None
+        
+        for sel in sel_array:
+            # Ищем атрибут в квадратных скобках
+            # Паттерн: [attr] или [attr="value"] или [attr='value']
+            pattern = r'\[([a-zA-Z][a-zA-Z0-9_-]*)(?:=["\'].*?["\'])?\]'
+            match = re.search(pattern, sel)
+            
+            if match:
+                # Найден атрибут, извлекаем его имя
+                attr_name = match.group(1)
+                # Удаляем атрибут из селектора
+                cleaned_sel = re.sub(pattern, '', sel)
+                cleaned_array.append(cleaned_sel)
+                # Сохраняем первый найденный атрибут (если их несколько, берем первый)
+                if found_attr is None:
+                    found_attr = attr_name
+            else:
+                cleaned_array.append(sel)
+        
+        return cleaned_array, found_attr
+    
+    # # Вспомог: если селектор содержит hint на атрибут (href/src) — используем attr
+    # # Используется только для обратной совместимости, когда атрибут не указан в квадратных скобках
+    # def detect_attr_selector(sel_array):
+    #     joined = " ".join(sel_array).lower()
+    #     if "href" in joined:
+    #         return "href"
+    #     if "src" in joined:
+    #         return "src"
+    #     return None
 
     # region stock
     # Генератор куска для триггера наличия
@@ -114,12 +159,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                 f'const stock = {all_js}.some(s => $("{sel_string}").text()?.includes(s)) ? {true_value} : {false_value}'
             )
 
-        # # если было несколько селекторов — добавим .first()
-        # if isinstance(result_selectors_local.get(key_stock), list) and len(result_selectors_local.get(key_stock)) > 1:
-        #     # вставим .first() после $("/...") — заменим $("sel") на $("sel").first()
-        #     result_stock_selector = result_stock_selector.replace('$("', '$("', 1)
-        #     # более аккуратно — просто добавим .first() сразу после $("{sel_string}")
-        #     result_stock_selector = result_stock_selector.replace(f'$("{sel_string}")', f'$("{sel_string}").first()')
+        ### Здесь добавить такую-же проверку на использование .first()
+
         return result_stock_selector
 
     # Обработка логики наличия
@@ -148,28 +189,38 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # добавляем строку stock
     lines.append(result_stock_selector.rstrip("\n"))
 
-    # Перебираем ключи — пропускаем триггеры
+    # Перебираем ключи
     for key, sel_array in result_selectors.items():
         if key in ("InStock_trigger", "OutOfStock_trigger"):
+            # Пропускаем триггеры для поля stock
             continue
         # предполагаем, что sel_array — list
         if not isinstance(sel_array, (list, tuple)):
             sel_array = [sel_array] if sel_array else []
 
+        # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
+        sel_array, attr = extract_and_remove_attr_from_selector(sel_array)
+        
+        # # Если атрибут не найден в скобках, проверяем по старой логике
+        # if not attr:
+        #     attr = detect_attr_selector(sel_array)
+        
         sel_string = join_selectors_array(sel_array)
         if not sel_string:
             # если селектор пуст — создаём пустую переменную
             lines.append(f'const {key} = ""')
             continue
 
-        # определяем нужно ли брать .attr(...)
-        attr = detect_attr_selector(sel_array)
         # если найден attr, используем .attr('href'/'src'), иначе .text()?.trim()
         selector_expr = f'$("{sel_string}")'
-        # # если несколько селекторов — ставим .first()
-        # if len(sel_array) > 1:
-        #     selector_expr = selector_expr + '?.first()'
 
+        ### Здесь добавить проверку на использование .first()
+
+
+        if attr:
+            lines.append(f'\tconst {key} = {selector_expr}?.attr("{attr}")?.trim()')
+        else:
+            lines.append(f'\tconst {key} = {selector_expr}.text()?.trim()')
 
 
         """
@@ -200,14 +251,11 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
             * Просмотреть на 20-30 примерах написанных парсеров
 
+
+            
+
         """
 
-
-        if attr:
-            lines.append(f'\tconst {key} = {selector_expr}?.attr("{attr}")?.trim()')
-        else:
-            # используем optional chaining (?.) чтобы не упасть при undefined
-            lines.append(f'\tconst {key} = {selector_expr}.text()?.trim()')
 
 
 
@@ -316,3 +364,22 @@ result_selectors = {
 # selector_checker_and_parseCard_gen(result_selectors, {"links": {"simple": [{"InStock_trigger": ".nal.y"}]}})
 
 parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+
+
+
+
+
+
+
+
+
+
+
+
+"""
+Оригинальная функция formatPrice
+
+String.prototype.formatPrice = function (separator: string = "."): string {
+    return this.replace(new RegExp(`[^0-9${separator}]+`, "g"), "").replace(separator, ".").match(/\d+(?:\.\d{0,2})?/)?.shift() || ""
+}
+"""
