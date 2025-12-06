@@ -1,7 +1,8 @@
 # Вынесенные отдельно функции
 from addedFunc import *
 from gen_data_input_table import data_input_table # Входные данные
-from extracting_selector_from_html import * 
+from extracting_selector_from_html import *
+from extraction_selectors import get_html_from_cache  # Импорт функции для работы с кешем 
 
 # Подключение всех библиотек
 from import_all_libraries import * 
@@ -194,8 +195,22 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         sel_string = join_selectors_array(sel_array)
         if not sel_string:
             # если селектор пуст — создаём пустую переменную
-            lines.append(f'const {key} = ""')
+            lines.append(f'const {key} = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля')
+            ################################################## Добавить сообщения об ошибках
             continue
+
+        # Проверяем селектор на всех ссылках из кеша
+        for link_item in data_input_table["links"]["simple"]:
+            link = link_item.get("link")
+            if not link:
+                continue
+            
+            # Получаем HTML из кеша
+            html = get_html_from_cache(link)
+            
+            # Здесь можно добавить проверку, что селектор корректно извлекает данные
+            # Например, проверить, что результат не пустой, или соответствует ожидаемому значению
+            # TODO: Добавить более детальную проверку селектора на всех страницах
 
         # если найден attr, используем .attr('href'/'src'), иначе .text()?.trim()
         selector_expr = f'$("{sel_string}")'
@@ -240,6 +255,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             * Логика для поля stock выписана, и была проверена, но давно
                 * Стоит проверить её ещё раз
 
+            * Добавить сообщения об ошибках
 
             
 

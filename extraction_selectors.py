@@ -18,7 +18,7 @@ def fill_selectors_for_items(input_items, get_css_selector_from_text_value_eleme
     items = input_items["links"]["simple"] # Проходимся по простым ссылкам
     # TODO В будущем доработать логику - возомжно здесь проходиться по всем массивам ссылок что есть
     host = ""
-    cache = load_cache()
+
     
     print(f"Обработаем {len(items)} страниц")
     for item in items:
@@ -28,7 +28,8 @@ def fill_selectors_for_items(input_items, get_css_selector_from_text_value_eleme
 
         # Получаю страницу либо из кеша, либо запросом
         # Кешем, если она младше 18 часов
-        html, data_time_str, timestamp_int = get_html_with_cache(item["link"], cache)
+        # Используем глобальный кеш через get_html_from_cache
+        html, data_time_str, timestamp_int = get_html_from_cache(item["link"], return_metadata=True)
 
         # Формирую элемент страницы, и добавляю его в переменную хранения всех страниц
         new_item = {
@@ -452,8 +453,11 @@ def select_best_selectors(input_data, content_html):
     # Убираем преобразование в строку через запятую, возвращаем массив
     # (как и требуется в задании)
     
-    # Сохраняем страницы в кеш
+    # Сохраняем страницы в кеш и обновляем глобальный кеш
     save_content_html_to_cache(content_html)
+    # Обновляем глобальный кеш после сохранения
+    global global_cache
+    global_cache = load_cache()
 
     return result
 
@@ -462,6 +466,9 @@ def select_best_selectors(input_data, content_html):
 CACHE_FILE = "cache.json"
 MAX_AGE_HOURS = 18
 
+# Инициализация глобального кеша при загрузке модуля
+global_cache = {}
+
 def load_cache(file=CACHE_FILE):
     try:
         with open(file, "r", encoding="utf-8") as f:
@@ -469,16 +476,34 @@ def load_cache(file=CACHE_FILE):
     except FileNotFoundError:
         return {"simple": []}
 
-# Получаем html, проверяя кеш
-def get_html_with_cache(link, cache):
+# Инициализируем глобальный кеш при загрузке модуля
+global_cache = load_cache()
+
+# Получаем html из кеша для ссылки (работает с глобальным кешем)
+def get_html_from_cache(link, return_metadata=False):
+    """
+    Получает HTML для ссылки из глобального кеша.
+    Если страницы нет в кеше или она устарела - загружает заново и обновляет кеш.
+    
+    Args:
+        link: URL страницы
+        return_metadata: Если True, возвращает кортеж (html, data_time_str, timestamp_int),
+                        иначе возвращает только HTML-контент
+    
+    Returns:
+        str: HTML-контент (если return_metadata=False)
+        tuple: (html, data_time_str, timestamp_int) (если return_metadata=True)
+    """
     now = int(time.time())
     # Ищем страницу в кеше
-    for item in cache["simple"]:
+    for item in global_cache["simple"]:
         if item["link"] == link:
             age_hours = (now - item["timestamp"]) / 3600
             if age_hours <= MAX_AGE_HOURS:
                 print(f"📤 Берем страницу из кеша: {link} (возраст {age_hours:.2f} ч.)")
-                return item["html_content"], item["data_time"], item["timestamp"]
+                if return_metadata:
+                    return item["html_content"], item["data_time"], item["timestamp"]
+                return item["html_content"]
             break  # страница есть, но устарела — выйдем и загрузим заново
 
     # Если страницы нет в кеше или она старая — получаем заново
@@ -486,9 +511,9 @@ def get_html_with_cache(link, cache):
     data_time_str = datetime.now().strftime("%d.%m.%Y %H:%M")
     timestamp_int = int(time.time())
 
-    # Обновляем или добавляем в кеш
+    # Обновляем или добавляем в глобальный кеш
     updated = False
-    for item in cache["simple"]:
+    for item in global_cache["simple"]:
         if item["link"] == link:
             item.update({
                 "html_content": html,
@@ -498,14 +523,18 @@ def get_html_with_cache(link, cache):
             updated = True
             break
     if not updated:
-        cache["simple"].append({
+        global_cache["simple"].append({
             "link": link,
             "html_content": html,
             "data_time": data_time_str,
             "timestamp": timestamp_int
         })
 
-    return html, data_time_str, timestamp_int
+    if return_metadata:
+        return html, data_time_str, timestamp_int
+    if return_metadata:
+        return html, data_time_str, timestamp_int
+    return html
 
 # Сохраняет загруженные страницы в кеш
 def save_content_html_to_cache(content_html, cache_file="cache.json"):
@@ -567,6 +596,10 @@ def save_content_html_to_cache(content_html, cache_file="cache.json"):
     print(f"   Добавлено: {added_count}, обновлено: {updated_count}")
     if deleted_count:
         print(f"   Удалено старых страниц: {deleted_count}")
+    
+    # Обновляем глобальный кеш после сохранения
+    global global_cache
+    global_cache = updated_cache
 
 
 

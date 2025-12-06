@@ -47,63 +47,6 @@ def check_avialible_html():
 
 
 
-
-
-
-
-
-
-# Для примера
-result_selectors = {
-    "name": "h1.name",
-    "price": ".b",
-    "article": ".char > p",
-    "brand": "li:nth-of-type(4) > a",
-    "InStock_trigger": ".nal.y",
-    "imageLink": "a.fancybox[href]",
-    "oldPrice": ".thr"
-}
-
-
-# selector_checker_and_parseCard_gen(result_selectors, data_input_table)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 """
     Проверить, возможно это поправилось
 
