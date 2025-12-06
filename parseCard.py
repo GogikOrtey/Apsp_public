@@ -119,16 +119,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                 cleaned_array.append(sel)
         
         return cleaned_array, found_attr
-    
-    # # Вспомог: если селектор содержит hint на атрибут (href/src) — используем attr
-    # # Используется только для обратной совместимости, когда атрибут не указан в квадратных скобках
-    # def detect_attr_selector(sel_array):
-    #     joined = " ".join(sel_array).lower()
-    #     if "href" in joined:
-    #         return "href"
-    #     if "src" in joined:
-    #         return "src"
-    #     return None
 
     # region stock
     # Генератор куска для триггера наличия 
@@ -201,10 +191,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
         sel_array, attr = extract_and_remove_attr_from_selector(sel_array)
         
-        # # Если атрибут не найден в скобках, проверяем по старой логике
-        # if not attr:
-        #     attr = detect_attr_selector(sel_array)
-        
         sel_string = join_selectors_array(sel_array)
         if not sel_string:
             # если селектор пуст — создаём пустую переменную
@@ -250,6 +236,9 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
               не удаляем из селектора
 
             * Просмотреть на 20-30 примерах написанных парсеров
+
+            * Логика для поля stock выписана, и была проверена, но давно
+                * Стоит проверить её ещё раз
 
 
             
