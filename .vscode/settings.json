@@ -2,6 +2,4 @@
     "cursor.chat.toolbarOnSelection": false,
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "python-envs.pythonProjects": [],
-    "git.autofetch": false,
-    "git.pullBeforePush": false
 }
