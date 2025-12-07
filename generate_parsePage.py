@@ -4,7 +4,6 @@ from extracting_selector_from_html import *
 from addedFunc import *
 from YandexGPT import *
 from urllib.parse import parse_qs, urlparse, urlsplit, urlunsplit
-from textwrap import dedent
 
 
 #TODO Потом интегрировать это в вынесенный файл с данными

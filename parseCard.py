@@ -1,4 +1,5 @@
 # Вынесенные отдельно функции
+from YandexGPT import send_message_to_AI_agent
 from addedFunc import *
 from gen_data_input_table import data_input_table # Входные данные
 from extracting_selector_from_html import *
@@ -195,6 +196,10 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         is_error_generation_selector = False # Если произошла ошибка при генерации строки кода
         elem_selector_first = "" # Нужно ли добавить ?.first() после извлечения результата селектора?
         is_use_comma_on_formatPrice = ""
+        
+        is_clarify_code_selector = False
+        ccs_result_value = ""
+        ccs_necessary_value = ""
 
         for link_item in data_input_table["links"]["simple"]:
             count_page += 1
@@ -239,8 +244,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                             or original_field_value in selector_result_data 
                             or score_match >= 0.8
                     ):
-                        print("🟨 Частичное совпадение")
-
                         if key in ["price", "oldPrice"]:
                             print(f"💲 Обрабатываем поле {key}")
 
@@ -255,11 +258,22 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                                 # Очень простая проверка, нужно будент убедиться что она покрывает все случаи
                             
                             # TODO Потом здесь подробнее оттестировать
+                            continue
+
+                        print("🟨 Частичное совпадение")
 
                         """ ##########################
                             И отправлять в ИИ для точного извлечения значений при частичном совпадении
                                 Кстати, можно добавить кеширование запросов к ИИ
                         """
+
+                        # Сохраняю для сообщения к ИИ на исправление строки кода,
+                        # только первое значение
+                        # TODO Потом возможно сохранять несколько, или хотя бы 2
+                        is_clarify_code_selector = True
+                        if ccs_result_value == "":
+                            ccs_result_value = selector_result_data
+                            ccs_necessary_value = original_field_value
 
                     else:
                         print(f"🟧 Нет совпадений. score_match = {score_match}")
@@ -305,8 +319,27 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         else:
             line_result_code = f'\tconst {key} = {selector_result_code}'
 
+
+        if is_clarify_code_selector:
+            # Прошу ИИ дополнить строку кода
+            print(f"🧢 Отправляю запрос к ИИ на исправление строки кода для поля {key}")
+            request_AI = dedent(
+                f"""
+                Есть такой код на JS: 
+                {line_result_code}
+                Однако он извлекает "{ccs_result_value}"
+                А должен извлекать: "{ccs_necessary_value}"
+                Измени исходный код, что бы он делал это.
+                """
+            ).strip()
+            line_result_code = send_message_to_AI_agent(request_AI)
+
         # Добавляем строку кода в финальный массив, который вставляем в шаблон
         lines.append(line_result_code)
+
+
+
+
 
 
         """ #############
@@ -314,25 +347,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         
         let imageLink = $(".detail-gallery-big__link").attr('href');
         imageLink = imageLink ? HOST + imageLink : "";
+
         """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         """
             * И далее здесь проверить, если селектор возвращает на всех страницах именно то что нужно
