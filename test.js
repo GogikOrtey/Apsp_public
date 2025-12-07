@@ -6,11 +6,11 @@ async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
 
     const stock = $(".nal.y").text()?.includes("есть на складе") ? "InStock" : "OutOfStock"   
     const name = $("h1.name").text()?.trim() 
-    const price = $(".b").text()?.trim().formatPrice(",")
+    const price = $(".b").text()?.trim()?.replace(/^\D+/g, '')?.formatPrice()
     const article = $(".char > p:nth-of-type(1)").text()?.trim()
     const brand = $(".char > p:nth-of-type(2)").text()?.trim()
     const imageLink = $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() ? HOST + $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() : ""
-    const oldPrice = $(".thr").text()?.trim().formatPrice(",")
+    const oldPrice = $(".thr").text()?.trim()?.replace(/\D/g, '')?.
     const link = set.query
     const timestamp = getTimestamp()
 
@@ -22,9 +22,6 @@ async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
     cacher.cache = items
     return items;
 }
-
-
-
 
 
 
