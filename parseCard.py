@@ -261,7 +261,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         sel_string = join_selectors_array(sel_array)
         if not sel_string or max_count_element_of_selectors == 0 or is_error_generation_selector:
             # если селектор пуст — создаём пустую переменную
-            lines.append(f'const {key} = "" // [🟧 Ошибка генерации APSP]: Не удалось подобрать селектор для поля')
+            lines.append(f'const {key} = "[Ошибка генерации APSP]" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля')
             ######### Добавить сообщения об ошибках
             continue
 
@@ -277,7 +277,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
         line_result_code = ""
         if is_add_host: # По большей части, используется для поля imageLink
-                        # там мы хост приделываем спереди, если извлекли ссылку
+                        # тут мы хост приделываем спереди, если извлекли ссылку
             line_result_code = f'\tconst {key} = {selector_result_code} ? HOST + {selector_result_code} : ""'
         else:
             line_result_code = f'\tconst {key} = {selector_result_code}'
@@ -339,6 +339,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
     # region Генерируем шаблон
+    ################################ Сортировать стоит вот тут
+
     # Собираем финальную строку varFromSelector
     value_field = "\n".join(lines) + "\n"
 
