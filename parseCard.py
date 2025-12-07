@@ -188,9 +188,13 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
         # Проверяем селектор на всех ссылках из кеша
         count_page = 0
-        max_count_element_of_selectors = 0
-        is_add_host = False
-        is_error_generation_selector = False
+
+        # Переменные параметров для доп. настройки финальной строки JS кода
+        max_count_element_of_selectors = 0 # Сколько максимально результатов было найдено по этому селектору на каждой странице
+        is_add_host = False # Нужно ли добавить хост перед результатом поля?
+        is_error_generation_selector = False # Если произошла ошибка при генерации строки кода
+        elem_selector_first = "" # Нужно ли добавить ?.first() после извлечения результата селектора?
+
         for link_item in data_input_table["links"]["simple"]:
             count_page += 1
             link = link_item.get("link")
@@ -244,7 +248,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                                 Кстати, можно добавить кеширование запросов к ИИ
                         """
 
-
                     else:
                         print(f"🟧 Нет совпадений. score_match = {score_match}")
                         # В целом, по алгоритму такого не должно произойти
@@ -255,6 +258,10 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         print(f"max_count_element_of_selectors = 🟡 {max_count_element_of_selectors}") ### убрать
         print(f"---")
 
+        if len(sel_array) > 1:
+            print(f"Нашли больше одного селектора для поля {key}")
+            elem_selector_first = "?.first()"
+
         # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
         sel_array, attr = extract_and_remove_attr_from_selector(sel_array)
         
@@ -264,8 +271,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             lines.append(f'const {key} = "[Ошибка генерации APSP]" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля')
             ######### Добавить сообщения об ошибках
             continue
-
-        elem_selector_first = ""
+        
         if max_count_element_of_selectors > 1:
             elem_selector_first = "?.first()"
 
@@ -286,7 +292,12 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         lines.append(line_result_code)
 
 
-
+        """ #############
+        Потом переделать логику imageLink под это:
+        
+        let imageLink = $(".detail-gallery-big__link").attr('href');
+        imageLink = imageLink ? HOST + imageLink : "";
+        """
 
 
 
@@ -437,7 +448,7 @@ result_selectors = {
     ],
     "oldPrice": [
         ".thr",
-        # ".thr2", ### Для теста
+        ".thr2", ### Для теста
     ]
 }
 
