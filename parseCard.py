@@ -189,17 +189,11 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         if not isinstance(sel_array, (list, tuple)):
             sel_array = [sel_array] if sel_array else []
 
-        # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
-        sel_array, attr = extract_and_remove_attr_from_selector(sel_array)
-        
-        sel_string = join_selectors_array(sel_array)
-        if not sel_string:
-            # если селектор пуст — создаём пустую переменную
-            lines.append(f'const {key} = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля')
-            ################################################## Добавить сообщения об ошибках
-            continue
 
-        
+
+
+
+
         # Проверяем селектор на всех ссылках из кеша
         count_page = 0
         max_count_element_of_selectors = 0
@@ -211,41 +205,47 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             
             # Получаем HTML из кеша
             html = get_html_from_cache(link)
-            print(f"Проверяем селектор {sel_string} на странице №{count_page}")
-            result_selector = get_element_from_selector_universal(html, sel_string, is_ret_len=True)
-            # Если элемент по селектору не был найден на одной или нескольких страницах, то это ничего страшного
-            max_count_element_of_selectors = result_selector["length_elem"]
-
-
+            for current_selector_query in sel_array:
+                print(f"Проверяем селектор {current_selector_query} на странице №{count_page}")
+                result_selector = get_element_from_selector_universal(html, current_selector_query, is_ret_len=True)
+                # Если элемент по селектору не был найден на одной или нескольких страницах, то это ничего страшного
+                max_count_element_of_selectors = result_selector["length_elem"] if result_selector["length_elem"] > max_count_element_of_selectors else max_count_element_of_selectors
 
             ###### Вот здесь также проверяем что селектор выдаёт верные результаты, полностью совпадающие с данными
                 # И отдельная проверка, если это price или oldPrice
 
-        print(f"🟡 max_count_element_of_selectors = {max_count_element_of_selectors}") ### убрать
-        if max_count_element_of_selectors > 1:
-            # То тут добавляем .first() к селектору
-            a = 1
-        elif max_count_element_of_selectors == 0:
-            # Значит результатов нет, детектим ошибку генерации поля
-            a = 1
-        # Иначе всё ок
 
-        # если найден attr, используем .attr('href'/'src'), иначе .text()?.trim()
+
+
+
+        # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
+        sel_array, attr = extract_and_remove_attr_from_selector(sel_array)
+        
+        sel_string = join_selectors_array(sel_array)
+        if not sel_string or max_count_element_of_selectors == 0:
+            # если селектор пуст — создаём пустую переменную
+            lines.append(f'const {key} = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля')
+            ################################################## Добавить сообщения об ошибках
+            continue
+
+        
+
+
+        print(f"🟡 max_count_element_of_selectors = {max_count_element_of_selectors}") ### убрать
+
+        elem_selector_first = ""
+        if max_count_element_of_selectors > 1:
+            elem_selector_first = "?.first()"
+
         selector_expr = f'$("{sel_string}")'
 
-        ### Здесь добавить проверку на использование .first()
-
-
         if attr:
-            lines.append(f'\tconst {key} = {selector_expr}?.attr("{attr}")?.trim()')
+            lines.append(f'\tconst {key} = {selector_expr}{elem_selector_first}?.attr("{attr}")?.trim()')
         else:
-            lines.append(f'\tconst {key} = {selector_expr}.text()?.trim()')
+            lines.append(f'\tconst {key} = {selector_expr}{elem_selector_first}.text()?.trim()')
 
 
         """
-            * Вот здесь нужно проверить, если у селектора больше 1 результата, то добавляем 
-                * selector_expr = selector_expr + '?.first()'
-
             * И далее здесь проверить, если селектор возвращает на всех страницах именно то что нужно
                 * то всё ок, его и вставляем
                 * но если он возвращает данные, в которых есть то что нужно, то мы
@@ -379,7 +379,8 @@ result_selectors = {
         "html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href]"
     ],
     "oldPrice": [
-        ".thr"
+        ".thr",
+        ".thr2", ### Для теста
     ]
 }
 
