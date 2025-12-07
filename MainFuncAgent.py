@@ -126,6 +126,8 @@ def check_avialible_html():
 
 * extracting_selector
     * Протестировать на всех страницах
+    * Кстати вижу что для imageLink на 5м сайте селектор не почистился как надо
+        * $(".card .img > a")?.attr("href")
 
 * makeRequest
     * Создать отдельный скрипт makeRequest_generate

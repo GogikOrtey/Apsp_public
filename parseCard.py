@@ -191,7 +191,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         # Проверяем селектор на всех ссылках из кеша
         count_page = 0
         max_count_element_of_selectors = 0
-        is_add_host = ""
+        is_add_host = False
         for link_item in data_input_table["links"]["simple"]:
             count_page += 1
             link = link_item.get("link")
@@ -219,7 +219,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                         if host not in selector_result_data:
                             print(f"В элементе {selector_result_data} отсутствует хост. Добавляем:")
                             selector_result_data = host + selector_result_data
-                            is_add_host = "HOST + "
+                            is_add_host = True
                             ##### Если здесь будет частичное совпадение, то посылать в ИИ также и переменную хоста
 
                     # Проверяем соответствие, только если по селектору что-то было найдено на странице
@@ -245,12 +245,11 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
                 ###### Вот здесь также проверяем что селектор выдаёт верные результаты, полностью совпадающие с данными
                     # И отдельная проверка, если это price или oldPrice
-            print(f"---")
-
+        print(f"max_count_element_of_selectors = 🟡 {max_count_element_of_selectors}") ### убрать
+        print(f"---")
 
         # Отдельная провека и кастомыне элементы для конструктора, для полей:
             # price и oldPrice
-            # imageLink
 
 
         # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
@@ -263,20 +262,45 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             ################################################## Добавить сообщения об ошибках
             continue
 
-        print(f"max_count_element_of_selectors = 🟡 {max_count_element_of_selectors}") ### убрать
-
         elem_selector_first = ""
         if max_count_element_of_selectors > 1:
             elem_selector_first = "?.first()"
 
-        selector_expr = f'$("{sel_string}")'
+        selector_result_code = ""
+        if attr: # Пример:           $("h1.name")     ?.first()            ?.attr("href")?.trim()
+            selector_result_code = f'$("{sel_string}"){elem_selector_first}?.attr("{attr}")?.trim()'
+        else:    # Пример:           $("h1.name")     ?.first()            .text()?.trim()
+            selector_result_code = f'$("{sel_string}"){elem_selector_first}.text()?.trim()'
+
+        line_result_code = ""
+        if is_add_host: # По большей части, используется для поля imageLink
+                        # там мы хост приделываем спереди, если извлекли ссылку
+            line_result_code = f'\tconst {key} = {selector_result_code} ? HOST + {selector_result_code} : ""'
+        else:
+            line_result_code = f'\tconst {key} = {selector_result_code}'
+
+        # Добавляем строку кода в финальный массив, который вставляем в шаблон
+        lines.append(line_result_code)
 
 
 
-        if attr: # Пример:   const  name = HOST +       $("h1.name")   ?.first()            ?.attr("href")?.trim()
-            lines.append(f'\tconst {key} = {is_add_host}{selector_expr}{elem_selector_first}?.attr("{attr}")?.trim()')
-        else:    # Пример:   const  name = HOST +       $("h1.name")   ?.first()            .text()?.trim()
-            lines.append(f'\tconst {key} = {is_add_host}{selector_expr}{elem_selector_first}.text()?.trim()')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         """
@@ -324,7 +348,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # Собираю поля для объекта item: исключаю триггеры, добавляю stock, timestamp
     other_keys = [k for k in result_selectors.keys() if k not in ("InStock_trigger", "OutOfStock_trigger")]
     # формируем как "name, price, article, ... , stock, timestamp"
-    items_fields = ", ".join(other_keys + ["stock", "timestamp"])
+    items_fields = ", ".join(other_keys + ["stock", "timestamp", "link"])
 
     template_parseCard = Template("""
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
