@@ -13,8 +13,8 @@ class Tee:
         for f in self.files:
             f.flush()
 
-# Открываем файл для логов
-log_file = open("output.log", "a", encoding="utf-8")
+# Открываем файл для логов в режиме перезаписи
+log_file = open("output.log", "w", encoding="utf-8")
 
 # Подменяем stdout
 sys.stdout = Tee(sys.stdout, log_file)

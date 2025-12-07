@@ -368,6 +368,9 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # В конце убираем завершающие переносы
     value_field = value_field.rstrip("\n")
 
+    print("value_field = ")
+    print(value_field)
+
     # Собираю поля для объекта item: исключаю триггеры, добавляю stock, timestamp
     other_keys = [k for k in result_selectors.keys() if k not in ("InStock_trigger", "OutOfStock_trigger")]
     # формируем как "name, price, article, ... , stock, timestamp"
@@ -417,7 +420,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
 
-
+# name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 
 
 
@@ -444,6 +447,10 @@ result_selectors = {
     "price": [
         ".b"
     ],
+    "oldPrice": [
+        ".thr",
+        # ".thr2", ### Для теста
+    ],
     "article": [
         ".char > p:nth-of-type(1)"
     ],
@@ -455,10 +462,6 @@ result_selectors = {
     ],
     "imageLink": [
         "html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href]"
-    ],
-    "oldPrice": [
-        ".thr",
-        # ".thr2", ### Для теста
     ]
 }
 
