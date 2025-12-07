@@ -337,7 +337,8 @@ def check_avialible_html():
 
 
 
-
+Убрал из конфига сточку
+"noDebug": true
 
 
 

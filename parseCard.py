@@ -118,7 +118,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         sel_array = result_selectors_local.get(key_stock, [])
         sel_string = join_selectors_array(sel_array)
         if not sel_string:
-            return 'const stock = "InStock"\n'
+            return f'\t\tconst stock = "InStock"\n'
 
         # all_inStock_selectors_js — javascript literal: либо "string", либо ["a","b"]
         if count_of_unical_text_selectors == 1:
@@ -129,12 +129,12 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         if count_of_unical_text_selectors == 1:
             # условие: $("...").text()?.includes("needle")
             result_stock_selector = (
-                f'const stock = $("{sel_string}").text()?.includes({all_js}) ? {true_value} : {false_value}'
+                f'\t\tconst stock = $("{sel_string}").text()?.includes({all_js}) ? {true_value} : {false_value}'
             )
         else:
             # несколько триггеров: .some(s => $("...").text()?.includes(s))
             result_stock_selector = (
-                f'const stock = {all_js}.some(s => $("{sel_string}").text()?.includes(s)) ? {true_value} : {false_value}'
+                f'\t\tconst stock = {all_js}.some(s => $("{sel_string}").text()?.includes(s)) ? {true_value} : {false_value}'
             )
 
         return result_stock_selector
@@ -142,7 +142,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # Обработка логики наличия
     if "InStock_trigger" not in result_selectors and "OutOfStock_trigger" not in result_selectors:
         print("Нет триггеров наличия, считаем что все товары в наличии")
-        result_stock_selector = 'const stock = "InStock"\n'
+        result_stock_selector = f'\t\tconst stock = "InStock"\n'
     elif "InStock_trigger" in result_selectors and "OutOfStock_trigger" in result_selectors:
         print("Оба триггера есть")
         # если указаны одинаковые массивы/строки — используем InStock как приоритет
@@ -291,9 +291,9 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         line_result_code = ""
         if is_add_host: # По большей части, используется для поля imageLink
                         # тут мы хост приделываем спереди, если извлекли ссылку
-            line_result_code = f'\tconst {key} = {selector_result_code} ? HOST + {selector_result_code} : ""'
+            line_result_code = f'\t\tconst {key} = {selector_result_code} ? HOST + {selector_result_code} : ""'
         else:
-            line_result_code = f'\tconst {key} = {selector_result_code}'
+            line_result_code = f'\t\tconst {key} = {selector_result_code}'
 
         ############### По итогу, ещё раз проверить генерацию строки кода через ИИ
 
@@ -317,7 +317,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             # Можно добавить:
             # И во втором примере
             # ...
-            line_result_code = f"\t" + send_message_to_AI_agent(request_AI)
+            line_result_code = f"\t\t" + send_message_to_AI_agent(request_AI)
 
         # Добавляем строку кода в финальный массив, который вставляем в шаблон
         lines.append(line_result_code)
@@ -360,21 +360,101 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
     # region Генерируем шаблон
-    ################################ Сортировать стоит вот тут
+    lines.append(f"\t\tconst link = set.query")
 
-    # Собираем финальную строку varFromSelector
+    # Собираем финальную строку varFromSelector   
     value_field = "\n".join(lines) + "\n"
 
     # В конце убираем завершающие переносы
     value_field = value_field.rstrip("\n")
 
-    print("value_field = ")
-    print(value_field)
+    # print("value_field = ")
+    # print(value_field)
+
+
+
+
+    ########################## Это будет приходить из global_code
+    order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  # Это пример, замените на ваш источник
+
+
+
+
+
+    # Разбиваем строку порядка на список полей, убираем пробелы
+    field_order = [field.strip() for field in order_string.split(",")]
+
+    # Убираем timestamp из порядка для сортировки value_field, так как он всегда в конце
+    field_order_without_timestamp = [field for field in field_order if field != "timestamp"]
+
+    # Разбиваем value_field на отдельные строки
+    lines_list = value_field.split("\n")
+
+    # Создаем словарь для быстрого поиска строк по имени поля
+    field_to_line = {}
+    other_lines = []  # Для строк, которые не соответствуют ожидаемому формату
+
+    for line in lines_list:
+        if line.strip():  # Пропускаем пустые строки
+            # Пытаемся извлечь имя поля из строки (формат: "const fieldName = ...")
+            parts = line.split()
+            if len(parts) >= 2 and parts[0] == "const":
+                field_name = parts[1]
+                field_to_line[field_name] = line
+            else:
+                other_lines.append(line)
+
+    # Сортируем строки согласно порядку
+    sorted_lines = []
+
+    # 1. Добавляем строки в порядке field_order_without_timestamp
+    for field in field_order_without_timestamp:
+        if field in field_to_line:
+            sorted_lines.append(field_to_line[field])
+            # Удаляем из словаря, чтобы не добавлять повторно
+            del field_to_line[field]
+
+    # 2. Добавляем оставшиеся строки (которые не были в порядке)
+    for remaining_line in field_to_line.values():
+        sorted_lines.append(remaining_line)
+
+    # 3. Добавляем строки, которые не соответствуют формату
+    sorted_lines.extend(other_lines)
+
+    # Формируем новый value_field
+    sorted_value_field = "\n".join(sorted_lines)
+
+    print("\nSorted value_field = ")
+    print(sorted_value_field)
+
+    # Обновляем value_field
+    value_field = sorted_value_field
 
     # Собираю поля для объекта item: исключаю триггеры, добавляю stock, timestamp
     other_keys = [k for k in result_selectors.keys() if k not in ("InStock_trigger", "OutOfStock_trigger")]
-    # формируем как "name, price, article, ... , stock, timestamp"
-    items_fields = ", ".join(other_keys + ["stock", "timestamp", "link"])
+
+    # Сортируем поля в items_fields согласно order_string
+    # Создаем список для отсортированных полей
+    sorted_items_fields = []
+
+    # 1. Добавляем поля в порядке из field_order
+    for field in field_order:
+        # Проверяем, есть ли поле в other_keys или это специальные поля
+        if field in other_keys or field in ["stock", "timestamp", "link"]:
+            sorted_items_fields.append(field)
+
+    # 2. Добавляем оставшиеся поля из other_keys, которых нет в field_order
+    for field in other_keys:
+        if field not in sorted_items_fields and field not in ["stock", "timestamp", "link"]:
+            sorted_items_fields.append(field)
+
+    # 3. Убеждаемся, что timestamp всегда в конце
+    if "timestamp" in sorted_items_fields:
+        sorted_items_fields.remove("timestamp")
+        sorted_items_fields.append("timestamp")
+
+    # Формируем строку с полями
+    items_fields = ", ".join(sorted_items_fields)
 
     template_parseCard = Template("""
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -384,7 +464,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         const $$ = cheerio.load(data);
 
         $varFromSelector
-        const link = set.query
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
