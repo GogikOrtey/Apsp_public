@@ -275,7 +275,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             # если селектор пуст — создаём пустую переменную
             result_code_line = f'const {key} = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля'
             lines.append(result_code_line)
-            message_global.append({"1": f"Ошибка генерации строки кода извлечения значения по селектору, для поля {key}: {result_code_line.split("//")[0]}"})
+            message_global.append({"1": f"Ошибка генерации строки кода извлечения значения по селектору, для поля {key}: {result_code_line.split('//')[0]}"})
             continue
 
         add_formatPrice = ""

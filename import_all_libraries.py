@@ -24,3 +24,6 @@ import os
 
 # Глобальные переменные
 message_global = []
+
+# Глобальные модули
+from module_logging import * 
