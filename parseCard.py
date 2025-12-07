@@ -422,9 +422,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # Формируем новый value_field
     sorted_value_field = "\n".join(sorted_lines)
 
-    print("\nSorted value_field = ")
-    print(sorted_value_field)
-
     # Обновляем value_field
     value_field = sorted_value_field
 
