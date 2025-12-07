@@ -21,3 +21,6 @@ import json
 import time
 import re
 import os
+
+# Глобальные переменные
+message_global = []
