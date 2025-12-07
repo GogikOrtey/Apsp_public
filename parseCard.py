@@ -430,6 +430,9 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # Обновляем value_field
     value_field = sorted_value_field
 
+    # Убираем табы слева у строки
+    value_field = value_field.lstrip("\t")
+
     # Собираю поля для объекта item: исключаю триггеры, добавляю stock, timestamp
     other_keys = [k for k in result_selectors.keys() if k not in ("InStock_trigger", "OutOfStock_trigger")]
 
