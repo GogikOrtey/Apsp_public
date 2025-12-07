@@ -182,7 +182,7 @@
 
 # Данные с сайта 5
 data_input_table = {
-    "host": "",
+    "host": "https://stroytorg812.ru",
     "links": {
         "simple": [
             {
@@ -206,7 +206,7 @@ data_input_table = {
             },
             {
                 "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
-                "name": "Тумба напольная Агата 55 с умывальником Визит-55, белая EMMY",
+                "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
                 "price": "9 400,00",
                 "oldPrice": "12 450,00",
                 "article": "U4079315", 

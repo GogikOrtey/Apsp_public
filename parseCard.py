@@ -191,6 +191,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         # Проверяем селектор на всех ссылках из кеша
         count_page = 0
         max_count_element_of_selectors = 0
+        is_add_host = ""
         for link_item in data_input_table["links"]["simple"]:
             count_page += 1
             link = link_item.get("link")
@@ -209,12 +210,23 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                 original_field_value = link_item.get(key)
 
                 if selector_result_data:
-                    # print(f"На странице №{count_page} селектор вернул")
-                    print(f"💠{selector_result_data}💠")
-                    # print(f"А значение в массиве:")
-                    print(f"🔶{original_field_value}🔶")
-                    print(f"")
+
+                    if key == "price" or key == "oldPrice":
+                        a = 1
+                    
+                    host = data_input_table["host"]
+                    if key == "imageLink":
+                        if host not in selector_result_data:
+                            print(f"В элементе {selector_result_data} отсутствует хост. Добавляем:")
+                            selector_result_data = host + selector_result_data
+                            is_add_host = "HOST + "
+                            ##### Если здесь будет частичное совпадение, то посылать в ИИ также и переменную хоста
+
                     # Проверяем соответствие, только если по селектору что-то было найдено на странице
+                    print(f"💠{selector_result_data}💠") # Что селектор вернул
+                    print(f"🔶{original_field_value}🔶") # Что лежит во входном массиве
+                    print(f"")
+                    
                     score_match = compute_match_score_2(selector_result_data, original_field_value)
                     if selector_result_data == original_field_value:
                         print("✅ Полное совпадение селектора и оригинального значения поля")
@@ -226,6 +238,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                         print("🟨 Частичное совпадение")
                     else:
                         print(f"🟧 Нет совпадений. score_match = {score_match}")
+                        # В целом, по алгоритму такого не должно произойти
+                        ############### Но добавить сюда видимую ошибку
                 else:
                     print(f"⬜ Нет результата у селектора {selector_result_data} на странице {count_page} для поля {key}")
 
@@ -234,6 +248,9 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             print(f"---")
 
 
+        # Отдельная провека и кастомыне элементы для конструктора, для полей:
+            # price и oldPrice
+            # imageLink
 
 
         # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
@@ -254,14 +271,12 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
         selector_expr = f'$("{sel_string}")'
 
-        # Тут сделать более сложный конструктор, для:
-            # price и oldPrice
-            # imageLink
 
-        if attr:
-            lines.append(f'\tconst {key} = {selector_expr}{elem_selector_first}?.attr("{attr}")?.trim()')
-        else:
-            lines.append(f'\tconst {key} = {selector_expr}{elem_selector_first}.text()?.trim()')
+
+        if attr: # Пример:   const  name = HOST +       $("h1.name")   ?.first()            ?.attr("href")?.trim()
+            lines.append(f'\tconst {key} = {is_add_host}{selector_expr}{elem_selector_first}?.attr("{attr}")?.trim()')
+        else:    # Пример:   const  name = HOST +       $("h1.name")   ?.first()            .text()?.trim()
+            lines.append(f'\tconst {key} = {is_add_host}{selector_expr}{elem_selector_first}.text()?.trim()')
 
 
         """
@@ -396,7 +411,7 @@ result_selectors = {
     ],
     "oldPrice": [
         ".thr",
-        ".thr2", ### Для теста
+        # ".thr2", ### Для теста
     ]
 }
 
