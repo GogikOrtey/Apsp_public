@@ -23,7 +23,7 @@ def load_cache(file=CACHE_FILE):
 global_cache = load_cache()
 
 # Получаем html из кеша для ссылки (работает с глобальным кешем)
-def get_html_from_cache(link, return_metadata=False):
+def get_html_from_cache(link, return_metadata=False, print_msg=True):
     """
     Получает HTML для ссылки из глобального кеша.
     Если страницы нет в кеше или она устарела - загружает заново и обновляет кеш.
@@ -43,7 +43,8 @@ def get_html_from_cache(link, return_metadata=False):
         if item["link"] == link:
             age_hours = (now - item["timestamp"]) / 3600
             if age_hours <= MAX_AGE_HOURS:
-                print(f"📤 Берем страницу из кеша: {link} (возраст {age_hours:.2f} ч.)")
+                if print_msg:
+                    print(f"📤 Берем страницу из кеша: {link} (возраст {age_hours:.2f} ч.)")
                 if return_metadata:
                     return item["html_content"], item["data_time"], item["timestamp"]
                 return item["html_content"]

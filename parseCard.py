@@ -183,37 +183,55 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # Перебираем ключи
     for key, sel_array in result_selectors.items():
         if key in ("InStock_trigger", "OutOfStock_trigger"):
-            # Пропускаем триггеры для поля stock
+            # Пропускаем триггеры для поля stock, их уже обработали
             continue
-        # предполагаем, что sel_array — list
         if not isinstance(sel_array, (list, tuple)):
             sel_array = [sel_array] if sel_array else []
-
-
-
-
-
 
         # Проверяем селектор на всех ссылках из кеша
         count_page = 0
         max_count_element_of_selectors = 0
         for link_item in data_input_table["links"]["simple"]:
-            count_page += 1  # увеличиваем счетчик
+            count_page += 1
             link = link_item.get("link")
             if not link:
                 continue
             
             # Получаем HTML из кеша
-            html = get_html_from_cache(link)
+            html = get_html_from_cache(link, print_msg = False)
             for current_selector_query in sel_array:
                 print(f"Проверяем селектор {current_selector_query} на странице №{count_page}")
                 result_selector = get_element_from_selector_universal(html, current_selector_query, is_ret_len=True)
                 # Если элемент по селектору не был найден на одной или нескольких страницах, то это ничего страшного
                 max_count_element_of_selectors = result_selector["length_elem"] if result_selector["length_elem"] > max_count_element_of_selectors else max_count_element_of_selectors
 
-            ###### Вот здесь также проверяем что селектор выдаёт верные результаты, полностью совпадающие с данными
-                # И отдельная проверка, если это price или oldPrice
+                selector_result_data = result_selector["result"]
+                original_field_value = link_item.get(key)
 
+                if selector_result_data:
+                    # print(f"На странице №{count_page} селектор вернул")
+                    print(f"💠{selector_result_data}💠")
+                    # print(f"А значение в массиве:")
+                    print(f"🔶{original_field_value}🔶")
+                    print(f"")
+                    # Проверяем соответствие, только если по селектору что-то было найдено на странице
+                    score_match = compute_match_score_2(selector_result_data, original_field_value)
+                    if selector_result_data == original_field_value:
+                        print("✅ Полное совпадение селектора и оригинального значения поля")
+                    elif (
+                            selector_result_data in original_field_value 
+                            or original_field_value in selector_result_data 
+                            or score_match >= 0.8
+                    ):
+                        print("🟨 Частичное совпадение")
+                    else:
+                        print(f"🟧 Нет совпадений. score_match = {score_match}")
+                else:
+                    print(f"⬜ Нет результата у селектора {selector_result_data} на странице {count_page} для поля {key}")
+
+                ###### Вот здесь также проверяем что селектор выдаёт верные результаты, полностью совпадающие с данными
+                    # И отдельная проверка, если это price или oldPrice
+            print(f"---")
 
 
 
@@ -228,16 +246,17 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             ################################################## Добавить сообщения об ошибках
             continue
 
-        
-
-
-        print(f"🟡 max_count_element_of_selectors = {max_count_element_of_selectors}") ### убрать
+        print(f"max_count_element_of_selectors = 🟡 {max_count_element_of_selectors}") ### убрать
 
         elem_selector_first = ""
         if max_count_element_of_selectors > 1:
             elem_selector_first = "?.first()"
 
         selector_expr = f'$("{sel_string}")'
+
+        # Тут сделать более сложный конструктор, для:
+            # price и oldPrice
+            # imageLink
 
         if attr:
             lines.append(f'\tconst {key} = {selector_expr}{elem_selector_first}?.attr("{attr}")?.trim()')
@@ -264,9 +283,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     * Если есть запятая, которая отделяет копейки от основной суммы, то мы её передаём
                       как аргумент в .formatPrice(",") 
                     * Но если запятая отделяет тысячи, то не передаём
-
-            * Когда есть элемент у селектора, например [href] - мы извлекаем его через .attr, но 
-              не удаляем из селектора
 
             * Просмотреть на 20-30 примерах написанных парсеров
 
