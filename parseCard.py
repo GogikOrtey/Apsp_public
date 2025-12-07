@@ -194,6 +194,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         is_add_host = False # Нужно ли добавить хост перед результатом поля?
         is_error_generation_selector = False # Если произошла ошибка при генерации строки кода
         elem_selector_first = "" # Нужно ли добавить ?.first() после извлечения результата селектора?
+        is_use_comma_on_formatPrice = ""
 
         for link_item in data_input_table["links"]["simple"]:
             count_page += 1
@@ -240,10 +241,22 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     ):
                         print("🟨 Частичное совпадение")
 
+                        if key in ["price", "oldPrice"]:
+                            print(f"💲 Обрабатываем поле {key}")
+
+                            p1 = format_price(selector_result_data)
+                            p2 = format_price(selector_result_data, ",")
+
+                            print(f"p1 = {p1}")
+                            print(f"p2 = {p2}")
+
+                            if p1.endswith("."):
+                                is_use_comma_on_formatPrice = '","'
+                                # Очень простая проверка, нужно будент убедиться что она покрывает все случаи
+                            
+                            # TODO Потом здесь подробнее оттестировать
 
                         """ ##########################
-                            Осталось добавить проверку и обработчик для price и oldPrice
-
                             И отправлять в ИИ для точного извлечения значений при частичном совпадении
                                 Кстати, можно добавить кеширование запросов к ИИ
                         """
@@ -275,11 +288,15 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         if max_count_element_of_selectors > 1:
             elem_selector_first = "?.first()"
 
+        add_formatPrice = ""
+        if key in ["price", "oldPrice"]:
+            add_formatPrice = f".formatPrice({is_use_comma_on_formatPrice})"
+
         selector_result_code = ""
         if attr: # Пример:           $("h1.name")     ?.first()            ?.attr("href")?.trim()
-            selector_result_code = f'$("{sel_string}"){elem_selector_first}?.attr("{attr}")?.trim()'
+            selector_result_code = f'$("{sel_string}"){elem_selector_first}?.attr("{attr}")?.trim(){add_formatPrice}'
         else:    # Пример:           $("h1.name")     ?.first()            .text()?.trim()
-            selector_result_code = f'$("{sel_string}"){elem_selector_first}.text()?.trim()'
+            selector_result_code = f'$("{sel_string}"){elem_selector_first}.text()?.trim(){add_formatPrice}'
 
         line_result_code = ""
         if is_add_host: # По большей части, используется для поля imageLink
@@ -448,7 +465,7 @@ result_selectors = {
     ],
     "oldPrice": [
         ".thr",
-        ".thr2", ### Для теста
+        # ".thr2", ### Для теста
     ]
 }
 
