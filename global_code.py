@@ -13,6 +13,47 @@ from import_all_libraries import *
 from makeRequest_gen import *
 
 
+def extract_fields():
+    order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  # Это пример, замените на ваш источник
+
+    # Разбиваем строку порядка на список полей, убираем пробелы
+    field_order = [field.strip() for field in order_string.split(",")]
+
+    # Собираю поля для объекта item: исключаю триггеры, добавляю stock, timestamp
+    other_keys = [k for k in data_input_table["links"]["simple"][0].keys() if k not in ("InStock_trigger", "OutOfStock_trigger")]
+
+    # Сортируем поля в items_fields согласно order_string
+    # Создаем список для отсортированных полей
+    sorted_items_fields = []
+
+    # 1. Добавляем поля в порядке из field_order
+    for field in field_order:
+        # Проверяем, есть ли поле в other_keys или это специальные поля
+        if field in other_keys or field in ["stock", "timestamp", "link"]:
+            sorted_items_fields.append(field)
+
+    # 2. Добавляем оставшиеся поля из other_keys, которых нет в field_order
+    for field in other_keys:
+        if field not in sorted_items_fields and field not in ["stock", "timestamp", "link"]:
+            sorted_items_fields.append(field)
+
+    # 3. Убеждаемся, что timestamp всегда в конце
+    if "timestamp" in sorted_items_fields:
+        sorted_items_fields.remove("timestamp")
+        sorted_items_fields.append("timestamp")
+
+    # Формируем строку с полями
+    items_fields = ", ".join(sorted_items_fields)
+
+    return items_fields
+
+
+print(extract_fields())
+
+
+
+
+
 
 # Генерирует верхнюю процедуру, которая называется parse и имеет описание "Точка входа"
 def parse_entry_point_gen():
@@ -97,53 +138,53 @@ def gen_main_code():
     ################### Их нужно получать
     # и сортировать тем алгоритмом из parseCard
     field = "name, stock, price, oldprice, link, timestamp"
-    host = "" ####### Также получение из входного массива
+    # host = "" ####### Также получение из входного массива
+    host = data_input_table["host"]
 
     template_main_code = Template("""
-    import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
-    import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
-    import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
-    import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
-    import { getTimestamp } from "../Base-Custom/Utils";
-    import { SetType, tools } from "a-parser-types";
-    import { Cacher } from "../Base-Custom/Cache";
-    import {
-        toArray, isBadLink,
-        $field_val
-    } from "../Base-Custom/Fields"
-    import * as cheerio from "cheerio";
+import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
+import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
+import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
+import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
+import { getTimestamp } from "../Base-Custom/Utils";
+import { SetType, tools } from "a-parser-types";
+import { Cacher } from "../Base-Custom/Cache";
+import {
+    toArray, isBadLink,
+    $field_val
+} from "../Base-Custom/Fields"
+import * as cheerio from "cheerio";
 
-    //#region Кастомные типы данных
-    type ResultItem = Item<typeof fields>
+//#region Кастомные типы данных
+type ResultItem = Item<typeof fields>
 
-    //#region Константы
-    const fields = {
-        $field_val
-    }
+//#region Константы
+const fields = {
+    $field_val
+}
 
-    const HOST = "$host_val"
+const HOST = "$host_val"
 
-    export class JS_Base_ extends JS_Base_Custom {
-        $default_conf
+export class JS_Base_ extends JS_Base_Custom {
+    $default_conf
 
-        static editableConf: editableConf = [
-            ...defaultEditableConf
-        ];
+    static editableConf: editableConf = [
+        ...defaultEditableConf
+    ];
 
-        //#region Точка входа
-        $parse_entry_point_code
+    //#region Точка входа
+    $parse_entry_point_code
 
-        //#region Парсинг поиска
-        $parse_page_code
+    //#region Парсинг поиска
+    $parse_page_code
 
-        //#region Парсинг товара
-        $parse_card_code
+    //#region Парсинг товара
+    $parse_card_code
 
-        //#region Выполнение запроса
-        $make_request_code
-    }
-
-    """)
+    //#region Выполнение запроса
+    $make_request_code
+}
+""")
 
     make_request_code_value = simple_makeRequest()
     parse_card_code_value = ""
@@ -222,7 +263,7 @@ def result_parser_code():
     # result_file_JS(result_code)
 
 
-result_parser_code()
+# result_parser_code() ################################################################
 
 
 

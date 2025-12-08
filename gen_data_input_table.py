@@ -183,6 +183,7 @@
 # Данные с сайта 5
 data_input_table = {
     "host": "https://stroytorg812.ru",
+    "fields_str": "",
     "links": {
         "simple": [
             {
