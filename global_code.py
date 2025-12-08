@@ -13,8 +13,11 @@ from import_all_libraries import *
 from makeRequest_gen import *
 
 
+# Собирает поля в строку из тех что есть в нашем сборе, и сортирует их по шаблону
 def extract_fields():
-    order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  # Это пример, замените на ваш источник
+    # Это пускай будет пример сортировки полей
+    ### TODO Потом ещё посмотреть это место
+    order_string = "name, stock, link, price, oldPrice, article, brand, a2, imageLink, timestamp"
 
     # Разбиваем строку порядка на список полей, убираем пробелы
     field_order = [field.strip() for field in order_string.split(",")]
@@ -47,8 +50,6 @@ def extract_fields():
 
     return items_fields
 
-
-print(extract_fields())
 
 
 
@@ -135,10 +136,13 @@ def set_defaultConf():
 
 
 def gen_main_code():
-    ################### Их нужно получать
-    # и сортировать тем алгоритмом из parseCard
-    field = "name, stock, price, oldprice, link, timestamp"
-    # host = "" ####### Также получение из входного массива
+    # Если поля не собраны, то собираю их здесь в строку, и также сохраняю
+    if(data_input_table["fields_str"] == ""):
+        data_input_table["fields_str"] = extract_fields()
+    
+    field = data_input_table["fields_str"]
+    print(f"field = {field}")
+
     host = data_input_table["host"]
 
     template_main_code = Template("""
@@ -263,7 +267,7 @@ def result_parser_code():
     # result_file_JS(result_code)
 
 
-# result_parser_code() ################################################################
+result_parser_code()
 
 
 
