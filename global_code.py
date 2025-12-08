@@ -8,11 +8,146 @@ from extracting_selector_from_html import *
 # Подключение всех библиотек
 from import_all_libraries import * 
 
+# Подключение модулей генерации
+
+from makeRequest_gen import *
+
+
+def parse_entry_point_gen():
+    # Если parsePage возвращает результаты, которые надо записать в Items
+    is_parse_page_mode_returned_results = """
+let items = await this.parsePage(set);
+                        items.forEach(item => results.items.addElement(item));
+    """
+
+    # И если не возвращает (наиболее чатый случай)
+    is_parse_page_mode_no_returned_results = """
+await this.parsePage(set);
+    """
+
+    template_parse_entry_point_code = Template("""
+        async parse(set: SetType, results: { [key: string]: any }) {
+            if (!set.type || set.type === "none") set.type = "page";
+            if (!set.region || set.region === "none") set.region = "";
+            try {
+                switch (set.type) {
+                    case "page": {
+                        if (!set.page || set.page === "none") set.page = 1;
+                        $return_results_page_mode
+                        results.success = 1;
+                        break;
+                    }
+                    case "card": {
+                        const cacher = getCacher<ResultItem>(this, set)
+                        let items = cacher.cache || await this.parseCard(set, cacher);
+                        items.forEach(item => results.items.addElement(item));
+                        results.success = 1;
+                        break;
+                    }
+                    default:
+                        this.logger.put("Указан неверный тип сбора")
+                        results.success = 0;
+                }
+            } catch (e) {
+                if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
+                    this.logger.put(e.message);
+                    results.isBadLink = 1;
+                    results.success = 1;
+                } else {
+                    this.logger.put(`$${e.name} >> $${e.message}   $${set.query}  type - $${set.type} page $${set.page} }`);
+                    results.success = 0;
+                }
+            }
+            return results;
+        }
+    """)
+
+    result = template_parse_entry_point_code.substitute(
+        return_results_page_mode = is_parse_page_mode_no_returned_results
+    )
+
+    return result
+
+
+def gen_main_code():
+    ################### Их нужно получать
+    # и сортировать тем алгоритмом из parseCard
+    field = "name, stock, price, oldprice, link, timestamp"
+    host = "" ####### Также получение из входного массива
+
+    template_main_code = Template("""
+    import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
+    import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
+    import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
+    import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
+    import { getTimestamp } from "../Base-Custom/Utils";
+    import { SetType, tools } from "a-parser-types";
+    import { Cacher } from "../Base-Custom/Cache";
+    import {
+        toArray, isBadLink,
+        $field_val
+    } from "../Base-Custom/Fields"
+    import * as cheerio from "cheerio";
+
+    //#region Кастомные типы данных
+    type ResultItem = Item<typeof fields>
+
+    //#region Константы
+    const fields = {
+        $field_val
+    }
+
+    const HOST = "$host_val"
+
+    export class JS_Base_ extends JS_Base_Custom {
+        static defaultConf: defaultConf = {
+            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
+            parsecodes: { 200: 1, 404: 1 },
+            proxyChecker: "tor.proxy.ru",
+            requestdelay: "3,5",
+            engine: "a-parser",
+            mode: "normal",
+        };
+
+        static editableConf: editableConf = [
+            ...defaultEditableConf
+        ];
+
+        //#region Точка входа
+        $parse_entry_point_code
+
+        //#region Парсинг поиска
+        $parse_page_code
+
+        //#region Парсинг товара
+        $parse_card_code
+
+        //#region Выполнение запроса
+        $make_request_code
+    }
+
+    """)
+
+    make_request_code_value = simple_makeRequest()
+    parse_card_code_value = ""
+    parse_page_code_value = ""
+    parse_entry_point_code_value = parse_entry_point_gen()
+
+    result = template_main_code.substitute(
+        make_request_code = make_request_code_value,
+        parse_card_code = parse_card_code_value,
+        parse_page_code = parse_page_code_value,
+        parse_entry_point_code = parse_entry_point_code_value,
+        field_val = field,
+        host_val = host,
+    )
+
+    print(result)
+    return result
 
 
 
-
-
+gen_main_code()
 
 
 
@@ -45,20 +180,20 @@ from import_all_libraries import *
 
 
 
-# Сохраняет результирующий код парсера в файл
-def result_file_JS(result_selectors, host):
-    # Собираем название для файла парсера
+# # Сохраняет результирующий код парсера в файл
+# def result_file_JS(result_selectors, host):
+#     # Собираем название для файла парсера
 
-    # Как нужно чистим домен
-    parser_file_name = host.split("://")[1].split("/")[0]
-    parser_file_name = parser_file_name.replace("www.", "")
-    parser_file_name = parser_file_name.replace(".", "").replace("-", "")
-    # TODO регионы потом удалять, но это сильно позже
+#     # Как нужно чистим домен
+#     parser_file_name = host.split("://")[1].split("/")[0]
+#     parser_file_name = parser_file_name.replace("www.", "")
+#     parser_file_name = parser_file_name.replace(".", "").replace("-", "")
+#     # TODO регионы потом удалять, но это сильно позже
 
-    base_name_part = "JS_Base_" + parser_file_name
-    print(base_name_part)
+#     base_name_part = "JS_Base_" + parser_file_name
+#     print(base_name_part)
 
-    # parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+#     # parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
 
 
 

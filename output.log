@@ -1,143 +1,107 @@
-08.12.2025 09:08:54
+09.12.2025 01:04:02
 
-Проверяем селекторы, и генерируем parseCard
-Есть только триггер InStock, используем его
-Проверяем селектор h1.name на странице №1
-💠Ванна акриловая 170х70 Ультра-170 # ТРИТОН💠
-🔶Ванна акриловая 170х70 Ультра-170 # ТРИТОН🔶
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор h1.name на странице №2
-💠32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte💠
-🔶32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte🔶
+    import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
+    import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
+    import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
+    import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
+    import { getTimestamp } from "../Base-Custom/Utils";
+    import { SetType, tools } from "a-parser-types";
+    import { Cacher } from "../Base-Custom/Cache";
+    import {
+        toArray, isBadLink,
+        name, stock, price, oldprice, link, timestamp
+    } from "../Base-Custom/Fields"
+    import * as cheerio from "cheerio";
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор h1.name на странице №3
-💠Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY💠
-🔶Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY🔶
+    //#region Кастомные типы данных
+    type ResultItem = Item<typeof fields>
 
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .b на странице №1
-💠Цена: 8 390 руб.💠
-🔶8 390 руб.🔶
-
-💲 Обрабатываем поле price
-p1 = 8390.
-p2 = 8390
-Проверяем селектор .b на странице №2
-💠Цена: 1 860,10 руб.💠
-🔶1 860,10🔶
-
-💲 Обрабатываем поле price
-p1 = 186010.
-p2 = 1860.10
-Проверяем селектор .b на странице №3
-💠Цена: 9 400,00 руб.💠
-🔶9 400,00🔶
-
-💲 Обрабатываем поле price
-p1 = 940000.
-p2 = 9400.00
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .thr на странице №1
-⬜ Нет результата у селектора  на странице 1 для поля oldPrice
-Проверяем селектор .thr на странице №2
-💠старая цена: 1 958 руб.💠
-🔶1 958🔶
-
-💲 Обрабатываем поле oldPrice
-p1 = 1958.
-p2 = 1958
-Проверяем селектор .thr на странице №3
-💠старая цена: 12 450,00 руб.💠
-🔶12 450,00🔶
-
-💲 Обрабатываем поле oldPrice
-p1 = 1245000.
-p2 = 12450.00
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .char > p:nth-of-type(1) на странице №1
-💠U4031689💠
-🔶U4031689🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .char > p:nth-of-type(1) на странице №2
-💠B2508830💠
-🔶B2508830🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .char > p:nth-of-type(1) на странице №3
-💠U4079315💠
-🔶U4079315🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .char > p:nth-of-type(2) на странице №1
-💠ТРИТОН💠
-🔶ТРИТОН🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .char > p:nth-of-type(2) на странице №2
-💠Bonaparte💠
-🔶Bonaparte🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .char > p:nth-of-type(2) на странице №3
-💠EMMY💠
-🔶EMMY🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href] на странице №1
-В элементе /upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg отсутствует хост. Добавляем:
-💠https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg💠
-🔶https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href] на странице №2
-В элементе /upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg отсутствует хост. Добавляем:
-💠https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg💠
-🔶https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href] на странице №3
-В элементе /upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg отсутствует хост. Добавляем:
-💠https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg💠
-🔶https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 3
----
-Нашли больше одного селектора для поля imageLink
-
-    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
-        let items: ResultItem[] = []
-
-        const data = await this.makeRequest(set.query);
-        const $ = cheerio.load(data);
-
-        const name = $("h1.name").text()?.trim()
-		const stock = $(".nal.y").text()?.includes("есть на складе") ? "InStock" : "OutOfStock"
-		const link = set.query
-		const price = $(".b").text()?.trim().formatPrice(",")
-		const oldPrice = $(".thr").text()?.trim().formatPrice(",")
-		const article = $(".char > p:nth-of-type(1)").text()?.trim()
-		const brand = $(".char > p:nth-of-type(2)").text()?.trim()
-		const imageLink = $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() ? HOST + $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() : ""
-        const timestamp = getTimestamp()
-
-        const item: ResultItem = {
-            name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
-        }
-        items.push(item);
-
-        cacher.cache = items
-        return items;
+    //#region Константы
+    const fields = {
+        name, stock, price, oldprice, link, timestamp
     }
+
+    const HOST = ""
+
+    export class JS_Base_ extends JS_Base_Custom {
+        static defaultConf: defaultConf = {
+            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
+            parsecodes: { 200: 1, 404: 1 },
+            proxyChecker: "tor.proxy.ru",
+            requestdelay: "3,5",
+            engine: "a-parser",
+            mode: "normal",
+        };
+
+        static editableConf: editableConf = [
+            ...defaultEditableConf
+        ];
+
+        //#region Точка входа
+        
+        async parse(set: SetType, results: { [key: string]: any }) {
+            if (!set.type || set.type === "none") set.type = "page";
+            if (!set.region || set.region === "none") set.region = "";
+            try {
+                switch (set.type) {
+                    case "page": {
+                        if (!set.page || set.page === "none") set.page = 1;
+                        let items = await this.parsePage(set);
+                        items.forEach(item => results.items.addElement(item));
+                        results.success = 1;
+                        break;
+                    }
+                    case "card": {
+                        const cacher = getCacher<ResultItem>(this, set)
+                        let items = cacher.cache || await this.parseCard(set, cacher);
+                        items.forEach(item => results.items.addElement(item));
+                        results.success = 1;
+                        break;
+                    }
+                    default:
+                        this.logger.put("Указан неверный тип сбора")
+                        results.success = 0;
+                }
+            } catch (e) {
+                if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
+                    this.logger.put(e.message);
+                    results.isBadLink = 1;
+                    results.success = 1;
+                } else {
+                    this.logger.put(`${e.name} >> ${e.message}   ${set.query}  type - ${set.type} page ${set.page} }`);
+                    results.success = 0;
+                }
+            }
+            return results;
+        }
+    
+
+        //#region Парсинг поиска
+        
+
+        //#region Парсинг товара
+        
+
+        //#region Выполнение запроса
+        
+    async makeRequest(url: string) {
+        const opts: AsyncHTTPXRequestOptsCustom = {
+            ...defaultOpts,
+            engine: this.conf.engine,
+            mode: this.conf.mode,
+        };
+        this.debugger.put(opts)
+
+        const { success, headers, data } = await this.request("GET", url, {}, opts);
+        this.debugger.put(data)
+
+        if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
+        if (headers.Status === 404) throw new NotFoundError();
+
+        return data;
+    }
+    
+    }
+
     

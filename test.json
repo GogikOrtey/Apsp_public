@@ -1,0 +1,37 @@
+template_parse_entry_point_code = Template("""
+        async parse(set: SetType, results: { [key: string]: any }) {
+            if (!set.type || set.type === "none") set.type = "page";
+            if (!set.region || set.region === "none") set.region = "";
+            try {
+                switch (set.type) {
+                    case "page": {
+                        if (!set.page || set.page === "none") set.page = 1;
+                        let items = await this.parsePage(set);
+                        items.forEach(item => results.items.addElement(item));
+                        results.success = 1;
+                        break;
+                    }
+                    case "card": {
+                        const cacher = getCacher<ResultItem>(this, set)
+                        let items = cacher.cache || await this.parseCard(set, cacher);
+                        items.forEach(item => results.items.addElement(item));
+                        results.success = 1;
+                        break;
+                    }
+                    default:
+                        this.logger.put("Указан неверный тип сбора")
+                        results.success = 0;
+                }
+            } catch (e) {
+                if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
+                    this.logger.put(e.message);
+                    results.isBadLink = 1;
+                    results.success = 1;
+                } else {
+                    this.logger.put(`$${e.name} >> $${e.message}   $${set.query}  type - $${set.type} page $${set.page} }`);
+                    results.success = 0;
+                }
+            }
+            return results;
+        }
+    """)
