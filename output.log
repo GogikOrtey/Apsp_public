@@ -1,4 +1,4 @@
-09.12.2025 01:04:02
+09.12.2025 01:19:03
 
 
     import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
@@ -25,7 +25,8 @@
     const HOST = ""
 
     export class JS_Base_ extends JS_Base_Custom {
-        static defaultConf: defaultConf = {
+        
+static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
             proxyChecker: "tor.proxy.ru",
@@ -33,6 +34,7 @@
             engine: "a-parser",
             mode: "normal",
         };
+    
 
         static editableConf: editableConf = [
             ...defaultEditableConf
@@ -47,8 +49,9 @@
                 switch (set.type) {
                     case "page": {
                         if (!set.page || set.page === "none") set.page = 1;
-                        let items = await this.parsePage(set);
-                        items.forEach(item => results.items.addElement(item));
+                        
+await this.parsePage(set);
+    
                         results.success = 1;
                         break;
                     }

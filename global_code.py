@@ -13,16 +13,18 @@ from import_all_libraries import *
 from makeRequest_gen import *
 
 
+
+# Генерирует верхнюю процедуру, которая называется parse и имеет описание "Точка входа"
 def parse_entry_point_gen():
     # Если parsePage возвращает результаты, которые надо записать в Items
     is_parse_page_mode_returned_results = """
-let items = await this.parsePage(set);
+                        let items = await this.parsePage(set);
                         items.forEach(item => results.items.addElement(item));
     """
 
     # И если не возвращает (наиболее чатый случай)
     is_parse_page_mode_no_returned_results = """
-await this.parsePage(set);
+                        await this.parsePage(set);
     """
 
     template_parse_entry_point_code = Template("""
@@ -63,10 +65,32 @@ await this.parsePage(set);
     """)
 
     result = template_parse_entry_point_code.substitute(
-        return_results_page_mode = is_parse_page_mode_no_returned_results
+        return_results_page_mode = is_parse_page_mode_no_returned_results.strip()
     )
 
     return result
+
+def set_defaultConf():
+    template_default_conf = Template("""
+        static defaultConf: defaultConf = {
+            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
+            parsecodes: { 200: 1, 404: 1 },
+            proxyChecker: "$proxy_checker_val",
+            requestdelay: "3,5",
+            engine: "$engine_val",
+            mode: "$mode_val",
+        };
+    """)
+
+    #TODO Подставлять сюда параметры, которые будут рассчитаны в makeRequest_gen
+    result = template_default_conf.substitute(
+        proxy_checker_val = "tor.proxy.ru",
+        engine_val = "a-parser",
+        mode_val = "normal",
+    )
+    
+    return result.strip()
+
 
 
 def gen_main_code():
@@ -100,14 +124,7 @@ def gen_main_code():
     const HOST = "$host_val"
 
     export class JS_Base_ extends JS_Base_Custom {
-        static defaultConf: defaultConf = {
-            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
-            parsecodes: { 200: 1, 404: 1 },
-            proxyChecker: "tor.proxy.ru",
-            requestdelay: "3,5",
-            engine: "a-parser",
-            mode: "normal",
-        };
+        $default_conf
 
         static editableConf: editableConf = [
             ...defaultEditableConf
@@ -132,6 +149,7 @@ def gen_main_code():
     parse_card_code_value = ""
     parse_page_code_value = ""
     parse_entry_point_code_value = parse_entry_point_gen()
+    default_conf_value = set_defaultConf()
 
     result = template_main_code.substitute(
         make_request_code = make_request_code_value,
@@ -140,6 +158,7 @@ def gen_main_code():
         parse_entry_point_code = parse_entry_point_code_value,
         field_val = field,
         host_val = host,
+        default_conf = default_conf_value
     )
 
     print(result)
@@ -147,7 +166,7 @@ def gen_main_code():
 
 
 
-gen_main_code()
+
 
 
 
@@ -198,8 +217,12 @@ gen_main_code()
 
 
 
+def result_parser_code():
+    result_code = gen_main_code()
+    # result_file_JS(result_code)
 
 
+result_parser_code()
 
 
 
