@@ -552,7 +552,17 @@ result_selectors = {
 # вызов для проверки (раскомментируйте для отладки)
 # selector_checker_and_parseCard_gen(result_selectors, {"links": {"simple": [{"InStock_trigger": ".nal.y"}]}})
 
-parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+# Кэш для сгенерированного кода
+_parse_card_code_cache = None
+
+
+def get_parseCard_code():
+    global _parse_card_code_cache
+    # Генерируем код лениво, только когда он запрашивается
+    # Это гарантирует, что data_input_table уже содержит fields_str
+    if _parse_card_code_cache is None:
+        _parse_card_code_cache = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+    return _parse_card_code_cache
 
 
 
@@ -560,15 +570,3 @@ parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_inpu
 
 
 
-
-
-
-
-
-"""
-Оригинальная функция formatPrice
-
-String.prototype.formatPrice = function (separator: string = "."): string {
-    return this.replace(new RegExp(`[^0-9${separator}]+`, "g"), "").replace(separator, ".").match(/\d+(?:\.\d{0,2})?/)?.shift() || ""
-}
-"""

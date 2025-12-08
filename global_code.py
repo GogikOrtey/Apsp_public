@@ -10,9 +10,11 @@ from import_all_libraries import *
 
 # Подключение модулей генерации
 
-from makeRequest_gen import *
+from makeRequest_gen import * 
+from parseCard_gen import * 
 
-current_apsp_version = "0.1"
+
+
 
 
 # Собирает поля в строку из тех что есть в нашем сборе, и сортирует их по шаблону
@@ -228,7 +230,7 @@ $subtitle_from_code
 """)
 
     make_request_code_value = simple_makeRequest()
-    parse_card_code_value = ""
+    parse_card_code_value = get_parseCard_code()
     parse_page_code_value = ""
     parse_entry_point_code_value = parse_entry_point_gen()
     default_conf_value = set_defaultConf()

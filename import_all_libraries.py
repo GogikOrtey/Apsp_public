@@ -22,10 +22,10 @@ import json
 import time
 import re
 import os
-import platform
 
 # Глобальные переменные
 message_global = []
+current_apsp_version = "0.1"
 
 # Глобальные модули
 from module_logging import * 
