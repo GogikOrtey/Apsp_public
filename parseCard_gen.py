@@ -372,7 +372,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
 
-    ########################## Это будет приходить из global_code
+    ## Это будет приходить из global_code
     # order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  # Это пример, замените на ваш источник
     
     if not data_input_table.get("fields_str"):
@@ -382,7 +382,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     order_string = data_input_table["fields_str"]
 
 
-
+    ######################### Почему-то не сортируется как надо. Проверить
 
 
     # Разбиваем строку порядка на список полей, убираем пробелы
