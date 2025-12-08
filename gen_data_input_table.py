@@ -533,25 +533,25 @@ https://gresstore.ru
 https://elevel.ru
 """
 
-data_input_table = {
-    "host": "",
-    "links": {
-        "simple": [
-            {
-                "link": "",
-                "name": "",
-                "price": "",
-                "oldPrice": "",
-                "article": "",
-                "brand": "",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "",
-                "imageLink": ""
-            }
-        ]
-    },
-    "search_requests": []
-}
+# data_input_table = {
+#     "host": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "",
+#                 "name": "",
+#                 "price": "",
+#                 "oldPrice": "",
+#                 "article": "",
+#                 "brand": "",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": ""
+#             }
+#         ]
+#     },
+#     "search_requests": []
+# }
 
 # data_input_table = {
 #     "host": "",

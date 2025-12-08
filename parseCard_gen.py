@@ -373,7 +373,13 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
     ########################## Это будет приходить из global_code
-    order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  # Это пример, замените на ваш источник
+    # order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  # Это пример, замените на ваш источник
+    
+    if not data_input_table.get("fields_str"):
+        raise ErrorHandler("Нет значения в поле fields_str")
+        # Эта ошибка не должна произойти
+
+    order_string = data_input_table["fields_str"]
 
 
 
@@ -431,28 +437,29 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # Собираю поля для объекта item: исключаю триггеры, добавляю stock, timestamp
     other_keys = [k for k in result_selectors.keys() if k not in ("InStock_trigger", "OutOfStock_trigger")]
 
-    # Сортируем поля в items_fields согласно order_string
-    # Создаем список для отсортированных полей
-    sorted_items_fields = []
+    ## Потому что приходящая строка полей уже будет отсортирована
+    # # Сортируем поля в items_fields согласно order_string
+    # # Создаем список для отсортированных полей
+    # sorted_items_fields = []
 
-    # 1. Добавляем поля в порядке из field_order
-    for field in field_order:
-        # Проверяем, есть ли поле в other_keys или это специальные поля
-        if field in other_keys or field in ["stock", "timestamp", "link"]:
-            sorted_items_fields.append(field)
+    # # 1. Добавляем поля в порядке из field_order
+    # for field in field_order:
+    #     # Проверяем, есть ли поле в other_keys или это специальные поля
+    #     if field in other_keys or field in ["stock", "timestamp", "link"]:
+    #         sorted_items_fields.append(field)
 
-    # 2. Добавляем оставшиеся поля из other_keys, которых нет в field_order
-    for field in other_keys:
-        if field not in sorted_items_fields and field not in ["stock", "timestamp", "link"]:
-            sorted_items_fields.append(field)
+    # # 2. Добавляем оставшиеся поля из other_keys, которых нет в field_order
+    # for field in other_keys:
+    #     if field not in sorted_items_fields and field not in ["stock", "timestamp", "link"]:
+    #         sorted_items_fields.append(field)
 
-    # 3. Убеждаемся, что timestamp всегда в конце
-    if "timestamp" in sorted_items_fields:
-        sorted_items_fields.remove("timestamp")
-        sorted_items_fields.append("timestamp")
+    # # 3. Убеждаемся, что timestamp всегда в конце
+    # if "timestamp" in sorted_items_fields:
+    #     sorted_items_fields.remove("timestamp")
+    #     sorted_items_fields.append("timestamp")
 
-    # Формируем строку с полями
-    items_fields = ", ".join(sorted_items_fields)
+    # # Формируем строку с полями
+    # items_fields = ", ".join(sorted_items_fields)
 
     template_parseCard = Template("""
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -475,7 +482,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     """)
 
     result = template_parseCard.substitute(
-        itemsFields=items_fields,
+        itemsFields=order_string,
         varFromSelector=value_field,
     )
 

@@ -12,6 +12,8 @@ from import_all_libraries import *
 
 from makeRequest_gen import *
 
+current_apsp_version = "0.1"
+
 
 # Собирает поля в строку из тех что есть в нашем сборе, и сортирует их по шаблону
 def extract_fields():
@@ -134,13 +136,37 @@ def set_defaultConf():
     return result.strip()
 
 
+def get_cuurent_subtitle():
+    template_subtitle = Template("""
+// Код сгенерирован APSP v$current_apsp_version_val
+// Дата: $current_date
+// © BrandPol
+""")
+
+    # Устанавливаем локаль на русскую
+    locale.setlocale(locale.LC_TIME, "ru_RU.UTF-8")
+    # Получаем текущую дату
+    today = datetime.date.today()
+    # Форматируем: день месяц_аббревиатура год
+    formatted_date = today.strftime("%-d %b %Y")  # Например: 4 дек 2025
+
+    result = template_subtitle.substitute(
+        current_apsp_version_val = current_apsp_version,
+        current_date = formatted_date        
+    )
+    
+    return result.strip()
+
 
 def gen_main_code():
     # Если поля не собраны, то собираю их здесь в строку, и также сохраняю
-    if(data_input_table["fields_str"] == ""):
-        data_input_table["fields_str"] = extract_fields()
-    
-    field = data_input_table["fields_str"]
+    fields_str = data_input_table.get("fields_str")
+    if not fields_str:
+        fields_str = extract_fields()
+        data_input_table["fields_str"] = fields_str
+
+    # Теперь точно валидное значение
+    field = fields_str
     print(f"field = {field}")
 
     host = data_input_table["host"]
@@ -188,6 +214,8 @@ export class JS_Base_ extends JS_Base_Custom {
     //#region Выполнение запроса
     $make_request_code
 }
+
+$subtitle_from_code
 """)
 
     make_request_code_value = simple_makeRequest()
@@ -203,7 +231,8 @@ export class JS_Base_ extends JS_Base_Custom {
         parse_entry_point_code = parse_entry_point_code_value,
         field_val = field,
         host_val = host,
-        default_conf = default_conf_value
+        default_conf = default_conf_value,
+        subtitle_from_code = get_cuurent_subtitle()
     )
 
     print(result)
