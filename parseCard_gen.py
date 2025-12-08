@@ -484,7 +484,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     result = template_parseCard.substitute(
         itemsFields=order_string,
         varFromSelector=value_field,
-    )
+    ).strip()
 
     print(result)
     return result

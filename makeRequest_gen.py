@@ -30,4 +30,4 @@ def simple_makeRequest():
     }
     """)
 
-    return template_simple_makeRequest.substitute()
+    return template_simple_makeRequest.substitute().strip()

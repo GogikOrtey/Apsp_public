@@ -72,45 +72,45 @@ def parse_entry_point_gen():
     """
 
     template_parse_entry_point_code = Template("""
-        async parse(set: SetType, results: { [key: string]: any }) {
-            if (!set.type || set.type === "none") set.type = "page";
-            if (!set.region || set.region === "none") set.region = "";
-            try {
-                switch (set.type) {
-                    case "page": {
-                        if (!set.page || set.page === "none") set.page = 1;
-                        $return_results_page_mode
-                        results.success = 1;
-                        break;
-                    }
-                    case "card": {
-                        const cacher = getCacher<ResultItem>(this, set)
-                        let items = cacher.cache || await this.parseCard(set, cacher);
-                        items.forEach(item => results.items.addElement(item));
-                        results.success = 1;
-                        break;
-                    }
-                    default:
-                        this.logger.put("Указан неверный тип сбора")
-                        results.success = 0;
-                }
-            } catch (e) {
-                if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
-                    this.logger.put(e.message);
-                    results.isBadLink = 1;
+    async parse(set: SetType, results: { [key: string]: any }) {
+        if (!set.type || set.type === "none") set.type = "page";
+        if (!set.region || set.region === "none") set.region = "";
+        try {
+            switch (set.type) {
+                case "page": {
+                    if (!set.page || set.page === "none") set.page = 1;
+                    $return_results_page_mode
                     results.success = 1;
-                } else {
-                    this.logger.put(`$${e.name} >> $${e.message}   $${set.query}  type - $${set.type} page $${set.page} }`);
-                    results.success = 0;
+                    break;
                 }
+                case "card": {
+                    const cacher = getCacher<ResultItem>(this, set)
+                    let items = cacher.cache || await this.parseCard(set, cacher);
+                    items.forEach(item => results.items.addElement(item));
+                    results.success = 1;
+                    break;
+                }
+                default:
+                    this.logger.put("Указан неверный тип сбора")
+                    results.success = 0;
             }
-            return results;
+        } catch (e) {
+            if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
+                this.logger.put(e.message);
+                results.isBadLink = 1;
+                results.success = 1;
+            } else {
+                this.logger.put(`$${e.name} >> $${e.message}   $${set.query}  type - $${set.type} page $${set.page} }`);
+                results.success = 0;
+            }
         }
+        return results;
+    }
     """)
 
     result = template_parse_entry_point_code.substitute(
         return_results_page_mode = is_parse_page_mode_no_returned_results.strip()
-    )
+    ).strip()
 
     return result
 
@@ -143,12 +143,21 @@ def get_cuurent_subtitle():
 // © BrandPol
 """)
 
-    # Устанавливаем локаль на русскую
-    locale.setlocale(locale.LC_TIME, "ru_RU.UTF-8")
     # Получаем текущую дату
-    today = datetime.date.today()
+    today = date.today()
+    
+    # Словарь русских названий месяцев (аббревиатуры)
+    russian_months = {
+        1: "Янв", 2: "Фев", 3: "Мар", 4: "Апр",
+        5: "Май", 6: "Июн", 7: "Июл", 8: "Авг",
+        9: "Сен", 10: "Окт", 11: "Ноя", 12: "Дек"
+    }
+    
     # Форматируем: день месяц_аббревиатура год
-    formatted_date = today.strftime("%-d %b %Y")  # Например: 4 дек 2025
+    day = today.day
+    month_abbr = russian_months[today.month]
+    year = today.year
+    formatted_date = f"{day} {month_abbr} {year}"  # Например: 4 дек 2025
 
     result = template_subtitle.substitute(
         current_apsp_version_val = current_apsp_version,
@@ -233,7 +242,7 @@ $subtitle_from_code
         host_val = host,
         default_conf = default_conf_value,
         subtitle_from_code = get_cuurent_subtitle()
-    )
+    ).strip()
 
     print(result)
     return result

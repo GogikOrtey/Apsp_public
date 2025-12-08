@@ -2,7 +2,7 @@ from typing import Callable, Dict, List, Any, Iterable, Tuple
 from parsel import Selector as ParselSelector
 from collections import Counter, defaultdict
 from urllib.parse import urlparse, parse_qs
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from difflib import SequenceMatcher
 from urllib.parse import urlparse
 from lxml import html as html_lx
@@ -17,10 +17,12 @@ from lxml import etree
 import jsbeautifier
 import itertools
 import requests
+import locale
 import json
 import time
 import re
 import os
+import platform
 
 # Глобальные переменные
 message_global = []
