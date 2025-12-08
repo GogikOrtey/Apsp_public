@@ -488,9 +488,6 @@ https://e-dz.ru
 https://electron.bg
 https://www.electrovek.ru
 https://www.elemor.ru
-
-перескочил на другие
-
 https://ceraboom.ru
 https://ceramama.ru
 https://ceramicmall.ru
@@ -499,6 +496,32 @@ https://ceram-stroy.ru
 https://www.ceramtrade.ru
 championtool.ru
 https://chel-heating.ru
++- https://chiedocover.ru
+https://www.chipdip.ru
+https://cleansan.ru
+https://coffeeservice.bg
+https://coffeespot.bg
+https://comfort-klimat.ru
+https://cosmofun.ru
+https://msearch.space          25
+https://c-s-k.ru
+https://csk-rus.ru
++- daewoo-power.ru
+
+прескочил
+
+https://galen.bg
+https://galleryceramics.ru
++- https://gastehmarket.ru
+https://gazovik-omsk.ru
+https://gaz-shop78.ru
+https://gidro-top.ru   +
+https://glavsantex.ru  +
+https://goodzone23.ru
+https://gra-nit.ru
+https://gresstore.ru
+
+
 
 """
 

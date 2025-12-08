@@ -272,6 +272,11 @@ def generate_parsePage_search_requests(data_input_table):
 
 
 
+### Иногда нужно будет использовать set.page - 1
+# Т.е. добавить проверку
+# TODO Это можно оставить на доработку на будущее 
+
+
 # region Final gen template
 def generate_parsePage(set_item):
     template_parseCard = Template("""
@@ -452,7 +457,6 @@ def main_generate_parsePage():
 
         checked_value = get_element_from_selector(set_item["page_html"], pagination_selctor)
         print("Проверили, и нашли такой элемент по найденному селектору пагинации: " + checked_value)
-
 
 
         # И если мы далее будем использовать 
