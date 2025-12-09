@@ -595,5 +595,17 @@ data_input_table = {
             }
         ]
     },
-    "search_requests": []
+    "search_requests": [ ####### Плохо: Нет параметра для поиска, он зашит внутри url
+        {
+            "query": "Ванна",
+            "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
+            "count_of_page_on_pagination": "255",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://gidro-top.ru/product/salini-mona-102911g-vanna-otdelnostoyashchaya-belyy-180x80/",
+                "https://gidro-top.ru/product/triton-ultra-150/",
+                "https://gidro-top.ru/product/vanna-astra-form-avrora/",
+            ]
+        }
+    ]
 }

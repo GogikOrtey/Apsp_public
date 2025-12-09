@@ -477,12 +477,15 @@ def main_generate_parsePage():
         checked_value = get_element_from_selector(set_item["page_html"], pagination_selctor)
         print("Проверили, и нашли такой элемент по найденному селектору пагинации: " + checked_value)
 
-
         # И если мы далее будем использовать 
         # let totalPages = Math.max(...$("").get().map(item => +$(item).text().trim()).filter(Boolean))
         # То нужно проверить, работает ли это на этой странице
+        # TODO Добавить проверку, что эта строчка сработает на этой странице
+            # и что результат будет числом
 
-        result_pagination_block = "" #######
+        result_pagination_block = (
+            f'let totalPages = Math.max(...$("").get("{pagination_selctor}").map(item => +$(item).text().trim()).filter(Boolean))'
+        )
 
     else: 
         # region _ex selector count
@@ -535,8 +538,8 @@ def main_generate_parsePage():
 
     print("result_pagination_block = \n\n" + result_pagination_block) 
 
-    # set_item["result_pagination_block"] = result_pagination_block
-    # set_item["product_selector"] = product_selector
+    set_item["result_pagination_block"] = result_pagination_block
+    set_item["product_selector"] = product_selector
 
     # Генерирует итоговый шаблон parsePage
     result = generate_parsePage(set_item)
@@ -544,5 +547,15 @@ def main_generate_parsePage():
 
 
 
-################################################
+#######
 # main_generate_parsePage()
+
+
+
+
+
+
+
+###### Убрать все ErrorHandler
+# Заменить их на print, и добавление в очередь сообщений об ошибках
+# И добавление ошибок в итоговый код

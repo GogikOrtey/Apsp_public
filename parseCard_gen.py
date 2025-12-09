@@ -53,9 +53,9 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     print("Проверяем селекторы, и генерируем parseCard")
     #print_json(result_selectors)  
 
-    print("data_input_table = ")
-    print(data_input_table)
-    print("")
+    # print("data_input_table = ")
+    # print(data_input_table)
+    # print("")
 
     # Подготовка множества триггеров InStock (строки)
     all_inStock_selectors = {elem.get("InStock_trigger") for elem in data_input_table["links"]["simple"] if elem.get("InStock_trigger")}

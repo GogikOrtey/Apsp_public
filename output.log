@@ -1,4 +1,4 @@
-09.12.2025 16:16:47
+09.12.2025 16:31:07
 
 
 
@@ -21,236 +21,74 @@ field = name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 --------------------------------------------------------------------------------------------------
 
 
-Обработаем 3 страниц
-📤 Берем страницу из кеша: https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/ (возраст 1.29 ч.)
+🟧 timestamp нет в массиве, данные для parsePage могут быть неактуальными
+{'page': '2'}
+Используем ИИ для поиска параметра, соответствующего запросу
+Посылаю запрос к YandexGPT:
 
-Найдено 31 возможных селекторов
-Найден селектор для поля name
+💫 PROMPT:
+В таком запросе: https://gidro-top.ru/search/Ванна/?page=2
+Есть такие параметры: "page"
+Верни мне параметр, в котором задаётся запрос на поиск.
+Обязательное правило:
+Не пиши никаких комментариев, пояснений, вариантов и текста вокруг, потому что я вставлю твой ответ сразу в код. 
+В результате выдай только один параметр.
 
-Найдено 28 возможных селекторов
-Найден селектор для поля price
-⬜ Пропускаем поле oldPrice: Не строка или пустое значение
 
-Найдено 25 возможных селекторов
-Найден селектор для поля article
+💬 AI ANSWER:
+""search""
 
-Найдено 102 возможных селекторов
-Найден селектор для поля brand
-
-Найдено 89 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 2 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-📤 Берем страницу из кеша: https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/ (возраст 1.29 ч.)
-
-Найдено 41 возможных селекторов
-Найден селектор для поля name
-
-Найдено 48 возможных селекторов
-Найден селектор для поля price
-
-Найдено 25 возможных селекторов
-Найден селектор для поля oldPrice
-
-Найдено 36 возможных селекторов
-Найден селектор для поля article
-
-Найдено 127 возможных селекторов
-Найден селектор для поля brand
-
-Найдено 96 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+Параметр поиска: "search"
+Параметр пагинации: page
+Очищенный словарь: {}
+search_host = https://gidro-top.ru/search/Ванна/
+host: https://gidro-top.ru
+path: /search/Ванна/
 
 Найдено 3 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-📤 Берем страницу из кеша: https://gidro-top.ru/product/aquastone-bali-180/ (возраст 1.29 ч.)
 
-Найдено 65 возможных селекторов
-Найден селектор для поля name
+product_selector = div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]
+len_of_products_on_this_page = 32
+Совпадение ссылок = 1.00 (3/3)
+Извлекаем селектор кол-ва страниц
 
-Найдено 48 возможных селекторов
-Найден селектор для поля price
-⬜ Пропускаем поле oldPrice: Не строка или пустое значение
-
-Найдено 25 возможных селекторов
-Найден селектор для поля article
-
-Найдено 138 возможных селекторов
-Найден селектор для поля brand
-
-Найдено 84 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 3 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-Используемые поля: ['name', 'price', 'oldPrice', 'article', 'brand', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
-Кандидаты по полям (в порядке приоритета):
- - name: 1 селекторов -> ['h1.c-header.c-header_h1']
- - price: 2 селекторов -> ['span.price.c-product-add-to-cart__price', 'span.price.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare']
- - oldPrice: 1 селекторов -> ['span.c-product-add-to-cart__compare-price']
- - article: 1 селекторов -> ['span.c-value__value-text.c-product-cart-form__sku-value']
- - brand: 1 селекторов -> ['span.c-value__value-text > a.c-link']
- - InStock_trigger: 1 селекторов -> ['.c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content']
- - OutOfStock_trigger: 0 селекторов -> []
- - imageLink: 2 селекторов -> ['.c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]', '.c-product-images__image > a.l-image-box.l-image-box_fill > span.c-lazy-image-provider[data-src]']
-  [SKIP] oldPrice on https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/: no expected value or no original selector
-  [SKIP] oldPrice on https://gidro-top.ru/product/aquastone-bali-180/: no expected value or no original selector
-[WARN] Для поля OutOfStock_trigger не найден селектор(ы).
-
-📄 Кеш сохранён в cache.json, всего страниц: 25
-   Добавлено: 0, обновлено: 3
-
-
-✅ Итоговые селекторы:
-{
-    "name": [
-        "h1.c-header.c-header_h1"
-    ],
-    "price": [
-        "span.price.c-product-add-to-cart__price"
-    ],
-    "oldPrice": [
-        "span.c-product-add-to-cart__compare-price"
-    ],
-    "article": [
-        "span.c-value__value-text.c-product-cart-form__sku-value"
-    ],
-    "brand": [
-        "span.c-value__value-text > a.c-link"
-    ],
-    "InStock_trigger": [
-        ".c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content"
-    ],
-    "OutOfStock_trigger": [],
-    "imageLink": [
-        ".c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]"
-    ]
-}
+Найдено 30 возможных селекторов
+pagination_selctor = div.c-products[data-pages_count]
+Проверили, и нашли такой элемент по найденному селектору пагинации: 255
+result_pagination_block = 
 
 
 
---------------------------------------------------------------------------------------------------
+    async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/search/Ванна/`)
+        url.searchParams.set(""search"", set.query)
+        url.searchParams.set("page", set.page)
+        
 
-                                         PARSE CARD GEN
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
 
---------------------------------------------------------------------------------------------------
+        if (set.page === 1) {
+            
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
 
-
-Проверяем селекторы, и генерируем parseCard
-data_input_table = 
-{'host': 'https://gidro-top.ru', 'fields_str': 'name, stock, link, price, oldPrice, article, brand, imageLink, timestamp', 'links': {'simple': [{'link': 'https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/', 'name': 'Aquanet SD-1200A душевая дверь', 'price': '19 850 ₽', 'oldPrice': '', 'article': '00209406', 'brand': 'Aquanet', 'InStock_trigger': 'В наличии', 'OutOfStock_trigger': '', 'imageLink': 'https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg'}, {'link': 'https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/', 'name': 'Aquastone Малибу Ванна из искусственного камня', 'price': '55 000 ₽', 'oldPrice': '69 000 ₽', 'article': 'MAlibu', 'brand': 'Aquastone', 'InStock_trigger': 'В наличии', 'OutOfStock_trigger': '', 'imageLink': 'https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg'}, {'link': 'https://gidro-top.ru/product/aquastone-bali-180/', 'name': 'Aquastone Бали 180 Ванна из искусственного камня', 'price': '53 000 ₽', 'oldPrice': '', 'article': 'Bali180', 'brand': 'Aquastone', 'InStock_trigger': 'В наличии', 'OutOfStock_trigger': '', 'imageLink': 'https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg'}]}, 'search_requests': []}
-
-Оба триггера есть
-Проверяем селектор h1.c-header.c-header_h1 на странице №1
-💠Aquanet SD-1200A душевая дверь💠
-🔶Aquanet SD-1200A душевая дверь🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор h1.c-header.c-header_h1 на странице №2
-💠Aquastone Малибу Ванна из искусственного камня💠
-🔶Aquastone Малибу Ванна из искусственного камня🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор h1.c-header.c-header_h1 на странице №3
-💠Aquastone Бали 180 Ванна из искусственного камня💠
-🔶Aquastone Бали 180 Ванна из искусственного камня🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор span.price.c-product-add-to-cart__price на странице №1
-💠19 850💠
-🔶19 850 ₽🔶
-
-💲 Обрабатываем поле price
-p1 = 19850
-p2 = 19850
-Проверяем селектор span.price.c-product-add-to-cart__price на странице №2
-💠55 000💠
-🔶55 000 ₽🔶
-
-💲 Обрабатываем поле price
-p1 = 55000
-p2 = 55000
-Проверяем селектор span.price.c-product-add-to-cart__price на странице №3
-💠53 000💠
-🔶53 000 ₽🔶
-
-💲 Обрабатываем поле price
-p1 = 53000
-p2 = 53000
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор span.c-product-add-to-cart__compare-price на странице №1
-⬜ Нет результата у селектора  на странице 1 для поля oldPrice
-Проверяем селектор span.c-product-add-to-cart__compare-price на странице №2
-💠69 000💠
-🔶69 000 ₽🔶
-
-💲 Обрабатываем поле oldPrice
-p1 = 69000
-p2 = 69000
-Проверяем селектор span.c-product-add-to-cart__compare-price на странице №3
-⬜ Нет результата у селектора  на странице 3 для поля oldPrice
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор span.c-value__value-text.c-product-cart-form__sku-value на странице №1
-💠00209406💠
-🔶00209406🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор span.c-value__value-text.c-product-cart-form__sku-value на странице №2
-💠MAlibu💠
-🔶MAlibu🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор span.c-value__value-text.c-product-cart-form__sku-value на странице №3
-💠Bali180💠
-🔶Bali180🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор span.c-value__value-text > a.c-link на странице №1
-💠Aquanet💠
-🔶Aquanet🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор span.c-value__value-text > a.c-link на странице №2
-💠Aquastone💠
-🔶Aquastone🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор span.c-value__value-text > a.c-link на странице №3
-💠Aquastone💠
-🔶Aquastone🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №1
-⬜ Нет результата у селектора  на странице 1 для поля imageLink
-Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №2
-В элементе /wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg отсутствует хост. Добавляем:
-💠https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg💠
-🔶https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №3
-В элементе /wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg отсутствует хост. Добавляем:
-💠https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg💠
-🔶https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg🔶
-
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
+        let items: ResultItem[] = [];
+        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]")
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = $(product)?.attr("href")
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        })
+        return items;
+    }
+    
 
 
 
@@ -336,32 +174,39 @@ export class JS_Base_ extends JS_Base_Custom {
 
     //#region Парсинг поиска
     
+    async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/search/Ванна/`)
+        url.searchParams.set(""search"", set.query)
+        url.searchParams.set("page", set.page)
+        
 
-    //#region Парсинг товара
-    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
-        let items: ResultItem[] = []
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
 
-        const data = await this.makeRequest(set.query);
-        const $ = cheerio.load(data);
-
-        const name = $("h1.c-header.c-header_h1").text()?.trim()
-		const stock = $(".c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
-		const link = set.query
-		const price = $("span.price.c-product-add-to-cart__price").text()?.trim().formatPrice()
-		const oldPrice = $("span.c-product-add-to-cart__compare-price").text()?.trim().formatPrice()
-		const article = $("span.c-value__value-text.c-product-cart-form__sku-value").text()?.trim()
-		const brand = $("span.c-value__value-text > a.c-link").text()?.trim()
-		const imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim() ? HOST + $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim() : ""
-        const timestamp = getTimestamp()
-
-        const item: ResultItem = {
-            name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
+        if (set.page === 1) {
+            
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
         }
-        items.push(item);
 
-        cacher.cache = items
+        let items: ResultItem[] = [];
+        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]")
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = $(product)?.attr("href")
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        })
         return items;
     }
+    
+
+    //#region Парсинг товара
+    
 
     //#region Выполнение запроса
     async makeRequest(url: string) {
