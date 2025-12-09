@@ -1,4 +1,4 @@
-09.12.2025 16:46:56
+09.12.2025 17:42:45
 
 
 
@@ -10,7 +10,7 @@
 --------------------------------------------------------------------------------------------------
 
 
-field = name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
+field = name, stock, link, price, article, brand, imageLink, timestamp
 
 
 
@@ -21,74 +21,245 @@ field = name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 --------------------------------------------------------------------------------------------------
 
 
-🟧 timestamp нет в массиве, данные для parsePage могут быть неактуальными
-{'page': '2'}
-Используем ИИ для поиска параметра, соответствующего запросу
+Обработаем 3 страниц
+📤 Берем страницу из кеша: https://glavsantex.ru/kran-sharovoy-ideal-1-2-vv-itap/ (возраст 0.16 ч.)
+
+Найдено 82 возможных селекторов
+Найден селектор для поля name
+
+Найдено 26 возможных селекторов
+Найден селектор для поля price
+
+Найдено 20 возможных селекторов
+Найден селектор для поля article
+
+Найдено 54 возможных селекторов
+Найден селектор для поля brand
+
+Найдено 2 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+📤 Берем страницу из кеша: https://glavsantex.ru/zadvizhka-klinovaya-vv-1-2-itap/ (возраст 0.16 ч.)
+
+Найдено 88 возможных селекторов
+Найден селектор для поля name
+
+Найдено 55 возможных селекторов
+Найден селектор для поля price
+
+Найдено 20 возможных селекторов
+Найден селектор для поля article
+
+Найдено 66 возможных селекторов
+Найден селектор для поля brand
+
+Найдено 2 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+📤 Берем страницу из кеша: https://glavsantex.ru/avtomaticheskiy-zaporniy-klapan-dlya-manometra-rem-10-f3-8-kh3-8-watts/ (возраст 0.16 ч.)
+
+Найдено 15 возможных селекторов
+Найден селектор для поля name
+
+Найдено 71 возможных селекторов
+Найден селектор для поля price
+
+Найдено 20 возможных селекторов
+Найден селектор для поля article
+
+Найдено 70 возможных селекторов
+Найден селектор для поля brand
+
+Найдено 2 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+Используемые поля: ['name', 'price', 'article', 'brand', 'imageLink']
+Кандидаты по полям (в порядке приоритета):
+ - name: 1 селекторов -> ['.js-product_title.is-hidden']
+ - price: 1 селекторов -> ['.pd-price__reg-price.s-product-price']
+ - article: 1 селекторов -> ['.item-pg__heading-artikul.grey.s-product-sku > span']
+ - brand: 1 селекторов -> ['a.pd-brand-info__brand-name']
+ - imageLink: 1 селекторов -> ['#product-image[itemprop="image"][src]']
+
+📄 Кеш сохранён в cache.json, всего страниц: 28
+   Добавлено: 0, обновлено: 3
+
+
+✅ Итоговые селекторы:
+{
+    "name": [
+        ".js-product_title.is-hidden"
+    ],
+    "price": [
+        ".pd-price__reg-price.s-product-price"
+    ],
+    "article": [
+        ".item-pg__heading-artikul.grey.s-product-sku > span"
+    ],
+    "brand": [
+        "a.pd-brand-info__brand-name"
+    ],
+    "imageLink": [
+        "#product-image[itemprop="image"][src]"
+    ]
+}
+
+
+
+--------------------------------------------------------------------------------------------------
+
+                                         PARSE CARD GEN
+
+--------------------------------------------------------------------------------------------------
+
+
+Проверяем селекторы, и генерируем parseCard
+Нет триггеров наличия, считаем что все товары в наличии
+
+Проверяем селектор .js-product_title.is-hidden на странице №1
+
+Кран шаровой Ideal 1/2" ВВ ITAP ART 092
+Кран шаровой Ideal 1/2" ВВ ITAP ART 092
+
+✅ Полное совпадение селектора и оригинального значения поля
+
+Проверяем селектор .js-product_title.is-hidden на странице №2
+
+Задвижка клиновая ВВ 1/2" ITAP ART 156
+Задвижка клиновая ВВ 1/2" ITAP ART 156
+
+✅ Полное совпадение селектора и оригинального значения поля
+
+Проверяем селектор .js-product_title.is-hidden на странице №3
+
+Автоматический запорный клапан для манометра REM 10 ф3/8''х3/8" Watts
+Автоматический запорный клапан для манометра REM 10 ф3/8х3/8" Watts
+
+🟨 Частичное совпадение
+max_count_element_of_selectors = 🟡 1
+_____
+🧢 Отправляю запрос к ИИ на исправление строки кода для поля name
 Посылаю запрос к YandexGPT:
 
 💫 PROMPT:
-В таком запросе: https://gidro-top.ru/search/Ванна/?page=2
-Есть такие параметры: "page"
-Верни мне параметр, в котором задаётся запрос на поиск.
-Обязательное правило:
-Не пиши никаких комментариев, пояснений, вариантов и текста вокруг, потому что я вставлю твой ответ сразу в код. 
-В результате выдай только один параметр.
+Есть такой код на JS: 
+		const name = $(".js-product_title.is-hidden").text()?.trim()
+Однако он извлекает "Автоматический запорный клапан для манометра REM 10 ф3/8''х3/8" Watts"
+А должен извлекать: "Автоматический запорный клапан для манометра REM 10 ф3/8х3/8" Watts"
+
+Измени исходный код, что бы он делал это.
+Обязательные правила:
+— Используй только опциональную цепочку ?. и не используй просто .
+— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
+— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную 
+строку или фрагмент кода.
+    
 
 
 💬 AI ANSWER:
-""search""
+"const name = $(".js-product_title.is-hidden").text()?.trim()?.replace(/''/g, '');"
 
-Параметр поиска: "search"
-Параметр пагинации: page
-Очищенный словарь: {}
-search_host = https://gidro-top.ru/search/Ванна/
-host: https://gidro-top.ru
-path: /search/Ванна/
 
-Найдено 3 возможных селекторов
+Проверяем селектор .pd-price__reg-price.s-product-price на странице №1
 
-product_selector = div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]
-len_of_products_on_this_page = 32
-Совпадение ссылок = 1.00 (3/3)
-Извлекаем селектор кол-ва страниц
+647
+647 ₽
 
-Найдено 30 возможных селекторов
-pagination_selctor = div.c-products[data-pages_count]
-Проверили, и нашли такой элемент по найденному селектору пагинации: 255
-result_pagination_block = 
+💲 Обрабатываем поле price
+p1 = 647
+p2 = 647
 
-let totalPages = Math.max(...$("").get("div.c-products[data-pages_count]").map(item => +$(item).text().trim()).filter(Boolean))
+Проверяем селектор .pd-price__reg-price.s-product-price на странице №2
 
-    async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/Ванна/`)
-        url.searchParams.set(""search"", set.query)
-        url.searchParams.set("page", set.page)
-        
+1 010
+1 010 ₽
 
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
+💲 Обрабатываем поле price
+p1 = 1010
+p2 = 1010
 
-        if (set.page === 1) {
-            let totalPages = Math.max(...$("").get("div.c-products[data-pages_count]").map(item => +$(item).text().trim()).filter(Boolean))
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
+Проверяем селектор .pd-price__reg-price.s-product-price на странице №3
 
-        let items: ResultItem[] = [];
-        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]")
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        })
-        return items;
-    }
-    
+431
+431 ₽
+
+💲 Обрабатываем поле price
+p1 = 431
+p2 = 431
+max_count_element_of_selectors = 🟡 1
+_____
+
+Проверяем селектор .item-pg__heading-artikul.grey.s-product-sku > span на странице №1
+
+26093U
+26093U
+
+✅ Полное совпадение селектора и оригинального значения поля
+
+Проверяем селектор .item-pg__heading-artikul.grey.s-product-sku > span на странице №2
+
+1560012
+1560012
+
+✅ Полное совпадение селектора и оригинального значения поля
+
+Проверяем селектор .item-pg__heading-artikul.grey.s-product-sku > span на странице №3
+
+10009432
+10009432
+
+✅ Полное совпадение селектора и оригинального значения поля
+max_count_element_of_selectors = 🟡 1
+_____
+
+Проверяем селектор a.pd-brand-info__brand-name на странице №1
+
+Itap
+Itap
+
+✅ Полное совпадение селектора и оригинального значения поля
+
+Проверяем селектор a.pd-brand-info__brand-name на странице №2
+
+Itap
+Itap
+
+✅ Полное совпадение селектора и оригинального значения поля
+
+Проверяем селектор a.pd-brand-info__brand-name на странице №3
+
+Watts
+Watts
+
+✅ Полное совпадение селектора и оригинального значения поля
+max_count_element_of_selectors = 🟡 1
+_____
+
+Проверяем селектор #product-image[itemprop="image"][src] на странице №1
+В элементе /wa-data/public/shop/products/46/04/446/images/54537/54537.970.jpg отсутствует хост. Добавляем:
+
+https://glavsantex.ru/wa-data/public/shop/products/46/04/446/images/54537/54537.970.jpg
+https://glavsantex.ru/wa-data/public/shop/products/46/04/446/images/54537/54537.970.jpg
+
+✅ Полное совпадение селектора и оригинального значения поля
+
+Проверяем селектор #product-image[itemprop="image"][src] на странице №2
+В элементе /wa-data/public/shop/products/81/04/481/images/54423/54423.970.jpg отсутствует хост. Добавляем:
+
+https://glavsantex.ru/wa-data/public/shop/products/81/04/481/images/54423/54423.970.jpg
+https://glavsantex.ru/wa-data/public/shop/products/81/04/481/images/54423/54423.970.jpg
+
+✅ Полное совпадение селектора и оригинального значения поля
+
+Проверяем селектор #product-image[itemprop="image"][src] на странице №3
+В элементе /wa-data/public/shop/products/76/37/3776/images/15173/15173.970.jpg отсутствует хост. Добавляем:
+
+https://glavsantex.ru/wa-data/public/shop/products/76/37/3776/images/15173/15173.970.jpg
+https://glavsantex.ru/wa-data/public/shop/products/76/37/3776/images/15173/15173.970.jpg
+
+✅ Полное совпадение селектора и оригинального значения поля
+max_count_element_of_selectors = 🟡 1
+_____
 
 
 
@@ -108,7 +279,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
+    name, stock, link, price, article, brand, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -117,10 +288,10 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
+    name, stock, link, price, article, brand, imageLink, timestamp
 }
 
-const HOST = "https://gidro-top.ru"
+const HOST = "https://glavsantex.ru"
 
 export class JS_Base_ extends JS_Base_Custom {
     static defaultConf: defaultConf = {
@@ -174,39 +345,31 @@ export class JS_Base_ extends JS_Base_Custom {
 
     //#region Парсинг поиска
     
-    async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/Ванна/`)
-        url.searchParams.set(""search"", set.query)
-        url.searchParams.set("page", set.page)
-        
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = Math.max(...$("").get("div.c-products[data-pages_count]").map(item => +$(item).text().trim()).filter(Boolean))
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-
-        let items: ResultItem[] = [];
-        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]")
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        })
-        return items;
-    }
-    
 
     //#region Парсинг товара
-    
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $(".js-product_title.is-hidden").text()?.trim()?.replace(/''/g, '');
+		const stock = "InStock"
+		const link = set.query
+		const price = $(".pd-price__reg-price.s-product-price").text()?.trim().formatPrice()
+		const article = $(".item-pg__heading-artikul.grey.s-product-sku > span").text()?.trim()
+		const brand = $("a.pd-brand-info__brand-name").text()?.trim()
+		const imageLink = $("#product-image")?.attr("itemprop")?.trim() ? HOST + $("#product-image")?.attr("itemprop")?.trim() : ""
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, stock, link, price, article, brand, imageLink, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
 
     //#region Выполнение запроса
     async makeRequest(url: string) {

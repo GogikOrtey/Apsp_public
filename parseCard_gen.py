@@ -193,6 +193,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             # Получаем HTML из кеша
             html = get_html_from_cache(link, print_msg = False)
             for current_selector_query in sel_array:
+                print("")
                 print(f"Проверяем селектор {current_selector_query} на странице №{count_page}")
                 result_selector = get_element_from_selector_universal(html, current_selector_query, is_ret_len=True)
                 # Если элемент по селектору не был найден на одной или нескольких страницах, то это ничего страшного
@@ -209,30 +210,34 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     host = data_input_table["host"]
                     if key == "imageLink":
                         if host not in selector_result_data:
-                            print(f"В элементе {selector_result_data} отсутствует хост. Добавляем:")
+                            print(f"\tВ элементе {selector_result_data} отсутствует хост. Добавляем:")
                             selector_result_data = host + selector_result_data
                             is_add_host = True
 
-                    print(f"💠{selector_result_data}💠") # Что селектор вернул
-                    print(f"🔶{original_field_value}🔶") # Что лежит во входном массиве
-                    print(f"")
+                    # print(f"💠{selector_result_data}💠") # Что селектор вернул
+                    # print(f"🔶{original_field_value}🔶") # Что лежит во входном массиве
+
+                    print("")
+                    print(f"\t{selector_result_data}") # Что селектор вернул
+                    print(f"\t{original_field_value}") # Что лежит во входном массиве
+                    print("")
                     
                     score_match = compute_match_score_2(selector_result_data, original_field_value)
                     if selector_result_data == original_field_value:
-                        print("✅ Полное совпадение селектора и оригинального значения поля")
+                        print("\t✅ Полное совпадение селектора и оригинального значения поля")
                     elif (
                             selector_result_data in original_field_value 
                             or original_field_value in selector_result_data 
                             or score_match >= 0.8
                     ):
                         if key in ["price", "oldPrice"]:
-                            print(f"💲 Обрабатываем поле {key}")
+                            print(f"\t💲 Обрабатываем поле {key}")
 
                             p1 = format_price(selector_result_data)
                             p2 = format_price(selector_result_data, ",")
 
-                            print(f"p1 = {p1}")
-                            print(f"p2 = {p2}")
+                            print(f"\tp1 = {p1}")
+                            print(f"\tp2 = {p2}")
 
                             if p1.endswith("."):
                                 is_use_comma_on_formatPrice = '","'
@@ -241,7 +246,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                             # TODO Потом здесь подробнее оттестировать
                             continue
 
-                        print("🟨 Частичное совпадение")
+                        print("\t🟨 Частичное совпадение")
 
                         # Сохраняю для сообщения к ИИ на исправление строки кода,
                         # только первое значение
@@ -252,14 +257,15 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                             ccs_necessary_value = original_field_value
 
                     else:
-                        print(f"🟧 Нет совпадений. score_match = {score_match}")
+                        print(f"\t🟧 Нет совпадений. score_match = {score_match}")
                         # В целом, по алгоритму такого не должно произойти
                         is_error_generation_selector = True
                 else:
-                    print(f"⬜ Нет результата у селектора {selector_result_data} на странице {count_page} для поля {key}")
+                    print(f"\t⬜ Нет результата у селектора {selector_result_data} на странице {count_page} для поля {key}")
 
         print(f"max_count_element_of_selectors = 🟡 {max_count_element_of_selectors}")
-        print(f"---")
+        print(f"_____")
+        print("")
 
         if len(sel_array) > 1 or max_count_element_of_selectors > 1:
             print(f"Нашли больше одного селектора для поля {key}")
@@ -271,7 +277,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         sel_string = join_selectors_array(sel_array)
         if not sel_string or max_count_element_of_selectors == 0 or is_error_generation_selector:
             # если селектор пуст — создаём пустую переменную
-            result_code_line = f'const {key} = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля'
+            result_code_line = f'\t\tconst {key} = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля'
             lines.append(result_code_line)
             message_global.append({"1": f"Ошибка генерации строки кода извлечения значения по селектору, для поля {key}: {result_code_line.split('//')[0]}"})
             continue
