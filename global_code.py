@@ -218,26 +218,26 @@ def gen_main_code():
 
 
 
-    # region > test
-    # Извлекаем все селекторы из всех страниц, для parseCard
-    all_extracted_selectors = get_all_selectors(data_input_table)
-
-    # Генерируем parseCard
-    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
-
-    # Генерируем parsePage
-    parse_page_code_value = ""
-
-
-
-
-
+    # # region > test
     # # Извлекаем все селекторы из всех страниц, для parseCard
+    # all_extracted_selectors = get_all_selectors(data_input_table)
+
     # # Генерируем parseCard
-    # parse_card_code_value = ""
+    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
     # # Генерируем parsePage
-    # parse_page_code_value = main_generate_parsePage()
+    # parse_page_code_value = ""
+
+
+
+
+
+    # Извлекаем все селекторы из всех страниц, для parseCard
+    # Генерируем parseCard
+    parse_card_code_value = ""
+
+    # Генерируем parsePage
+    parse_page_code_value = main_generate_parsePage()
 
 
 
@@ -329,7 +329,7 @@ def result_file_JS(result_code):
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write(result_code)
-        
+
 
 # Основная функция
 def result_parser_code():
@@ -337,7 +337,7 @@ def result_parser_code():
     result_file_JS(result_code)
 
 
-result_parser_code()
+# result_parser_code()
 
 
 

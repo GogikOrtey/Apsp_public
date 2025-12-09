@@ -653,12 +653,14 @@ data_input_table = {
     },
     "search_requests": [
         {
-            "query": "",
-            "url_search_query_page_2": "",
-            "count_of_page_on_pagination": "",
+            "query": "Котёл",
+            "url_search_query_page_2": "https://glavsantex.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
+            "count_of_page_on_pagination": "14",
             "total_count_of_results": "0",
             "links_items": [
-                "",
+                "https://glavsantex.ru/baxi-luna-3-comfort-combi-1-310-fi-kotel-gazoviy-nastenniy-dvukhkonturniy/",
+                "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-5-kvt/",
+                "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-7-kvt/",
             ]
         }
     ]

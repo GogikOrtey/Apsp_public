@@ -483,7 +483,7 @@ def main_generate_parsePage():
             # и что результат будет числом
 
         result_pagination_block = (
-            f'let totalPages = Math.max(...$("").get("{pagination_selctor}").map(item => +$(item).text().trim()).filter(Boolean))'
+            f'let totalPages = Math.max(...$("{pagination_selctor}").get("").map(item => +$(item).text().trim()).filter(Boolean))'
         )
 
     else: 
@@ -560,6 +560,7 @@ def main_generate_parsePage():
 # И добавление ошибок в итоговый код
 
 
+### Предупреждение о несвежих данных также вывести в результирующий масив предупреждений
 
 
 ############# А также прописать возможно действительно один универсальный запрос,

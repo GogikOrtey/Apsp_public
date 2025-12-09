@@ -73,31 +73,38 @@ export class JS_Base_glavsantexru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     
+    async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/search/`)
+        url.searchParams.set("query", set.query)
+        url.searchParams.set("page", set.page)
+        
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
 
-    //#region Парсинг товара
-    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
-        let items: ResultItem[] = []
-
-        const data = await this.makeRequest(set.query);
-        const $ = cheerio.load(data);
-
-        const name = $(".js-product_title.is-hidden").text()?.trim()?.replace(/''/g, '');
-		const stock = "InStock"
-		const link = set.query
-		const price = $(".pd-price__reg-price.s-product-price").text()?.trim().formatPrice()
-		const article = $(".item-pg__heading-artikul.grey.s-product-sku > span").text()?.trim()
-		const brand = $("a.pd-brand-info__brand-name").text()?.trim()
-		const imageLink = $("#product-image")?.attr("itemprop")?.trim() ? HOST + $("#product-image")?.attr("itemprop")?.trim() : ""
-        const timestamp = getTimestamp()
-
-        const item: ResultItem = {
-            name, stock, link, price, article, brand, imageLink, timestamp
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("").get("ul.pagination__list > li:nth-of-type(6) > a").map(item => +$(item).text().trim()).filter(Boolean))
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
         }
-        items.push(item);
 
-        cacher.cache = items
+        let items: ResultItem[] = [];
+        let products = $("a.item-c__title.js-item__title[href]")
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = $(product)?.attr("href")
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        })
         return items;
     }
+    
+
+    //#region Парсинг товара
+    
 
     //#region Выполнение запроса
     async makeRequest(url: string) {
