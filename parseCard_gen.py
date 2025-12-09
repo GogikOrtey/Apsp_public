@@ -178,6 +178,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # добавляем строку stock
     lines.append(result_stock_selector.rstrip("\n"))
 
+    result_logger_fields = []    
+
     # Перебираем ключи
     for key, sel_array in result_selectors.items():
         if key in ("InStock_trigger", "OutOfStock_trigger"):
@@ -185,6 +187,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             continue
         if not isinstance(sel_array, (list, tuple)):
             sel_array = [sel_array] if sel_array else []
+
+        current_finded_selector_value_on_logger = ""
 
         # Переменные параметров для доп. настройки финальной строки JS кода
         max_count_element_of_selectors = 0 # Сколько максимально результатов было найдено по этому селектору на каждой странице
@@ -239,6 +243,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     score_match = compute_match_score_2(selector_result_data, original_field_value)
                     if selector_result_data == original_field_value:
                         print("    ✅ Полное совпадение селектора и оригинального значения поля")
+                        current_finded_selector_value_on_logger = "🟩"
                     elif (
                             selector_result_data in original_field_value 
                             or original_field_value in selector_result_data 
@@ -246,6 +251,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     ):
                         if key in ["price", "oldPrice"]:
                             print(f"    💲 Обрабатываем поле {key}")
+                            current_finded_selector_value_on_logger = "💲"
 
                             p1 = format_price(selector_result_data)
                             p2 = format_price(selector_result_data, ",")
@@ -261,6 +267,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                             continue
 
                         print("    🟨 Частичное совпадение")
+                        current_finded_selector_value_on_logger = "🟨"
 
                         # Сохраняю для сообщения к ИИ на исправление строки кода,
                         # только первое значение
@@ -272,10 +279,13 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
                     else:
                         print(f"    🟧 Нет совпадений. score_match = {score_match}")
+                        current_finded_selector_value_on_logger = "🟧"
                         # В целом, по алгоритму такого не должно произойти
                         is_error_generation_selector = True
                 else:
                     print(f"    ⬜ Нет результата у селектора {selector_result_data} на странице {count_page} для поля {key}")
+
+        added_inf_from_logger = ""
 
         print("")
         print(f"max_count_element_of_selectors = 🟡 {max_count_element_of_selectors}")
@@ -285,6 +295,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         if len(sel_array) > 1 or max_count_element_of_selectors > 1:
             print(f"Нашли больше одного селектора для поля {key}")
             elem_selector_first = "?.first()"
+            added_inf_from_logger += " 🟡 > 1"
 
         # Извлекаем атрибут из квадратных скобок и удаляем его из селектора
         sel_array, attr = extract_and_remove_attr_from_selector(sel_array)
@@ -295,6 +306,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             result_code_line = f'\t\tconst {key} = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля'
             lines.append(result_code_line)
             message_global.append({"1": f"Ошибка генерации строки кода извлечения значения по селектору, для поля {key}: {result_code_line.split('//')[0]}"})
+            current_finded_selector_value_on_logger = "🟧"
             continue
 
         add_formatPrice = ""
@@ -317,10 +329,10 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         if is_clarify_code_selector:
             # Прошу ИИ дополнить строку кода
             print(f"🧢 Отправляю запрос к ИИ на исправление строки кода для поля {key}")
+            added_inf_from_logger += " 🧢 use ИИ"
             add_info = ""
             if key == "imageLink":
                 add_info += f"Переменная HOST = {data_input_table['host']}"
-                ###### Не проверил эту ветку условия
             request_AI = dedent(
                 f"""
                 Есть такой код на JS: 
@@ -340,8 +352,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         # Добавляем строку кода в финальный массив, который вставляем в шаблон
         lines.append(line_result_code)
 
-
-
+        result_logger_fields.append(f"{current_finded_selector_value_on_logger}: {key} {added_inf_from_logger}")
 
 
 
@@ -371,9 +382,10 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
         """
 
-
-
-
+    print("")
+    print("Статистика нахождения селекторов:")
+    for elem in result_logger_fields:
+        print(elem)
 
     # region Генерируем шаблон
     lines.append(f"\t\tconst link = set.query")
