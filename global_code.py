@@ -177,11 +177,23 @@ def get_cuurent_subtitle():
     
     return result.strip()
 
+# Собирает название парсера из хоста
+def set_parser_name():
+    host = data_input_table["host"]
+    # Как нужно чистим домен
+    parser_file_name = host.split("://")[1].split("/")[0]
+    parser_file_name = parser_file_name.replace("www.", "")
+    parser_file_name = parser_file_name.replace(".", "").replace("-", "")
+    # TODO регионы потом удалять, но это сильно позже
+
+    base_name_part = "JS_Base_" + parser_file_name
+    print("Имя парсера: " + base_name_part)
+
+    return base_name_part
 
 
-
-
-
+# # result_file_JS(result_selectors, "https://megapteka.ru/basket")
+# result_file_JS(result_selectors, "https://www.perekrestok.ru/cat/")
 
 
 
@@ -259,7 +271,7 @@ const fields = {
 
 const HOST = "$host_val"
 
-export class JS_Base_ extends JS_Base_Custom {
+export class $parser_name_val extends JS_Base_Custom {
     $default_conf
 
     static editableConf: editableConf = [
@@ -285,6 +297,7 @@ $subtitle_from_code
     make_request_code_value = simple_makeRequest()    
     parse_entry_point_code_value = parse_entry_point_gen()
     default_conf_value = set_defaultConf()
+    parser_name = set_parser_name()
 
     result = template_main_code.substitute(
         make_request_code = make_request_code_value,
@@ -294,7 +307,8 @@ $subtitle_from_code
         field_val = field,
         host_val = host,
         default_conf = default_conf_value,
-        subtitle_from_code = get_cuurent_subtitle()
+        subtitle_from_code = get_cuurent_subtitle(),
+        parser_name_val = parser_name
     ).strip()
 
     ################### Потом убрать
@@ -338,38 +352,20 @@ $subtitle_from_code
 
 
 # region result_file_JS
-# # Сохраняет результирующий код парсера в файл
-# def result_file_JS(result_selectors, host):
-#     # Собираем название для файла парсера
-
-#     # Как нужно чистим домен
-#     parser_file_name = host.split("://")[1].split("/")[0]
-#     parser_file_name = parser_file_name.replace("www.", "")
-#     parser_file_name = parser_file_name.replace(".", "").replace("-", "")
-#     # TODO регионы потом удалять, но это сильно позже
-
-#     base_name_part = "JS_Base_" + parser_file_name
-#     print(base_name_part)
-
-#     # parse_card_code = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+# Сохраняет результирующий код парсера в файл
+def result_file_JS(result_code):
+    filename = "result_code.ts"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(result_code)
 
 
-
-
+# Основная функция
 def result_parser_code():
     result_code = gen_main_code()
-    # result_file_JS(result_code)
+    result_file_JS(result_code)
 
 
 result_parser_code()
-
-
-
-
-
-
-# # result_file_JS(result_selectors, "https://megapteka.ru/basket")
-# result_file_JS(result_selectors, "https://www.perekrestok.ru/cat/")
 
 
 
