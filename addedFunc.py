@@ -204,3 +204,17 @@ def clean_html_preserve_structure(html_text: str) -> str:
         out_html = doctype_prefix + "\n" + out_html.lstrip()
 
     return out_html
+
+
+# Транслированная функция format_price 
+def format_price(value: str, separator: str = ".") -> str:
+    # Удаляем все символы, кроме цифр и разделителя
+    cleaned = re.sub(rf"[^0-9{re.escape(separator)}]+", "", value)
+
+    # Заменяем разделитель на точку
+    cleaned = cleaned.replace(separator, ".")
+
+    # Ищем число с максимум 2 знаками после точки
+    match = re.search(r"\d+(?:\.\d{0,2})?", cleaned)
+
+    return match.group(0) if match else ""

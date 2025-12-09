@@ -12,11 +12,14 @@ from import_all_libraries import *
 
 from makeRequest_gen import * 
 from parseCard_gen import * 
+from extraction_selectors_main import * 
 
 
 
 
 
+
+#region Собираю поля
 # Собирает поля в строку из тех что есть в нашем сборе, и сортирует их по шаблону
 def extract_fields():
     # Это пускай будет пример сортировки полей
@@ -59,6 +62,7 @@ def extract_fields():
 
 
 
+#region Доп. фрагм шаблона
 
 # Генерирует верхнюю процедуру, которая называется parse и имеет описание "Точка входа"
 def parse_entry_point_gen():
@@ -169,6 +173,16 @@ def get_cuurent_subtitle():
     return result.strip()
 
 
+
+
+
+
+
+
+
+
+
+#region gen_main_code
 def gen_main_code():
     # Если поля не собраны, то собираю их здесь в строку, и также сохраняю
     fields_str = data_input_table.get("fields_str")
@@ -181,6 +195,24 @@ def gen_main_code():
     print(f"field = {field}")
 
     host = data_input_table["host"]
+
+
+
+
+
+    # Извлекаем все селекторы из всех страниц, для parseCard
+    all_extracted_selectors = get_all_selectors(data_input_table)
+
+    # Генерируем parseCard
+    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+
+
+
+
+
+
+
+
 
     template_main_code = Template("""
 import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
@@ -229,8 +261,7 @@ export class JS_Base_ extends JS_Base_Custom {
 $subtitle_from_code
 """)
 
-    make_request_code_value = simple_makeRequest()
-    parse_card_code_value = get_parseCard_code()
+    make_request_code_value = simple_makeRequest()    
     parse_page_code_value = ""
     parse_entry_point_code_value = parse_entry_point_gen()
     default_conf_value = set_defaultConf()

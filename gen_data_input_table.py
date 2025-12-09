@@ -180,45 +180,45 @@
 
 
 
-# Данные с сайта 5
-data_input_table = {
-    "host": "https://stroytorg812.ru",
-    "fields_str": "",
-    "links": {
-        "simple": [
-            {
-                "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
-                "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
-                "price": "8 390 руб.",
-                "article": "U4031689", 
-                "brand": "ТРИТОН",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
-            },
-            {
-                "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
-                "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
-                "price": "1 860,10",
-                "oldPrice": "1 958",
-                "article": "B2508830", 
-                "brand": "Bonaparte",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
-            },
-            {
-                "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
-                "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
-                "price": "9 400,00",
-                "oldPrice": "12 450,00",
-                "article": "U4079315", 
-                "brand": "EMMY",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
-            }
-        ]
-    },
-    "search_requests": []
-}
+# # Данные с сайта 5
+# data_input_table = {
+#     "host": "https://stroytorg812.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
+#                 "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
+#                 "price": "8 390 руб.",
+#                 "article": "U4031689", 
+#                 "brand": "ТРИТОН",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
+#             },
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
+#                 "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
+#                 "price": "1 860,10",
+#                 "oldPrice": "1 958",
+#                 "article": "B2508830", 
+#                 "brand": "Bonaparte",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
+#             },
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
+#                 "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
+#                 "price": "9 400,00",
+#                 "oldPrice": "12 450,00",
+#                 "article": "U4079315", 
+#                 "brand": "EMMY",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
+#             }
+#         ]
+#     },
+#     "search_requests": []
+# }
 
 # # Сайт 6
 # data_input_table = {
@@ -516,12 +516,14 @@ https://galleryceramics.ru
 +- https://gastehmarket.ru
 https://gazovik-omsk.ru
 https://gaz-shop78.ru
-https://gidro-top.ru   +
+https://gidro-top.ru   + *
 https://glavsantex.ru  +
 https://goodzone23.ru
 https://gra-nit.ru
 https://gresstore.ru
 
+
+* - если взял 
 
 
 """
@@ -553,22 +555,45 @@ https://elevel.ru
 #     "search_requests": []
 # }
 
-# data_input_table = {
-#     "host": "",
-#     "links": {
-#         "simple": [
-#             {
-#                 "link": "",
-#                 "name": "",
-#                 "price": "",
-#                 "oldPrice": "",
-#                 "article": "",
-#                 "brand": "",
-#                 "InStock_trigger": "",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": ""
-#             }
-#         ]
-#     },
-#     "search_requests": []
-# }
+data_input_table = {
+    "host": "https://gidro-top.ru/",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
+                "name": "Aquanet SD-1200A душевая дверь",
+                "price": "19 850 ₽",
+                "oldPrice": "",
+                "article": "00209406",
+                "brand": "Aquanet",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
+            },
+            {
+                "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
+                "name": "Aquastone Малибу Ванна из искусственного камня",
+                "price": "55 000 ₽",
+                "oldPrice": "69 000 ₽",
+                "article": "MAlibu",
+                "brand": "Aquastone",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
+            },
+            {
+                "link": "https://gidro-top.ru/product/aquastone-bali-180/",
+                "name": "Aquastone Бали 180 Ванна из искусственного камня",
+                "price": "53 000 ₽",
+                "oldPrice": "",
+                "article": "Bali180",
+                "brand": "Aquastone",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
+            }
+        ]
+    },
+    "search_requests": []
+}

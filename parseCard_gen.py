@@ -13,27 +13,6 @@ isPrint = False
 
 
 
-
-# Транслированная функция format_price 
-def format_price(value: str, separator: str = ".") -> str:
-    # Удаляем все символы, кроме цифр и разделителя
-    cleaned = re.sub(rf"[^0-9{re.escape(separator)}]+", "", value)
-
-    # Заменяем разделитель на точку
-    cleaned = cleaned.replace(separator, ".")
-
-    # Ищем число с максимум 2 знаками после точки
-    match = re.search(r"\d+(?:\.\d{0,2})?", cleaned)
-
-    return match.group(0) if match else ""
-
-
-
-
-
-
-
-
 # region Создаю parseCard
 
 """
@@ -369,9 +348,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # print("value_field = ")
     # print(value_field)
 
-
-
-
     ## Это будет приходить из global_code
     # order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  # Это пример, замените на ваш источник
     
@@ -497,28 +473,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
 
-
-
-
-
-
-
-
 # name, stock, link, price, oldprice, article, brand, imageLink, timestamp
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -549,24 +504,17 @@ result_selectors = {
     ]
 }
 
-# вызов для проверки (раскомментируйте для отладки)
+################################## вызов для проверки (раскомментируйте для отладки)
 # selector_checker_and_parseCard_gen(result_selectors, {"links": {"simple": [{"InStock_trigger": ".nal.y"}]}})
 
 # Кэш для сгенерированного кода
 _parse_card_code_cache = None
 
-
-def get_parseCard_code():
+def get_parseCard_code(all_extracted_selectors):
     global _parse_card_code_cache
     # Генерируем код лениво, только когда он запрашивается
     # Это гарантирует, что data_input_table уже содержит fields_str
     if _parse_card_code_cache is None:
-        _parse_card_code_cache = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+        # _parse_card_code_cache = selector_checker_and_parseCard_gen(result_selectors, data_input_table)
+        _parse_card_code_cache = selector_checker_and_parseCard_gen(all_extracted_selectors, data_input_table)
     return _parse_card_code_cache
-
-
-
-
-
-
-

@@ -1,266 +1,130 @@
-09.12.2025 02:14:57
+09.12.2025 14:59:30
 
-field = name, stock, link, price, article, brand, imageLink, timestamp
-Проверяем селекторы, и генерируем parseCard
-Есть только триггер InStock, используем его
-Проверяем селектор h1.name на странице №1
-💠Ванна акриловая 170х70 Ультра-170 # ТРИТОН💠
-🔶Ванна акриловая 170х70 Ультра-170 # ТРИТОН🔶
+Обработаем 3 страниц
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор h1.name на странице №2
-💠32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte💠
-🔶32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte🔶
+Найдено 31 возможных селекторов
+Найден селектор для поля name
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор h1.name на странице №3
-💠Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY💠
-🔶Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY🔶
+Найдено 28 возможных селекторов
+Найден селектор для поля price
+⬜ Пропускаем поле oldPrice: Не строка или пустое значение
 
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .b на странице №1
-💠Цена: 8 390 руб.💠
-🔶8 390 руб.🔶
+Найдено 25 возможных селекторов
+Найден селектор для поля article
 
-💲 Обрабатываем поле price
-p1 = 8390.
-p2 = 8390
-Проверяем селектор .b на странице №2
-💠Цена: 1 860,10 руб.💠
-🔶1 860,10🔶
+Найдено 102 возможных селекторов
+Найден селектор для поля brand
 
-💲 Обрабатываем поле price
-p1 = 186010.
-p2 = 1860.10
-Проверяем селектор .b на странице №3
-💠Цена: 9 400,00 руб.💠
-🔶9 400,00🔶
+Найдено 89 возможных селекторов
+Найден селектор для поля InStock_trigger
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
-💲 Обрабатываем поле price
-p1 = 940000.
-p2 = 9400.00
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .thr на странице №1
-⬜ Нет результата у селектора  на странице 1 для поля oldPrice
-Проверяем селектор .thr на странице №2
-💠старая цена: 1 958 руб.💠
-🔶1 958🔶
+Найдено 2 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
 
-💲 Обрабатываем поле oldPrice
-p1 = 1958.
-p2 = 1958
-Проверяем селектор .thr на странице №3
-💠старая цена: 12 450,00 руб.💠
-🔶12 450,00🔶
+Найдено 41 возможных селекторов
+Найден селектор для поля name
 
-💲 Обрабатываем поле oldPrice
-p1 = 1245000.
-p2 = 12450.00
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .char > p:nth-of-type(1) на странице №1
-💠U4031689💠
-🔶U4031689🔶
+Найдено 48 возможных селекторов
+Найден селектор для поля price
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .char > p:nth-of-type(1) на странице №2
-💠B2508830💠
-🔶B2508830🔶
+Найдено 25 возможных селекторов
+Найден селектор для поля oldPrice
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .char > p:nth-of-type(1) на странице №3
-💠U4079315💠
-🔶U4079315🔶
+Найдено 36 возможных селекторов
+Найден селектор для поля article
 
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор .char > p:nth-of-type(2) на странице №1
-💠ТРИТОН💠
-🔶ТРИТОН🔶
+Найдено 127 возможных селекторов
+Найден селектор для поля brand
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .char > p:nth-of-type(2) на странице №2
-💠Bonaparte💠
-🔶Bonaparte🔶
+Найдено 96 возможных селекторов
+Найден селектор для поля InStock_trigger
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор .char > p:nth-of-type(2) на странице №3
-💠EMMY💠
-🔶EMMY🔶
+Найдено 3 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
 
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 1
----
-Проверяем селектор html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href] на странице №1
-В элементе /upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg отсутствует хост. Добавляем:
-💠https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg💠
-🔶https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg🔶
+Найдено 65 возможных селекторов
+Найден селектор для поля name
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href] на странице №2
-В элементе /upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg отсутствует хост. Добавляем:
-💠https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg💠
-🔶https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg🔶
+Найдено 48 возможных селекторов
+Найден селектор для поля price
+⬜ Пропускаем поле oldPrice: Не строка или пустое значение
 
-✅ Полное совпадение селектора и оригинального значения поля
-Проверяем селектор html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href] на странице №3
-В элементе /upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg отсутствует хост. Добавляем:
-💠https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg💠
-🔶https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg🔶
+Найдено 25 возможных селекторов
+Найден селектор для поля article
 
-✅ Полное совпадение селектора и оригинального значения поля
-max_count_element_of_selectors = 🟡 3
----
-Нашли больше одного селектора для поля imageLink
-async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
-        let items: ResultItem[] = []
+Найдено 138 возможных селекторов
+Найден селектор для поля brand
 
-        const data = await this.makeRequest(set.query);
-        const $ = cheerio.load(data);
+Найдено 84 возможных селекторов
+Найден селектор для поля InStock_trigger
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
-        const name = $("h1.name").text()?.trim()
-		const stock = $(".nal.y").text()?.includes("есть на складе") ? "InStock" : "OutOfStock"
-		const link = set.query
-		const price = $(".b").text()?.trim().formatPrice(",")
-		const article = $(".char > p:nth-of-type(1)").text()?.trim()
-		const brand = $(".char > p:nth-of-type(2)").text()?.trim()
-		const imageLink = $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() ? HOST + $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() : ""
-		const oldPrice = $(".thr").text()?.trim().formatPrice(",")
-        const timestamp = getTimestamp()
+Найдено 3 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+Используемые поля: ['name', 'price', 'oldPrice', 'article', 'brand', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
+Кандидаты по полям (в порядке приоритета):
+ - name: 1 селекторов -> ['h1.c-header.c-header_h1']
+ - price: 2 селекторов -> ['span.price.c-product-add-to-cart__price', 'span.price.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare']
+ - oldPrice: 1 селекторов -> ['span.c-product-add-to-cart__compare-price']
+ - article: 1 селекторов -> ['span.c-value__value-text.c-product-cart-form__sku-value']
+ - brand: 1 селекторов -> ['span.c-value__value-text > a.c-link']
+ - InStock_trigger: 1 селекторов -> ['.c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content']
+ - OutOfStock_trigger: 0 селекторов -> []
+ - imageLink: 2 селекторов -> ['.c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]', '.c-product-images__image > a.l-image-box.l-image-box_fill > span.c-lazy-image-provider[data-src]']
+score_match = 1.0 для 'Aquanet SD-1200A душевая дверь' и 'Aquanet SD-1200A душевая дверь'
+score_match = 1.0 для 'Aquastone Малибу Ванна из искусственного камня' и 'Aquastone Малибу Ванна из искусственного камня'
+score_match = 1.0 для 'Aquastone Бали 180 Ванна из искусственного камня' и 'Aquastone Бали 180 Ванна из искусственного камня'
+score_match = 0.0 для '19 850 ₽' и '19 850₽'
+score_match = 0.0 для '55 000 ₽' и '55 000₽'
+score_match = 0.0 для '53 000 ₽' и '53 000₽'
+  [SKIP] oldPrice on https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/: no expected value or no original selector
+score_match = 0.0 для '69 000 ₽' и '69 000₽'
+  [SKIP] oldPrice on https://gidro-top.ru/product/aquastone-bali-180/: no expected value or no original selector
+score_match = 1.0 для '00209406' и '00209406'
+score_match = 1.0 для 'MAlibu' и 'MAlibu'
+score_match = 1.0 для 'Bali180' и 'Bali180'
+score_match = 1.0 для 'Aquanet' и 'Aquanet'
+score_match = 1.0 для 'Aquastone' и 'Aquastone'
+score_match = 1.0 для 'Aquastone' и 'Aquastone'
+score_match = 1.0 для 'В наличии' и 'В наличии'
+score_match = 1.0 для 'В наличии' и 'В наличии'
+score_match = 1.0 для 'В наличии' и 'В наличии'
+[WARN] Для поля OutOfStock_trigger не найден селектор(ы).
+score_match = 0.0 для '/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg' и ''
+score_match = 1.0 для '/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg' и '/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg'
+score_match = 1.0 для '/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg' и '/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg'
 
-        const item: ResultItem = {
-            name, stock, link, price, article, brand, imageLink, timestamp
-        }
-        items.push(item);
+📄 Кеш сохранён в cache.json, всего страниц: 25
+   Добавлено: 3, обновлено: 0
 
-        cacher.cache = items
-        return items;
-    }
-import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
-import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
-import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
-import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
-import { getTimestamp } from "../Base-Custom/Utils";
-import { SetType, tools } from "a-parser-types";
-import { Cacher } from "../Base-Custom/Cache";
-import {
-    toArray, isBadLink,
-    name, stock, link, price, article, brand, imageLink, timestamp
-} from "../Base-Custom/Fields"
-import * as cheerio from "cheerio";
 
-//#region Кастомные типы данных
-type ResultItem = Item<typeof fields>
-
-//#region Константы
-const fields = {
-    name, stock, link, price, article, brand, imageLink, timestamp
+✅ Итоговые селекторы:
+{
+    "name": [
+        "h1.c-header.c-header_h1"
+    ],
+    "price": [
+        "span.price.c-product-add-to-cart__price"
+    ],
+    "oldPrice": [
+        "span.c-product-add-to-cart__compare-price"
+    ],
+    "article": [
+        "span.c-value__value-text.c-product-cart-form__sku-value"
+    ],
+    "brand": [
+        "span.c-value__value-text > a.c-link"
+    ],
+    "InStock_trigger": [
+        ".c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content"
+    ],
+    "OutOfStock_trigger": [],
+    "imageLink": [
+        ".c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]"
+    ]
 }
-
-const HOST = "https://stroytorg812.ru"
-
-export class JS_Base_ extends JS_Base_Custom {
-    static defaultConf: defaultConf = {
-            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
-            parsecodes: { 200: 1, 404: 1 },
-            proxyChecker: "tor.proxy.ru",
-            requestdelay: "3,5",
-            engine: "a-parser",
-            mode: "normal",
-        };
-
-    static editableConf: editableConf = [
-        ...defaultEditableConf
-    ];
-
-    //#region Точка входа
-    async parse(set: SetType, results: { [key: string]: any }) {
-        if (!set.type || set.type === "none") set.type = "page";
-        if (!set.region || set.region === "none") set.region = "";
-        try {
-            switch (set.type) {
-                case "page": {
-                    if (!set.page || set.page === "none") set.page = 1;
-                    await this.parsePage(set);
-                    results.success = 1;
-                    break;
-                }
-                case "card": {
-                    const cacher = getCacher<ResultItem>(this, set)
-                    let items = cacher.cache || await this.parseCard(set, cacher);
-                    items.forEach(item => results.items.addElement(item));
-                    results.success = 1;
-                    break;
-                }
-                default:
-                    this.logger.put("Указан неверный тип сбора")
-                    results.success = 0;
-            }
-        } catch (e) {
-            if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
-                this.logger.put(e.message);
-                results.isBadLink = 1;
-                results.success = 1;
-            } else {
-                this.logger.put(`${e.name} >> ${e.message}   ${set.query}  type - ${set.type} page ${set.page} }`);
-                results.success = 0;
-            }
-        }
-        return results;
-    }
-
-    //#region Парсинг поиска
-    
-
-    //#region Парсинг товара
-    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
-        let items: ResultItem[] = []
-
-        const data = await this.makeRequest(set.query);
-        const $ = cheerio.load(data);
-
-        const name = $("h1.name").text()?.trim()
-		const stock = $(".nal.y").text()?.includes("есть на складе") ? "InStock" : "OutOfStock"
-		const link = set.query
-		const price = $(".b").text()?.trim().formatPrice(",")
-		const article = $(".char > p:nth-of-type(1)").text()?.trim()
-		const brand = $(".char > p:nth-of-type(2)").text()?.trim()
-		const imageLink = $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() ? HOST + $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() : ""
-		const oldPrice = $(".thr").text()?.trim().formatPrice(",")
-        const timestamp = getTimestamp()
-
-        const item: ResultItem = {
-            name, stock, link, price, article, brand, imageLink, timestamp
-        }
-        items.push(item);
-
-        cacher.cache = items
-        return items;
-    }
-
-    //#region Выполнение запроса
-    async makeRequest(url: string) {
-        const opts: AsyncHTTPXRequestOptsCustom = {
-            ...defaultOpts,
-            engine: this.conf.engine,
-            mode: this.conf.mode,
-        };
-        this.debugger.put(opts)
-
-        const { success, headers, data } = await this.request("GET", url, {}, opts);
-        this.debugger.put(data)
-
-        if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
-        if (headers.Status === 404) throw new NotFoundError();
-
-        return data;
-    }
-}
-
-// Код сгенерирован APSP v0.1
-// Дата: 9 Дек 2025
-// © BrandPol
