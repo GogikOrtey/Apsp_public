@@ -261,7 +261,7 @@ def generate_parsePage_search_requests(data_input_table):
 
     set_item["search_param"] = search_param
     set_item["pagination_param"] = pagination_param
-    set_item["added_url_params"] = added_url_params.strip()
+    set_item["added_url_params"] = added_url_params
 
     # Далее извлекаем хост для поиска
 
@@ -302,7 +302,6 @@ def generate_parsePage(set_item):
         url.searchParams.set("$searchQuery", set.query)
         url.searchParams.set("$paginationParams", set.page)
         $addedUrlParams
-
         const data = await this.makeRequest(url.href)
         const $$ = cheerio.load(data)
 
