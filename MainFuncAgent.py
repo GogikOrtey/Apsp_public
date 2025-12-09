@@ -4,12 +4,10 @@
 from addedFunc import *
 from gen_data_input_table import data_input_table # Входные данные
 from extracting_selector_from_html import * 
-from parseCard import *  ########################## Нужно ли?
 
 # Подключение всех библиотек
 from import_all_libraries import * 
 
-isPrint = False
 
 # Здесь остался только функционал для сбора селекторов с сайта, и генерации parsePage
 # генерацию - только начал писать

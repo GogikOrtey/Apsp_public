@@ -1,16 +1,14 @@
-# Вынесенные отдельно функции
-from YandexGPT import send_message_to_AI_agent
-from addedFunc import *
-from gen_data_input_table import data_input_table # Входные данные
-from extracting_selector_from_html import *
-from saving_cache import * 
-
 # Подключение всех библиотек
 from import_all_libraries import * 
 
+# Вынесенные отдельно функции
+from addedFunc import *
+from gen_data_input_table import data_input_table # Входные данные
+from extracting_selector_from_html import * 
+from YandexGPT import send_message_to_AI_agent
+from saving_cache import * 
+
 isPrint = False
-
-
 
 
 # region Создаю parseCard
