@@ -8,6 +8,7 @@ from saving_cache import *
 
 # Подключение всех библиотек
 from import_all_libraries import * 
+import copy
 
 isPrint = False
 
@@ -547,6 +548,10 @@ def select_best_selectors(input_data, content_html):
 def get_all_selectors(data_input_table):
     print(this_module_title)
 
+    # keep original input values safe from in-place mutations (e.g., imageLink)
+    ################################### Вот тут создаю резервную копию, и потом восстанавливаю из неё
+    data_input_table_backup = copy.deepcopy(data_input_table)
+
     fill_selectors_for_items(
         data_input_table,
         get_css_selector_from_text_value_element
@@ -561,6 +566,11 @@ def get_all_selectors(data_input_table):
     print("")
     print("✅ Итоговые селекторы:")
     print_json(result_select_best_selectors["result_selectors"])
+
+    # Сохраняю в резервную копию, и загружаю из неё после обработки массив входных значений
+    # потому что там у меня меняется например значения для поля imageLink
+    data_input_table.clear()
+    data_input_table.update(data_input_table_backup)
 
     return result_select_best_selectors["result_selectors"]
 

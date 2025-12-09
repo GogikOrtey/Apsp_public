@@ -1,11 +1,11 @@
-09.12.2025 15:50:58
+09.12.2025 16:16:47
 
 
 
 
 --------------------------------------------------------------------------------------------------
 
-                                       GLOBAL CODE GEN
+                                        GLOBAL CODE GEN
 
 --------------------------------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ field = name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 
 
 Обработаем 3 страниц
-📤 Берем страницу из кеша: https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/ (возраст 0.86 ч.)
+📤 Берем страницу из кеша: https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/ (возраст 1.29 ч.)
 
 Найдено 31 возможных селекторов
 Найден селектор для поля name
@@ -44,7 +44,7 @@ field = name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/ (возраст 0.86 ч.)
+📤 Берем страницу из кеша: https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/ (возраст 1.29 ч.)
 
 Найдено 41 возможных селекторов
 Найден селектор для поля name
@@ -68,7 +68,7 @@ _______________________
 Найдено 3 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://gidro-top.ru/product/aquastone-bali-180/ (возраст 0.86 ч.)
+📤 Берем страницу из кеша: https://gidro-top.ru/product/aquastone-bali-180/ (возраст 1.29 ч.)
 
 Найдено 65 возможных селекторов
 Найден селектор для поля name
@@ -144,6 +144,9 @@ _______________________
 
 
 Проверяем селекторы, и генерируем parseCard
+data_input_table = 
+{'host': 'https://gidro-top.ru', 'fields_str': 'name, stock, link, price, oldPrice, article, brand, imageLink, timestamp', 'links': {'simple': [{'link': 'https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/', 'name': 'Aquanet SD-1200A душевая дверь', 'price': '19 850 ₽', 'oldPrice': '', 'article': '00209406', 'brand': 'Aquanet', 'InStock_trigger': 'В наличии', 'OutOfStock_trigger': '', 'imageLink': 'https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg'}, {'link': 'https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/', 'name': 'Aquastone Малибу Ванна из искусственного камня', 'price': '55 000 ₽', 'oldPrice': '69 000 ₽', 'article': 'MAlibu', 'brand': 'Aquastone', 'InStock_trigger': 'В наличии', 'OutOfStock_trigger': '', 'imageLink': 'https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg'}, {'link': 'https://gidro-top.ru/product/aquastone-bali-180/', 'name': 'Aquastone Бали 180 Ванна из искусственного камня', 'price': '53 000 ₽', 'oldPrice': '', 'article': 'Bali180', 'brand': 'Aquastone', 'InStock_trigger': 'В наличии', 'OutOfStock_trigger': '', 'imageLink': 'https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg'}]}, 'search_requests': []}
+
 Оба триггера есть
 Проверяем селектор h1.c-header.c-header_h1 на странице №1
 💠Aquanet SD-1200A душевая дверь💠
@@ -236,65 +239,28 @@ max_count_element_of_selectors = 🟡 1
 ⬜ Нет результата у селектора  на странице 1 для поля imageLink
 Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №2
 В элементе /wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg отсутствует хост. Добавляем:
-💠https://gidro-top.ru//wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg💠
-🔶/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg🔶
+💠https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg💠
+🔶https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg🔶
 
-🟨 Частичное совпадение
+✅ Полное совпадение селектора и оригинального значения поля
 Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №3
 В элементе /wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg отсутствует хост. Добавляем:
-💠https://gidro-top.ru//wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg💠
-🔶/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg🔶
+💠https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg💠
+🔶https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg🔶
 
-🟨 Частичное совпадение
+✅ Полное совпадение селектора и оригинального значения поля
 max_count_element_of_selectors = 🟡 1
 ---
-🧢 Отправляю запрос к ИИ на исправление строки кода для поля imageLink
-Посылаю запрос к YandexGPT:
-
-💫 PROMPT:
-Есть такой код на JS: 
-		const imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim() ? HOST + $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim() : ""
-Однако он извлекает "https://gidro-top.ru//wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
-А должен извлекать: "/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
-Переменная HOST = https://gidro-top.ru/
-Измени исходный код, что бы он делал это.
-Обязательные правила:
-— Используй только опциональную цепочку ?. и не используй просто .
-— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
-— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную 
-строку или фрагмент кода.
-    
 
 
-💬 AI ANSWER:
-"```
-const imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim()?.replace(HOST,'') ?? ""
-```"
 
-async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
-        let items: ResultItem[] = []
+--------------------------------------------------------------------------------------------------
 
-        const data = await this.makeRequest(set.query);
-        const $ = cheerio.load(data);
+                                    FINAL RESULT PARSER CODE
 
-        const name = $("h1.c-header.c-header_h1").text()?.trim()
-		const stock = $(".c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
-		const link = set.query
-		const price = $("span.price.c-product-add-to-cart__price").text()?.trim().formatPrice()
-		const oldPrice = $("span.c-product-add-to-cart__compare-price").text()?.trim().formatPrice()
-		const article = $("span.c-value__value-text.c-product-cart-form__sku-value").text()?.trim()
-		const brand = $("span.c-value__value-text > a.c-link").text()?.trim()
-		const imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim()?.replace(HOST,'') ?? ""
-        const timestamp = getTimestamp()
+--------------------------------------------------------------------------------------------------
 
-        const item: ResultItem = {
-            name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
-        }
-        items.push(item);
 
-        cacher.cache = items
-        return items;
-    }
 import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
 import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
 import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
@@ -316,7 +282,7 @@ const fields = {
     name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 }
 
-const HOST = "https://gidro-top.ru/"
+const HOST = "https://gidro-top.ru"
 
 export class JS_Base_ extends JS_Base_Custom {
     static defaultConf: defaultConf = {
@@ -385,7 +351,7 @@ export class JS_Base_ extends JS_Base_Custom {
 		const oldPrice = $("span.c-product-add-to-cart__compare-price").text()?.trim().formatPrice()
 		const article = $("span.c-value__value-text.c-product-cart-form__sku-value").text()?.trim()
 		const brand = $("span.c-value__value-text > a.c-link").text()?.trim()
-		const imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim()?.replace(HOST,'') ?? ""
+		const imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim() ? HOST + $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim() : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {

@@ -556,7 +556,7 @@ https://elevel.ru
 # }
 
 data_input_table = {
-    "host": "https://gidro-top.ru/",
+    "host": "https://gidro-top.ru",
     "fields_str": "",
     "links": {
         "simple": [
