@@ -354,9 +354,12 @@ $subtitle_from_code
 # region result_file_JS
 # Сохраняет результирующий код парсера в файл
 def result_file_JS(result_code):
-    filename = "result_code.ts"
+    filename = "result_code_gen/result/result_code.ts"
+    os.makedirs(os.path.dirname(filename), exist_ok=True)  # создаём папку, если её нет
+
     with open(filename, "w", encoding="utf-8") as f:
         f.write(result_code)
+
 
 
 # Основная функция

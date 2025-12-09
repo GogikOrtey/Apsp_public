@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "a-parser-types": "^0.1.362",
+    "cheerio": "^1.1.2"
+  }
+}
