@@ -1,4 +1,4 @@
-10.12.2025 03:19:30
+10.12.2025 03:40:57
 
 
 
@@ -22,7 +22,7 @@ field = name, stock, link, price, article, brand, imageLink, timestamp
 
 
 Обработаем 3 страниц
-📤 Берем страницу из кеша: https://glavsantex.ru/kran-sharovoy-ideal-1-2-vv-itap/ (возраст 9.77 ч.)
+📤 Берем страницу из кеша: https://glavsantex.ru/kran-sharovoy-ideal-1-2-vv-itap/ (возраст 10.13 ч.)
 
 Найдено 82 возможных селекторов
 Найден селектор для поля name
@@ -39,7 +39,7 @@ field = name, stock, link, price, article, brand, imageLink, timestamp
 Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://glavsantex.ru/zadvizhka-klinovaya-vv-1-2-itap/ (возраст 9.78 ч.)
+📤 Берем страницу из кеша: https://glavsantex.ru/zadvizhka-klinovaya-vv-1-2-itap/ (возраст 10.13 ч.)
 
 Найдено 88 возможных селекторов
 Найден селектор для поля name
@@ -56,7 +56,7 @@ _______________________
 Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://glavsantex.ru/avtomaticheskiy-zaporniy-klapan-dlya-manometra-rem-10-f3-8-kh3-8-watts/ (возраст 9.78 ч.)
+📤 Берем страницу из кеша: https://glavsantex.ru/avtomaticheskiy-zaporniy-klapan-dlya-manometra-rem-10-f3-8-kh3-8-watts/ (возраст 10.14 ч.)
 
 Найдено 15 возможных селекторов
 Найден селектор для поля name
@@ -326,7 +326,7 @@ export class JS_Base_glavsantexru extends JS_Base_Custom {
                     this.logger.put("Указан неверный тип сбора")
                     results.success = 0;
             }
-        } catch (e) {
+        } catch (e: any) {
             if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
                 this.logger.put(e.message);
                 results.isBadLink = 1;
