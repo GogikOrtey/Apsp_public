@@ -72,7 +72,6 @@ export class JS_Base_glavsantexru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    
     async parsePage(set: SetType) {
         let url = new URL(`${HOST}/search/`)
         url.searchParams.set("query", set.query)
@@ -99,10 +98,31 @@ export class JS_Base_glavsantexru extends JS_Base_Custom {
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
-    
 
     //#region Парсинг товара
-    
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $(".js-product_title.is-hidden").text()?.trim()?.replace(/''/g, '');
+		const stock = "InStock"
+		const link = set.query
+		const price = $(".pd-price__reg-price.s-product-price").text()?.trim().formatPrice()
+		const article = $(".item-pg__heading-artikul.grey.s-product-sku > span").text()?.trim()
+		const brand = $("a.pd-brand-info__brand-name").text()?.trim()
+		const imageLink = $("#product-image")?.attr("itemprop")?.trim() ? HOST + $("#product-image")?.attr("itemprop")?.trim() : ""
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, stock, link, price, article, brand, imageLink, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
 
     //#region Выполнение запроса
     async makeRequest(url: string) {

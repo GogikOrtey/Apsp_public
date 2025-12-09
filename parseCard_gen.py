@@ -251,7 +251,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     ):
                         if key in ["price", "oldPrice"]:
                             print(f"    💲 Обрабатываем поле {key}")
-                            current_finded_selector_value_on_logger = "💲"
+                            current_finded_selector_value_on_logger = "💲 "
 
                             p1 = format_price(selector_result_data)
                             p2 = format_price(selector_result_data, ",")
@@ -382,10 +382,11 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
         """
 
-    print("")
+    
     print("Статистика нахождения селекторов:")
     for elem in result_logger_fields:
         print(elem)
+    print("")
 
     # region Генерируем шаблон
     lines.append(f"\t\tconst link = set.query")

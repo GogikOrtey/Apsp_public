@@ -221,14 +221,14 @@ def gen_main_code():
     # region > test
 
 
-    # Извлекаем все селекторы из всех страниц, для parseCard
-    all_extracted_selectors = get_all_selectors(data_input_table)
+    # # Извлекаем все селекторы из всех страниц, для parseCard
+    # all_extracted_selectors = get_all_selectors(data_input_table)
 
-    # Генерируем parseCard
-    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+    # # Генерируем parseCard
+    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
-    # Генерируем parsePage
-    parse_page_code_value = ""
+    # # Генерируем parsePage
+    # parse_page_code_value = ""
 
 
 
@@ -239,6 +239,18 @@ def gen_main_code():
     # # Генерируем parsePage
     # parse_page_code_value = main_generate_parsePage()
 
+
+
+    # Обе функции
+
+    # Извлекаем все селекторы из всех страниц, для parseCard
+    all_extracted_selectors = get_all_selectors(data_input_table)
+
+    # Генерируем parseCard
+    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+
+    # Генерируем parsePage
+    parse_page_code_value = main_generate_parsePage()
 
 
 
