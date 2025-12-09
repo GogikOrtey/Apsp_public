@@ -53,6 +53,10 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     print("Проверяем селекторы, и генерируем parseCard")
     #print_json(result_selectors)  
 
+    print("data_input_table = ")
+    print(data_input_table)
+    print("")
+
     # Подготовка множества триггеров InStock (строки)
     all_inStock_selectors = {elem.get("InStock_trigger") for elem in data_input_table["links"]["simple"] if elem.get("InStock_trigger")}
     all_inStock_selectors = {s if isinstance(s, str) else ",".join(s) for s in all_inStock_selectors}
@@ -477,7 +481,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         varFromSelector=value_field,
     ).strip()
 
-    print(result)
+    # print(result)
     return result
 
     # # Сделал так, что форматирую код при создании
@@ -527,7 +531,7 @@ _parse_card_code_cache = None
 
 def get_parseCard_code(all_extracted_selectors):
     print(this_module_title)
-    
+
     global _parse_card_code_cache
     # Генерируем код лениво, только когда он запрашивается
     # Это гарантирует, что data_input_table уже содержит fields_str
