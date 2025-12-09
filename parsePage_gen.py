@@ -299,7 +299,7 @@ def generate_parsePage(set_item):
     # Эти значения вставляю в шаблон, если parsePage возвращает какие-то результаты
     # TODO значение не синхронизировано с global_code
     is_parse_page_mode_returned_results_bool = False
-    elem_1_items = "let items: ResultItem[] = [];"
+    elem_1_items = f"\nlet items: ResultItem[] = [];"
     elem_2_result_items = f"\nreturn items;"
 
     template_parseCard = Template("""
@@ -356,7 +356,7 @@ def generate_parsePage(set_item):
 
         elem_1_items_value = elem_1_items if is_parse_page_mode_returned_results_bool else "",
         elem_2_result_items_value = elem_2_result_items if is_parse_page_mode_returned_results_bool else ""
-    )
+    ).strip()
 
     print(result)
     return result
@@ -486,6 +486,7 @@ def main_generate_parsePage():
     # region _ex selector pagin
     if(current_element["count_of_page_on_pagination"]) != "0": 
         print("Извлекаем селектор кол-ва страниц")
+        #TODO Нужно будет чистить селектор от :nth-of-type(), если это будет нужно
 
         finding_element = current_element["count_of_page_on_pagination"]        
         pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = False)
