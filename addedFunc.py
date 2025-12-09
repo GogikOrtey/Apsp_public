@@ -3,7 +3,27 @@ from import_all_libraries import *
 
 # TODO: Когда здесь наберётся достаточно функций, разбить их по категориям, и добавить оглавление
 
+# Возвращает текущую дату в формате "4 дек 2025"
+def get_current_date():
+    # Получаем текущую дату
+    today = date.today()
+    
+    # Словарь русских названий месяцев (аббревиатуры)
+    russian_months = {
+        1: "Янв", 2: "Фев", 3: "Мар", 4: "Апр",
+        5: "Май", 6: "Июн", 7: "Июл", 8: "Авг",
+        9: "Сен", 10: "Окт", 11: "Ноя", 12: "Дек"
+    }
+    
+    # Форматируем: день месяц_аббревиатура год
+    day = today.day
+    month_abbr = russian_months[today.month]
+    year = today.year
+    formatted_date = f"{day} {month_abbr} {year}"  # Например: 4 дек 2025
 
+    return formatted_date
+
+    
 def clearAnswerCode(input_code):
     return input_code
 

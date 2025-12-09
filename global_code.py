@@ -130,6 +130,7 @@ def parse_entry_point_gen():
 
     return result
 
+
 def set_defaultConf():
     template_default_conf = Template("""
         static defaultConf: defaultConf = {
@@ -151,7 +152,6 @@ def set_defaultConf():
     
     return result.strip()
 
-
 def get_cuurent_subtitle():
     template_subtitle = Template("""
 // Код сгенерирован APSP v$current_apsp_version_val
@@ -159,25 +159,9 @@ def get_cuurent_subtitle():
 // © BrandPol
 """)
 
-    # Получаем текущую дату
-    today = date.today()
-    
-    # Словарь русских названий месяцев (аббревиатуры)
-    russian_months = {
-        1: "Янв", 2: "Фев", 3: "Мар", 4: "Апр",
-        5: "Май", 6: "Июн", 7: "Июл", 8: "Авг",
-        9: "Сен", 10: "Окт", 11: "Ноя", 12: "Дек"
-    }
-    
-    # Форматируем: день месяц_аббревиатура год
-    day = today.day
-    month_abbr = russian_months[today.month]
-    year = today.year
-    formatted_date = f"{day} {month_abbr} {year}"  # Например: 4 дек 2025
-
     result = template_subtitle.substitute(
         current_apsp_version_val = current_apsp_version,
-        current_date = formatted_date        
+        current_date = get_current_date()        
     )
     
     return result.strip()
@@ -220,6 +204,7 @@ def gen_main_code():
 
     # Генерируем parsePage
     # parse_page_code_value = main_generate_parsePage() ###################### раскомментировать
+    parse_page_code_value = ""
 
 
 
