@@ -38,6 +38,12 @@ result_parser_code()
 
 
 
+"""
+########
+Заменить все ErrorHandler на добавление ошибок в message_global
+
+"""
+
 
 
 

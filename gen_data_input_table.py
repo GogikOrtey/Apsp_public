@@ -565,103 +565,103 @@ https://elevel.ru
 #     ]
 # }
 
-# data_input_table = {
-#     "host": "https://gidro-top.ru",
-#     "fields_str": "",
-#     "links": {
-#         "simple": [
-#             {
-#                 "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
-#                 "name": "Aquanet SD-1200A душевая дверь",
-#                 "price": "19 850 ₽",
-#                 "oldPrice": "",
-#                 "article": "00209406",
-#                 "brand": "Aquanet",
-#                 "InStock_trigger": "В наличии",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
-#             },
-#             {
-#                 "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
-#                 "name": "Aquastone Малибу Ванна из искусственного камня",
-#                 "price": "55 000 ₽",
-#                 "oldPrice": "69 000 ₽",
-#                 "article": "MAlibu",
-#                 "brand": "Aquastone",
-#                 "InStock_trigger": "В наличии",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
-#             },
-#             {
-#                 "link": "https://gidro-top.ru/product/aquastone-bali-180/",
-#                 "name": "Aquastone Бали 180 Ванна из искусственного камня",
-#                 "price": "53 000 ₽",
-#                 "oldPrice": "",
-#                 "article": "Bali180",
-#                 "brand": "Aquastone",
-#                 "InStock_trigger": "В наличии",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
-#             }
-#         ]
-#     },
-#     "search_requests": [ ####### Плохо: Нет параметра для поиска, он зашит внутри url
-#         {
-#             "query": "Ванна",
-#             "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
-#             "count_of_page_on_pagination": "255",
-#             "total_count_of_results": "0",
-#             "links_items": [
-#                 "https://gidro-top.ru/product/salini-mona-102911g-vanna-otdelnostoyashchaya-belyy-180x80/",
-#                 "https://gidro-top.ru/product/triton-ultra-150/",
-#                 "https://gidro-top.ru/product/vanna-astra-form-avrora/",
-#             ]
-#         }
-#     ]
-# }
-
-
 data_input_table = {
-    "host": "https://glavsantex.ru",
+    "host": "https://gidro-top.ru",
+    "fields_str": "",
     "links": {
         "simple": [
             {
-                "link": "https://glavsantex.ru/kran-sharovoy-ideal-1-2-vv-itap/",
-                "name": 'Кран шаровой Ideal 1/2" ВВ ITAP ART 092',
-                "price": "647 ₽",
-                "article": "26093U",
-                "brand": "Itap",
-                "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/46/04/446/images/54537/54537.970.jpg"
+                "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
+                "name": "Aquanet SD-1200A душевая дверь",
+                "price": "19 850 ₽",
+                "oldPrice": "",
+                "article": "00209406",
+                "brand": "Aquanet",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
             },
             {
-                "link": "https://glavsantex.ru/zadvizhka-klinovaya-vv-1-2-itap/",
-                "name": 'Задвижка клиновая ВВ 1/2" ITAP ART 156',
-                "price": "1 010 ₽",
-                "article": "1560012",
-                "brand": "Itap",
-                "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/81/04/481/images/54423/54423.970.jpg"
+                "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
+                "name": "Aquastone Малибу Ванна из искусственного камня",
+                "price": "55 000 ₽",
+                "oldPrice": "69 000 ₽",
+                "article": "MAlibu",
+                "brand": "Aquastone",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
             },
             {
-                "link": "https://glavsantex.ru/avtomaticheskiy-zaporniy-klapan-dlya-manometra-rem-10-f3-8-kh3-8-watts/",
-                "name": 'Автоматический запорный клапан для манометра REM 10 ф3/8''х3/8" Watts',
-                "price": "431 ₽",
-                "article": "10009432",
-                "brand": "Watts",
-                "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/76/37/3776/images/15173/15173.970.jpg"
-            },
+                "link": "https://gidro-top.ru/product/aquastone-bali-180/",
+                "name": "Aquastone Бали 180 Ванна из искусственного камня",
+                "price": "53 000 ₽",
+                "oldPrice": "",
+                "article": "Bali180",
+                "brand": "Aquastone",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
+            }
         ]
     },
-    "search_requests": [
+    "search_requests": [ ####### Плохо: Нет параметра для поиска, он зашит внутри url
         {
-            "query": "Котёл",
-            "url_search_query_page_2": "https://glavsantex.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
-            "count_of_page_on_pagination": "14",
+            "query": "Ванна",
+            "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
+            "count_of_page_on_pagination": "255",
             "total_count_of_results": "0",
             "links_items": [
-                "https://glavsantex.ru/baxi-luna-3-comfort-combi-1-310-fi-kotel-gazoviy-nastenniy-dvukhkonturniy/",
-                "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-5-kvt/",
-                "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-7-kvt/",
+                "https://gidro-top.ru/product/relisan-ariadna-150x100-r-akrilovaya-vanna/",
+                "https://gidro-top.ru/product/abber-kristall-at9703amber-prozrachnaya-vanna/",
+                "https://gidro-top.ru/product/wotte-line-160kh70-chugunnaya-vanna/",
             ]
         }
     ]
 }
+
+
+# data_input_table = {
+#     "host": "https://glavsantex.ru",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://glavsantex.ru/kran-sharovoy-ideal-1-2-vv-itap/",
+#                 "name": 'Кран шаровой Ideal 1/2" ВВ ITAP ART 092',
+#                 "price": "647 ₽",
+#                 "article": "26093U",
+#                 "brand": "Itap",
+#                 "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/46/04/446/images/54537/54537.970.jpg"
+#             },
+#             {
+#                 "link": "https://glavsantex.ru/zadvizhka-klinovaya-vv-1-2-itap/",
+#                 "name": 'Задвижка клиновая ВВ 1/2" ITAP ART 156',
+#                 "price": "1 010 ₽",
+#                 "article": "1560012",
+#                 "brand": "Itap",
+#                 "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/81/04/481/images/54423/54423.970.jpg"
+#             },
+#             {
+#                 "link": "https://glavsantex.ru/avtomaticheskiy-zaporniy-klapan-dlya-manometra-rem-10-f3-8-kh3-8-watts/",
+#                 "name": 'Автоматический запорный клапан для манометра REM 10 ф3/8''х3/8" Watts',
+#                 "price": "431 ₽",
+#                 "article": "10009432",
+#                 "brand": "Watts",
+#                 "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/76/37/3776/images/15173/15173.970.jpg"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "Котёл",
+#             "url_search_query_page_2": "https://glavsantex.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
+#             "count_of_page_on_pagination": "14",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://glavsantex.ru/baxi-luna-3-comfort-combi-1-310-fi-kotel-gazoviy-nastenniy-dvukhkonturniy/",
+#                 "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-5-kvt/",
+#                 "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-7-kvt/",
+#             ]
+#         }
+#     ]
+# }
