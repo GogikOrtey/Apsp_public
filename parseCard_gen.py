@@ -224,7 +224,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     
                     score_match = compute_match_score_2(selector_result_data, original_field_value)
                     if selector_result_data == original_field_value:
-                        print(" ✅ Полное совпадение селектора и оригинального значения поля")
+                        print("    ✅ Полное совпадение селектора и оригинального значения поля")
                     elif (
                             selector_result_data in original_field_value 
                             or original_field_value in selector_result_data 
@@ -246,7 +246,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                             # TODO Потом здесь подробнее оттестировать
                             continue
 
-                        print(" 🟨 Частичное совпадение")
+                        print("    🟨 Частичное совпадение")
 
                         # Сохраняю для сообщения к ИИ на исправление строки кода,
                         # только первое значение
