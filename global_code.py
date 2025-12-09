@@ -332,7 +332,6 @@ $subtitle_from_code
 
 
 
-
 # region result_file_JS
 # Сохраняет результирующий код парсера в файл
 def result_file_JS(result_code):
@@ -343,10 +342,52 @@ def result_file_JS(result_code):
         f.write(result_code)
 
 
+# Печатает и сохраняет массив с сообщеними, ошибками и предупреждениями
+def print_and_save_message_global():  
+    if len(message_global) > 0:
+
+        filename = "result_code_gen/result/message_global.txt"
+        with open(filename, "w", encoding="utf-8") as f:
+            
+            for elem in message_global:
+                key = list(elem.keys())[0]
+                value = elem[key]
+
+                # Печать
+                if key == "1":
+                    print(f"🟧 {value}")
+                elif key == "2":
+                    print(f"🟡 {value}")
+                else:
+                    print(f"🟦 {value}")
+
+                # Запись в файл
+                f.write(f"{key}: {value}\n")
+
+
+
+
+# Декоратор, который засекает время генерации всего кода
+def measure_time(func):
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        result = func(*args, **kwargs)
+        elapsed = time.time() - start
+
+        print("")
+        if elapsed < 60:
+            print(f"🕚 Время выполнения: {elapsed:.2f} секунд")
+        else:
+            print(f"🕚 Время выполнения: {elapsed / 60:.1f} минут")
+        return result
+    return wrapper
+
 # Основная функция
+@measure_time
 def result_parser_code():
     result_code = gen_main_code()
     result_file_JS(result_code)
+    print_and_save_message_global() # Печатает и сохраняет массив с ошибками и предупреждениями
 
 
 # result_parser_code()
