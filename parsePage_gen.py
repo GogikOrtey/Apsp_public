@@ -296,6 +296,12 @@ def generate_parsePage_search_requests(data_input_table):
 
 # region Шаблон
 def generate_parsePage(set_item):
+    # Эти значения вставляю в шаблон, если parsePage возвращает какие-то результаты
+    # TODO значение не синхронизировано с global_code
+    is_parse_page_mode_returned_results_bool = False
+    elem_1_items = "let items: ResultItem[] = [];"
+    elem_2_result_items = f"\nreturn items;"
+
     template_parseCard = Template("""
     async parsePage(set: SetType) {
         let url = new URL(`$${HOST}$hostPatch`)
@@ -312,8 +318,7 @@ def generate_parsePage(set_item):
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
-
-        let items: ResultItem[] = [];
+        $elem_1_items_value
         let products = $$("$productSelector")
         if (products.length == 0) {
             this.logger.put(`По запросу $${set.query} ничего не найдено`)
@@ -322,10 +327,20 @@ def generate_parsePage(set_item):
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
             let link = $finalProductLink
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        })
-        return items;
+        }) $elem_2_result_items_value
     }
     """)
+
+    # Проверяем, есть ли в извлекаемой ссылке хост
+
+    # убрать
+    # result_once_search_elem = get_element_from_selector_universal(set_item["page_html"], set_item["product_selector"])
+    # print("result_once_search_elem = " + result_once_search_elem)
+    # if 
+
+    finalProductLink_val = '$(product)?.attr("href")'
+    if set_item.get("is_add_host") is True:
+        finalProductLink_val = '`${HOST}${$(product)?.attr("href")}`'
 
     result = template_parseCard.substitute(
         hostPatch = set_item["path"],
@@ -336,8 +351,11 @@ def generate_parsePage(set_item):
         result_pagination_block_value = set_item["result_pagination_block"],
         productSelector = set_item["product_selector"],
         #TODO Как-то проверить, что товар извлекается по $(product)?.attr("href")
-        finalProductLink = '$(product)?.attr("href")'
+        finalProductLink = finalProductLink_val,
         # Если в селкторе есть href в [] - то значит верно, также может быть src или текст
+
+        elem_1_items_value = elem_1_items if is_parse_page_mode_returned_results_bool else "",
+        elem_2_result_items_value = elem_2_result_items if is_parse_page_mode_returned_results_bool else ""
     )
 
     print(result)
@@ -405,6 +423,7 @@ def main_generate_parsePage():
     # Добавляем хост ко всем ссылкам, если они извлекаются со страницы без него
     if link_list and set_item["host"] not in link_list[0]:
         link_list = [f'{set_item["host"]}{value}' for value in link_list]
+        set_item["is_add_host"] = True
         
     # # # Печать уже из массива
     # # for value in link_list:
@@ -473,7 +492,7 @@ def main_generate_parsePage():
 
         print("pagination_selctor = " + pagination_selctor)
 
-        checked_value = get_element_from_selector(set_item["page_html"], pagination_selctor)
+        checked_value = get_element_from_selector_universal(set_item["page_html"], pagination_selctor)
         print("Проверили, и нашли такой элемент по найденному селектору пагинации: " + checked_value)
 
         # И если мы далее будем использовать 
@@ -483,7 +502,7 @@ def main_generate_parsePage():
             # и что результат будет числом
 
         result_pagination_block = (
-            f'let totalPages = Math.max(...$("{pagination_selctor}").get("").map(item => +$(item).text().trim()).filter(Boolean))'
+            f'let totalPages = Math.max(...$("{pagination_selctor}").get().map(item => +$(item).text().trim()).filter(Boolean))'
         )
 
     else: 
@@ -501,7 +520,7 @@ def main_generate_parsePage():
         print(pagination_selctor)
 
         # Проверяем, получаем ли мы по селектору именно нужный элемент
-        checked_selector = get_element_from_selector(set_item["page_html"], pagination_selctor)
+        checked_selector = get_element_from_selector_universal(set_item["page_html"], pagination_selctor)
         print("Проверили, и нашли такой элемент по найденному селектору: " + checked_selector)
 
         if(finding_element == checked_selector):

@@ -82,24 +82,22 @@ export class JS_Base_glavsantexru extends JS_Base_Custom {
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("").get("ul.pagination__list > li:nth-of-type(6) > a").map(item => +$(item).text().trim()).filter(Boolean))
+            let totalPages = Math.max(...$("ul.pagination__list > li:nth-of-type(6) > a").get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
-
-        let items: ResultItem[] = [];
+        
         let products = $("a.item-c__title.js-item__title[href]")
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
+            let link = `${HOST}${$(product)?.attr("href")}`
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        })
-        return items;
+        }) 
     }
     
 
