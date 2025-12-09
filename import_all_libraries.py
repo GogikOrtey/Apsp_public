@@ -1,10 +1,9 @@
+from urllib.parse import parse_qs, urlparse, urlsplit, urlunsplit
 from typing import Callable, Dict, List, Any, Iterable, Tuple
 from parsel import Selector as ParselSelector
 from collections import Counter, defaultdict
-from urllib.parse import urlparse, parse_qs
 from datetime import datetime, timedelta, date
 from difflib import SequenceMatcher
-from urllib.parse import urlparse
 from lxml import html as html_lx
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
