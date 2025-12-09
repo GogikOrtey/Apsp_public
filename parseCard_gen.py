@@ -28,6 +28,21 @@ this_module_title = """
 
 
 
+
+
+
+########## Добавить мини-отчёт в логе, для каких ключей мы нашли селектор полным совпадением, для каких
+# частичным, с помощью ИИ, а для каких - не нашли
+
+
+
+
+
+
+
+
+
+
 # region Создаю parseCard
 
 """
@@ -217,7 +232,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     # print(f"💠{selector_result_data}💠") # Что селектор вернул
                     # print(f"🔶{original_field_value}🔶") # Что лежит во входном массиве
 
-                    print("")
                     print(f"    {selector_result_data}") # Что селектор вернул
                     print(f"    {original_field_value}") # Что лежит во входном массиве
                     print("")
@@ -263,6 +277,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                 else:
                     print(f"    ⬜ Нет результата у селектора {selector_result_data} на странице {count_page} для поля {key}")
 
+        print("")
         print(f"max_count_element_of_selectors = 🟡 {max_count_element_of_selectors}")
         print(f"_____")
         print("")
