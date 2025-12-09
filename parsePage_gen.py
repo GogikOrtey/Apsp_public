@@ -1,8 +1,26 @@
 # Подключение всех библиотек
 from import_all_libraries import * 
 from extracting_selector_from_html import * 
+from gen_data_input_table import data_input_table # Входные данные
 from addedFunc import *
 from YandexGPT import *
+
+
+
+
+
+this_module_title = """
+
+
+--------------------------------------------------------------------------------------------------
+
+                                       EXTRACTION SELECTOR
+
+--------------------------------------------------------------------------------------------------
+
+"""
+
+
 
 
 #TODO Потом интегрировать это в вынесенный файл с данными
@@ -66,34 +84,34 @@ from YandexGPT import *
 # И если при какой-то галочке, то пропускаем 
 
 
-# Данные с сайта 2
-#TODO Здесь надо внедрять установку оффсета
-# Проверять, если явной пагинации нет, но оффсет есть - то выислять разницу между 2 и 3й страницами
-# и привязывать его к пагинации
-data_input_table = {
-    "host": "",
-    "links": {
+# # Данные с сайта 2
+# #TODO Здесь надо внедрять установку оффсета
+# # Проверять, если явной пагинации нет, но оффсет есть - то выислять разницу между 2 и 3й страницами
+# # и привязывать его к пагинации
+# data_input_table = {
+#     "host": "",
+#     "links": {
 
-    },
-    "search_requests": [
-        {
-            "query": "Ванна",
-            "url_search_query_page_2": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24",
-            "url_search_query_page_3": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=48",
-            "count_of_page_on_pagination": "6",
-            # Число последней страницы, если оно отображается в блоке пагинации внизу
-            "total_count_of_results": "0",
-            # Если нет последней страницы пагинации, то общее кол-во найденых товаров
-            "links_items": [
-                # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
-                "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
-            ]
-        }
-    ],
-    "timestamp": 1764872654
-}
+#     },
+#     "search_requests": [
+#         {
+#             "query": "Ванна",
+#             "url_search_query_page_2": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24",
+#             "url_search_query_page_3": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=48",
+#             "count_of_page_on_pagination": "6",
+#             # Число последней страницы, если оно отображается в блоке пагинации внизу
+#             "total_count_of_results": "0",
+#             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
+#             "links_items": [
+#                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
+#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
+#             ]
+#         }
+#     ],
+#     "timestamp": 1764872654
+# }
 
 # # Данные с сайта 4
 # data_input_table = {
@@ -276,7 +294,7 @@ def generate_parsePage_search_requests(data_input_table):
 # TODO Это можно оставить на доработку на будущее 
 
 
-# region Final gen template
+# region gen шаблона
 def generate_parsePage(set_item):
     template_parseCard = Template("""
     async parsePage(set: SetType) {
@@ -329,8 +347,10 @@ def generate_parsePage(set_item):
 
 
 
-# region Main gen parsePage
+# region main_generate_parsePage
 def main_generate_parsePage():
+    print(this_module_title)
+    
     if (
         not data_input_table.get("timestamp") 
         or ((time.time() - data_input_table["timestamp"]) / 3600) > 6
@@ -414,7 +434,7 @@ def main_generate_parsePage():
     # это значит всё ищется запросами, и нужно будет смотреть их
 
     #TODO Сюда ещё надо добавить вариант, когда у нас указан оффсет, но нет пагинации
-    # region Ex selector offset
+    # region _ex selector offset
 
     # Проверить на том сайте, №2 
     # Сейчас детектить, и кидать ошибку генерации parsePage
@@ -445,7 +465,7 @@ def main_generate_parsePage():
 
 
 
-    # region Ex selector pagin
+    # region _ex selector pagin
     if(current_element["count_of_page_on_pagination"]) != "0": 
         print("Извлекаем селектор кол-ва страниц")
 
@@ -465,7 +485,7 @@ def main_generate_parsePage():
         result_pagination_block = "" #######
 
     else: 
-        # region Ex selector count
+        # region _ex selector count
         print("Извлекаем селектор кол-ва товаров по запросу")
         
         finding_element = current_element["total_count_of_results"]
@@ -518,16 +538,11 @@ def main_generate_parsePage():
     # set_item["result_pagination_block"] = result_pagination_block
     # set_item["product_selector"] = product_selector
 
-    # # Генерирует итоговый шаблон parsePage
-    # generate_parsePage(set_item)
+    # Генерирует итоговый шаблон parsePage
+    result = generate_parsePage(set_item)
+    return result
 
 
 
-main_generate_parsePage()
-
-
-
-
-
-
-
+################################################
+# main_generate_parsePage()

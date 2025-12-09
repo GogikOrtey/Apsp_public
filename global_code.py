@@ -12,10 +12,20 @@ from import_all_libraries import *
 
 from makeRequest_gen import * 
 from parseCard_gen import * 
+from parsePage_gen import * 
 from extraction_selectors_main import * 
 
 
+this_module_title = """
 
+
+--------------------------------------------------------------------------------------------------
+
+                                       GLOBAL CODE GEN
+
+--------------------------------------------------------------------------------------------------
+
+"""
 
 
 
@@ -184,6 +194,8 @@ def get_cuurent_subtitle():
 
 #region gen_main_code
 def gen_main_code():
+    print(this_module_title)
+
     # Если поля не собраны, то собираю их здесь в строку, и также сохраняю
     fields_str = data_input_table.get("fields_str")
     if not fields_str:
@@ -199,12 +211,15 @@ def gen_main_code():
 
 
 
-
+    # region >
     # Извлекаем все селекторы из всех страниц, для parseCard
     all_extracted_selectors = get_all_selectors(data_input_table)
 
     # Генерируем parseCard
     parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+
+    # Генерируем parsePage
+    # parse_page_code_value = main_generate_parsePage() ###################### раскомментировать
 
 
 
@@ -262,7 +277,6 @@ $subtitle_from_code
 """)
 
     make_request_code_value = simple_makeRequest()    
-    parse_page_code_value = ""
     parse_entry_point_code_value = parse_entry_point_gen()
     default_conf_value = set_defaultConf()
 

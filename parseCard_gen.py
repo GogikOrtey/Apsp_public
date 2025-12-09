@@ -11,6 +11,23 @@ from saving_cache import *
 isPrint = False
 
 
+
+
+
+this_module_title = """
+
+
+--------------------------------------------------------------------------------------------------
+
+                                         PARSE CARD GEN
+
+--------------------------------------------------------------------------------------------------
+
+"""
+
+
+
+
 # region Создаю parseCard
 
 """
@@ -509,6 +526,8 @@ result_selectors = {
 _parse_card_code_cache = None
 
 def get_parseCard_code(all_extracted_selectors):
+    print(this_module_title)
+    
     global _parse_card_code_cache
     # Генерируем код лениво, только когда он запрашивается
     # Это гарантирует, что data_input_table уже содержит fields_str

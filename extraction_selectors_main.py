@@ -12,6 +12,21 @@ from import_all_libraries import *
 isPrint = False
 
 
+
+
+this_module_title = """
+
+
+--------------------------------------------------------------------------------------------------
+
+                                       EXTRACTION SELECTOR
+
+--------------------------------------------------------------------------------------------------
+
+"""
+
+
+
 # region Обр. всех ссылок
 
 # Обрабатываем все элементы из полученного массива - находим для каждого селектор
@@ -530,6 +545,8 @@ def select_best_selectors(input_data, content_html):
 # region Обр. всех sel
 
 def get_all_selectors(data_input_table):
+    print(this_module_title)
+
     fill_selectors_for_items(
         data_input_table,
         get_css_selector_from_text_value_element
