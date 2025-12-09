@@ -1,4 +1,4 @@
-09.12.2025 16:31:07
+09.12.2025 16:42:59
 
 
 
@@ -57,7 +57,7 @@ pagination_selctor = div.c-products[data-pages_count]
 Проверили, и нашли такой элемент по найденному селектору пагинации: 255
 result_pagination_block = 
 
-
+let totalPages = Math.max(...$("").get("div.c-products[data-pages_count]").map(item => +$(item).text().trim()).filter(Boolean))
 
     async parsePage(set: SetType) {
         let url = new URL(`${HOST}/search/Ванна/`)
@@ -69,7 +69,7 @@ result_pagination_block =
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            
+            let totalPages = Math.max(...$("").get("div.c-products[data-pages_count]").map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
@@ -184,7 +184,7 @@ export class JS_Base_ extends JS_Base_Custom {
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            
+            let totalPages = Math.max(...$("").get("div.c-products[data-pages_count]").map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });

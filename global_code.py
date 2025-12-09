@@ -206,7 +206,7 @@ def gen_main_code():
 
 
 
-    # region >
+    # region > test
     # # Извлекаем все селекторы из всех страниц, для parseCard
     # all_extracted_selectors = get_all_selectors(data_input_table)
 
@@ -337,7 +337,7 @@ $subtitle_from_code
 
 
 
-
+# region result_file_JS
 # # Сохраняет результирующий код парсера в файл
 # def result_file_JS(result_selectors, host):
 #     # Собираем название для файла парсера
@@ -398,14 +398,6 @@ const imageLink = "" // [Ошибка генерации APSP]: Селектор
 
 
 Все ошибки хранятся в глобальной массиве message_global
-
-
-А в конце будет пометка, что это сегнерированный код. Например, такая:
-
-// Код сгенерирован APSP v1.4 
-// Дата: 4 дек 2025
-// © BrandPol
-
 
 
 * Добавить плашку о том, что тестирование кода, а также линтер - ещё не добавлены в проект

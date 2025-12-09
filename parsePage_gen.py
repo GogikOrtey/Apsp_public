@@ -261,7 +261,7 @@ def generate_parsePage_search_requests(data_input_table):
 
     set_item["search_param"] = search_param
     set_item["pagination_param"] = pagination_param
-    set_item["added_url_params"] = added_url_params
+    set_item["added_url_params"] = added_url_params.strip()
 
     # Далее извлекаем хост для поиска
 
@@ -294,7 +294,7 @@ def generate_parsePage_search_requests(data_input_table):
 # TODO Это можно оставить на доработку на будущее 
 
 
-# region gen шаблона
+# region Шаблон
 def generate_parsePage(set_item):
     template_parseCard = Template("""
     async parsePage(set: SetType) {
