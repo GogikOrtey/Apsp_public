@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, article, brand, imageLink, timestamp
+    name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, article, brand, imageLink, timestamp
+    name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 }
 
-const HOST = "https://glavsantex.ru"
+const HOST = "https://gidro-top.ru"
 
-export class JS_Base_glavsantexru extends JS_Base_Custom {
+export class JS_Base_gidrotopru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,22 +73,20 @@ export class JS_Base_glavsantexru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(${HOST}/search/?)
-url.searchParams.set("query", set.query)
-url.searchParams.set("page", set.page)
+        let url = new URL(${HOST}/search/${set.query}/?page=${set.page})
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("ul.pagination__list > li:nth-of-type(6) > a").get().map(item => +$(item).text().trim()).filter(Boolean))
+            let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.item-c__title.js-item__title[href]")
+        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]")
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()

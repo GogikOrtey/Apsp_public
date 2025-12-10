@@ -1,4 +1,4 @@
-10.12.2025 10:23:41
+10.12.2025 10:35:41
 
 
 
@@ -10,7 +10,7 @@
 --------------------------------------------------------------------------------------------------
 
 
-field = name, stock, link, price, article, brand, imageLink, timestamp
+field = name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 
 
 
@@ -64,51 +64,47 @@ url.searchParams.set('/?page', set.page);
 -----
 
 Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://glavsantex.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB
+Строка на поиск у сайта, на 2ю страницу поиска: https://gidro-top.ru/search/Ванна/?page=2
 
-Значение переменной HOST = https://glavsantex.ru
+Значение переменной HOST = https://gidro-top.ru
 
 Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
 
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/search/?`)
-url.searchParams.set("query", set.query)
-url.searchParams.set("page", set.page)
+let url = new URL(`${HOST}/search/${set.query}/?page=${set.page}`)
 ```"
 
 
-Найдено 6 возможных селекторов
+Найдено 3 возможных селекторов
 
-product_selector = a.item-c__title.js-item__title[href]
-len_of_products_on_this_page = 30
+product_selector = div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]
+len_of_products_on_this_page = 32
 Совпадение ссылок = 1.00 (3/3)
 Извлекаем селектор кол-ва страниц
 
-Найдено 172 возможных селекторов
-pagination_selctor = ul.pagination__list > li:nth-of-type(6) > a
-Проверили, и нашли такой элемент по найденному селектору пагинации: 14
+Найдено 30 возможных селекторов
+pagination_selctor = div.c-products[data-pages_count]
+Проверили, и нашли такой элемент по найденному селектору пагинации: 255
 result_pagination_block = 
 
-let totalPages = Math.max(...$("ul.pagination__list > li:nth-of-type(6) > a").get().map(item => +$(item).text().trim()).filter(Boolean))
+let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean))
 async parsePage(set: SetType) {
-        let url = new URL(${HOST}/search/?)
-url.searchParams.set("query", set.query)
-url.searchParams.set("page", set.page)
+        let url = new URL(${HOST}/search/${set.query}/?page=${set.page})
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("ul.pagination__list > li:nth-of-type(6) > a").get().map(item => +$(item).text().trim()).filter(Boolean))
+            let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.item-c__title.js-item__title[href]")
+        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]")
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -118,7 +114,7 @@ url.searchParams.set("page", set.page)
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
-Имя парсера: JS_Base_glavsantexru
+Имя парсера: JS_Base_gidrotopru
 
 
 
@@ -138,7 +134,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, article, brand, imageLink, timestamp
+    name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -147,12 +143,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, article, brand, imageLink, timestamp
+    name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 }
 
-const HOST = "https://glavsantex.ru"
+const HOST = "https://gidro-top.ru"
 
-export class JS_Base_glavsantexru extends JS_Base_Custom {
+export class JS_Base_gidrotopru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -204,22 +200,20 @@ export class JS_Base_glavsantexru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(${HOST}/search/?)
-url.searchParams.set("query", set.query)
-url.searchParams.set("page", set.page)
+        let url = new URL(${HOST}/search/${set.query}/?page=${set.page})
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("ul.pagination__list > li:nth-of-type(6) > a").get().map(item => +$(item).text().trim()).filter(Boolean))
+            let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.item-c__title.js-item__title[href]")
+        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]")
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -256,4 +250,4 @@ url.searchParams.set("page", set.page)
 // Дата: 10 Дек 2025
 // © BrandPol
 
-🕚 Время выполнения: 3.06 секунд
+🕚 Время выполнения: 2.39 секунд
