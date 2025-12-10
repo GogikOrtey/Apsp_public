@@ -1,4 +1,4 @@
-11.12.2025 00:30:24
+11.12.2025 00:32:56
 
 
 
@@ -10,7 +10,7 @@
 --------------------------------------------------------------------------------------------------
 
 
-field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+field = name, stock, link, price, article, imageLink, timestamp
 
 
 
@@ -64,229 +64,20 @@ url.searchParams.set('/?page', set.page);
 -----
 
 Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://stroytorg812.ru/content/search/?s=&q=%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2
+Строка на поиск у сайта, на 2ю страницу поиска: https://makitaclub.ru/page/2/?s=шуруповёрт&post_type=product
 
-Значение переменной HOST = https://stroytorg812.ru
+Значение переменной HOST = https://makitaclub.ru
 
 Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
 
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/content/search/`);
-url.searchParams.set("s", "");
-url.searchParams.set("q", set.query);
-url.searchParams.set("PAGEN_1", set.page);
+let url = new URL(`${HOST}/page/${set.page}/?s=${set.query}&post_type=product`)
 ```"
 
 
-Найдено 2 возможных селекторов
+Найдено 1 возможных селекторов
 
-product_selector = a.product-name[href]
-len_of_products_on_this_page = 12
-Совпадение ссылок = 1.00 (3/3)
-Извлекаем селектор кол-ва товаров по запросу
-
-Найдено 7 возможных селекторов
-pagination_selctor: 
-h2
-Проверили, и нашли такой элемент по найденному селектору: По вашему запросу найдено 3 762 результата
-Нужное значение и извлекаемый элемент совпадают неточно, запускаю AI
-js_code_extract_pagination = 			let totalItems = $("h2")?.first()?.text()?.trim()
-Посылаю запрос к YandexGPT:
-
-💫 PROMPT:
-Есть такой код на JS: 
-			let totalItems = $("h2")?.first()?.text()?.trim()
-Однако он извлекает "По вашему запросу найдено 3 762 результата"
-А должен извлекать: "3 762"
-Измени исходный код, что бы он делал это.
-Обязательные правила:
-— Используй только опциональную цепочку ?. и не используй просто .
-— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
-— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную 
-строку или фрагмент кода.
-    
-
-
-💬 AI ANSWER:
-"`let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();`"
-
-result_pagination_block = 
-
-let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
-			let totalPages = Math.ceil(+totalItems / 12)
-async parsePage(set: SetType) {
-        
-let url = new URL(`${HOST}/content/search/`);
-url.searchParams.set("s", "");
-url.searchParams.set("q", set.query);
-url.searchParams.set("PAGEN_1", set.page);
-
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
-			let totalPages = Math.ceil(+totalItems / 12)
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("a.product-name[href]")
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
-Имя парсера: JS_Base_stroytorg812ru
-
-
-
---------------------------------------------------------------------------------------------------
-
-                                    FINAL RESULT PARSER CODE
-
---------------------------------------------------------------------------------------------------
-
-
-import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
-import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
-import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
-import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
-import { getTimestamp } from "../Base-Custom/Utils";
-import { SetType, tools } from "a-parser-types";
-import { Cacher } from "../Base-Custom/Cache";
-import {
-    toArray, isBadLink,
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
-} from "../Base-Custom/Fields"
-import * as cheerio from "cheerio";
-
-//#region Кастомные типы данных
-type ResultItem = Item<typeof fields>
-
-//#region Константы
-const fields = {
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
-}
-
-const HOST = "https://stroytorg812.ru"
-
-export class JS_Base_stroytorg812ru extends JS_Base_Custom {
-    static defaultConf: defaultConf = {
-            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
-            parsecodes: { 200: 1, 404: 1 },
-            proxyChecker: "tor.proxy.ru",
-            requestdelay: "3,5",
-            engine: "a-parser",
-            mode: "normal",
-        };
-
-    static editableConf: editableConf = [
-        ...defaultEditableConf
-    ];
-
-    //#region Точка входа
-    async parse(set: SetType, results: { [key: string]: any }) {
-        if (!set.type || set.type === "none") set.type = "page";
-        if (!set.region || set.region === "none") set.region = "";
-        try {
-            switch (set.type) {
-                case "page": {
-                    if (!set.page || set.page === "none") set.page = 1;
-                    await this.parsePage(set);
-                    results.success = 1;
-                    break;
-                }
-                case "card": {
-                    const cacher = getCacher<ResultItem>(this, set)
-                    let items = cacher.cache || await this.parseCard(set, cacher);
-                    items.forEach(item => results.items.addElement(item));
-                    results.success = 1;
-                    break;
-                }
-                default:
-                    this.logger.put("Указан неверный тип сбора")
-                    results.success = 0;
-            }
-        } catch (e: any) {
-            if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
-                this.logger.put(e.message);
-                results.isBadLink = 1;
-                results.success = 1;
-            } else {
-                this.logger.put(`${e.name} >> ${e.message}   ${set.query}  type - ${set.type} page ${set.page} }`);
-                results.success = 0;
-            }
-        }
-        return results;
-    }
-
-    //#region Парсинг поиска
-    async parsePage(set: SetType) {
-        
-let url = new URL(`${HOST}/content/search/`);
-url.searchParams.set("s", "");
-url.searchParams.set("q", set.query);
-url.searchParams.set("PAGEN_1", set.page);
-
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
-			let totalPages = Math.ceil(+totalItems / 12)
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("a.product-name[href]")
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
-
-    //#region Парсинг товара
-    
-
-    //#region Выполнение запроса
-    async makeRequest(url: string) {
-        const opts: AsyncHTTPXRequestOptsCustom = {
-            ...defaultOpts,
-            engine: this.conf.engine,
-            mode: this.conf.mode,
-        };
-        this.debugger.put(opts)
-
-        const { success, headers, data } = await this.request("GET", url, {}, opts);
-        this.debugger.put(data)
-
-        if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
-        if (headers.Status === 404) throw new NotFoundError();
-
-        return data;
-    }
-}
-
-// Код сгенерирован APSP v0.1
-// Дата: 11 Дек 2025
-// © BrandPol
-
-🕚 Время выполнения: 6.29 секунд
-🧢 Кол-во обращений к внешнему ИИ: 2
+product_selector = div.card.h-100.site-hover.product.type-product.post-7710.status-publish.first.instock.product_cat-18v-li-ion-akkumulyatornye-bezudarnye-drel-shurupoverty.product_tag-guarantee.has-post-thumbnail.purchasable.product-type-simple > div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
+len_of_products_on_this_page = 1

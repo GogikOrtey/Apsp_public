@@ -668,103 +668,103 @@ https://elevel.ru
 
 
 
-# data_input_table = {
-#     "host": "https://makitaclub.ru",
-#     "links": {
-#         "simple": [
-#             {
-#                 "link": "https://makitaclub.ru/products/tw007gz/",
-#                 "name": "Аккумуляторный ударный гайковерт XGT 1/2″ Makita TW007GZ (40V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-#                 "price": "18 770 ₽",
-#                 "article": "TW007GZ",
-#                 "InStock_trigger": "",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/TW007GZ01.jpg"
-#             },
-#             {
-#                 "link": "https://makitaclub.ru/products/akkumulyatornyj-udarnyj-gajkovert-makita-tw140dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-#                 "name": "Аккумуляторный ударный гайковерт Makita TW140DZ (12.0V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-#                 "price": "4 340 ₽",
-#                 "article": "TW140DZ",
-#                 "InStock_trigger": "",
-#                 "OutOfStock_trigger": "Нет в наличии",
-#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/TW140DZ.jpg"
-#             },
-#             {
-#                 "link": "https://makitaclub.ru/products/akkumulyatornaya-samohodnaya-telezhka-makita-dcu180z-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-#                 "name": "Аккумуляторная самоходная тележка Makita DCU180Z (18V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-#                 "price": "86 300 ₽",
-#                 "article": "DCU180Z",
-#                 "InStock_trigger": "",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/DCU180Z.jpg"
-#             },
-#         ]
-#     },
-#     "search_requests": [
-#         {
-#             "query": "шуруповёрт",
-#             "url_search_query_page_2": "https://makitaclub.ru/page/2/?s=шуруповёрт&post_type=product",
-#             "count_of_page_on_pagination": "9",
-#             "total_count_of_results": "0",
-#             "links_items": [
-#                 "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf484z-18v-li-ion/",
-#                 "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf482z-18v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-#                 "https://makitaclub.ru/products/akkumulyatornaya-drel-shurupovert-makita-ddf453rfe/",
-#             ]
-#         }
-#     ]
-# }
-
-
 data_input_table = {
-    "host": "https://stroytorg812.ru",
-    "fields_str": "",
+    "host": "https://makitaclub.ru",
     "links": {
         "simple": [
             {
-                "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
-                "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
-                "price": "8 390 руб.",
-                "oldprice": "",
-                "article": "U4031689", 
-                "brand": "ТРИТОН",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
+                "link": "https://makitaclub.ru/products/tw007gz/",
+                "name": "Аккумуляторный ударный гайковерт XGT 1/2″ Makita TW007GZ (40V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+                "price": "18 770 ₽",
+                "article": "TW007GZ",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://makitaclub.ru/wp-content/uploads/TW007GZ01.jpg"
             },
             {
-                "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
-                "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
-                "price": "1 860,10",
-                "oldprice": "1 958",
-                "article": "B2508830", 
-                "brand": "Bonaparte",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
+                "link": "https://makitaclub.ru/products/akkumulyatornyj-udarnyj-gajkovert-makita-tw140dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+                "name": "Аккумуляторный ударный гайковерт Makita TW140DZ (12.0V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+                "price": "4 340 ₽",
+                "article": "TW140DZ",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "Нет в наличии",
+                "imageLink": "https://makitaclub.ru/wp-content/uploads/TW140DZ.jpg"
             },
             {
-                "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
-                "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
-                "price": "9 400,00",
-                "oldprice": "12 450,00",
-                "article": "U4079315", 
-                "brand": "EMMY",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
-            }
+                "link": "https://makitaclub.ru/products/akkumulyatornaya-samohodnaya-telezhka-makita-dcu180z-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+                "name": "Аккумуляторная самоходная тележка Makita DCU180Z (18V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+                "price": "86 300 ₽",
+                "article": "DCU180Z",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://makitaclub.ru/wp-content/uploads/DCU180Z.jpg"
+            },
         ]
     },
-    "search_requests": [ ### Не очень, потому что page count, но этот случай АПСП обрабатывает
+    "search_requests": [
         {
-            "query": "ванна",
-            "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
-            "count_of_page_on_pagination": "0",
-            "total_count_of_results": "3 762",
+            "query": "шуруповёрт",
+            "url_search_query_page_2": "https://makitaclub.ru/page/2/?s=шуруповёрт&post_type=product",
+            "count_of_page_on_pagination": "9",
+            "total_count_of_results": "0",
             "links_items": [
-                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_60_s_umyvalnikom_vega_60_belaya/",
-                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/esper_60_tumba_podvesnaya1_yashchik_tsvet_belyy_s_umyvalnikom_esp60w0i95k/",
-                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_70_s_umyvalnikom_vega_70_belaya/",
+                "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf484z-18v-li-ion/",
+                "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf482z-18v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+                "https://makitaclub.ru/products/akkumulyatornaya-drel-shurupovert-makita-ddf453rfe/",
             ]
         }
     ]
 }
+
+
+# data_input_table = {
+#     "host": "https://stroytorg812.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
+#                 "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
+#                 "price": "8 390 руб.",
+#                 "oldprice": "",
+#                 "article": "U4031689", 
+#                 "brand": "ТРИТОН",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
+#             },
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
+#                 "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
+#                 "price": "1 860,10",
+#                 "oldprice": "1 958",
+#                 "article": "B2508830", 
+#                 "brand": "Bonaparte",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
+#             },
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
+#                 "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
+#                 "price": "9 400,00",
+#                 "oldprice": "12 450,00",
+#                 "article": "U4079315", 
+#                 "brand": "EMMY",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
+#             }
+#         ]
+#     },
+#     "search_requests": [ ### Не очень, потому что page count, но этот случай АПСП обрабатывает
+#         {
+#             "query": "ванна",
+#             "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
+#             "count_of_page_on_pagination": "0",
+#             "total_count_of_results": "3 762",
+#             "links_items": [
+#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_60_s_umyvalnikom_vega_60_belaya/",
+#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/esper_60_tumba_podvesnaya1_yashchik_tsvet_belyy_s_umyvalnikom_esp60w0i95k/",
+#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_70_s_umyvalnikom_vega_70_belaya/",
+#             ]
+#         }
+#     ]
+# }
