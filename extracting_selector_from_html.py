@@ -666,9 +666,11 @@ def simplify_selector_keep_value(
 
     
 
+###### Вот эти комментарии ниже - удалить, они устарели
+
+# region Проверка sel
 
 
-# # region Проверка sel
 # # Получает и возвращает значение элемента по селектору
 # def get_element_from_selector(html, selector, is_ret_len=False):
 #     # Проверяем, что селектор не пустой
@@ -703,7 +705,8 @@ def simplify_selector_keep_value(
 
 
 
-# region Проверка sel
+
+
 # # Получает и возвращает значение элемента по селектору
 # def get_element_from_selector(html, selector):
 #     # Проверяем, что селектор не пустой
