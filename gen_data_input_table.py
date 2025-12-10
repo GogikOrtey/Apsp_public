@@ -565,60 +565,60 @@ https://elevel.ru
 #     ]
 # }
 
-data_input_table = {
-    "host": "https://gidro-top.ru",
-    "fields_str": "",
-    "links": {
-        "simple": [
-            {
-                "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
-                "name": "Aquanet SD-1200A душевая дверь",
-                "price": "19 850 ₽",
-                "oldPrice": "",
-                "article": "00209406",
-                "brand": "Aquanet",
-                "InStock_trigger": "В наличии",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
-            },
-            {
-                "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
-                "name": "Aquastone Малибу Ванна из искусственного камня",
-                "price": "55 000 ₽",
-                "oldPrice": "69 000 ₽",
-                "article": "MAlibu",
-                "brand": "Aquastone",
-                "InStock_trigger": "В наличии",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
-            },
-            {
-                "link": "https://gidro-top.ru/product/aquastone-bali-180/",
-                "name": "Aquastone Бали 180 Ванна из искусственного камня",
-                "price": "53 000 ₽",
-                "oldPrice": "",
-                "article": "Bali180",
-                "brand": "Aquastone",
-                "InStock_trigger": "В наличии",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
-            }
-        ]
-    },
-    "search_requests": [ ####### Плохо: Нет параметра для поиска, он зашит внутри url
-        {
-            "query": "Ванна",
-            "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
-            "count_of_page_on_pagination": "255",
-            "total_count_of_results": "0",
-            "links_items": [
-                "https://gidro-top.ru/product/relisan-ariadna-150x100-r-akrilovaya-vanna/",
-                "https://gidro-top.ru/product/abber-kristall-at9703amber-prozrachnaya-vanna/",
-                "https://gidro-top.ru/product/wotte-line-160kh70-chugunnaya-vanna/",
-            ]
-        }
-    ]
-}
+# data_input_table = {
+#     "host": "https://gidro-top.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
+#                 "name": "Aquanet SD-1200A душевая дверь",
+#                 "price": "19 850 ₽",
+#                 "oldPrice": "",
+#                 "article": "00209406",
+#                 "brand": "Aquanet",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
+#             },
+#             {
+#                 "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
+#                 "name": "Aquastone Малибу Ванна из искусственного камня",
+#                 "price": "55 000 ₽",
+#                 "oldPrice": "69 000 ₽",
+#                 "article": "MAlibu",
+#                 "brand": "Aquastone",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
+#             },
+#             {
+#                 "link": "https://gidro-top.ru/product/aquastone-bali-180/",
+#                 "name": "Aquastone Бали 180 Ванна из искусственного камня",
+#                 "price": "53 000 ₽",
+#                 "oldPrice": "",
+#                 "article": "Bali180",
+#                 "brand": "Aquastone",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
+#             }
+#         ]
+#     },
+#     "search_requests": [ ####### Плохо: Нет параметра для поиска, он зашит внутри url
+#         {
+#             "query": "Ванна",
+#             "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
+#             "count_of_page_on_pagination": "255",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://gidro-top.ru/product/relisan-ariadna-150x100-r-akrilovaya-vanna/",
+#                 "https://gidro-top.ru/product/abber-kristall-at9703amber-prozrachnaya-vanna/",
+#                 "https://gidro-top.ru/product/wotte-line-160kh70-chugunnaya-vanna/",
+#             ]
+#         }
+#     ]
+# }
 
 
 # data_input_table = {
@@ -665,3 +665,54 @@ data_input_table = {
 #         }
 #     ]
 # }
+
+
+
+
+data_input_table = {
+    "host": "https://makitaclub.ru",
+    "links": {
+        "simple": [
+            {
+                "link": "https://makitaclub.ru/products/tw007gz/",
+                "name": "Аккумуляторный ударный гайковерт XGT 1/2″ Makita TW007GZ (40V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+                "price": "18 770 ₽",
+                "article": "TW007GZ",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://makitaclub.ru/wp-content/uploads/TW007GZ01.jpg"
+            },
+            {
+                "link": "https://makitaclub.ru/products/akkumulyatornyj-udarnyj-gajkovert-makita-tw140dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+                "name": "Аккумуляторный ударный гайковерт Makita TW140DZ (12.0V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+                "price": "4 340 ₽",
+                "article": "TW140DZ",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "Нет в наличии",
+                "imageLink": "https://makitaclub.ru/wp-content/uploads/TW140DZ.jpg"
+            },
+            {
+                "link": "https://makitaclub.ru/products/akkumulyatornaya-samohodnaya-telezhka-makita-dcu180z-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+                "name": "Аккумуляторная самоходная тележка Makita DCU180Z (18V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+                "price": "86 300 ₽",
+                "article": "DCU180Z",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://makitaclub.ru/wp-content/uploads/DCU180Z.jpg"
+            },
+        ]
+    },
+    "search_requests": [
+        {
+            "query": "шуруповёрт",
+            "url_search_query_page_2": "https://makitaclub.ru/page/2/?s=шуруповёрт&post_type=product",
+            "count_of_page_on_pagination": "9",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf484z-18v-li-ion/",
+                "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf482z-18v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+                "https://makitaclub.ru/products/akkumulyatornaya-drel-shurupovert-makita-ddf453rfe/",
+            ]
+        }
+    ]
+}
