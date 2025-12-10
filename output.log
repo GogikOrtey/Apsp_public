@@ -1,4 +1,4 @@
-11.12.2025 00:32:56
+11.12.2025 00:40:10
 
 
 
@@ -73,7 +73,9 @@ url.searchParams.set('/?page', set.page);
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/page/${set.page}/?s=${set.query}&post_type=product`)
+let url = new URL(`${HOST}/page/${set.page}/?s=шуруповёрт&post_type=product`)
+url.searchParams.set("s", set.query)
+url.searchParams.set("post_type", "product")
 ```"
 
 
@@ -81,3 +83,6 @@ let url = new URL(`${HOST}/page/${set.page}/?s=${set.query}&post_type=product`)
 
 product_selector = div.card.h-100.site-hover.product.type-product.post-7710.status-publish.first.instock.product_cat-18v-li-ion-akkumulyatornye-bezudarnye-drel-shurupoverty.product_tag-guarantee.has-post-thumbnail.purchasable.product-type-simple > div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
 len_of_products_on_this_page = 1
+🟡 Скорее всего селектор неверный, элементов < 6
+Пробуем другие ссылки
+Совпадение ссылок = 0.33 (1/3)
