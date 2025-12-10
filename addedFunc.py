@@ -3,6 +3,11 @@ from import_all_libraries import *
 
 # TODO: Когда здесь наберётся достаточно функций, разбить их по категориям, и добавить оглавление
 
+def print_json(input_json):
+    text = json.dumps(input_json, indent=4, ensure_ascii=False)
+    text = text.replace('\\"', '"')
+    print(text)
+
 # Возвращает текущую дату в формате "4 дек 2025"
 def get_current_date():
     # Получаем текущую дату
@@ -24,6 +29,17 @@ def get_current_date():
     return formatted_date
 
     
+def normalize_image_url(s: str) -> str:
+    # убираем домен и протокол
+    s = re.sub(r'^https?://[^/]+', '', s)
+    return s
+
+def similarity_percent_smart(a: str, b: str) -> float:
+    a_n = normalize_image_url(a)
+    b_n = normalize_image_url(b)
+    return SequenceMatcher(None, a_n, b_n).ratio() * 100
+
+
 def clearAnswerCode(input_code):
     return input_code
 

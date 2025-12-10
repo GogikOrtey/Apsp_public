@@ -28,34 +28,7 @@ this_module_title = """
 
 
 
-
-
-
-########## Добавить мини-отчёт в логе, для каких ключей мы нашли селектор полным совпадением, для каких
-# частичным, с помощью ИИ, а для каких - не нашли
-
-
-
-
-
-
-
-
-
-
 # region Создаю parseCard
-
-"""
-
-Если InStock_trigger и OutOfStock_trigger - одинаковые, то
-используем проверку на InStock_trigger, а по умолчанию оставляем значение "OutOfStock"
-
-Использует автоформаттер для price и oldPrice
-Проверяет, что итоговые значения корректны
-    Простейшая проверка - попробовать пройтись parseInt
-    const price = $(".b").text().trim().formatPrice()
-
-"""
 
 def format_js(code: str) -> str:
     opts = jsbeautifier.default_options()
@@ -256,8 +229,11 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                             p1 = format_price(selector_result_data)
                             p2 = format_price(selector_result_data, ",")
 
-                            print(f"    p1 = {p1}")
-                            print(f"    p2 = {p2}")
+                            if p1 != p2:
+                                print(f"    p1 = {p1}")
+                                print(f"    p2 = {p2}")
+                            
+                            # TODO Простейшая проверка - попробовать пройтись parseInt
 
                             if p1.endswith("."):
                                 is_use_comma_on_formatPrice = '","'
@@ -401,7 +377,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # print(value_field)
 
     ## Это будет приходить из global_code
-    # order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  # Это пример, замените на ваш источник
+    # order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  
     
     if not data_input_table.get("fields_str"):
         raise ErrorHandler("Нет значения в поле fields_str")
@@ -530,31 +506,31 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
 # region Пример result_selectors
-# Пример использования (тот же, что вы дали)
-result_selectors = {
-    "name": [
-        "h1.name"
-    ],
-    "price": [
-        ".b"
-    ],
-    "oldPrice": [
-        ".thr",
-        # ".thr2", ### Для теста
-    ],
-    "article": [
-        ".char > p:nth-of-type(1)"
-    ],
-    "brand": [
-        ".char > p:nth-of-type(2)"
-    ],
-    "InStock_trigger": [
-        ".nal.y"
-    ],
-    "imageLink": [
-        "html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href]"
-    ]
-}
+# # Пример использования 
+# result_selectors = {
+#     "name": [
+#         "h1.name"
+#     ],
+#     "price": [
+#         ".b"
+#     ],
+#     "oldPrice": [
+#         ".thr",
+#         # ".thr2", ### Для теста
+#     ],
+#     "article": [
+#         ".char > p:nth-of-type(1)"
+#     ],
+#     "brand": [
+#         ".char > p:nth-of-type(2)"
+#     ],
+#     "InStock_trigger": [
+#         ".nal.y"
+#     ],
+#     "imageLink": [
+#         "html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox[href]"
+#     ]
+# }
 
 ################################## вызов для проверки (раскомментируйте для отладки)
 # selector_checker_and_parseCard_gen(result_selectors, {"links": {"simple": [{"InStock_trigger": ".nal.y"}]}})

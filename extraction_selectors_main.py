@@ -118,18 +118,6 @@ def fill_selectors_for_items(input_items, get_css_selector_from_text_value_eleme
 
 
 
-def normalize_image_url(s: str) -> str:
-    # убираем домен и протокол
-    s = re.sub(r'^https?://[^/]+', '', s)
-    return s
-
-def similarity_percent_smart(a: str, b: str) -> float:
-    a_n = normalize_image_url(a)
-    b_n = normalize_image_url(b)
-    return SequenceMatcher(None, a_n, b_n).ratio() * 100
-
-
-
 # region Результ. sel сайта
 
 # Перебирает все селекторы которые мы собрали со всех страничек, 

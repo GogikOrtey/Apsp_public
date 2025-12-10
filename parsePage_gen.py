@@ -23,117 +23,6 @@ this_module_title = """
 
 
 
-#TODO Потом интегрировать это в вынесенный файл с данными
-
-# # Данные с сайта 5
-# data_input_table = {
-#     "host": "",
-#     "links": {
-
-#     },
-#     "search_requests": [
-#         {
-#             "query": "Ванна акриловая",
-#             "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0+%D0%B0%D0%BA%D1%80%D0%B8%D0%BB%D0%BE%D0%B2%D0%B0%D1%8F&PAGEN_1=2",
-#             "count_of_page_on_pagination": "0",
-#             # Число последней страницы, если оно отображается в блоке пагинации внизу
-#             "total_count_of_results": "576",
-#             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
-#             "links_items": [
-#                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_lorena_1_5x0_7_pryamougolnaya_bez_nozhek_panel/",
-#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_20kh0_70_standart_120/",
-#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_50kh0_70_standart_150/",
-#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_60kh0_70_standart_160/",
-#                 "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_30kh0_70_ultra_130_/",
-#             ]
-#         }
-#     ],
-#     "timestamp": 1764753782
-# }
-
-# # Данные с сайта 1
-# data_input_table = {
-#     "host": "",
-#     "links": {
-
-#     },
-#     "search_requests": [
-#         {
-#             "query": "Ванна",
-#             "url_search_query_page_2": "https://vodomirural.ru/search/?tags=&how=r&q=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
-#             "count_of_page_on_pagination": "6",
-#             # Число последней страницы, если оно отображается в блоке пагинации внизу
-#             "total_count_of_results": "0",
-#             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
-#             "links_items": [
-#                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
-#             ]
-#         }
-#     ],
-#     "timestamp": 1764753782
-# }
-
-
-#TODO У сайта 3 нет пагинации вообще, при поиске
-# Надо найти кол-во найденных товаров
-# И сверить с кол-вом товаров на странице
-# И если при какой-то галочке, то пропускаем 
-
-
-# # Данные с сайта 2
-# #TODO Здесь надо внедрять установку оффсета
-# # Проверять, если явной пагинации нет, но оффсет есть - то выислять разницу между 2 и 3й страницами
-# # и привязывать его к пагинации
-# data_input_table = {
-#     "host": "",
-#     "links": {
-
-#     },
-#     "search_requests": [
-#         {
-#             "query": "Ванна",
-#             "url_search_query_page_2": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=24",
-#             "url_search_query_page_3": "https://santehnica-vodoley.ru/search/?find=%D0%92%D0%B0%D0%BD%D0%BD%D0%B0&curPos=48",
-#             "count_of_page_on_pagination": "6",
-#             # Число последней страницы, если оно отображается в блоке пагинации внизу
-#             "total_count_of_results": "0",
-#             # Если нет последней страницы пагинации, то общее кол-во найденых товаров
-#             "links_items": [
-#                 # Нужно также прописать в тз, что эти поисковые запросы должны содержать больше 2х страниц
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33951/?sphrase_id=4108852",
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/33945/?sphrase_id=4108852",
-#                 "https://vodomirural.ru/catalog/vanny_stalnye_i_aksessuary_k_nim/41341/?sphrase_id=4108852",
-#             ]
-#         }
-#     ],
-#     "timestamp": 1764872654
-# }
-
-# # Данные с сайта 4
-# data_input_table = {
-#     "host": "",
-#     "links": {
-
-#     },
-#     "search_requests": [
-#         {
-#             "query": "Ванна",
-#             "url_search_query_page_2": "https://kotel-nasos.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
-#             "count_of_page_on_pagination": "115",
-#             "total_count_of_results": "0",
-#             "links_items": [
-#                 "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-54/",
-#                 "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-48/",
-#                 "https://kotel-nasos.ru/elektricheskiy-kotel-evan-epo-pro-42/",
-#             ]
-#         }
-#     ],
-#     "timestamp": 1764839602
-# }
 
 def extract_params(url: str) -> dict:
     parsed = urlparse(url)
@@ -332,12 +221,6 @@ def generate_parsePage(set_item):
     """)
 
     # Проверяем, есть ли в извлекаемой ссылке хост
-
-    # убрать
-    # result_once_search_elem = get_element_from_selector_universal(set_item["page_html"], set_item["product_selector"])
-    # print("result_once_search_elem = " + result_once_search_elem)
-    # if 
-
     finalProductLink_val = '$(product)?.attr("href")'
     if set_item.get("is_add_host") is True:
         finalProductLink_val = '`${HOST}${$(product)?.attr("href")}`'
@@ -477,7 +360,8 @@ def main_generate_parsePage():
     """
 
 
-
+    # Ещё возможно что у нас указано кол-во найденных товаров, но нет пагинации
+    # и нужно будет посчитать количество элементов на этой странице, и разделить на общее
 
 
 

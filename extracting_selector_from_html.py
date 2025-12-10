@@ -6,14 +6,9 @@
 from import_all_libraries import * 
 
 isPrint = False
-# isPrint = True #################################################################
+# isPrint = True 
 
 # region Доп. методы
-
-def print_json(input_json):
-    text = json.dumps(input_json, indent=4, ensure_ascii=False)
-    text = text.replace('\\"', '"')
-    print(text)
 
 def clean_html(text: str) -> str:
     if not text:
@@ -71,189 +66,6 @@ content_html = {
 
 
 # region Поиск селекторов
-# def find_text_selector(
-#     html: str,
-#     text: str,
-#     exact: bool = True,
-#     return_all_selectors: bool = False,
-#     isPriceHandle: bool = False,
-#     allow_complex_classes: bool = False  # Использовать ли сложные аттрибуты, типо [class*="..."]
-# ):
-#     # Игнорируем атрибуты, содержащие эти подстроки, при поиске css пути
-#     IGNORED_SUBSTRS = ["data", "src", "href", "alt", "title", "content", "title"]
-#     PRIORITY_ATTRS = ["name", "property", "itemprop", "id"]
-
-#     if isPriceHandle:
-#         html = clean_html(html)
-#         text = normalize_price(text)
-
-#     DANGEROUS_CHARS = set(':[]/%%()#') 
-
-#     def class_is_dangerous(cls: str) -> bool:
-#         if not cls:
-#             return False
-#         # Класс содержит опасные символы
-#         if any(ch in cls for ch in DANGEROUS_CHARS):
-#             return True
-#         # Класс содержит кавычки или пробел
-#         if '"' in cls or "'" in cls or " " in cls:
-#             return True
-#         # Класс начинается с цифры
-#         if cls[0].isdigit():
-#             return True
-#         return False
-
-#     def escape_attr_value(val: str) -> str:
-#         return val.replace('"', '\\"')
-
-#     def get_css_path(element):
-#         path = []
-#         while element and element.name and element.name != "[document]":
-#             selector = element.name
-
-#             # Если есть id — используем его
-#             if element.has_attr("id"):
-#                 selector = f"#{element['id']}"
-#                 path.append(selector)
-#                 break
-
-#             # Классы
-#             if element.has_attr("class"):
-#                 cls_parts = []
-#                 for cls in element.get("class", []):
-#                     if not cls:
-#                         continue
-#                     # если класс опасный
-#                     if class_is_dangerous(cls):
-#                         if allow_complex_classes:
-#                             cls_parts.append(f'[class*="{escape_attr_value(cls)}"]')
-#                         else:
-#                             continue  # ❌ пропускаем опасные классы
-#                     else:
-#                         cls_parts.append(f'.{cls}')
-#                 selector += "".join(cls_parts)
-
-#             # Проверяем наличие значимых атрибутов
-#             has_significant_attr = any(
-#                 (
-#                     attr in PRIORITY_ATTRS or not any(sub in attr for sub in IGNORED_SUBSTRS)
-#                 )
-#                 for attr in element.attrs.keys()
-#             )
-
-#             if not has_significant_attr:
-#                 siblings = element.find_previous_siblings(element.name)
-#                 if siblings:
-#                     selector += f":nth-of-type({len(siblings) + 1})"
-
-#             path.append(selector)
-#             element = element.parent
-
-#         return " > ".join(reversed(path))
-
-#     def normalize_text(s):
-#         return " ".join(s.split())
-
-#     def similarity(a, b):
-#         return SequenceMatcher(None, normalize_text(a), normalize_text(b)).ratio()
-
-#     def make_selector(el, base_selector, attr_name):
-#         parts = [base_selector]
-#         is_ignored = any(sub in attr_name for sub in IGNORED_SUBSTRS)
-
-#         element_id = el.get("id")
-#         has_id_in_base = element_id and f"#{element_id}" in base_selector
-
-#         if is_ignored:
-#             for alt_attr in PRIORITY_ATTRS:
-#                 if el.has_attr(alt_attr):
-#                     if alt_attr == "id" and has_id_in_base:
-#                         continue
-#                     val = el.get(alt_attr)
-#                     if isinstance(val, list):
-#                         val = " ".join(val)
-#                     if isinstance(val, str):
-#                         parts.append(f'[{alt_attr}="{escape_attr_value(val.strip())}"]')
-#                     break
-#             parts.append(f'[{attr_name}]')
-#         else:
-#             val = el.get(attr_name)
-#             if isinstance(val, list):
-#                 val = " ".join(val)
-#             if isinstance(val, str):
-#                 if attr_name == "id" and has_id_in_base:
-#                     return "".join(parts)
-#                 parts.append(f'[{attr_name}="{escape_attr_value(val.strip())}"]')
-#             else:
-#                 parts.append(f'[{attr_name}]')
-
-#         return "".join(parts)
-
-#     # --- Парсим HTML ---
-#     soup = BeautifulSoup(html, "html.parser")
-#     selectors = []
-
-#     # --- Основной поиск (точное совпадение) ---
-#     for el in soup.find_all(True):
-#         element_text = el.get_text(strip=True)
-#         if element_text:
-#             check_value = normalize_price(element_text) if isPriceHandle else element_text
-#             match = (text == check_value) if exact else (text in check_value)
-#             if match:
-#                 selector = get_css_path(el)
-#                 if return_all_selectors:
-#                     selectors.append(selector)
-#                 else:
-#                     return selector
-
-#         for attr_name, attr_val in el.attrs.items():
-#             if isinstance(attr_val, list):
-#                 attr_val = " ".join(attr_val)
-#             if isinstance(attr_val, str):
-#                 check_value = normalize_price(attr_val) if isPriceHandle else attr_val
-#                 match = (text == check_value) if exact else (text in check_value)
-#                 if match:
-#                     base_selector = get_css_path(el)
-#                     selector = make_selector(el, base_selector, attr_name)
-#                     if return_all_selectors:
-#                         selectors.append(selector)
-#                     else:
-#                         return selector
-
-#     # --- Нестрогий поиск ---
-#     if not selectors:
-#         threshold = 0.7
-#         for el in soup.find_all(True):
-#             element_text = el.get_text(strip=True)
-#             if element_text:
-#                 check_value = normalize_price(element_text) if isPriceHandle else element_text
-#                 score = similarity(text, check_value)
-#                 if score >= threshold:
-#                     selector = get_css_path(el)
-#                     if return_all_selectors:
-#                         selectors.append(selector)
-#                     else:
-#                         return selector
-
-#             for attr_name, attr_val in el.attrs.items():
-#                 if isinstance(attr_val, list):
-#                     attr_val = " ".join(attr_val)
-#                 if isinstance(attr_val, str):
-#                     check_value = normalize_price(attr_val) if isPriceHandle else attr_val
-#                     score = similarity(text, check_value)
-#                     if score >= threshold:
-#                         base_selector = get_css_path(el)
-#                         selector = make_selector(el, base_selector, attr_name)
-#                         if return_all_selectors:
-#                             selectors.append(selector)
-#                         else:
-#                             return selector
-
-#     if return_all_selectors:
-#         return selectors if selectors else None
-#     return None
-
-
 def find_text_selector(
     html: str,
     text: str,
@@ -892,59 +704,59 @@ def simplify_selector_keep_value(
 
 
 # region Проверка sel
-# Получает и возвращает значение элемента по селектору
-def get_element_from_selector(html, selector):
-    # Проверяем, что селектор не пустой
-    if not selector or not selector.strip():
-        return ""
+# # Получает и возвращает значение элемента по селектору
+# def get_element_from_selector(html, selector):
+#     # Проверяем, что селектор не пустой
+#     if not selector or not selector.strip():
+#         return ""
     
-    tree = html_lx.fromstring(html)
-    search_elem = tree.cssselect(selector)
-    if len(search_elem) == 0: 
-        # print("🟡 По селектору элемент не найден")
-        return ""
-    element = search_elem[0]
+#     tree = html_lx.fromstring(html)
+#     search_elem = tree.cssselect(selector)
+#     if len(search_elem) == 0: 
+#         # print("🟡 По селектору элемент не найден")
+#         return ""
+#     element = search_elem[0]
 
-    # Проверяем, есть ли в селекторе указание атрибута в []
-    attr_match = re.search(r"\[([a-zA-Z0-9_-]+)\]", selector)
+#     # Проверяем, есть ли в селекторе указание атрибута в []
+#     attr_match = re.search(r"\[([a-zA-Z0-9_-]+)\]", selector)
 
-    if attr_match:
-        attr_name = attr_match.group(1)
-        result = element.get(attr_name)
-    else:
-        # Возвращаем только текст внутри элемента
-        result = element.text_content().strip()
+#     if attr_match:
+#         attr_name = attr_match.group(1)
+#         result = element.get(attr_name)
+#     else:
+#         # Возвращаем только текст внутри элемента
+#         result = element.text_content().strip()
     
-    return result
+#     return result
 
 
-# TODO Тут эти 3 процедуры устарели, их удалить
+# # TODO Тут эти 3 процедуры устарели, их удалить
 
 
-# Возвращает элемент, и его длину
-def get_element_from_selector_and_len(html, selector):
-    # Проверяем, что селектор не пустой
-    if not selector or not selector.strip():
-        return {"result": "", "length_elem": 0}
+# # Возвращает элемент, и его длину
+# def get_element_from_selector_and_len(html, selector):
+#     # Проверяем, что селектор не пустой
+#     if not selector or not selector.strip():
+#         return {"result": "", "length_elem": 0}
 
-    tree = html_lx.fromstring(html)
-    search_elem = tree.cssselect(selector)
-    if len(search_elem) == 0:
-        return {"result": "", "length_elem": 0}
+#     tree = html_lx.fromstring(html)
+#     search_elem = tree.cssselect(selector)
+#     if len(search_elem) == 0:
+#         return {"result": "", "length_elem": 0}
     
-    element = search_elem[0]
+#     element = search_elem[0]
 
-    # Проверяем, есть ли в селекторе указание атрибута в []
-    attr_match = re.search(r"\[([a-zA-Z0-9_-]+)\]", selector)
+#     # Проверяем, есть ли в селекторе указание атрибута в []
+#     attr_match = re.search(r"\[([a-zA-Z0-9_-]+)\]", selector)
 
-    if attr_match:
-        attr_name = attr_match.group(1)
-        result = element.get(attr_name)
-    else:
-        result = element.text_content().strip()
+#     if attr_match:
+#         attr_name = attr_match.group(1)
+#         result = element.get(attr_name)
+#     else:
+#         result = element.text_content().strip()
     
-    return {"result": result, "length_elem": len(search_elem)}
-    # Сделал 2 процедуры, потому что на оригинальную get_element_from_selector завязано очень много всего
+#     return {"result": result, "length_elem": len(search_elem)}
+#     # Сделал 2 процедуры, потому что на оригинальную get_element_from_selector завязано очень много всего
 
 
 
@@ -1126,165 +938,3 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
         # Если добавление ::text вызвало ошибку, пробуем другой способ
         result, count = extract_text_via_html()
         return format_result(result, count)
-
-
-
-
-# # Реализация поиска элемента по селектору, которая умеет искать по сложным аттрибутам, таким как :contains() и :has()
-# def get_element_from_selector_universal(html, selector, is_ret_len=False):
-#     # Пустой селектор → пустая строка
-#     if not selector or not selector.strip():
-#         return ""
-
-#     sel = ParselSelector(html)
-
-#     # Проверяем, есть ли атрибут в виде [attr]
-#     # (пример: div[data-id])
-#     attr_match = re.search(r"\[([a-zA-Z0-9_-]+)\]", selector)
-
-#     # Если пользователь сам указал ::attr(...) или ::text — используем как есть
-#     if "::attr(" in selector or "::text" in selector:
-#         try:
-#             result = sel.css(selector).get()
-#             return result.strip() if result else ""
-#         except Exception:
-#             return ""
-
-#     # Проверяем, содержит ли селектор сложные псевдоклассы, которые могут конфликтовать с ::text
-#     # К таким относятся: :has, :contains, и другие функциональные псевдоклассы с параметрами
-#     complex_pseudo_patterns = [
-#         r":has\s*\(",
-#         r":contains\s*\(",
-#     ]
-    
-#     has_complex_pseudo = any(re.search(pattern, selector, re.IGNORECASE) for pattern in complex_pseudo_patterns)
-
-#     # Функция для преобразования CSS селектора с :contains() и :has() в XPath
-#     def css_to_xpath_with_complex_pseudo(css_selector):
-#         """
-#         Преобразует CSS селектор с :contains() и :has() в XPath
-#         Пример: tr:has(td:contains("text")) td:nth-child(2) -> //tr[td[contains(text(), 'text')]]/td[2]
-#         """
-#         # Обработка селектора вида: tr:has(td:contains("text")) td:nth-child(2)
-#         # Паттерн для :has(td:contains("..."))
-#         has_contains_pattern = r':has\s*\(\s*td\s*:\s*contains\s*\(\s*"([^"]+)"\s*\)\s*\)'
-#         match = re.search(has_contains_pattern, css_selector, re.IGNORECASE)
-        
-#         if match:
-#             text_to_find = match.group(1)
-#             # Разделим селектор на части: до :has и после
-#             before_has = css_selector[:match.start()].strip()
-#             after_has = css_selector[match.end():].strip()
-            
-#             # Извлекаем тег перед :has (например, "tr")
-#             tag_before = before_has.split()[-1] if before_has.split() else "tr"
-            
-#             # Экранируем кавычки в тексте для XPath (если есть одинарные - используем двойные и наоборот)
-#             if "'" in text_to_find:
-#                 # Если есть одинарные кавычки, используем двойные и экранируем их
-#                 text_escaped = text_to_find.replace('"', '&quot;')
-#                 xpath = f'//{tag_before}[td[contains(text(), "{text_escaped}")]]'
-#             else:
-#                 # Используем одинарные кавычки
-#                 xpath = f"//{tag_before}[td[contains(text(), '{text_to_find}')]]"
-            
-#             # Обработаем часть после :has (например, " td:nth-child(2)")
-#             if after_has:
-#                 after_has = after_has.strip()
-#                 # Обработаем nth-child(n) - ищем паттерн вида "td:nth-child(2)"
-#                 nth_child_match = re.search(r'(\w+)\s*:\s*nth-child\s*\(\s*(\d+)\s*\)', after_has)
-#                 if nth_child_match:
-#                     tag = nth_child_match.group(1)
-#                     index = nth_child_match.group(2)
-#                     xpath += f"/{tag}[{index}]"
-#                 else:
-#                     # Если нет nth-child, но есть тег и другие селекторы
-#                     # Просто добавим остаток, заменив пробелы на /
-#                     parts = after_has.split()
-#                     for part in parts:
-#                         part = part.strip()
-#                         if part and not part.startswith(':'):
-#                             xpath += f"/{part}"
-            
-#             return xpath
-        
-#         return None
-
-#     # Если есть [attr], автоматически извлекаем атрибут
-#     if attr_match:
-#         attr_name = attr_match.group(1)
-#         # Удаляем квадратные скобки из селектора, иначе CSS будет путаться
-#         cleaned_selector = re.sub(r"\[[^\]]+\]", "", selector).strip()
-        
-#                 # Если селектор содержит сложные псевдоклассы, используем XPath
-#         if has_complex_pseudo:
-#             try:
-#                 # Преобразуем в XPath и ищем элемент
-#                 xpath = css_to_xpath_with_complex_pseudo(cleaned_selector)
-#                 if xpath:
-#                     tree = html_lx.fromstring(html)
-#                     elements = tree.xpath(xpath)
-#                     if elements and len(elements) > 0:
-#                         result = elements[0].get(attr_name)
-#                         return result.strip() if result else ""
-#                 return ""
-#             except Exception:
-#                 return ""
-#         else:
-#             try:
-#                 css = f"{cleaned_selector}::attr({attr_name})"
-#                 result = sel.css(css).get()
-#                 return result.strip() if result else ""
-#             except Exception:
-#                 return ""
-
-#     # Функция для безопасного извлечения текста через XPath для сложных селекторов
-#     def extract_via_xpath():
-#         try:
-#             # Используем уже импортированный html_lx через import_all_libraries
-#             tree = html_lx.fromstring(html)
-            
-#             # Пытаемся преобразовать CSS в XPath
-#             xpath = css_to_xpath_with_complex_pseudo(selector)
-            
-#             if xpath:
-#                 # Используем XPath для поиска элементов
-#                 elements = tree.xpath(xpath)
-#                 if elements and len(elements) > 0:
-#                     result = elements[0].text_content()
-#                     return result.strip() if result else ""
-            
-#             return ""
-#         except Exception as e:
-#             # В случае ошибки возвращаем пустую строку
-#             return ""
-
-#     # Функция для безопасного извлечения текста через HTML элемент
-#     def extract_text_via_html():
-#         try:
-#             element_html = sel.css(selector).get()
-#             if element_html:
-#                 from lxml import html as html_lx
-#                 elem_tree = html_lx.fromstring(element_html)
-#                 result = elem_tree.text_content()
-#                 return result.strip() if result else ""
-#             return ""
-#         except Exception:
-#             return ""
-
-#     # Если селектор содержит сложные псевдоклассы, используем XPath
-#     if has_complex_pseudo:
-#         result = extract_via_xpath()
-#         if result:
-#             return result
-#         # Если XPath не сработал, пробуем через HTML
-#         return extract_text_via_html()
-
-#     # Иначе — пробуем стандартный способ с ::text
-#     try:
-#         css = selector + "::text"
-#         result = sel.css(css).get()
-#         return result.strip() if result else ""
-#     except Exception:
-#         # Если добавление ::text вызвало ошибку, пробуем другой способ
-#         return extract_text_via_html()
