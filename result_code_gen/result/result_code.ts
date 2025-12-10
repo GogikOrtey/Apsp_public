@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
+    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
+    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 }
 
-const HOST = "https://hb-shop.by"
+const HOST = "https://stroytorg812.ru"
 
-export class JS_Base_hbshopby extends JS_Base_Custom {
+export class JS_Base_stroytorg812ru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -81,18 +81,18 @@ export class JS_Base_hbshopby extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("#modal_review > .modal__window > .modal__body > .modal__desc > .product-small.nohover > .product-small__body > .product-small__header > .product-small__title").text()?.trim()
-		const stock = $("#swiper_tovar_similar > .swiper-container > .swiper-wrapper > .swiper-slide > .product > .product__shorts.product-shorts > .product-shorts__item > span").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
+        const name = $("h1.name").text()?.trim()
+		const stock = $(".nal.y").text()?.includes("есть на складе") ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = $(".tovar__action-price.price > .new > span")?.first().text()?.trim().formatPrice()
-		const oldPrice = $("html > body.template.template--tovar > .template__body.container > main.template__main > .section > .tovar > .tovar__info > .tovar__action-price__wrapper > .tovar__action-price.price > .old > span")?.first().text()?.trim().formatPrice()
-		const article = $(".pagetitle__subtitle")?.first()?.text()?.trim()?.split(": ")?.at(1)?;
-		const brand = $("#tab_chars > table tr:has(td:contains("Бренд")) > td:nth-child(2)")?.first().text()?.trim()
-		const imageLink = $("#swiper_tovar_gallery_1 > .gallery__top > .swiper-container > .swiper-wrapper > .swiper-slide > a.tovar__gallery-item").first()?.attr("href")?.trim()?.includes(HOST) ? $("#swiper_tovar_gallery_1 > .gallery__top > .swiper-container > .swiper-wrapper > .swiper-slide > a.tovar__gallery-item").first()?.attr("href")?.trim()?.replace(HOST + "/assets/", HOST) : ""
+		const price = $(".b").text()?.trim().formatPrice(",")
+		const oldprice = $(".thr").text()?.trim().formatPrice(",")
+		const article = $(".char > p:nth-of-type(1)").text()?.trim()
+		const brand = $(".char > p:nth-of-type(2)").text()?.trim()
+		const imageLink = $(".img > a.fancybox")?.first()?.attr("href")?.trim() ? HOST + $(".img > a.fancybox")?.first()?.attr("href")?.trim() : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
+            name, stock, link, price, oldprice, article, brand, imageLink, timestamp
         }
         items.push(item);
 
@@ -120,5 +120,5 @@ export class JS_Base_hbshopby extends JS_Base_Custom {
 }
 
 // Код сгенерирован APSP v0.1
-// Дата: 10 Дек 2025
+// Дата: 11 Дек 2025
 // © BrandPol

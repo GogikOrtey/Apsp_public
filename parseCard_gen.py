@@ -214,7 +214,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     print("")
 
                     # Отдельно обрабатываю денежные поля
-                    if key in ["price", "oldPrice"]:
+                    if key in ["price", "oldprice"]:
                         print(f"    💲 Обрабатываем поле {key}")
                         current_finded_selector_value_on_logger = "💲 "
 
@@ -230,6 +230,9 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                         if p1.endswith("."):
                             is_use_comma_on_formatPrice = '","'
                             # Очень простая проверка, нужно будент убедиться что она покрывает все случаи
+                            print('    Разделитель - запятая')
+                        else:
+                            print('    Разделитель - точка')
                         
                         # TODO Потом здесь подробнее оттестировать
                         continue
@@ -286,11 +289,14 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             continue
 
         add_formatPrice = ""
-        if key in ["price", "oldPrice"]:
+        if key in ["price", "oldprice"]:
             add_formatPrice = f".formatPrice({is_use_comma_on_formatPrice})"
+
+        sel_string = sel_string.replace('"', "'") # Заменяем кавычки, если попались в селекторе
 
         selector_result_code = ""
         if attr: # Пример:           $("h1.name")     ?.first()            ?.attr("href")?.trim()
+            attr = attr.replace('"', "'")
             selector_result_code = f'$("{sel_string}"){elem_selector_first}?.attr("{attr}")?.trim(){add_formatPrice}'
         else:    # Пример:           $("h1.name")     ?.first()            .text()?.trim()
             selector_result_code = f'$("{sel_string}"){elem_selector_first}.text()?.trim(){add_formatPrice}'
@@ -382,7 +388,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # print(value_field)
 
     ## Это будет приходить из global_code
-    # order_string = "name, stock, link, price, oldPrice, article, brand, imageLink, timestamp"  
+    # order_string = "name, stock, link, price, oldprice, article, brand, imageLink, timestamp"  
     
     if not data_input_table.get("fields_str"):
         raise ErrorHandler("Нет значения в поле fields_str")
@@ -519,7 +525,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 #     "price": [
 #         ".b"
 #     ],
-#     "oldPrice": [
+#     "oldprice": [
 #         ".thr",
 #         # ".thr2", ### Для теста
 #     ],

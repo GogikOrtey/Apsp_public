@@ -45,7 +45,7 @@ final_title = """
 def extract_fields():
     # Это пускай будет пример сортировки полей
     ### TODO Потом ещё посмотреть это место
-    order_string = "name, stock, link, price, oldPrice, article, brand, a2, imageLink, timestamp"
+    order_string = "name, stock, link, price, oldprice, article, brand, a2, imageLink, timestamp"
 
     # Разбиваем строку порядка на список полей, убираем пробелы
     field_order = [field.strip() for field in order_string.split(",")]

@@ -10,7 +10,7 @@
 #                 "link": "",
 #                 "name": "",
 #                 "price": "",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "",
 #                 "brand": "",
 #                 "InStock_trigger": "",
@@ -157,7 +157,7 @@
 #                 "link": "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-baxi-duo-tec-compact-28-ga/",
 #                 "name": "Настенный конденсационный газовый котел 28 кВт Baxi DUO-TEC COMPACT 28",
 #                 "price": "99 800 ₽",
-#                 "oldPrice": "109 780 ₽",
+#                 "oldprice": "109 780 ₽",
 #                 "article": "13455",
 #                 "brand": "Baxi",
 #                 "OutOfStock_trigger": "Предзаказ",
@@ -167,7 +167,7 @@
 #                 "link": "https://kotel-nasos.ru/napolnyy-gazovyy-kotel-60-kvt-baxi-slim-1-620in-9e/",
 #                 "name": "Напольный газовый котел 60 кВт Baxi SLIM 1.620 iN 9E",
 #                 "price": "195 000 ₽",
-#                 "oldPrice": "238 150 ₽",
+#                 "oldprice": "238 150 ₽",
 #                 "article": "38354",
 #                 "brand": "Baxi",
 #                 "InStock_trigger": "В наличии",
@@ -199,7 +199,7 @@
 #                 "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
 #                 "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
 #                 "price": "1 860,10",
-#                 "oldPrice": "1 958",
+#                 "oldprice": "1 958",
 #                 "article": "B2508830", 
 #                 "brand": "Bonaparte",
 #                 "InStock_trigger": "есть на складе",
@@ -209,7 +209,7 @@
 #                 "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
 #                 "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
 #                 "price": "9 400,00",
-#                 "oldPrice": "12 450,00",
+#                 "oldprice": "12 450,00",
 #                 "article": "U4079315", 
 #                 "brand": "EMMY",
 #                 "InStock_trigger": "есть на складе",
@@ -247,7 +247,7 @@
 #                 "link": "https://plitburg.ru/catalog/plitka/e_5020_mr_600x600x9_rock_seryy_svetlyy_matovyy_kg_60x60_dako/",
 #                 "name": "Керамогранит серый матовый 60х60 Dako (Дако) E-5020 Rock",
 #                 "price": "1 729 ₽ / м2",
-#                 "oldPrice": "1 820 ₽",
+#                 "oldprice": "1 820 ₽",
 #                 "article": "E-5020/MR/600x600x9",
 #                 "brand": "DAKO",
 #                 "InStock_trigger": "В наличии",
@@ -257,7 +257,7 @@
 #                 "link": "https://plitburg.ru/catalog/plitka/e_3032_mr_600x600x9_vita_seryy_matovyy_kg_60x60_dako/",
 #                 "name": "Керамогранит серый матовый 60х60 Dako (Дако) E-3032 Vita",
 #                 "price": "1 729 ₽ / м2",
-#                 "oldPrice": "1 820 ₽",
+#                 "oldprice": "1 820 ₽",
 #                 "article": "E-3032/MR/600x600x9",
 #                 "brand": "DAKO",
 #                 "InStock_trigger": "В наличии",
@@ -267,7 +267,7 @@
 #                 "link": "https://plitburg.ru/catalog/plitka/dd602320r_pro_matriks_temno_seryy_obreznoy_keramogranit_60x60_kerama_marazzi/",
 #                 "name": "DD602320R Про Матрикс темно-серый обрезной керамогранит 60x60, Kerama Marazzi",
 #                 "price": "2 345 ₽ / м2",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "DD602320R",
 #                 "brand": "Kerama Marazzi",
 #                 "OutOfStock_trigger": "Под заказ: 3-5 дней",
@@ -283,39 +283,38 @@
 
 # # Сайт 8
 
-# # артикул неверно
 # # наличие неверно - берётся из подборки похожих товаров
 
-data_input_table = {
-    "host": "https://hb-shop.by",
-    "links": {
-        "simple": [
-            {
-                "link": "https://hb-shop.by/katalog/lico/ochishhenie/micellyarnaya-voda/voda-micellyarnaya-ochischayuschaya-na-osnove-termalnoy-vody-dlya-chuvstvit-kozhi-i-kontura-glaz-250-ml.html",
-                "name": "Очищающая мицеллярная вода Uriage Eau Thermale для чувствительной кожи, 250 мл",
-                "price": "43.24 руб.",
-                "oldPrice": "",
-                "article": "009327",
-                "brand": "Uriage",
-                "InStock_trigger": "В наличии",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://hb-shop.by/assets/images/catalog/39028_GUID_35670443-5253-11ef-8443-000c29025319.webp"
-            },
-            {
-                "link": "https://hb-shop.by/katalog/lico/kremy-dlya-lica/krem-sebium-gidra-sebium-hydra-40-ml.html",
-                "name": "Флюид ультраувлажняющий Биодерма Себиум / Bioderma Sebium Hydra, 40 мл",
-                "price": "32.06 руб.",
-                "oldPrice": "42.75 руб.",
-                "article": "840421",
-                "brand": "Bioderma",
-                "InStock_trigger": "В наличии",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://hb-shop.by/assets/images/catalog/УТ-00021136_GUID_cff010bf-bba5-11ee-8421-000c29025319.webp"
-            }
-        ]
-    },
-    "search_requests": []
-}
+# data_input_table = {
+#     "host": "https://hb-shop.by",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://hb-shop.by/katalog/lico/ochishhenie/micellyarnaya-voda/voda-micellyarnaya-ochischayuschaya-na-osnove-termalnoy-vody-dlya-chuvstvit-kozhi-i-kontura-glaz-250-ml.html",
+#                 "name": "Очищающая мицеллярная вода Uriage Eau Thermale для чувствительной кожи, 250 мл",
+#                 "price": "43.24 руб.",
+#                 "oldprice": "",
+#                 "article": "009327",
+#                 "brand": "Uriage",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://hb-shop.by/assets/images/catalog/39028_GUID_35670443-5253-11ef-8443-000c29025319.webp"
+#             },
+#             {
+#                 "link": "https://hb-shop.by/katalog/lico/kremy-dlya-lica/krem-sebium-gidra-sebium-hydra-40-ml.html",
+#                 "name": "Флюид ультраувлажняющий Биодерма Себиум / Bioderma Sebium Hydra, 40 мл",
+#                 "price": "32.06 руб.",
+#                 "oldprice": "42.75 руб.",
+#                 "article": "840421",
+#                 "brand": "Bioderma",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://hb-shop.by/assets/images/catalog/УТ-00021136_GUID_cff010bf-bba5-11ee-8421-000c29025319.webp"
+#             }
+#         ]
+#     },
+#     "search_requests": []
+# }
 
 
 
@@ -329,7 +328,7 @@ data_input_table = {
 #                 "link": "https://lalafo.kg/bishkek/ads/zenskie-sandalii-na-platforme-id-45797023",
 #                 "name": "Представляем женские сандалии на платформе черного цвета, выполненные",
 #                 "price": "400 KGS",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "",
 #                 "brand": "Uriage",
 #                 "InStock_trigger": "",
@@ -373,7 +372,7 @@ data_input_table = {
 #                 "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/shpaklevki/shpaklevka_finishnaya_knauf_rotband_pasta_profi_18_kg/",
 #                 "name": "Шпаклевка финишная КНАУФ-Ротбанд Паста Профи 18 кг",
 #                 "price": "1 709 руб.",
-#                 "oldPrice": "1914.08 руб.",
+#                 "oldprice": "1914.08 руб.",
 #                 "article": "MF1056",
 #                 "brand": "КНАУФ",
 #                 "InStock_trigger": "",
@@ -384,7 +383,7 @@ data_input_table = {
 #                 "link": "https://sks.spb.ru/catalog/sukhie_stroitelnye_smesi/kley_dlya_plitki_i_kamnya/kley_dlya_plitki_knauf_flizen_25_kg/",
 #                 "name": "Клей для плитки КНАУФ-Флизен 25 кг",
 #                 "price": "455 руб.",
-#                 "oldPrice": "509.60 руб.",
+#                 "oldprice": "509.60 руб.",
 #                 "article": "OA55",
 #                 "brand": "КНАУФ",
 #                 "InStock_trigger": "",
@@ -406,7 +405,7 @@ data_input_table = {
 #                 "link": "https://mbt-ug.ru/bytovye/split-sistemy-daichi/split-sistema-daichi-air-air25avq1",
 #                 "name": "Сплит-система Daichi AIR AIR25AVQ1",
 #                 "price": "27790 р.",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "AIR25AVQ1/AIR25FV1",
 #                 "brand": "Daichi",
 #                 "InStock_trigger": "На складе",
@@ -417,7 +416,7 @@ data_input_table = {
 #                 "link": "https://mbt-ug.ru/klimaticheskaya-texnika/split-sistemy/bytovye/split-sistemy-mdv/split-sistema-mdv-aurora-mdsa-09hrn1",
 #                 "name": "Сплит-система MDV Aurora MDSA-09HRN1",
 #                 "price": "31200 р.",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "MDSA-09HRN1",
 #                 "brand": "Mdv",
 #                 "InStock_trigger": "На складе",
@@ -428,7 +427,7 @@ data_input_table = {
 #                 "link": "https://mbt-ug.ru/klimaticheskaya-texnika/split-sistemy/bytovye/split-sistemy-kentatsu/split-sistema-kentatsu-kanami-inverter-ksga35hzrn1",
 #                 "name": "Сплит-система Kentatsu KANAMI inverter KSGA35HZRN1",
 #                 "price": "32500 р.",
-#                 "oldPrice": "47590 р.",
+#                 "oldprice": "47590 р.",
 #                 "article": " KSGA35HZRN1",
 #                 "brand": "Kentatsu",
 #                 "InStock_trigger": "На складе",
@@ -439,7 +438,7 @@ data_input_table = {
 #                 "link": "https://mbt-ug.ru/bytovye/split-sistema-tosot-natal-t28h-snn2",
 #                 "name": "Сплит-система Tosot Natal T28H-SnN2",
 #                 "price": "135000 р.",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "T28H-SnN2/I/T28H-SnN2/O",
 #                 "brand": "Tosot",
 #                 "InStock_trigger": "",
@@ -461,7 +460,7 @@ data_input_table = {
 #                 "link": "https://tdnws.ru/catalog/santekhnika/smesiteli/smesitel_dlya_rakoviny_d_k_bayern_m_nchen_da1562108_belyy/",
 #                 "name": "Смеситель для раковины D&K Bayern.München белый (DA1562108)",
 #                 "price": "7 810 руб.",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "DA1562108",
 #                 "brand": "DQ",
 #                 "InStock_trigger": "",
@@ -543,7 +542,7 @@ https://elevel.ru
 #                 "link": "",
 #                 "name": "",
 #                 "price": "",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "",
 #                 "brand": "",
 #                 "InStock_trigger": "",
@@ -574,7 +573,7 @@ https://elevel.ru
 #                 "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
 #                 "name": "Aquanet SD-1200A душевая дверь",
 #                 "price": "19 850 ₽",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "00209406",
 #                 "brand": "Aquanet",
 #                 "InStock_trigger": "В наличии",
@@ -585,7 +584,7 @@ https://elevel.ru
 #                 "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
 #                 "name": "Aquastone Малибу Ванна из искусственного камня",
 #                 "price": "55 000 ₽",
-#                 "oldPrice": "69 000 ₽",
+#                 "oldprice": "69 000 ₽",
 #                 "article": "MAlibu",
 #                 "brand": "Aquastone",
 #                 "InStock_trigger": "В наличии",
@@ -596,7 +595,7 @@ https://elevel.ru
 #                 "link": "https://gidro-top.ru/product/aquastone-bali-180/",
 #                 "name": "Aquastone Бали 180 Ванна из искусственного камня",
 #                 "price": "53 000 ₽",
-#                 "oldPrice": "",
+#                 "oldprice": "",
 #                 "article": "Bali180",
 #                 "brand": "Aquastone",
 #                 "InStock_trigger": "В наличии",
@@ -716,3 +715,44 @@ https://elevel.ru
 #         }
 #     ]
 # }
+
+
+data_input_table = {
+    "host": "https://stroytorg812.ru",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
+                "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
+                "price": "8 390 руб.",
+                "oldprice": "",
+                "article": "U4031689", 
+                "brand": "ТРИТОН",
+                "InStock_trigger": "есть на складе",
+                "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
+            },
+            {
+                "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
+                "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
+                "price": "1 860,10",
+                "oldprice": "1 958",
+                "article": "B2508830", 
+                "brand": "Bonaparte",
+                "InStock_trigger": "есть на складе",
+                "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
+            },
+            {
+                "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
+                "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
+                "price": "9 400,00",
+                "oldprice": "12 450,00",
+                "article": "U4079315", 
+                "brand": "EMMY",
+                "InStock_trigger": "есть на складе",
+                "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
+            }
+        ]
+    },
+    "search_requests": []
+}

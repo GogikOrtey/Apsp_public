@@ -17,7 +17,7 @@ def send_message_to_AI_agent(prompt: str, no_hint = False):
     if no_hint == False:
         prompt = prompt + end_hint
     result = sendMessageToYandexGPT(prompt)
-    return result.replace("`", "").strip()
+    return result.lstrip('`').rstrip('`')
 
 # Отправляет запрос к YandexGPT и возвращает текстовый ответ модели.
 def sendMessageToYandexGPT(prompt: str, isSmartModel: bool = False, isPrint: bool = True, temperature = 0.8, maxTokens = 1024) -> str:

@@ -6,7 +6,7 @@ Sorted value_field =
         const article = $(".char > p:nth-of-type(1)").text()?.trim()
         const brand = $(".char > p:nth-of-type(2)").text()?.trim()
         const imageLink = $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() ? HOST + $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() : ""
-        const oldPrice = $(".thr").text()?.trim().formatPrice(",")
+        const oldprice = $(".thr").text()?.trim().formatPrice(",")
 
 
 
@@ -27,12 +27,12 @@ const stock = $(".nal.y").text()?.includes("есть
         const brand = $(".char > p:nth-of-type(2)").text()?.trim()
         const imageLink = $("html > body > section.wrap > main > article.wide > .card > .img_bl > 
 .img > a.fancybox")?.first()?.attr("href")?.trim() ? HOST + $("html > body > section.wrap > main > article.wide > .card > .img_bl > .img > a.fancybox")?.first()?.attr("href")?.trim() : ""
-        const oldPrice = $(".thr").text()?.trim().formatPrice(",")
+        const oldprice = $(".thr").text()?.trim().formatPrice(",")
         const link = set.query
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, article, brand, imageLink, oldPrice, timestamp
+            name, stock, link, price, article, brand, imageLink, oldprice, timestamp
         }
         items.push(item);
 

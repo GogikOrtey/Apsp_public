@@ -83,7 +83,7 @@ def fill_selectors_for_items(input_items, get_css_selector_from_text_value_eleme
             # Обрабатываем только строки
             if isinstance(value, str) and value.strip():
                 try:
-                    is_price = key in ("price", "oldPrice")
+                    is_price = key in ("price", "oldprice")
 
                     # Две попытки: сначала exact=True, потом exact=False
                     # for attempt, is_exact in enumerate([True, False], start=1):
@@ -375,7 +375,7 @@ def select_best_selectors(input_data, content_html):
                     if extracted:
                         hits += 1
                         # Вычисляем качество совпадения
-                        if field in ("price", "oldPrice"):
+                        if field in ("price", "oldprice"):
                             if normalize_price(expected) == normalize_price(extracted):
                                 match_score = 1.0
                             else:
@@ -493,7 +493,7 @@ def select_best_selectors(input_data, content_html):
 
 # # substring = data_input_table["links"]["simple"][elem_number]["name"]
 # # substring = data_input_table["links"]["simple"][elem_number]["price"]
-# # substring = data_input_table["links"]["simple"][elem_number]["oldPrice"]
+# # substring = data_input_table["links"]["simple"][elem_number]["oldprice"]
 # # substring = data_input_table["links"]["simple"][elem_number]["brand"]
 # substring = data_input_table["links"]["simple"][elem_number]["article"]
 # # substring = data_input_table["links"]["simple"][elem_number]["imageLink"]

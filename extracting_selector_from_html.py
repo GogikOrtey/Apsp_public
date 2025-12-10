@@ -356,7 +356,7 @@ def find_text_selector(
     return None
 
 # region Выбирает один sel
-def get_css_selector_from_text_value_element(html, finding_element, is_price=False, is_exact=True, is_multiply_sel_result = False):
+def get_css_selector_from_text_value_element(html, finding_element, is_price=False, is_exact=True, is_multiply_sel_result = True):
     print("")
     if not finding_element:
         print("Поле finding_element пусто, пропускаю получение селектора")
@@ -498,7 +498,7 @@ def simplify_selector_keep_value(
     html: str,
     selector: str,
     get_element_from_selector_universal,
-    is_multiply_sel_result: bool = False,
+    is_multiply_sel_result: bool = True,
 ):
     """
     Пытается удалить ненужные звенья в селекторе (слева направо).
