@@ -480,7 +480,7 @@ def main_generate_parsePage():
             # и что результат будет числом
 
         result_pagination_block = (
-            f'let totalPages = Math.max(...$("{pagination_selctor}").get().map(item => +$(item).text().trim()).filter(Boolean))'
+            f'\t\t\tlet totalPages = Math.max(...$("{pagination_selctor}").get().map(item => +$(item).text().trim()).filter(Boolean))'
         )
 
     else: 
@@ -503,12 +503,12 @@ def main_generate_parsePage():
 
         if(finding_element == checked_selector):
             print("Селектор корректен")
-            extracting_pagination_1 = f'let totalItems = $("{pagination_selctor}")?.first()?.text()?.trim()'
+            extracting_pagination_1 = f'\t\t\tlet totalItems = $("{pagination_selctor}")?.first()?.text()?.trim()'
         elif(checked_selector == ""):
             raise ErrorHandler("Ошибка, элемент числа товаров для пагинации не найден по селектору!")
         else:
             print("Нужное значение и извлекаемый элемент совпадают неточно, запускаю AI")
-            js_code_extract_pagination = f'let totalItems = $("{pagination_selctor}")?.first()?.text()?.trim()'
+            js_code_extract_pagination = f'\t\t\tlet totalItems = $("{pagination_selctor}")?.first()?.text()?.trim()'
             print("js_code_extract_pagination = " + js_code_extract_pagination)
             
             request_AI = dedent(
@@ -520,10 +520,10 @@ def main_generate_parsePage():
                 Измени исходный код, что бы он делал это.
                 """
             ).strip()
-            extracting_pagination_1 = send_message_to_AI_agent(request_AI)
+            extracting_pagination_1 = send_message_to_AI_agent(request_AI).strip()
 
             # Значение len_of_products_on_this_page проверяю и валидирую выше (если нет, то кидаю ошибку)
-            extracting_pagination_2 = f'let totalPages = Math.ceil(+totalItems / {len_of_products_on_this_page})'
+            extracting_pagination_2 = f'\t\t\tlet totalPages = Math.ceil(+totalItems / {len_of_products_on_this_page})'
             
             result_pagination_block = extracting_pagination_1 + "\n" + extracting_pagination_2
 

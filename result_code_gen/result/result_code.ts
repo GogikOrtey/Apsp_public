@@ -72,33 +72,39 @@ export class JS_Base_stroytorg812ru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    
+    async parsePage(set: SetType) {
+        
+let url = new URL(`${HOST}/content/search/`);
+url.searchParams.set("s", "");
+url.searchParams.set("q", set.query);
+url.searchParams.set("PAGEN_1", set.page);
+
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
+			let totalPages = Math.ceil(+totalItems / 12)
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("a.product-name[href]")
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = `${HOST}${$(product)?.attr("href")}`
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
 
     //#region Парсинг товара
-    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
-        let items: ResultItem[] = []
-
-        const data = await this.makeRequest(set.query);
-        const $ = cheerio.load(data);
-
-        const name = $("h1.name").text()?.trim()
-		const stock = $(".nal.y").text()?.includes("есть на складе") ? "InStock" : "OutOfStock"
-		const link = set.query
-		const price = $(".b").text()?.trim().formatPrice(",")
-		const oldprice = $(".thr").text()?.trim().formatPrice(",")
-		const article = $(".char > p:nth-of-type(1)").text()?.trim()
-		const brand = $(".char > p:nth-of-type(2)").text()?.trim()
-		const imageLink = $(".img > a.fancybox")?.first()?.attr("href")?.trim() ? HOST + $(".img > a.fancybox")?.first()?.attr("href")?.trim() : ""
-        const timestamp = getTimestamp()
-
-        const item: ResultItem = {
-            name, stock, link, price, oldprice, article, brand, imageLink, timestamp
-        }
-        items.push(item);
-
-        cacher.cache = items
-        return items;
-    }
+    
 
     //#region Выполнение запроса
     async makeRequest(url: string) {

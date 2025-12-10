@@ -604,7 +604,7 @@ https://elevel.ru
 #             }
 #         ]
 #     },
-#     "search_requests": [ ####### Плохо: Нет параметра для поиска, он зашит внутри url
+#     "search_requests": [
 #         {
 #             "query": "Ванна",
 #             "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
@@ -754,5 +754,17 @@ data_input_table = {
             }
         ]
     },
-    "search_requests": []
+    "search_requests": [ ### Не очень, потому что page count, но этот случай АПСП обрабатывает
+        {
+            "query": "ванна",
+            "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
+            "count_of_page_on_pagination": "0",
+            "total_count_of_results": "3 762",
+            "links_items": [
+                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_60_s_umyvalnikom_vega_60_belaya/",
+                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/esper_60_tumba_podvesnaya1_yashchik_tsvet_belyy_s_umyvalnikom_esp60w0i95k/",
+                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_70_s_umyvalnikom_vega_70_belaya/",
+            ]
+        }
+    ]
 }
