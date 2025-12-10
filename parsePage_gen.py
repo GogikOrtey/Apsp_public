@@ -179,7 +179,7 @@ def generate_parsePage_search_requests(data_input_table):
 
 
 
-def AI_generate_parsePage_search_requests(data_input_table, set_item):
+def AI_generate_parsePage_search_requests(data_input_table):
     template_AI_request = Template("""
 Тебе нужно написать код, который формирует URL адрес запроса на поиск товара. Мы используем такой синтаксис:
 
@@ -228,12 +228,13 @@ url.searchParams.set('/?page', set.page);
     """)
 
     AI_request = template_AI_request.substitute(
-        host_value = set_item["host"],
+        host_value = data_input_table["host"],
         url_search_2_page = data_input_table["search_requests"][0]["url_search_query_page_2"]
     ).strip()
 
     AI_answer = send_message_to_AI_agent(AI_request, no_hint=True)
 
+    set_item = {}
     set_item["create_url_block"] = AI_answer
     return set_item
 
@@ -282,7 +283,7 @@ def generate_parsePage(set_item):
     template_parseCard = Template("""
     async parsePage(set: SetType) {
         $create_url_block
-        $addedUrlParams
+
         const data = await this.makeRequest(url.href)
         const $$ = cheerio.load(data)
 
@@ -315,7 +316,7 @@ def generate_parsePage(set_item):
         # hostPatch = set_item["path"],
         # searchQuery = set_item["search_param"],
         # paginationParams = set_item["pagination_param"],
-        addedUrlParams = set_item["added_url_params"],
+        # addedUrlParams = set_item["added_url_params"],
         
         result_pagination_block_value = set_item["result_pagination_block"],
         productSelector = set_item["product_selector"],
@@ -350,7 +351,10 @@ def main_generate_parsePage():
 
     # Извлекает url параметры поиска и пагинации из вхоящей ссылки
     # set_item = generate_parsePage_search_requests(data_input_table)
-    set_item = AI_generate_parsePage_search_requests(data_input_table, set_item)
+    set_item = AI_generate_parsePage_search_requests(data_input_table)
+
+    set_item["link"] = data_input_table["search_requests"][0]["url_search_query_page_2"]
+    set_item["host"] = data_input_table["host"]
 
     # Получает страницу
     set_item["page_html"] = get_html(set_item["link"]) 
