@@ -232,10 +232,10 @@ url.searchParams.set('/?page', set.page);
         url_search_2_page = data_input_table["search_requests"][0]["url_search_query_page_2"]
     ).strip()
 
-    AI_answer = send_message_to_AI_agent(AI_request, no_hint=True)
+    AI_answer = send_message_to_AI_agent(AI_request, no_hint=True).strip()
 
     set_item = {}
-    set_item["create_url_block"] = AI_answer
+    set_item["create_url_block"] = ("\n".join(f"\t\t" + line for line in AI_answer.splitlines())).lstrip()
     return set_item
 
 ### Иногда нужно будет использовать set.page - 1
@@ -312,7 +312,7 @@ def generate_parsePage(set_item):
     if set_item.get("is_add_host") is True:
         finalProductLink_val = '`${HOST}${$(product)?.attr("href")}`'
 
-    error_message = "[Ошибка генерации APSP]: Не удалось подобрать значения для поля"
+    error_message = "// [Ошибка генерации APSP]: Не удалось подобрать значения для поля"
 
     result = template_parseCard.substitute(
         # hostPatch = set_item["path"],
@@ -320,7 +320,7 @@ def generate_parsePage(set_item):
         # paginationParams = set_item["pagination_param"],
         # addedUrlParams = set_item["added_url_params"],
         
-        result_pagination_block_value = set_item.get("result_pagination_block") or "",
+        result_pagination_block_value = set_item.get("result_pagination_block") or "let totalPages = 0",
         productSelector = set_item.get("product_selector") or "",
         #TODO Как-то проверить, что товар извлекается по $(product)?.attr("href")
         finalProductLink = finalProductLink_val,
@@ -330,8 +330,8 @@ def generate_parsePage(set_item):
         elem_1_items_value = elem_1_items if is_parse_page_mode_returned_results_bool else "",
         elem_2_result_items_value = elem_2_result_items if is_parse_page_mode_returned_results_bool else "",
 
-        error_msg_2 = error_message if set_item.get("product_selector") else "",
-        error_msg_2 = error_message if set_item.get("result_pagination_block") else ""
+        error_msg_1 = error_message if not set_item.get("product_selector") else "",
+        error_msg_2 = error_message if not set_item.get("result_pagination_block") else ""
     ).strip()
 
     print(result)

@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, article, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, article, imageLink, timestamp
 }
 
-const HOST = "https://stroytorg812.ru"
+const HOST = "https://makitaclub.ru"
 
-export class JS_Base_stroytorg812ru extends JS_Base_Custom {
+export class JS_Base_makitaclubru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,32 +73,26 @@ export class JS_Base_stroytorg812ru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        
-let url = new URL(`${HOST}/content/search/`);
-url.searchParams.set("s", "");
-url.searchParams.set("q", set.query);
-url.searchParams.set("PAGEN_1", set.page);
-
+        let url = new URL(`${HOST}/page/${set.page}/?s=${set.query}&post_type=product`)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
-			let totalPages = Math.ceil(+totalItems / 12)
+            let totalPages = 0 // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.product-name[href]")
+        let products = $("") // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
+            let link = $(product)?.attr("href")
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
