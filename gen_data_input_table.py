@@ -474,6 +474,174 @@
 
 #######################################################################################################
 
+# Минусуем:
+
+
+# data_input_table = {
+#     "host": "https://makitaclub.ru",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://makitaclub.ru/products/tw007gz/",
+#                 "name": "Аккумуляторный ударный гайковерт XGT 1/2″ Makita TW007GZ (40V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+#                 "price": "18 770 ₽",
+#                 "article": "TW007GZ",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/TW007GZ01.jpg"
+#             },
+#             {
+#                 "link": "https://makitaclub.ru/products/akkumulyatornyj-udarnyj-gajkovert-makita-tw140dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+#                 "name": "Аккумуляторный ударный гайковерт Makita TW140DZ (12.0V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+#                 "price": "4 340 ₽",
+#                 "article": "TW140DZ",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "Нет в наличии",
+#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/TW140DZ.jpg"
+#             },
+#             {
+#                 "link": "https://makitaclub.ru/products/akkumulyatornaya-samohodnaya-telezhka-makita-dcu180z-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+#                 "name": "Аккумуляторная самоходная тележка Makita DCU180Z (18V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+#                 "price": "86 300 ₽",
+#                 "article": "DCU180Z",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/DCU180Z.jpg"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "шуруповёрт",
+#             "url_search_query_page_2": "https://makitaclub.ru/page/2/?s=шуруповёрт&post_type=product",
+#             "count_of_page_on_pagination": "9",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf484z-18v-li-ion/",
+#                 "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf482z-18v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+#                 "https://makitaclub.ru/products/akkumulyatornaya-drel-shurupovert-makita-ddf453rfe/",
+#             ]
+#         }
+#     ]
+# }
+
+
+# # Ошибки генерации на 3х полях для parseCard
+# data_input_table = {
+#     "host": "https://goodzone23.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://goodzone23.ru/705-bytovaya-tekhnika/krupnaya_bytovaya_tekhnika/kholodilniki/169294-beko-b3r0cnk362hs/",
+#                 "name": "Холодильник Beko B3R0CNK362HS",
+#                 "price": "40 260 р",
+#                 "oldprice": "44 689 р",
+#                 "article": "193387",
+#                 "manufacturer": "Beko",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://goodzone23.ru/image/cache/webp/catalog/product/551/94/product_image_169294_417746-700x700.webp"
+#             },
+#             {
+#                 "link": "https://goodzone23.ru/705-bytovaya-tekhnika/krupnaya_bytovaya_tekhnika/kholodilnye_vitriny/167345-biryusa-b-390-d/",
+#                 "name": "Холодильная витрина Бирюса B 390 D",
+#                 "price": "47 830 р",
+#                 "oldprice": "53 091 р",
+#                 "article": "191484",
+#                 "manufacturer": "Бирюса",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://goodzone23.ru/image/cache/webp/catalog/product/45/45/product_image_167345_403879-500x500.webp"
+#             },
+#             {
+#                 "link": "https://goodzone23.ru/705-bytovaya-tekhnika/krupnaya_bytovaya_tekhnika/zharochnye_shkafy/140993-kraft-kf-mo-3506-kglb-chernyj-zoloto-s-dis/",
+#                 "name": "Мини-печь KRAFT KF-MO 3506 KGLB (черный/золото) с дисплеем",
+#                 "price": "5 650 р",
+#                 "oldprice": "6 272 р",
+#                 "article": "165705",
+#                 "manufacturer": "Kraft",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://goodzone23.ru/image/cache/webp/catalog/product/133/93/product_image_140993_174956-500x500.webp"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "холодильник",
+#             "url_search_query_page_2": "https://goodzone23.ru/index.php?route=product/search&search=холодильник&page=2",
+#             "count_of_page_on_pagination": "263",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://goodzone23.ru/705-bytovaya-tekhnika/krupnaya_bytovaya_tekhnika/kholodilniki/118798/",
+#                 "https://goodzone23.ru/705-bytovaya-tekhnika/krupnaya_bytovaya_tekhnika/kholodilniki/11116/",
+#                 "https://goodzone23.ru/705-bytovaya-tekhnika/krupnaya_bytovaya_tekhnika/kholodilniki/15006/",
+#             ]
+#         }
+#     ]
+# }
+
+
+# # Не нашёл селектор для price, и селектор для товаров в поиске
+# data_input_table = {
+#     "host": "https://gra-nit.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://gra-nit.ru/italiya/rex/reves-de-rex/choco-glossy-60x120/",
+#                 "name": "Керамогранит REX REVES DE REX Choco Glossy 60x120 769819",
+#                 "price": "5 888 ₽/м2",
+#                 "oldprice": "7 850 ₽",
+#                 "article": "769819",
+#                 "collection": "Reves de Rex",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gra-nit.ru/upload/iblock/8ff/wcmkkna2n56ad0h1lefd71doh2zl7u2n/reves_de_rex_choco_769819_12_514x1024.jpg"
+#             },
+#             {
+#                 "link": "https://gra-nit.ru/italiya/rex/reves-de-rex/noisette-glossy-60x120/",
+#                 "name": "Керамогранит REX REVES DE REX Noisette Glossy 60x120 769818",
+#                 "price": "6 000 ₽/м2",
+#                 "oldprice": "8 000 ₽",
+#                 "article": "769818",
+#                 "collection": "Reves de Rex",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gra-nit.ru/upload/iblock/99f/ai00lqjpc1nk9dioehlgf8qw868he1vv/w8.jpg"
+#             },
+#             {
+#                 "link": "https://gra-nit.ru/ispaniya/peronda/palette/palette-leaves-warm-32x90-r/",
+#                 "name": "Декор PERONDA Palette LEAVES WARM/32X90/R 26155",
+#                 "price": "2 160 ₽/м2",
+#                 "oldprice": "2 700 ₽",
+#                 "article": "26155",
+#                 "collection": "Palette",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gra-nit.ru/upload/iblock/ef2/nsnug2jnok2y2ovlj0cdxcspo7h1ibv1.jpg"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "плитка",
+#             "url_search_query_page_2": "https://gra-nit.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&PAGEN_3=2",
+#             "count_of_page_on_pagination": "20",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://gra-nit.ru/germaniya/stroeher-klinker/aera/klinkernaya-plitka-stroeher-aera-8031-755/",
+#                 "https://gra-nit.ru/germaniya/stroeher-klinker/aera/klinkernaya-plitka-stroeher-aera-8045-705/",
+#                 "https://gra-nit.ru/germaniya/stroeher-klinker/asar/klinkernaya-plitka-stroeher-asar-8031-640/",
+#             ]
+#         }
+#     ]
+# }
+
+
+#######################################################################################################
+
 # Новые данные
 
 """
@@ -517,8 +685,8 @@ https://gazovik-omsk.ru
 https://gaz-shop78.ru
 https://gidro-top.ru   + *
 https://glavsantex.ru  + *
-https://goodzone23.ru
-https://gra-nit.ru
+https://goodzone23.ru *
+https://gra-nit.ru *
 https://gresstore.ru
 
 
@@ -536,6 +704,7 @@ https://elevel.ru
 
 # data_input_table = {
 #     "host": "",
+#     "fields_str": "",
 #     "links": {
 #         "simple": [
 #             {
@@ -622,6 +791,7 @@ https://elevel.ru
 
 # data_input_table = {
 #     "host": "https://glavsantex.ru",
+#     "fields_str": "", 
 #     "links": {
 #         "simple": [
 #             {
@@ -664,58 +834,6 @@ https://elevel.ru
 #         }
 #     ]
 # }
-
-
-
-
-data_input_table = {
-    "host": "https://makitaclub.ru",
-    "links": {
-        "simple": [
-            {
-                "link": "https://makitaclub.ru/products/tw007gz/",
-                "name": "Аккумуляторный ударный гайковерт XGT 1/2″ Makita TW007GZ (40V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-                "price": "18 770 ₽",
-                "article": "TW007GZ",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://makitaclub.ru/wp-content/uploads/TW007GZ01.jpg"
-            },
-            {
-                "link": "https://makitaclub.ru/products/akkumulyatornyj-udarnyj-gajkovert-makita-tw140dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-                "name": "Аккумуляторный ударный гайковерт Makita TW140DZ (12.0V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-                "price": "4 340 ₽",
-                "article": "TW140DZ",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "Нет в наличии",
-                "imageLink": "https://makitaclub.ru/wp-content/uploads/TW140DZ.jpg"
-            },
-            {
-                "link": "https://makitaclub.ru/products/akkumulyatornaya-samohodnaya-telezhka-makita-dcu180z-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-                "name": "Аккумуляторная самоходная тележка Makita DCU180Z (18V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-                "price": "86 300 ₽",
-                "article": "DCU180Z",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://makitaclub.ru/wp-content/uploads/DCU180Z.jpg"
-            },
-        ]
-    },
-    "search_requests": [
-        {
-            "query": "шуруповёрт",
-            "url_search_query_page_2": "https://makitaclub.ru/page/2/?s=шуруповёрт&post_type=product",
-            "count_of_page_on_pagination": "9",
-            "total_count_of_results": "0",
-            "links_items": [
-                "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf484z-18v-li-ion/",
-                "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf482z-18v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-                "https://makitaclub.ru/products/akkumulyatornaya-drel-shurupovert-makita-ddf453rfe/",
-            ]
-        }
-    ]
-}
-
 
 # data_input_table = {
 #     "host": "https://stroytorg812.ru",
@@ -768,3 +886,56 @@ data_input_table = {
 #         }
 #     ]
 # }
+
+
+
+
+# Когда починю извлчение из двойных тегов - будет раочий пример
+data_input_table = {
+    "host": "https://gresstore.ru",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://gresstore.ru/brend/estima/nolana",
+                "name": "Керамогранит Nolana Estima",
+                "price": "от 850 руб.",
+                "article": "Nolana",
+                "InStock_trigger": "Самовывоз.",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/estima/nolana_1-675x450.webp"
+            },
+            {
+                "link": "https://gresstore.ru/brend/atlas-concorde-italy/111-1",
+                "name": "Керамогранит 3D Wall Carve Atlas Concorde Italy",
+                "price": "от 5 640 руб.",
+                "article": "3d-wall-carve",
+                "InStock_trigger": "Самовывоз.",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/atlas-concorde-italy/3d-wall-carve-675x450.webp"
+            },
+            {
+                "link": "https://gresstore.ru/brend/grani-taganaya/ajanta",
+                "name": "Керамогранит Ajanta Грани Таганая",
+                "price": "от 2 140 руб.",
+                "article": "Ajanta",
+                "InStock_trigger": "Самовывоз.",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/grani-taganaya/ajanta-675x450.webp"
+            },
+        ]
+    },
+    "search_requests": [
+        {
+            "query": "керамогранит",
+            "url_search_query_page_2": "https://gresstore.ru/search/?search=керамогранит&page=2",
+            "count_of_page_on_pagination": "133",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://gresstore.ru/brend/ametis-estima/keramogranit-arti-at02-belyj-160x80",
+                "https://gresstore.ru/brend/ametis-estima/keramogranit-arti-at02-belyj-80x80",
+                "https://gresstore.ru/brend/estima-profi/keramogranit-artwood-aw01-bezhevyj-120x194",
+            ]
+        }
+    ]
+}

@@ -19,9 +19,9 @@ const fields = {
     name, stock, link, price, article, imageLink, timestamp
 }
 
-const HOST = "https://makitaclub.ru"
+const HOST = "https://gresstore.ru"
 
-export class JS_Base_makitaclubru extends JS_Base_Custom {
+export class JS_Base_gresstoreru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,20 +73,21 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/page/${set.page}/?s=${set.query}&post_type=product`)
+        let url = new URL(`${HOST}/search/?search=${set.query}`)
+		url.searchParams.set("page", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = 0 // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
+            let totalPages = Math.max(...$("div.col-sm-6.text-right").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("") // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
+        let products = $("div.image > a[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -98,7 +99,28 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
     }
 
     //#region Парсинг товара
-    
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $("h1").text()?.trim()
+		const stock = $(".html.dopinfo_tpl.dopinfo > .dopinfo_item > a").text()?.includes("Самовывоз.") ? "InStock" : "OutOfStock"
+		const link = set.query
+		const price = $(".item_price").text()?.trim().formatPrice(",")
+const article = $("span.text_atr > a").text()?.trim()?.toLowerCase()?.replace(/\s/g, "-");
+		const imageLink = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, stock, link, price, article, imageLink, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
 
     //#region Выполнение запроса
     async makeRequest(url: string) {

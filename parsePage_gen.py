@@ -499,7 +499,7 @@ def main_generate_parsePage():
             # и что результат будет числом
 
         result_pagination_block = (
-            f'\t\t\tlet totalPages = Math.max(...$("{pagination_selctor}").get().map(item => +$(item).text().trim()).filter(Boolean))'
+            f'let totalPages = Math.max(...$("{pagination_selctor}").get().map(item => +$(item).text().trim()).filter(Boolean))'
         )
 
     else: 
