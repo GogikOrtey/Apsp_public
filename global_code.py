@@ -349,7 +349,7 @@ def print_and_save_message_global():
         filename = "result_code_gen/result/message_global.txt"
         with open(filename, "w", encoding="utf-8") as f:
             
-            print("Сообщения из message_global:")
+            print(f"\nСообщения из message_global:")
             for elem in message_global:
                 key = list(elem.keys())[0]
                 value = elem[key]

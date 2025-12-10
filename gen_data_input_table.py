@@ -304,8 +304,8 @@ data_input_table = {
             {
                 "link": "https://hb-shop.by/katalog/lico/kremy-dlya-lica/krem-sebium-gidra-sebium-hydra-40-ml.html",
                 "name": "Флюид ультраувлажняющий Биодерма Себиум / Bioderma Sebium Hydra, 40 мл",
-                "price": "42.74 руб.",
-                "oldPrice": "",
+                "price": "32.06 руб.",
+                "oldPrice": "42.75 руб.",
                 "article": "840421",
                 "brand": "Bioderma",
                 "InStock_trigger": "В наличии",

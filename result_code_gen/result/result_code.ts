@@ -19,9 +19,9 @@ const fields = {
     name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
 }
 
-const HOST = "https://gidro-top.ru"
+const HOST = "https://hb-shop.by"
 
-export class JS_Base_gidrotopru extends JS_Base_Custom {
+export class JS_Base_hbshopby extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -72,33 +72,33 @@ export class JS_Base_gidrotopru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    async parsePage(set: SetType) {
-        let url = new URL(${HOST}/search/${set.query}/?page=${set.page})
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean))
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]")
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
+    
 
     //#region Парсинг товара
-    
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $("#modal_review > .modal__window > .modal__body > .modal__desc > .product-small.nohover > .product-small__body > .product-small__header > .product-small__title").text()?.trim()
+		const stock = $("#swiper_tovar_similar > .swiper-container > .swiper-wrapper > .swiper-slide > .product > .product__shorts.product-shorts > .product-shorts__item > span").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
+		const link = set.query
+		const price = $(".tovar__action-price.price > .new > span")?.first().text()?.trim().formatPrice()
+		const oldPrice = $("html > body.template.template--tovar > .template__body.container > main.template__main > .section > .tovar > .tovar__info > .tovar__action-price__wrapper > .tovar__action-price.price > .old > span")?.first().text()?.trim().formatPrice()
+		const article = $(".pagetitle__subtitle")?.first()?.text()?.trim()?.split(": ")?.at(1)?;
+		const brand = $("#tab_chars > table tr:has(td:contains("Бренд")) > td:nth-child(2)")?.first().text()?.trim()
+		const imageLink = $("#swiper_tovar_gallery_1 > .gallery__top > .swiper-container > .swiper-wrapper > .swiper-slide > a.tovar__gallery-item").first()?.attr("href")?.trim()?.includes(HOST) ? $("#swiper_tovar_gallery_1 > .gallery__top > .swiper-container > .swiper-wrapper > .swiper-slide > a.tovar__gallery-item").first()?.attr("href")?.trim()?.replace(HOST + "/assets/", HOST) : ""
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, stock, link, price, oldPrice, article, brand, imageLink, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
 
     //#region Выполнение запроса
     async makeRequest(url: string) {

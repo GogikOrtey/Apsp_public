@@ -212,36 +212,37 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                     print(f"    {selector_result_data}") # Что селектор вернул
                     print(f"    {original_field_value}") # Что лежит во входном массиве
                     print("")
+
+                    # Отдельно обрабатываю денежные поля
+                    if key in ["price", "oldPrice"]:
+                        print(f"    💲 Обрабатываем поле {key}")
+                        current_finded_selector_value_on_logger = "💲 "
+
+                        p1 = format_price(selector_result_data)
+                        p2 = format_price(selector_result_data, ",")
+
+                        if p1 != p2:
+                            print(f"    p1 = {p1}")
+                            print(f"    p2 = {p2}")
+                        
+                        # TODO Простейшая проверка - попробовать пройтись parseInt
+
+                        if p1.endswith("."):
+                            is_use_comma_on_formatPrice = '","'
+                            # Очень простая проверка, нужно будент убедиться что она покрывает все случаи
+                        
+                        # TODO Потом здесь подробнее оттестировать
+                        continue
                     
                     score_match = compute_match_score_2(selector_result_data, original_field_value)
                     if selector_result_data == original_field_value:
-                        print("    ✅ Полное совпадение селектора и оригинального значения поля")
+                        print(f"    ✅ Полное совпадение селектора и оригинального значения поля {key}")
                         current_finded_selector_value_on_logger = "🟩"
                     elif (
                             selector_result_data in original_field_value 
                             or original_field_value in selector_result_data 
                             or score_match >= 0.8
                     ):
-                        if key in ["price", "oldPrice"]:
-                            print(f"    💲 Обрабатываем поле {key}")
-                            current_finded_selector_value_on_logger = "💲 "
-
-                            p1 = format_price(selector_result_data)
-                            p2 = format_price(selector_result_data, ",")
-
-                            if p1 != p2:
-                                print(f"    p1 = {p1}")
-                                print(f"    p2 = {p2}")
-                            
-                            # TODO Простейшая проверка - попробовать пройтись parseInt
-
-                            if p1.endswith("."):
-                                is_use_comma_on_formatPrice = '","'
-                                # Очень простая проверка, нужно будент убедиться что она покрывает все случаи
-                            
-                            # TODO Потом здесь подробнее оттестировать
-                            continue
-
                         print("    🟨 Частичное совпадение")
                         current_finded_selector_value_on_logger = "🟨"
 
@@ -252,7 +253,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                         if ccs_result_value == "":
                             ccs_result_value = selector_result_data
                             ccs_necessary_value = original_field_value
-
                     else:
                         print(f"    🟧 Нет совпадений. score_match = {score_match}")
                         current_finded_selector_value_on_logger = "🟧"
