@@ -178,6 +178,65 @@ def generate_parsePage_search_requests(data_input_table):
 
 
 
+
+def AI_generate_parsePage_search_requests(data_input_table, set_item):
+    template_AI_request = Template("""
+Тебе нужно написать код, который формирует URL адрес запроса на поиск товара. Мы используем такой синтаксис:
+
+let url = new URL(`$${HOST}/search`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("page", set.page)
+
+Твоя задача: Выше в коде заданые переменные set.query - это текст запроса на поиск, и set.page - это текущая страница поиска, она начинается с 1. Тебе нужно написать и вернуть только необходимый фрагмент кода на JS, в котором будет формироваться URL с использованием этих параметров. Чаще всего параметры поиска и текущей страницы задаются в searchParams, но иногда они задаются напрямую в строке URL, в таком случае нужно будет использовать синтаксис с `$${}`. Также, в исходном URL могут быть заданы дополнительные параметры, которые не влияют на запрос и текущую страницу, все эти параметры нужно будет сохранить.
+
+Пример 1:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://galen.bg/catalogsearch/result/index/?p=2&q=мл
+
+Фрагмент с формированием URL:
+let url = new URL(`$${HOST}/catalogsearch/result/index/`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("p", set.page)
+
+Пример 2:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://stroytorg812.ru/content/search/?s=&q=Ванна&PAGEN_1=2
+
+Фрагмент с формированием URL:
+let url = new URL(`$${HOST}/content/search/`)
+url.searchParams.set("s", "")
+url.searchParams.set("q", set.query)
+url.searchParams.set("PAGEN_1", set.page)
+
+
+Пример 3:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://gidro-top.ru/search/Ванна/?page=2
+
+Фрагмент с формированием URL:
+let url = new URL(`$${HOST}/search/$${set.query}/`)
+url.searchParams.set('/?page', set.page);
+
+-----
+
+Текущее задание:
+Строка на поиск у сайта, на 2ю страницу поиска: $url_search_2_page
+
+Значение переменной HOST = $host_value
+
+Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
+    """)
+
+    AI_request = template_AI_request.substitute(
+        host_value = set_item["host"],
+        url_search_2_page = data_input_table["search_requests"][0]["url_search_query_page_2"]
+    ).strip()
+
+    AI_answer = send_message_to_AI_agent(AI_request, no_hint=True)
+
+    set_item["create_url_block"] = AI_answer
+    return set_item
+
 ### Иногда нужно будет использовать set.page - 1
 # Т.е. добавить проверку
 # TODO Это можно оставить на доработку на будущее 
@@ -191,11 +250,38 @@ def generate_parsePage(set_item):
     elem_1_items = f"\nlet items: ResultItem[] = [];"
     elem_2_result_items = f"\nreturn items;"
 
+    # template_parseCard = Template("""
+    # async parsePage(set: SetType) {
+    #     let url = new URL(`$${HOST}$hostPatch`)
+    #     url.searchParams.set("$searchQuery", set.query)
+    #     url.searchParams.set("$paginationParams", set.page)
+    #     $addedUrlParams
+    #     const data = await this.makeRequest(url.href)
+    #     const $$ = cheerio.load(data)
+
+    #     if (set.page === 1) {
+    #         $result_pagination_block_value
+    #         this.debugger.put(`totalPages = $${totalPages}`)
+    #         for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+    #             this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+    #         }
+    #     }
+    #     $elem_1_items_value
+    #     let products = $$("$productSelector")
+    #     if (products.length == 0) {
+    #         this.logger.put(`По запросу $${set.query} ничего не найдено`)
+    #         throw new NotFoundError()
+    #     }
+    #     products.slice(0, +this.conf.itemsCount).each((i, product) => {
+    #         let link = $finalProductLink
+    #         this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    #     }) $elem_2_result_items_value
+    # }
+    # """)
+
     template_parseCard = Template("""
     async parsePage(set: SetType) {
-        let url = new URL(`$${HOST}$hostPatch`)
-        url.searchParams.set("$searchQuery", set.query)
-        url.searchParams.set("$paginationParams", set.page)
+        $create_url_block
         $addedUrlParams
         const data = await this.makeRequest(url.href)
         const $$ = cheerio.load(data)
@@ -226,9 +312,9 @@ def generate_parsePage(set_item):
         finalProductLink_val = '`${HOST}${$(product)?.attr("href")}`'
 
     result = template_parseCard.substitute(
-        hostPatch = set_item["path"],
-        searchQuery = set_item["search_param"],
-        paginationParams = set_item["pagination_param"],
+        # hostPatch = set_item["path"],
+        # searchQuery = set_item["search_param"],
+        # paginationParams = set_item["pagination_param"],
         addedUrlParams = set_item["added_url_params"],
         
         result_pagination_block_value = set_item["result_pagination_block"],
@@ -236,6 +322,7 @@ def generate_parsePage(set_item):
         #TODO Как-то проверить, что товар извлекается по $(product)?.attr("href")
         finalProductLink = finalProductLink_val,
         # Если в селкторе есть href в [] - то значит верно, также может быть src или текст
+        create_url_block = set_item["create_url_block"],
 
         elem_1_items_value = elem_1_items if is_parse_page_mode_returned_results_bool else "",
         elem_2_result_items_value = elem_2_result_items if is_parse_page_mode_returned_results_bool else ""
@@ -262,7 +349,8 @@ def main_generate_parsePage():
     #TODO Тут надо будет как-то обработать, что у нас не 1 пример, а 5
 
     # Извлекает url параметры поиска и пагинации из вхоящей ссылки
-    set_item = generate_parsePage_search_requests(data_input_table)
+    # set_item = generate_parsePage_search_requests(data_input_table)
+    set_item = AI_generate_parsePage_search_requests(data_input_table, set_item)
 
     # Получает страницу
     set_item["page_html"] = get_html(set_item["link"]) 

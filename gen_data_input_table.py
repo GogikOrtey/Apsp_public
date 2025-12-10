@@ -621,98 +621,98 @@ https://elevel.ru
 # }
 
 
-# data_input_table = {
-#     "host": "https://glavsantex.ru",
-#     "links": {
-#         "simple": [
-#             {
-#                 "link": "https://glavsantex.ru/kran-sharovoy-ideal-1-2-vv-itap/",
-#                 "name": 'Кран шаровой Ideal 1/2" ВВ ITAP ART 092',
-#                 "price": "647 ₽",
-#                 "article": "26093U",
-#                 "brand": "Itap",
-#                 "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/46/04/446/images/54537/54537.970.jpg"
-#             },
-#             {
-#                 "link": "https://glavsantex.ru/zadvizhka-klinovaya-vv-1-2-itap/",
-#                 "name": 'Задвижка клиновая ВВ 1/2" ITAP ART 156',
-#                 "price": "1 010 ₽",
-#                 "article": "1560012",
-#                 "brand": "Itap",
-#                 "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/81/04/481/images/54423/54423.970.jpg"
-#             },
-#             {
-#                 "link": "https://glavsantex.ru/avtomaticheskiy-zaporniy-klapan-dlya-manometra-rem-10-f3-8-kh3-8-watts/",
-#                 "name": 'Автоматический запорный клапан для манометра REM 10 ф3/8''х3/8" Watts',
-#                 "price": "431 ₽",
-#                 "article": "10009432",
-#                 "brand": "Watts",
-#                 "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/76/37/3776/images/15173/15173.970.jpg"
-#             },
-#         ]
-#     },
-#     "search_requests": [
-#         {
-#             "query": "Котёл",
-#             "url_search_query_page_2": "https://glavsantex.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
-#             "count_of_page_on_pagination": "14",
-#             "total_count_of_results": "0",
-#             "links_items": [
-#                 "https://glavsantex.ru/baxi-luna-3-comfort-combi-1-310-fi-kotel-gazoviy-nastenniy-dvukhkonturniy/",
-#                 "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-5-kvt/",
-#                 "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-7-kvt/",
-#             ]
-#         }
-#     ]
-# }
-
-
-
-
 data_input_table = {
-    "host": "https://makitaclub.ru",
+    "host": "https://glavsantex.ru",
     "links": {
         "simple": [
             {
-                "link": "https://makitaclub.ru/products/tw007gz/",
-                "name": "Аккумуляторный ударный гайковерт XGT 1/2″ Makita TW007GZ (40V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-                "price": "18 770 ₽",
-                "article": "TW007GZ",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://makitaclub.ru/wp-content/uploads/TW007GZ01.jpg"
+                "link": "https://glavsantex.ru/kran-sharovoy-ideal-1-2-vv-itap/",
+                "name": 'Кран шаровой Ideal 1/2" ВВ ITAP ART 092',
+                "price": "647 ₽",
+                "article": "26093U",
+                "brand": "Itap",
+                "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/46/04/446/images/54537/54537.970.jpg"
             },
             {
-                "link": "https://makitaclub.ru/products/akkumulyatornyj-udarnyj-gajkovert-makita-tw140dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-                "name": "Аккумуляторный ударный гайковерт Makita TW140DZ (12.0V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-                "price": "4 340 ₽",
-                "article": "TW140DZ",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "Нет в наличии",
-                "imageLink": "https://makitaclub.ru/wp-content/uploads/TW140DZ.jpg"
+                "link": "https://glavsantex.ru/zadvizhka-klinovaya-vv-1-2-itap/",
+                "name": 'Задвижка клиновая ВВ 1/2" ITAP ART 156',
+                "price": "1 010 ₽",
+                "article": "1560012",
+                "brand": "Itap",
+                "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/81/04/481/images/54423/54423.970.jpg"
             },
             {
-                "link": "https://makitaclub.ru/products/akkumulyatornaya-samohodnaya-telezhka-makita-dcu180z-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-                "name": "Аккумуляторная самоходная тележка Makita DCU180Z (18V, Li-Ion) (без аккумуляторов и зарядного устройства)",
-                "price": "86 300 ₽",
-                "article": "DCU180Z",
-                "InStock_trigger": "",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://makitaclub.ru/wp-content/uploads/DCU180Z.jpg"
+                "link": "https://glavsantex.ru/avtomaticheskiy-zaporniy-klapan-dlya-manometra-rem-10-f3-8-kh3-8-watts/",
+                "name": 'Автоматический запорный клапан для манометра REM 10 ф3/8''х3/8" Watts',
+                "price": "431 ₽",
+                "article": "10009432",
+                "brand": "Watts",
+                "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/76/37/3776/images/15173/15173.970.jpg"
             },
         ]
     },
     "search_requests": [
         {
-            "query": "шуруповёрт",
-            "url_search_query_page_2": "https://makitaclub.ru/page/2/?s=шуруповёрт&post_type=product",
-            "count_of_page_on_pagination": "9",
+            "query": "Котёл",
+            "url_search_query_page_2": "https://glavsantex.ru/search/?page=2&query=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
+            "count_of_page_on_pagination": "14",
             "total_count_of_results": "0",
             "links_items": [
-                "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf484z-18v-li-ion/",
-                "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf482z-18v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
-                "https://makitaclub.ru/products/akkumulyatornaya-drel-shurupovert-makita-ddf453rfe/",
+                "https://glavsantex.ru/baxi-luna-3-comfort-combi-1-310-fi-kotel-gazoviy-nastenniy-dvukhkonturniy/",
+                "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-5-kvt/",
+                "https://glavsantex.ru/kotel-elektricheskiy-nastenniy-stout-plus-7-kvt/",
             ]
         }
     ]
 }
+
+
+
+
+# data_input_table = {
+#     "host": "https://makitaclub.ru",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://makitaclub.ru/products/tw007gz/",
+#                 "name": "Аккумуляторный ударный гайковерт XGT 1/2″ Makita TW007GZ (40V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+#                 "price": "18 770 ₽",
+#                 "article": "TW007GZ",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/TW007GZ01.jpg"
+#             },
+#             {
+#                 "link": "https://makitaclub.ru/products/akkumulyatornyj-udarnyj-gajkovert-makita-tw140dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+#                 "name": "Аккумуляторный ударный гайковерт Makita TW140DZ (12.0V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+#                 "price": "4 340 ₽",
+#                 "article": "TW140DZ",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "Нет в наличии",
+#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/TW140DZ.jpg"
+#             },
+#             {
+#                 "link": "https://makitaclub.ru/products/akkumulyatornaya-samohodnaya-telezhka-makita-dcu180z-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+#                 "name": "Аккумуляторная самоходная тележка Makita DCU180Z (18V, Li-Ion) (без аккумуляторов и зарядного устройства)",
+#                 "price": "86 300 ₽",
+#                 "article": "DCU180Z",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://makitaclub.ru/wp-content/uploads/DCU180Z.jpg"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "шуруповёрт",
+#             "url_search_query_page_2": "https://makitaclub.ru/page/2/?s=шуруповёрт&post_type=product",
+#             "count_of_page_on_pagination": "9",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf484z-18v-li-ion/",
+#                 "https://makitaclub.ru/products/akkumulyatornaya-2-h-skorostnaya-drel-shurupovert-makita-ddf482z-18v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/",
+#                 "https://makitaclub.ru/products/akkumulyatornaya-drel-shurupovert-makita-ddf453rfe/",
+#             ]
+#         }
+#     ]
+# }

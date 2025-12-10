@@ -1,19 +1,46 @@
-import os
-from dotenv import load_dotenv
-from google import genai
+template_AI_request = Template("""
+Тебе нужно написать код, который формирует URL адрес запроса на поиск товара. Мы используем такой синтаксис:
 
-print(f"Запуск нейросети Gemini")
+let url = new URL(`$${HOST}/search`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("page", set.page)
 
-# Загружаем переменные окружения из .env
-load_dotenv()
+Твоя задача: Выше в коде заданые переменные set.query - это текст запроса на поиск, и set.page - это текущая страница поиска, она начинается с 1. Тебе нужно написать и вернуть только необходимый фрагмент кода на JS, в котором будет формироваться URL с использованием этих параметров. Чаще всего параметры поиска и текущей страницы задаются в searchParams, но иногда они задаются напрямую в строке URL, в таком случае нужно будет использовать синтаксис с `$${}`. Также, в исходном URL могут быть заданы дополнительные параметры, которые не влияют на запрос и текущую страницу, все эти параметры нужно будет сохранить.
 
-api_key = os.getenv("GEMINI_API_KEY")
+Пример 1:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://galen.bg/catalogsearch/result/index/?p=2&q=мл
 
-client = genai.Client(api_key=api_key)
+Фрагмент с формированием URL:
+let url = new URL(`$${HOST}/catalogsearch/result/index/`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("p", set.page)
 
-response = client.models.generate_content(
-    model="gemini-2.5-flash",
-    contents="Explain how AI works in a few words",
-)
+Пример 2:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://stroytorg812.ru/content/search/?s=&q=Ванна&PAGEN_1=2
 
-print(response.text)
+Фрагмент с формированием URL:
+let url = new URL(`$${HOST}/content/search/`)
+url.searchParams.set("s", "")
+url.searchParams.set("q", set.query)
+url.searchParams.set("PAGEN_1", set.page)
+
+
+Пример 3:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://gidro-top.ru/search/Ванна/?page=2
+
+Фрагмент с формированием URL:
+let url = new URL(`$${HOST}/search/$${set.query}/`)
+url.searchParams.set('/?page', set.page);
+
+-----
+
+Текущее задание:
+Строка на поиск у сайта, на 2ю страницу поиска: ______
+
+Значение переменной HOST = ______
+
+Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
+    """)
