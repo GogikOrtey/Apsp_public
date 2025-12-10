@@ -612,9 +612,9 @@ data_input_table = {
             "count_of_page_on_pagination": "255",
             "total_count_of_results": "0",
             "links_items": [
-                "https://gidro-top.ru/product/vanna-astra-form-nyu-form-170x75-belaya/",
-                "https://gidro-top.ru/product/abber-stein-as9641-15-vanna-iz-iskusstvennogo-kamnya/",
-                "https://gidro-top.ru/product/triton-sirius-180x80-vanna-iz-iskusstvennogo-kamnya/",
+                "https://gidro-top.ru/product/salini-orlanda-102114g-vanna-vstraivaemaya-belyy-190x100/",
+                "https://gidro-top.ru/product/azario-kapris-1700R/",
+                "https://gidro-top.ru/product/abber-stein-as9624-17-vanna-iz-iskusstvennogo-kamnya/",
             ]
         }
     ]

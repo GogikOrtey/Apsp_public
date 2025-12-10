@@ -380,6 +380,12 @@ def measure_time(func):
             print(f"🕚 Время выполнения: {elapsed:.2f} секунд")
         else:
             print(f"🕚 Время выполнения: {elapsed / 60:.1f} минут")
+
+        # print(f"🧢 Кол-во обращений к ИИ: {count_request_to_AI}")
+
+        import import_all_libraries        
+        print(f"🧢 Кол-во обращений к ИИ: {import_all_libraries.count_request_to_AI}") 
+
         return result
     return wrapper
 

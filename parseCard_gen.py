@@ -338,6 +338,11 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         let imageLink = $(".detail-gallery-big__link").attr('href');
         imageLink = imageLink ? HOST + imageLink : "";
 
+        Также интересный шаблон для imageLink
+
+        const src = $('.detail-gallery-big__picture').attr('src') ?? '';
+        const imageLink = src.startsWith('http') ? src : `${HOST}${src}`;        
+
         """
 
         """
