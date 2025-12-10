@@ -175,6 +175,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         ccs_result_value = "" # Первое значение, которое мы получили из селектора
         ccs_necessary_value = "" # Первое значение, которое мы должны были получить
 
+        print(f"Обрабатываем поле {key}")
+
         # Проверяем селектор на всех ссылках из кеша
         for link_item in data_input_table["links"]["simple"]:
             count_page += 1
