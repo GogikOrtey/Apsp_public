@@ -286,36 +286,36 @@
 # # артикул неверно
 # # наличие неверно - берётся из подборки похожих товаров
 
-# data_input_table = {
-#     "host": "",
-#     "links": {
-#         "simple": [
-#             {
-#                 "link": "https://hb-shop.by/katalog/lico/ochishhenie/micellyarnaya-voda/voda-micellyarnaya-ochischayuschaya-na-osnove-termalnoy-vody-dlya-chuvstvit-kozhi-i-kontura-glaz-250-ml.html",
-#                 "name": "Очищающая мицеллярная вода Uriage Eau Thermale для чувствительной кожи, 250 мл",
-#                 "price": "43.24 руб.",
-#                 "oldPrice": "",
-#                 "article": "009327",
-#                 "brand": "Uriage",
-#                 "InStock_trigger": "В наличии",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://hb-shop.by/assets/images/catalog/39028_GUID_35670443-5253-11ef-8443-000c29025319.webp"
-#             },
-#             {
-#                 "link": "https://hb-shop.by/katalog/lico/kremy-dlya-lica/krem-sebium-gidra-sebium-hydra-40-ml.html",
-#                 "name": "Флюид ультраувлажняющий Биодерма Себиум / Bioderma Sebium Hydra, 40 мл",
-#                 "price": "42.74 руб.",
-#                 "oldPrice": "",
-#                 "article": "840421",
-#                 "brand": "Bioderma",
-#                 "InStock_trigger": "В наличии",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://hb-shop.by/assets/images/catalog/УТ-00021136_GUID_cff010bf-bba5-11ee-8421-000c29025319.webp"
-#             }
-#         ]
-#     },
-#     "search_requests": []
-# }
+data_input_table = {
+    "host": "https://hb-shop.by",
+    "links": {
+        "simple": [
+            {
+                "link": "https://hb-shop.by/katalog/lico/ochishhenie/micellyarnaya-voda/voda-micellyarnaya-ochischayuschaya-na-osnove-termalnoy-vody-dlya-chuvstvit-kozhi-i-kontura-glaz-250-ml.html",
+                "name": "Очищающая мицеллярная вода Uriage Eau Thermale для чувствительной кожи, 250 мл",
+                "price": "43.24 руб.",
+                "oldPrice": "",
+                "article": "009327",
+                "brand": "Uriage",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://hb-shop.by/assets/images/catalog/39028_GUID_35670443-5253-11ef-8443-000c29025319.webp"
+            },
+            {
+                "link": "https://hb-shop.by/katalog/lico/kremy-dlya-lica/krem-sebium-gidra-sebium-hydra-40-ml.html",
+                "name": "Флюид ультраувлажняющий Биодерма Себиум / Bioderma Sebium Hydra, 40 мл",
+                "price": "42.74 руб.",
+                "oldPrice": "",
+                "article": "840421",
+                "brand": "Bioderma",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://hb-shop.by/assets/images/catalog/УТ-00021136_GUID_cff010bf-bba5-11ee-8421-000c29025319.webp"
+            }
+        ]
+    },
+    "search_requests": []
+}
 
 
 
@@ -565,60 +565,60 @@ https://elevel.ru
 #     ]
 # }
 
-data_input_table = {
-    "host": "https://gidro-top.ru",
-    "fields_str": "",
-    "links": {
-        "simple": [
-            {
-                "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
-                "name": "Aquanet SD-1200A душевая дверь",
-                "price": "19 850 ₽",
-                "oldPrice": "",
-                "article": "00209406",
-                "brand": "Aquanet",
-                "InStock_trigger": "В наличии",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
-            },
-            {
-                "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
-                "name": "Aquastone Малибу Ванна из искусственного камня",
-                "price": "55 000 ₽",
-                "oldPrice": "69 000 ₽",
-                "article": "MAlibu",
-                "brand": "Aquastone",
-                "InStock_trigger": "В наличии",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
-            },
-            {
-                "link": "https://gidro-top.ru/product/aquastone-bali-180/",
-                "name": "Aquastone Бали 180 Ванна из искусственного камня",
-                "price": "53 000 ₽",
-                "oldPrice": "",
-                "article": "Bali180",
-                "brand": "Aquastone",
-                "InStock_trigger": "В наличии",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
-            }
-        ]
-    },
-    "search_requests": [ ####### Плохо: Нет параметра для поиска, он зашит внутри url
-        {
-            "query": "Ванна",
-            "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
-            "count_of_page_on_pagination": "255",
-            "total_count_of_results": "0",
-            "links_items": [
-                "https://gidro-top.ru/product/salini-orlanda-102114g-vanna-vstraivaemaya-belyy-190x100/",
-                "https://gidro-top.ru/product/azario-kapris-1700R/",
-                "https://gidro-top.ru/product/abber-stein-as9624-17-vanna-iz-iskusstvennogo-kamnya/",
-            ]
-        }
-    ]
-}
+# data_input_table = {
+#     "host": "https://gidro-top.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
+#                 "name": "Aquanet SD-1200A душевая дверь",
+#                 "price": "19 850 ₽",
+#                 "oldPrice": "",
+#                 "article": "00209406",
+#                 "brand": "Aquanet",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
+#             },
+#             {
+#                 "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
+#                 "name": "Aquastone Малибу Ванна из искусственного камня",
+#                 "price": "55 000 ₽",
+#                 "oldPrice": "69 000 ₽",
+#                 "article": "MAlibu",
+#                 "brand": "Aquastone",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
+#             },
+#             {
+#                 "link": "https://gidro-top.ru/product/aquastone-bali-180/",
+#                 "name": "Aquastone Бали 180 Ванна из искусственного камня",
+#                 "price": "53 000 ₽",
+#                 "oldPrice": "",
+#                 "article": "Bali180",
+#                 "brand": "Aquastone",
+#                 "InStock_trigger": "В наличии",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
+#             }
+#         ]
+#     },
+#     "search_requests": [ ####### Плохо: Нет параметра для поиска, он зашит внутри url
+#         {
+#             "query": "Ванна",
+#             "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
+#             "count_of_page_on_pagination": "255",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://gidro-top.ru/product/salini-orlanda-102114g-vanna-vstraivaemaya-belyy-190x100/",
+#                 "https://gidro-top.ru/product/azario-kapris-1700R/",
+#                 "https://gidro-top.ru/product/abber-stein-as9624-17-vanna-iz-iskusstvennogo-kamnya/",
+#             ]
+#         }
+#     ]
+# }
 
 
 # data_input_table = {
