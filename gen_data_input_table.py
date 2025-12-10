@@ -683,11 +683,12 @@ https://galleryceramics.ru
 +- https://gastehmarket.ru
 https://gazovik-omsk.ru
 https://gaz-shop78.ru
+
 https://gidro-top.ru   + *
 https://glavsantex.ru  + *
-https://goodzone23.ru *
-https://gra-nit.ru *
-https://gresstore.ru
+https://goodzone23.ru    *
+https://gra-nit.ru       *
+https://gresstore.ru     *
 
 
 * - если взял 
