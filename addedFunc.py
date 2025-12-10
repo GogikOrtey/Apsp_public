@@ -101,6 +101,10 @@ class ErrorHandler(Exception):
         self.message = message
         self.error_code = error_code
 
+        message_global.append({"1": f"🔴 Агент завершил работу с ошибкой: {message}"})
+
+
+
         full_msg = (
             f"🔴 Агент завершил работу с ошибкой: {message}"
             if error_code == 0
@@ -254,3 +258,4 @@ def format_price(value: str, separator: str = ".") -> str:
     match = re.search(r"\d+(?:\.\d{0,2})?", cleaned)
 
     return match.group(0) if match else ""
+    
