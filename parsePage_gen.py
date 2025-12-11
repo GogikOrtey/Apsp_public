@@ -197,6 +197,7 @@ def main_generate_parsePage():
     for use_id_link_elem in range(0, len(current_element["links_items"])):
         # Извлекаем product_selector
         processed_url_product = strip_host(current_element["links_items"][use_id_link_elem])
+        print(f"processed_url_product = {processed_url_product}")
         product_selector = get_css_selector_from_text_value_element(set_item["page_html"], processed_url_product, is_exact = False, is_multiply_sel_result = True)
         if not product_selector:
             raise ErrorHandler("Не был найден селектор для товара")

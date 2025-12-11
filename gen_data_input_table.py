@@ -681,8 +681,8 @@ https://csk-rus.ru
 https://galen.bg
 https://galleryceramics.ru
 +- https://gastehmarket.ru
-https://gazovik-omsk.ru
-https://gaz-shop78.ru
+https://gazovik-omsk.ru      *
+https://gaz-shop78.ru        *
 
 https://gidro-top.ru   + *
 https://glavsantex.ru  + *
@@ -989,3 +989,53 @@ https://elevel.ru
 #         }
 #     ]
 # }
+
+
+data_input_table = {
+    "host": "https://gazovik-omsk.ru",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://gazovik-omsk.ru/catalog/heating-boilers/nastennye-gazovye/italtherm/italtherm-kotel-gazovyy-city-class-16-f/",
+                "name": "ITALTHERM котел газовый CITY CLASS 16 F",
+                "price": "83 800 ₽",
+                "brand": "ITALTHERM",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gazovik-omsk.ru/upload/resize_cache/iblock/d44/ezk61h6wbnf2kgqlyuywabxnrnwye6y2/600_650_1/53d46394_c6c2_11ec_bc0c_902b34947fde_f47fc722_723a_11ee_a765_74563c50ebe6.png"
+            },
+            {
+                "link": "https://gazovik-omsk.ru/catalog/heating-boilers/nastennye-gazovye/italtherm/italtherm-kotel-gazovyy-city-class-40-f/",
+                "name": "ITALTHERM котел газовый CITY CLASS 40 F",
+                "price": "118 700 ₽",
+                "brand": "ITALTHERM",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gazovik-omsk.ru/upload/resize_cache/iblock/6de/nwy22oz6srgyot1upgnwuawbe9outrbv/600_650_1/53d46398_c6c2_11ec_bc0c_902b34947fde_f47fc738_723a_11ee_a765_74563c50ebe6.png"
+            },
+            {
+                "link": "https://gazovik-omsk.ru/catalog/heating-boilers/nastennye-gazovye/mizudo/kotel-gazovyy-nastennyy-mizudo-m36t-razdelnyy-teploobmennik/",
+                "name": "Котел газовый настенный Mizudo M36T (раздельный теплообменник)",
+                "price": "76 990 ₽",
+                "brand": "Mizudo",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gazovik-omsk.ru/upload/resize_cache/iblock/e78/1gj2u95j6d3vrlrq8dqs81mohjisihbq/600_650_1/9c2c2db9_9686_11ea_9004_902b34947fde_28dd3f0e_74c8_11ee_a765_74563c50ebe6.png"
+            },
+        ]
+    },
+    "search_requests": [
+        {
+            "query": "котёл",
+            "url_search_query_page_2": "https://gazovik-omsk.ru/catalog/?q=%D0%BA%D0%BE%D1%82%D1%91%D0%BB&PAGEN_2=2",
+            "count_of_page_on_pagination": "19",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://gazovik-omsk.ru/catalog/heating-boilers/nastennye-gazovye/italtherm/italtherm-kotel-gazovyy-city-class-25-f/",
+                "https://gazovik-omsk.ru/catalog/heating-boilers/nastennye-gazovye/italtherm/italtherm-kotel-gazovyy-city-class-25-fr/",
+                "https://gazovik-omsk.ru/catalog/heating-boilers/nastennye-gazovye/italtherm/italtherm-kotel-gazovyy-city-class-40-fr/",
+            ]
+        }
+    ]
+}
