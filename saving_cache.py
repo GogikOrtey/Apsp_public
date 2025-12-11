@@ -2,7 +2,6 @@
 # Вынесенные отдельно функции
 from addedFunc import *
 from gen_data_input_table import data_input_table # Входные данные
-from extracting_selector_from_html import *
 
 # region Сохранение кеша
 
