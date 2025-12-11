@@ -360,7 +360,7 @@ def print_and_save_message_global():
                     print(f"🟧 {value}")
                     generated_status = "🟧 Falled 🟧"
                 elif key == "2":
-                    print(f"🟡 {value}")
+                    print(f"🟡 [Предупреждение]: {value}")
                 else:
                     print(f"🟦 {value}")
 

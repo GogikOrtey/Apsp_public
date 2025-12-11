@@ -423,7 +423,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
             if isPrint: print("is_exact = True, устанавливаем фиктивное значение 1")
             percent = 1.0
 
-        print(f"percent = {percent}")
+        if isPrint: print(f"percent = {percent}")
 
         # Проверяем совпадение текста
         if finding_element.strip() in result_text.strip():

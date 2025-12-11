@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, brand, imageLink, timestamp
+    name, stock, link, price, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,7 +16,7 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, brand, imageLink, timestamp
+    name, stock, link, price, imageLink, timestamp
 }
 
 const HOST = "https://gaz-shop78.ru"
@@ -107,17 +107,16 @@ export class JS_Base_gazshop78ru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $(".site-path").text()?.trim()
+        const name = $("h1").text()?.trim()
 		const stock = $(".gr-amount-flag.has_amount > span").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
 		const link = set.query
 		const price = $(".price-current > strong").text()?.trim().formatPrice()
-		const brand = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
 		let imageLink = $("img.gr_image_contain")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, brand, imageLink, timestamp
+            name, stock, link, price, imageLink, timestamp
         }
         items.push(item);
 
