@@ -1188,7 +1188,11 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
         if not selector_str:
             return selector_str
         
-        # Находим и удаляем все .--класс
+        import re
+        
+        # Простой подход: находим и удаляем все .--класс
+        # Используем более простое регулярное выражение
+        # Ищем паттерн: .--любые_символы_для_имени_класса
         pattern = r'\.--[a-zA-Z0-9_-]+'
         
         # Заменяем найденные классы на пустую строку
@@ -1198,14 +1202,43 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
         # Пример: div.class1.--search.class2 -> div.class1..class2
         cleaned_selector = re.sub(r'\.\.+', '.', cleaned_selector)
         
-        # Удаляем точку в начале, если она осталась без класса
-        cleaned_selector = re.sub(r'^\.', '', cleaned_selector)
+        # Удаляем точку в начале селектора или части селектора
+        # Проверяем каждую часть между комбинаторами
+        parts = re.split(r'(\s*[>+~]\s*|\s+)', cleaned_selector)
         
-        # Удаляем точку после пробела, если она осталась без класса
-        cleaned_selector = re.sub(r'\s\.', ' ', cleaned_selector)
+        result_parts = []
+        for i in range(0, len(parts), 2):
+            # parts[i] - селектор, parts[i+1] - разделитель (если есть)
+            selector_part = parts[i] if i < len(parts) else ""
+            
+            # Удаляем точку в начале селектора
+            selector_part = re.sub(r'^\.', '', selector_part)
+            
+            # Удаляем точку, которая стоит после другого класса (например: div.class. -> div.class)
+            # Но только если после точки нет буквы или цифры (т.е. это одинокая точка)
+            selector_part = re.sub(r'(?<=[a-zA-Z0-9_-])\.(?=\s|$|>|\[)', '', selector_part)
+            
+            # Удаляем точку, которая стоит перед пробелом или комбинатором
+            selector_part = re.sub(r'\.(?=\s|$|>|\[)', '', selector_part)
+            
+            # Удаляем точку, которая стоит после пробела (в начале части селектора)
+            selector_part = re.sub(r'(?<=\s)\.', '', selector_part)
+            
+            result_parts.append(selector_part)
+            
+            # Добавляем разделитель, если он есть
+            if i + 1 < len(parts):
+                result_parts.append(parts[i + 1])
+        
+        cleaned_selector = ''.join(result_parts)
         
         # Удаляем возможные двойные пробелы
         cleaned_selector = re.sub(r'\s+', ' ', cleaned_selector).strip()
+        
+        # Удаляем лишние пробелы вокруг комбинаторов
+        cleaned_selector = re.sub(r'\s*>\s*', ' > ', cleaned_selector)
+        cleaned_selector = re.sub(r'\s*\+\s*', ' + ', cleaned_selector)
+        cleaned_selector = re.sub(r'\s*~\s*', ' ~ ', cleaned_selector)
         
         return cleaned_selector
 

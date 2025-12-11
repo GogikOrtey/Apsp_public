@@ -1,4 +1,4 @@
-11.12.2025 16:37:53
+11.12.2025 16:42:48
 
 
 Найдено 19 возможных селекторов
@@ -77,7 +77,7 @@ url.searchParams.set('/?page', set.page);
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/catalog/?`)
+let url = new URL(`${HOST}/catalog/`)
 url.searchParams.set("q", set.query)
 url.searchParams.set("PAGEN_2", set.page)
 ```"
