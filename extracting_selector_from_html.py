@@ -8,8 +8,8 @@ from saving_cache import *
 
 #############################################
 
-# isPrint = False
-isPrint = True 
+isPrint = False
+# isPrint = True 
 
 # region Доп. методы
 
@@ -1188,30 +1188,23 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
         if not selector_str:
             return selector_str
         
-        # Регулярное выражение для нахождения классов с двойным дефисом
-        # Ищем паттерн: пробел или начало строки, затем класс с точкой и двойным дефисом
-        import re
-        pattern = r'(?<=[ \t\n\r\f\v]|^)(\.[a-zA-Z_][a-zA-Z0-9_-]*)?\.--[a-zA-Z0-9_-]+'
+        # Находим и удаляем все .--класс
+        pattern = r'\.--[a-zA-Z0-9_-]+'
         
-        def replace_double_hyphen_class(match):
-            # Получаем совпавшую строку
-            matched = match.group(0)
-            # Если перед .-- есть другой класс, оставляем только его
-            if matched.startswith('.') and '.--' in matched:
-                # Разделяем по .-- и берем первую часть
-                parts = matched.split('.--', 1)
-                # Если первая часть не пустая, возвращаем её
-                if parts[0]:
-                    return parts[0]
-                # Иначе возвращаем пустую строку
-                return ''
-            # Если нет класса перед .--, возвращаем пустую строку
-            return ''
+        # Заменяем найденные классы на пустую строку
+        cleaned_selector = re.sub(pattern, '', selector_str)
         
-        # Заменяем все вхождения классов с двойным дефисом
-        cleaned_selector = re.sub(pattern, replace_double_hyphen_class, selector_str)
+        # Удаляем возможные двойные точки, которые могли образоваться после удаления
+        # Пример: div.class1.--search.class2 -> div.class1..class2
+        cleaned_selector = re.sub(r'\.\.+', '.', cleaned_selector)
         
-        # Удаляем возможные двойные пробелы после очистки
+        # Удаляем точку в начале, если она осталась без класса
+        cleaned_selector = re.sub(r'^\.', '', cleaned_selector)
+        
+        # Удаляем точку после пробела, если она осталась без класса
+        cleaned_selector = re.sub(r'\s\.', ' ', cleaned_selector)
+        
+        # Удаляем возможные двойные пробелы
         cleaned_selector = re.sub(r'\s+', ' ', cleaned_selector).strip()
         
         return cleaned_selector
@@ -1438,12 +1431,12 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
 # selector_result = get_css_selector_from_text_value_element(html, finding_text_element)
 
 
-# Извлечение элемента по селектору
-isPrint = True
-link = "https://gazovik-omsk.ru/catalog/?q=%D0%BA%D0%BE%D1%82%D1%91%D0%BB&PAGEN_2=2"
-# selector = 'html > body.custom_scroll > div.wrapper > main.page-catalog > section.page-catalog__catalog.catalog.--search > div.catalog__container > div.catalog__inner > div.catalog__content.--search > div.catalog__products.catalog-products > div.horizontal-card > a.horizontal-card__link[href]'
-# selector = 'html > body.custom_scroll > div.wrapper > main.page-catalog > section.page-catalog__catalog.catalog.--search > div.catalog__container > div.catalog__inner > div.catalog__content.--search > div.catalog__products.catalog-products > div.horizontal-card > a.horizontal-card__link[href]'
-selector = 'html  div.catalog__content.--search  a.horizontal-card__link[href]'
-html = get_html_from_cache(link)
-element_finded = get_element_from_selector_universal(html, selector)
-print(f"element_finded = {element_finded}")
+# # Извлечение элемента по селектору
+# isPrint = True
+# link = "https://gazovik-omsk.ru/catalog/?q=%D0%BA%D0%BE%D1%82%D1%91%D0%BB&PAGEN_2=2"
+# # selector = 'html > body.custom_scroll > div.wrapper > main.page-catalog > section.page-catalog__catalog.catalog.--search > div.catalog__container > div.catalog__inner > div.catalog__content.--search > div.catalog__products.catalog-products > div.horizontal-card > a.horizontal-card__link[href]'
+# # selector = 'html > body.custom_scroll > div.wrapper > main.page-catalog > section.page-catalog__catalog.catalog.--search > div.catalog__container > div.catalog__inner > div.catalog__content.--search > div.catalog__products.catalog-products > div.horizontal-card > a.horizontal-card__link[href]'
+# selector = 'html  div.catalog__content.--search  a.horizontal-card__link[href]'
+# html = get_html_from_cache(link)
+# element_finded = get_element_from_selector_universal(html, selector)
+# print(f"element_finded = {element_finded}")
