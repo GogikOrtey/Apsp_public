@@ -233,6 +233,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                 print("")
                 print(f"Проверяем селектор {current_selector_query} на странице №{count_page}")
                 result_selector = get_element_from_selector_universal(html, current_selector_query, is_ret_len=True)
+                print(f"##### result_selector = {result_selector}")
                 # Если элемент по селектору не был найден на одной или нескольких страницах, то это ничего страшного
                 max_count_element_of_selectors = (
                     result_selector["length_elem"] if result_selector["length_elem"] > max_count_element_of_selectors 
@@ -358,20 +359,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         else:
             line_result_code = f'\t\tconst {key} = {selector_result_code}'
 
-
-        """ #############
-        Потом переделать логику imageLink под это:
-        
-        let imageLink = $(".detail-gallery-big__link").attr('href');
-        imageLink = imageLink ? HOST + imageLink : "";
-
-        Также интересный шаблон для imageLink
-
-        const src = $('.detail-gallery-big__picture').attr('src') ?? '';
-        const imageLink = src.startsWith('http') ? src : `${HOST}${src}`;        
-
-        """
-
         if is_clarify_code_selector:
             # Прошу ИИ дополнить строку кода
             print(f"🧢 Отправляю запрос к ИИ на исправление строки кода для поля {key}")
@@ -403,29 +390,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         lines.append(line_result_code)
 
         result_logger_fields.append(f"{current_finded_selector_value_on_logger}: {key} {added_inf_from_logger}")
-
-
-
-
-
-        """
-
-            * Просмотреть на 20-30 примерах написанных парсеров
-
-            * Логика для поля stock выписана, и была проверена, но давно
-                * Стоит проверить её ещё раз
-                    * Но проверять уже на примерах
-
-            * Добавить сообщения об ошибках
-                * В общкю область, в виде словаря формата:
-                0 - предупреждение
-                1 - ошибка
-                {"1": "Ошибка генерации строки кода извлечения значения по селектору, для поля {поле}: {
-                вся строка, до комментария}"}
-                они будут выводиться в конце генерации
-
-        """
-
     
     print("Статистика нахождения селекторов:")
     for elem in result_logger_fields:
@@ -441,10 +405,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     # В конце убираем завершающие переносы
     value_field = value_field.rstrip("\n")
 
-    # print("value_field = ")
-    # print(value_field)
-
-    ## Это будет приходить из global_code
     # order_string = "name, stock, link, price, oldprice, article, brand, imageLink, timestamp"  
     
     if not data_input_table.get("fields_str"):
@@ -452,10 +412,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         # Эта ошибка не должна произойти
 
     order_string = data_input_table["fields_str"]
-
-
-    ######################### Почему-то не сортируется как надо. Проверить
-
 
     # Разбиваем строку порядка на список полей, убираем пробелы
     field_order = [field.strip() for field in order_string.split(",")]

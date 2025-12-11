@@ -100,7 +100,7 @@ url.searchParams.set('/?page', set.page);
     return set_item
 
 ### Иногда нужно будет использовать set.page - 1
-# Т.е. добавить проверку
+# Проверить что ИИ корректно это обрабатывает
 # TODO Это можно оставить на доработку на будущее 
 
 
@@ -183,13 +183,11 @@ def main_generate_parsePage():
     #TODO Тут надо будет как-то обработать, что у нас не 1 пример, а 5
 
     # Извлекает url параметры поиска и пагинации из вхоящей ссылки
-    # set_item = generate_parsePage_search_requests(data_input_table)
 
-    ################################ вернуть
-    # set_item = AI_generate_parsePage_search_requests(data_input_table)
-    set_item = {
-        "create_url_block": "временно отключил"
-    }
+    set_item = AI_generate_parsePage_search_requests(data_input_table)
+    # set_item = {
+    #     "create_url_block": "временно отключил"
+    # }
 
     set_item["link"] = data_input_table["search_requests"][0]["url_search_query_page_2"]
     set_item["host"] = data_input_table["host"]
@@ -364,7 +362,7 @@ def main_generate_parsePage():
             
             # Проверяем, не остался ли один элемент в селекторе
             if len(current_parts) == 1:
-                if len_of_products < 6: ######################################################## <
+                if len_of_products < 6: 
                     raise ErrorHandler(f"Селектор содержит только одну часть и элементов < 6: найдено {len_of_products} элементов")
                 else:
                     product_selector = current_selector
@@ -396,8 +394,8 @@ def main_generate_parsePage():
     # ################# Вот здесь ошибкка, неверное получение по селектору
     # # Проверяем, сколько товаров на этой странице по итоговому селектору
     # search_elem = tree.cssselect(product_selector)
-    # len_of_products_on_this_page = len(search_elem)
-    # print(f"len_of_products_on_this_page = {len_of_products_on_this_page}")
+    len_of_products_on_this_page = len(search_elem)
+    print(f"len_of_products_on_this_page = {len_of_products_on_this_page}")
 
     # # Получаем значения элементов по этому селектору
     # match = re.search(r"\[(.*?)\]", product_selector)

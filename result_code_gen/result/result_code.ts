@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, imageLink, timestamp
+    name, stock, link, price, oldprice, article, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, imageLink, timestamp
+    name, stock, link, price, oldprice, article, imageLink, timestamp
 }
 
-const HOST = "https://galleryceramics.ru"
+const HOST = "https://c-s-k.ru"
 
-export class JS_Base_galleryceramicsru extends JS_Base_Custom {
+export class JS_Base_cskru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -81,16 +81,18 @@ export class JS_Base_galleryceramicsru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("span.breadcrumbs__item-name.font_13").text()?.trim()
-		const stock = $("span.js-replace-status.status-icon.instock").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
+        const name = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+		const stock = "InStock"
 		const link = set.query
-		const price = $("span.price__new-val.font_24").text()?.trim().formatPrice()
-		let imageLink = $("#big-photo-0 > a.detail-gallery-big__link.popup_link.fancy.fancy-thumbs")?.attr("href")?.trim()
+		const price = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+		const oldprice = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+		const article = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, imageLink, timestamp
+            name, stock, link, price, oldprice, article, imageLink, timestamp
         }
         items.push(item);
 

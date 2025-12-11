@@ -23,6 +23,7 @@ def check_avialible_html():
     html = get_html(first_item_link)
 
     text_includes = data_input_table["links"]["simple"][0]["name"] 
+    
     if not text_includes in html:
         print("🟠 Подстрока не найдена.")
         raise ErrorHandler("При открытии страницы 1 товара, на ней не было обнаружено названия товара")
