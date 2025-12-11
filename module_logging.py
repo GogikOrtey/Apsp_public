@@ -1,5 +1,8 @@
 import sys
 
+# Перехватывает весь текст, который выводится в консоль через print()
+# и записывает его в output.log
+
 class Tee:
     def __init__(self, *files):
         self.files = files

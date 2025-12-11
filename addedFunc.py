@@ -5,11 +5,13 @@ from gen_data_input_table import data_input_table
 
 # TODO: Когда здесь наберётся достаточно функций, разбить их по категориям, и добавить оглавление
 
+# region print_json
 def print_json(input_json):
     text = json.dumps(input_json, indent=4, ensure_ascii=False)
     text = text.replace('\\"', '"')
     print(text)
 
+# region get_current_date
 # Возвращает текущую дату в формате "4 дек 2025"
 def get_current_date():
     # Получаем текущую дату
@@ -45,31 +47,7 @@ def similarity_percent_smart(a: str, b: str) -> float:
 def clearAnswerCode(input_code):
     return input_code
 
-# def clean_html_text(s: str, keep_tags=False) -> str:
-#     if not isinstance(s, str):
-#         return ""
-
-#     # 1️⃣ Декодируем HTML-сущности (&nbsp; → пробел, &amp; → &)
-#     s = html_lx.unescape(s)
-
-#     # 2️⃣ Убираем управляющие символы (0–31, кроме \n и \t)
-#     s = re.sub(r'[\x00-\x09\x0B-\x1F\x7F]', '', s)
-
-#     # 3️⃣ (опционально) удаляем HTML-теги
-#     if not keep_tags:
-#         s = re.sub(r'<[^>]+>', '', s)
-
-#     # 4️⃣ Убираем невидимые пробелы, в т.ч. неразрывные
-#     s = s.replace('\xa0', ' ').replace('\u200b', ' ')  # nbsp и zero-width space
-
-#     # 5️⃣ Заменяем все виды пробелов и переносов на одиночный пробел
-#     s = re.sub(r'\s+', ' ', s)
-
-#     # 6️⃣ Убираем лишние пробелы по краям
-#     s = s.strip()
-
-#     return s
-
+# region get_html
 def get_html(url: str, headers: dict = None, timeout: int = 10, is_clear_html = True) -> str:
     """
     Отправляет GET-запрос на указанный URL и возвращает HTML-ответ.
@@ -96,6 +74,7 @@ def get_html(url: str, headers: dict = None, timeout: int = 10, is_clear_html = 
         return ""
     
 
+# region ErrorHandler
 class ErrorHandler(Exception):
     """Моё кастомное исключение."""
 
@@ -122,6 +101,7 @@ class ErrorHandler(Exception):
 
 
 
+# region find_contexts
 # Находит и возвращает все фрагменты подстроки в html
 # Сейчас используется только для тестов
 # Но писалось для извлечения малого контектса для YandexGPT
@@ -159,6 +139,7 @@ def find_contexts(text: str, substring: str, context_size: int = 300) -> list[st
 
 
 
+# region clean_html_preserve_structure
 ### Очистка html ответа
 def clean_html_preserve_structure(html_text: str) -> str:
     """
@@ -248,6 +229,7 @@ def clean_html_preserve_structure(html_text: str) -> str:
     return out_html
 
 
+# region format_price
 # Транслированная функция format_price 
 def format_price(value: str, separator: str = ".") -> str:
     # Удаляем все символы, кроме цифр и разделителя
@@ -262,6 +244,7 @@ def format_price(value: str, separator: str = ".") -> str:
     return match.group(0) if match else ""
     
 
+# region clean_selector_from_double_hyphen
 # Удаляет все названия классов, начинающиеся с .-- 
 # т.к. это ломает дальнейшую логику извлечения элементов из селекторов
 def clean_selector_from_double_hyphen(selector_str):
@@ -282,6 +265,8 @@ def clean_selector_from_double_hyphen(selector_str):
     
     return cleaned_selector
 
+
+# region compute_match_score_2
 # # Вспомогательная функция для оценки схожести
 # def compute_match_score(found_text, target_text):
 #     """Оценка схожести строк по количеству совпадающих символов"""
@@ -308,7 +293,7 @@ def compute_match_score_2(found_text, target_text):
 
 
 
-# region Check html
+# # region Check html
 # # Проверяю, что html-страница доступна, и данные первого товара на ней есть
 # def check_avialible_html():
 #     # TODO: Потом добавить обработку, что бы он искал не полным сравнением подстроки названия товара при проверке, а частичным
@@ -324,7 +309,7 @@ def compute_match_score_2(found_text, target_text):
 
 
 
-
+# region check_avialible_html
 # Проверяю, что название первого товара содержится в html первой ссылки
 # Это проверка на то, есть ли на сайте какая-то защита, типо куратора
 def check_avialible_html():
