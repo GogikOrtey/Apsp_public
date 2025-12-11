@@ -1156,7 +1156,7 @@ https://elevel.ru
 
 
 
-
+# Всё равботает отлично, кроме селектора oldprice
 data_input_table = {
     "host": "https://cosmofun.ru",
     "fields_str": "",
