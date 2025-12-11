@@ -328,3 +328,18 @@ def clean_selector_from_double_hyphen(selector_str):
         cleaned_selector = cleaned_selector[1:]
     
     return cleaned_selector
+
+
+# Вспомогательная функция для оценки схожести
+def compute_match_score(found_text, target_text):
+    """Оценка схожести строк по количеству совпадающих символов"""
+    found_text = found_text.strip().lower()
+    target_text = target_text.strip().lower()
+
+    if not found_text or not target_text:
+        return 0.0
+
+    # Длина совпадающих символов (по порядку)
+    common = sum(1 for a, b in zip(found_text, target_text) if a == b)
+    score = common / max(len(target_text), len(found_text))
+    return score

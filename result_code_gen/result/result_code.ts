@@ -73,9 +73,7 @@ export class JS_Base_galleryceramicsru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/?`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("PAGEN_2", set.page)
+        временно отключил
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)

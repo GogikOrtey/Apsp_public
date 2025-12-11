@@ -1,4 +1,4 @@
-11.12.2025 17:52:56
+11.12.2025 19:48:31
 
 
 
@@ -22,62 +22,6 @@ field = name, stock, link, price, imageLink, manufacturer, timestamp
 
 
 🟧 timestamp нет в массиве, данные для parsePage могут быть неактуальными
-Посылаю запрос к YandexGPT:
-
-💫 PROMPT:
-Тебе нужно написать код, который формирует URL адрес запроса на поиск товара. Мы используем такой синтаксис:
-
-let url = new URL(`${HOST}/search`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("page", set.page)
-
-Твоя задача: Выше в коде заданые переменные set.query - это текст запроса на поиск, и set.page - это текущая страница поиска, она начинается с 1. Тебе нужно написать и вернуть только необходимый фрагмент кода на JS, в котором будет формироваться URL с использованием этих параметров. Чаще всего параметры поиска и текущей страницы задаются в searchParams, но иногда они задаются напрямую в строке URL, в таком случае нужно будет использовать синтаксис с `${}`. Также, в исходном URL могут быть заданы дополнительные параметры, которые не влияют на запрос и текущую страницу, все эти параметры нужно будет сохранить.
-
-Пример 1:
-Строка на поиск у сайта, на 2ю страницу поиска: 
-https://galen.bg/catalogsearch/result/index/?p=2&q=мл
-
-Фрагмент с формированием URL:
-let url = new URL(`${HOST}/catalogsearch/result/index/`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("p", set.page)
-
-Пример 2:
-Строка на поиск у сайта, на 2ю страницу поиска: 
-https://stroytorg812.ru/content/search/?s=&q=Ванна&PAGEN_1=2
-
-Фрагмент с формированием URL:
-let url = new URL(`${HOST}/content/search/`)
-url.searchParams.set("s", "")
-url.searchParams.set("q", set.query)
-url.searchParams.set("PAGEN_1", set.page)
-
-
-Пример 3:
-Строка на поиск у сайта, на 2ю страницу поиска: 
-https://gidro-top.ru/search/Ванна/?page=2
-
-Фрагмент с формированием URL:
-let url = new URL(`${HOST}/search/${set.query}/`)
-url.searchParams.set('/?page', set.page);
-
------
-
-Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&PAGEN_2=2
-
-Значение переменной HOST = https://galleryceramics.ru
-
-Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
-
-
-💬 AI ANSWER:
-"```
-let url = new URL(`${HOST}/catalog/?`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("PAGEN_2", set.page)
-```"
-
 processed_url_product = /catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/
 
 Найдено 4 возможных селекторов
@@ -87,182 +31,23 @@ processed_url_product = /catalog/keramicheskaya-plitka-i-keramogranit/kollektsii
 
 Проверяем селектор: #bx_3966226736_86362>div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
 Найдено элементов: 1
-✅ Найден подходящий селектор: #bx_3966226736_86362>div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
 
-Итоговый product_selector = #bx_3966226736_86362>div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
-Количество элементов по итоговому селектору: 1
-len_of_products_on_this_page = 1
-Ссылок по селектору: 1
-Совпадение ссылок = 0.00 (0/3)
-async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/?`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("PAGEN_2", set.page)
+Проверяем селектор: div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
+Найдено элементов: 20
+✅ Найден подходящий селектор: div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
 
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
+Итоговый product_selector = div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
+Количество элементов по итоговому селектору: 20
+Ссылок по селектору: 20
+links_items = 
+['https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-color-wt93mnm55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/rockstyle-gray-wt93rok15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/']
+link_list = 
+['https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-color-wt93mnm55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/rockstyle-gray-wt93rok15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-rosa-wt93bav05-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-dark-wt93mnm99-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/woodstyle-oak-wt93wos21-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-light-wt93mnm00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/chicago-lay-white-wt11chl00-plitka-nastennaya-200-600-16-sht-v-up-57-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/evan-white-wt15eva00r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/maiolica-dark-wt93lca25-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/kioto-triangle-wt93kit55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/grafito-white-wt15grf00r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/nebraska-taup-wt15nbr18r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bryston-crema-wt15bry01r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/kioto-light-wt93kit00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/nebraska-gray-wt15nbr15r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/leon-gray-wt15len15r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bryston-wt15bry55r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-wt93mnm15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/kioto-dark-wt93kit25-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/']
+links_items_filtered = 
+['https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-color-wt93mnm55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/rockstyle-gray-wt93rok15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/']
+link_list_filtered = 
+['https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-color-wt93mnm55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/rockstyle-gray-wt93rok15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-rosa-wt93bav05-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-dark-wt93mnm99-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/woodstyle-oak-wt93wos21-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-light-wt93mnm00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/chicago-lay-white-wt11chl00-plitka-nastennaya-200-600-16-sht-v-up-57-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/evan-white-wt15eva00r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/maiolica-dark-wt93lca25-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/kioto-triangle-wt93kit55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/grafito-white-wt15grf00r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/nebraska-taup-wt15nbr18r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bryston-crema-wt15bry01r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/kioto-light-wt93kit00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/nebraska-gray-wt15nbr15r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/leon-gray-wt15len15r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bryston-wt15bry55r-plitka-nastennaya-246-740-7-sht-v-up-53-508-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-wt93mnm15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/', 'https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/kioto-dark-wt93kit25-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/']
+Совпадение ссылок = 1.00 (3/3)
+Извлекаем селектор кол-ва страниц
 
-        if (set.page === 1) {
-            let totalPages = 0 // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("") // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
-Имя парсера: JS_Base_galleryceramicsru
-
-
-
---------------------------------------------------------------------------------------------------
-
-                                    FINAL RESULT PARSER CODE
-
---------------------------------------------------------------------------------------------------
-
-
-import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
-import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
-import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
-import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
-import { getTimestamp } from "../Base-Custom/Utils";
-import { SetType, tools } from "a-parser-types";
-import { Cacher } from "../Base-Custom/Cache";
-import {
-    toArray, isBadLink,
-    name, stock, link, price, imageLink, manufacturer, timestamp
-} from "../Base-Custom/Fields"
-import * as cheerio from "cheerio";
-
-//#region Кастомные типы данных
-type ResultItem = Item<typeof fields>
-
-//#region Константы
-const fields = {
-    name, stock, link, price, imageLink, manufacturer, timestamp
-}
-
-const HOST = "https://galleryceramics.ru"
-
-export class JS_Base_galleryceramicsru extends JS_Base_Custom {
-    static defaultConf: defaultConf = {
-            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
-            parsecodes: { 200: 1, 404: 1 },
-            proxyChecker: "tor.proxy.ru",
-            requestdelay: "3,5",
-            engine: "a-parser",
-            mode: "normal",
-        };
-
-    static editableConf: editableConf = [
-        ...defaultEditableConf
-    ];
-
-    //#region Точка входа
-    async parse(set: SetType, results: { [key: string]: any }) {
-        if (!set.type || set.type === "none") set.type = "page";
-        if (!set.region || set.region === "none") set.region = "";
-        try {
-            switch (set.type) {
-                case "page": {
-                    if (!set.page || set.page === "none") set.page = 1;
-                    await this.parsePage(set);
-                    results.success = 1;
-                    break;
-                }
-                case "card": {
-                    const cacher = getCacher<ResultItem>(this, set)
-                    let items = cacher.cache || await this.parseCard(set, cacher);
-                    items.forEach(item => results.items.addElement(item));
-                    results.success = 1;
-                    break;
-                }
-                default:
-                    this.logger.put("Указан неверный тип сбора")
-                    results.success = 0;
-            }
-        } catch (e: any) {
-            if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
-                this.logger.put(e.message);
-                results.isBadLink = 1;
-                results.success = 1;
-            } else {
-                this.logger.put(`${e.name} >> ${e.message}   ${set.query}  type - ${set.type} page ${set.page} }`);
-                results.success = 0;
-            }
-        }
-        return results;
-    }
-
-    //#region Парсинг поиска
-    async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/?`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("PAGEN_2", set.page)
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = 0 // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("") // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
-
-    //#region Парсинг товара
-    
-
-    //#region Выполнение запроса
-    async makeRequest(url: string) {
-        const opts: AsyncHTTPXRequestOptsCustom = {
-            ...defaultOpts,
-            engine: this.conf.engine,
-            mode: this.conf.mode,
-        };
-        this.debugger.put(opts)
-
-        const { success, headers, data } = await this.request("GET", url, {}, opts);
-        this.debugger.put(data)
-
-        if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
-        if (headers.Status === 404) throw new NotFoundError();
-
-        return data;
-    }
-}
-
-// Код сгенерирован APSP v0.1
-// Дата: 11 Дек 2025
-// © BrandPol
-
-Сообщения из message_global:
-🟡 [Предупреждение]: timestamp нет в массиве, данные для parsePage могут быть неактуальными
-🟧 Ни одной ссылки не совпало
-
-Итоговый статус генерации: 🟧 Falled 🟧
-
-🕚 Время выполнения: 1.65 секунд
-🧢 Кол-во обращений к внешнему ИИ: 1
+Найдено 1688 возможных селекторов

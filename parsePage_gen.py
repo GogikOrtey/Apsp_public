@@ -184,7 +184,12 @@ def main_generate_parsePage():
 
     # Извлекает url параметры поиска и пагинации из вхоящей ссылки
     # set_item = generate_parsePage_search_requests(data_input_table)
-    set_item = AI_generate_parsePage_search_requests(data_input_table)
+
+    ################################ вернуть
+    # set_item = AI_generate_parsePage_search_requests(data_input_table)
+    set_item = {
+        "create_url_block": "временно отключил"
+    }
 
     set_item["link"] = data_input_table["search_requests"][0]["url_search_query_page_2"]
     set_item["host"] = data_input_table["host"]
@@ -339,6 +344,9 @@ def main_generate_parsePage():
         search_elem = tree.cssselect(current_selector)
         len_of_products = len(search_elem)
         print(f"Найдено элементов: {len_of_products}")
+
+        if len_of_products < 6 and len(current_parts) != 1:
+            continue
         
         # Проверяем условия
         if len_of_products <= 100:
@@ -385,22 +393,25 @@ def main_generate_parsePage():
     print(f"\nИтоговый product_selector = {product_selector}")
     print(f"Количество элементов по итоговому селектору: {len(tree.cssselect(product_selector))}")
 
-    # Проверяем, сколько товаров на этой странице по итоговому селектору
-    search_elem = tree.cssselect(product_selector)
-    len_of_products_on_this_page = len(search_elem)
-    print(f"len_of_products_on_this_page = {len_of_products_on_this_page}")
+    # ################# Вот здесь ошибкка, неверное получение по селектору
+    # # Проверяем, сколько товаров на этой странице по итоговому селектору
+    # search_elem = tree.cssselect(product_selector)
+    # len_of_products_on_this_page = len(search_elem)
+    # print(f"len_of_products_on_this_page = {len_of_products_on_this_page}")
 
-    # Получаем значения элементов по этому селектору
-    match = re.search(r"\[(.*?)\]", product_selector)
-    attr = match.group(1) if match else None  
+    # # Получаем значения элементов по этому селектору
+    # match = re.search(r"\[(.*?)\]", product_selector)
+    # attr = match.group(1) if match else None  
 
-    link_list = []
-    for elem in search_elem:
-        if attr:  # если селектор вида a[item]
-            value = elem.get(attr)
-        else:     # если просто тег — берём текст
-            value = elem.text_content().strip()
-        link_list.append(value)
+    # link_list = []
+    # for elem in search_elem:
+    #     if attr:  # если селектор вида a[item]
+    #         value = elem.get(attr)
+    #     else:     # если просто тег — берём текст
+    #         value = elem.text_content().strip()
+    #     link_list.append(value)
+
+    link_list = get_element_from_selector_universal(set_item["page_html"], product_selector, return_all = True)
 
     print(f"Ссылок по селектору: {len(link_list)}")
 
@@ -416,24 +427,79 @@ def main_generate_parsePage():
     # #     print(value)
     # print(link_list)
 
+    # # Рассчёт доли совпадающих ссылок на странице поиска, и во входном массиве
+    # # и проверка, что мы нашли верный селектор, и извлекаем верные ссылки
+    # links_items = current_element.get("links_items", [])
+    # if links_items:
+    #     links_items_set = set(filter(None, links_items))
+    #     link_list_set = set(filter(None, link_list))
+    #     matched_links = links_items_set & link_list_set
+    #     coverage_ratio = len(matched_links) / len(links_items_set) if links_items_set else 0
+    #     print(f"Совпадение ссылок = {coverage_ratio:.2f} ({len(matched_links)}/{len(links_items_set)})")
+    #     #TODO На сайте 1 работает плохо - там скорее всего ссылки динамически меняются
+    #     # Надо подумать как проходить дальше этого
+    #     if coverage_ratio == 0:
+    #         # raise ErrorHandler("Ни одной ссылки не совпало")
+    #         message_global.append({"1": f"Ни одной ссылки не совпало"})
+    #         result = generate_parsePage(set_item)
+    #         return result
+    #     if coverage_ratio < 0.6:
+    #         # raise ErrorHandler("Меньше 60% ссылок совпадают, считаем что на странице найдены неверные результаты")
+    #         message_global.append({"1": f"Меньше 60% ссылок совпадают, считаем что на странице найдены неверные результаты"})
+    #         result = generate_parsePage(set_item)
+    #         return result
+
+
     # Рассчёт доли совпадающих ссылок на странице поиска, и во входном массиве
     # и проверка, что мы нашли верный селектор, и извлекаем верные ссылки
     links_items = current_element.get("links_items", [])
     if links_items:
-        links_items_set = set(filter(None, links_items))
-        link_list_set = set(filter(None, link_list))
-        matched_links = links_items_set & link_list_set
-        coverage_ratio = len(matched_links) / len(links_items_set) if links_items_set else 0
-        print(f"Совпадение ссылок = {coverage_ratio:.2f} ({len(matched_links)}/{len(links_items_set)})")
-        #TODO На сайте 1 работает плохо - там скорее всего ссылки динамически меняются
-        # Надо подумать как проходить дальше этого
+
+        print("links_items = ")
+        print(links_items)
+        print("link_list = ")
+        print(link_list)
+
+        # Фильтруем пустые значения
+        links_items_filtered = list(filter(None, links_items))
+        link_list_filtered = list(filter(None, link_list))
+
+        print("links_items_filtered = ")
+        print(links_items_filtered)
+        print("link_list_filtered = ")
+        print(link_list_filtered)
+        
+        # Считаем, сколько ссылок из links_items найдено на странице
+        found_count = 0
+        
+        for link_item in links_items_filtered:
+            # Для каждой ссылки из links_items проверяем, есть ли она на странице
+            found = False
+            
+            for link_page in link_list_filtered:
+                # Сравниваем две строки с помощью compute_match_score
+                match_score = compute_match_score(link_item, link_page)
+                
+                # Если совпадение больше 70%, считаем что ссылка найдена
+                if match_score > 0.7:
+                    found = True
+                    break  # Прерываем внутренний цикл, если нашли совпадение
+            
+            if found:
+                found_count += 1
+        
+        # Вычисляем долю найденных ссылок
+        coverage_ratio = found_count / len(links_items_filtered) if links_items_filtered else 0
+        
+        print(f"Совпадение ссылок = {coverage_ratio:.2f} ({found_count}/{len(links_items_filtered)})")
+        
+        # Проверяем результат
         if coverage_ratio == 0:
-            # raise ErrorHandler("Ни одной ссылки не совпало")
             message_global.append({"1": f"Ни одной ссылки не совпало"})
             result = generate_parsePage(set_item)
             return result
+        
         if coverage_ratio < 0.6:
-            # raise ErrorHandler("Меньше 60% ссылок совпадают, считаем что на странице найдены неверные результаты")
             message_global.append({"1": f"Меньше 60% ссылок совпадают, считаем что на странице найдены неверные результаты"})
             result = generate_parsePage(set_item)
             return result
