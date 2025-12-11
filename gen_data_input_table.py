@@ -642,7 +642,7 @@
 
 
 
-
+# # parsePage плохо отрабатывает (но успешно)
 # data_input_table = {
 #     "host": "https://gazovik-omsk.ru",
 #     "fields_str": "",
@@ -763,7 +763,7 @@ https://elevel.ru
 """
 
 # data_input_table = {
-#     "host": "",
+#     "host": "НЕ ЗАБЫТЬ",
 #     "fields_str": "",
 #     "links": {
 #         "simple": [
@@ -1050,4 +1050,51 @@ https://elevel.ru
 # }
 
 
-# # parsePage плохо отрабатывает (но успешно)
+data_input_table = {
+    "host": "https://galleryceramics.ru",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
+                "name": "Bavaro Nova WT93BAV00 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)",
+                "price": "1 990 ₽/м",
+                "manufacturer": '"Delacora"',
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://galleryceramics.ru/upload/iblock/2a4/wu1295p0j3g69m3u16mv1kmtll69stl9.jpg"
+            },
+            {
+                "link": "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-color-wt93mnm55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
+                "name": "Millennium Line Color WT93MNM55 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)",
+                "price": "1 990 ₽/м",
+                "manufacturer": '"Delacora"',
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://galleryceramics.ru/upload/iblock/ac6/tldm6otiggjxm0nzvf2eau2m4yau66rf.jpg"
+            },
+            {
+                "link": "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/rockstyle-gray-wt93rok15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
+                "name": "Rockstyle Gray WT93ROK15 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)",
+                "price": "1 990 ₽/м",
+                "manufacturer": '"Delacora"',
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://galleryceramics.ru/upload/iblock/877/yuts7v0k9vn4v61ptam3qfippbzh6hcu.jpg"
+            },
+        ]
+    },
+    "search_requests": [
+        {
+            "query": "плитка",
+            "url_search_query_page_2": "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&PAGEN_2=2",
+            "count_of_page_on_pagination": "8",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
+                "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-color-wt93mnm55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
+                "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/rockstyle-gray-wt93rok15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
+            ]
+        }
+    ]
+}

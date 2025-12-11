@@ -194,49 +194,215 @@ def main_generate_parsePage():
     current_element = data_input_table["search_requests"][0]
 
     # TODO Это изменить - на нормальный перебор и суммарайзинг селекторов из всех ссылок что у нас есть
-    for use_id_link_elem in range(0, len(current_element["links_items"])):
-        # Извлекаем product_selector
-        processed_url_product = strip_host(current_element["links_items"][use_id_link_elem])
-        print(f"processed_url_product = {processed_url_product}")
-        product_selector = get_css_selector_from_text_value_element(set_item["page_html"], processed_url_product, is_exact = False, is_multiply_sel_result = True)
-        product_selector = clean_selector_from_double_hyphen(product_selector)
+    
+    
+    # for use_id_link_elem in range(0, len(current_element["links_items"])):
+    #     # Извлекаем product_selector
+    #     processed_url_product = strip_host(current_element["links_items"][use_id_link_elem])
+    #     print(f"processed_url_product = {processed_url_product}")
+    #     product_selector = get_css_selector_from_text_value_element(set_item["page_html"], processed_url_product, is_exact = False, is_multiply_sel_result = True)
+    #     product_selector = clean_selector_from_double_hyphen(product_selector)
         
-        if not product_selector:
-            raise ErrorHandler("Не был найден селектор для товара")
-            # Селектор устарел, обновите данные в gen_data_input_table
+    #     if not product_selector:
+    #         raise ErrorHandler("Не был найден селектор для товара")
+    #         # Селектор устарел, обновите данные в gen_data_input_table
 
-            # Это может быть, если сортировка товаров может меняться
-            # TODO Как это можно обойти: 
-                # Собрать все ссылки из страницы
-                # И выделить те, которые указывают на товары
-                # Можно сравнивать их с теми, что пришли по задаче для parseCard
-                # И потом с использованием ИИ выделить их, и уже найти их селекторы
+    #         # Это может быть, если сортировка товаров может меняться
+    #         # TODO Как это можно обойти: 
+    #             # Собрать все ссылки из страницы
+    #             # И выделить те, которые указывают на товары
+    #             # Можно сравнивать их с теми, что пришли по задаче для parseCard
+    #             # И потом с использованием ИИ выделить их, и уже найти их селекторы
 
-        print("\nproduct_selector = " + product_selector)
+    #     print("\nproduct_selector = " + product_selector)
 
-        # Проверяем, сколько товаров на этой странице
-        tree = html_lx.fromstring(set_item["page_html"])
-        search_elem = tree.cssselect(product_selector)
-        len_of_products_on_this_page = len(search_elem)
-        print(f"len_of_products_on_this_page = {len_of_products_on_this_page}")
+    #     # Проверяем, сколько товаров на этой странице
+    #     tree = html_lx.fromstring(set_item["page_html"])
+    #     search_elem = tree.cssselect(product_selector)
+    #     len_of_products_on_this_page = len(search_elem)
+    #     print(f"len_of_products_on_this_page = {len_of_products_on_this_page}")
 
-        # Полчаем значения элементов, по этому селектороу
-        match = re.search(r"\[(.*?)\]", product_selector)
-        attr = match.group(1) if match else None  
+    #     # Полчаем значения элементов, по этому селектороу
+    #     match = re.search(r"\[(.*?)\]", product_selector)
+    #     attr = match.group(1) if match else None  
 
-        link_list = []
-        for elem in search_elem:
-            if attr:  # если селектор вида a[item]
-                value = elem.get(attr)
-            else:     # если просто тег — берём текст
-                value = elem.text_content().strip()
-            link_list.append(value)
+    #     link_list = []
+    #     for elem in search_elem:
+    #         if attr:  # если селектор вида a[item]
+    #             value = elem.get(attr)
+    #         else:     # если просто тег — берём текст
+    #             value = elem.text_content().strip()
+    #         link_list.append(value)
 
-        if len(link_list) < 6:
-            # raise ErrorHandler("Скорее всего селектор неверный, элементов < 6")
-            print("🟡 Скорее всего селектор неверный, элементов < 6")
-            print("Пробуем другие ссылки")
-        break
+    #     if len(link_list) < 6:
+    #         # raise ErrorHandler("Скорее всего селектор неверный, элементов < 6")
+    #         print("🟡 Скорее всего селектор неверный, элементов < 6")
+    #         print("Пробуем другие ссылки")
+    #     break
+
+
+
+
+
+    # Извлекаем product_selector
+    processed_url_product = strip_host(current_element["links_items"][0])
+    print(f"processed_url_product = {processed_url_product}")
+    original_product_selector = get_css_selector_from_text_value_element(set_item["page_html"], processed_url_product, is_exact=False, is_multiply_sel_result=True)
+    original_product_selector = clean_selector_from_double_hyphen(original_product_selector)
+
+    if not original_product_selector:
+        raise ErrorHandler("Не был найден селектор для товара")
+
+    tree = html_lx.fromstring(set_item["page_html"])
+    product_selector = None
+
+    # Функция для разделения селектора на части по комбинаторам
+    def split_selector_by_combinators(selector):
+        # Регулярное выражение для поиска CSS комбинаторов
+        # Поддерживаем: пробел, >, +, ~
+        pattern = r'(\s+|\s*>\s*|\s*\+\s*|\s*~\s*)'
+        parts = re.split(pattern, selector)
+        
+        # Фильтруем пустые строки и объединяем части с их комбинаторами
+        result = []
+        current_part = ""
+        
+        for i, part in enumerate(parts):
+            if not part.strip():
+                continue
+                
+            # Если это комбинатор
+            if part.strip() in ['>', '+', '~'] or part.isspace():
+                if current_part:
+                    result.append(current_part.strip())
+                    current_part = ""
+                result.append(part.strip())
+            else:
+                if current_part and not any(result[-1] in ['>', '+', '~'] for item in result[-1:]):
+                    current_part += " " + part
+                else:
+                    current_part = part
+        
+        if current_part:
+            result.append(current_part.strip())
+        
+        # Группируем в пары: элемент + комбинатор (если есть)
+        grouped = []
+        i = 0
+        while i < len(result):
+            if i + 1 < len(result) and result[i+1] in ['>', '+', '~']:
+                grouped.append(f"{result[i]}{result[i+1]}")
+                i += 2
+            else:
+                grouped.append(result[i])
+                i += 1
+        
+        return grouped
+
+    # Функция для сборки селектора из частей
+    def build_selector_from_parts(parts):
+        selector = ""
+        for i, part in enumerate(parts):
+            # Проверяем, содержит ли часть комбинатор в конце
+            if part.endswith('>'):
+                selector += part
+            elif part.endswith('+'):
+                selector += part
+            elif part.endswith('~'):
+                selector += part
+            elif i < len(parts) - 1:
+                # Следующая часть начинается с комбинатора?
+                next_part = parts[i + 1]
+                if next_part.startswith(('>', '+', '~')):
+                    selector += part
+                else:
+                    selector += part + " "
+            else:
+                selector += part
+        
+        return selector.strip()
+
+    # Разбиваем селектор на части
+    selector_parts = split_selector_by_combinators(original_product_selector)
+    print(f"Исходный селектор: {original_product_selector}")
+    print(f"Части селектора: {selector_parts}")
+    print(f"Количество частей: {len(selector_parts)}")
+
+    # Итерируемся по количеству элементов в селекторе
+    for i in range(len(selector_parts)):
+        # Создаем текущий селектор, начиная с i-й части
+        current_parts = selector_parts[i:]
+        current_selector = build_selector_from_parts(current_parts)
+        print(f"\nПроверяем селектор: {current_selector}")
+        
+        # Проверяем количество элементов по текущему селектору
+        search_elem = tree.cssselect(current_selector)
+        len_of_products = len(search_elem)
+        print(f"Найдено элементов: {len_of_products}")
+        
+        # Проверяем условия
+        if len_of_products <= 100:
+            # Получаем значения элементов для проверки
+            match = re.search(r"\[(.*?)\]", current_selector)
+            attr = match.group(1) if match else None
+            
+            link_list = []
+            for elem in search_elem:
+                if attr:
+                    value = elem.get(attr)
+                else:
+                    value = elem.text_content().strip()
+                link_list.append(value)
+            
+            # Проверяем, не остался ли один элемент в селекторе
+            if len(current_parts) == 1:
+                if len_of_products < 6:
+                    raise ErrorHandler(f"Селектор содержит только одну часть и элементов < 6: найдено {len_of_products} элементов")
+                else:
+                    product_selector = current_selector
+                    print(f"✅ Найден подходящий селектор: {product_selector}")
+                    break
+            else:
+                product_selector = current_selector
+                print(f"✅ Найден подходящий селектор: {product_selector}")
+                break
+        else:
+            print(f"Слишком много элементов ({len_of_products}), удаляем левую часть")
+
+    # Если не нашли подходящий селектор
+    if product_selector is None:
+        # Проверяем последний возможный селектор (последнюю часть)
+        last_selector_parts = [selector_parts[-1]]
+        last_selector = build_selector_from_parts(last_selector_parts)
+        search_elem = tree.cssselect(last_selector)
+        len_of_products = len(search_elem)
+        
+        if len_of_products < 6:
+            raise ErrorHandler(f"Даже с одной частью слишком мало элементов: найдено {len_of_products} элементов")
+        else:
+            raise ErrorHandler(f"Не удалось найти селектор с <=100 элементами. Последний вариант: {len_of_products} элементов")
+
+    print(f"\nИтоговый product_selector = {product_selector}")
+    print(f"Количество элементов по итоговому селектору: {len(tree.cssselect(product_selector))}")
+
+    # Проверяем, сколько товаров на этой странице по итоговому селектору
+    search_elem = tree.cssselect(product_selector)
+    len_of_products_on_this_page = len(search_elem)
+    print(f"len_of_products_on_this_page = {len_of_products_on_this_page}")
+
+    # Получаем значения элементов по этому селектору
+    match = re.search(r"\[(.*?)\]", product_selector)
+    attr = match.group(1) if match else None  
+
+    link_list = []
+    for elem in search_elem:
+        if attr:  # если селектор вида a[item]
+            value = elem.get(attr)
+        else:     # если просто тег — берём текст
+            value = elem.text_content().strip()
+        link_list.append(value)
+
+    print(f"Ссылок по селектору: {len(link_list)}")
 
 
     # Добавляем хост ко всем ссылкам, если они извлекаются со страницы без него

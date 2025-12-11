@@ -1191,8 +1191,9 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
     original_selector = selector.strip()
     selector = clean_selector_from_double_hyphen(original_selector)
 
-    print(f"original_selector = {original_selector}")
-    print(f"selector = {selector}")
+    ## Можно раскомментировать для отладки
+    # print(f"original_selector = {original_selector}")
+    # print(f"selector = {selector}")
     
     # Если после очистки селектор стал пустым, возвращаем пустой результат
     if not selector:

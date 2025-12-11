@@ -491,27 +491,27 @@ def select_best_selectors(input_data, content_html):
 
 
 
-isPrint = True
+# isPrint = True
 
-elem_number = 0
-html = get_html( data_input_table["links"]["simple"][elem_number]["link"])
-# print(html[:500])
+# elem_number = 0
+# html = get_html( data_input_table["links"]["simple"][elem_number]["link"])
+# # print(html[:500])
 
-substring = data_input_table["links"]["simple"][elem_number]["name"]
-# substring = data_input_table["links"]["simple"][elem_number]["price"]
-# substring = data_input_table["links"]["simple"][elem_number]["oldprice"]
-# substring = data_input_table["links"]["simple"][elem_number]["brand"]
-# substring = data_input_table["links"]["simple"][elem_number]["article"]
-# substring = data_input_table["links"]["simple"][elem_number]["imageLink"]
-# substring = "/upload/dev2fun.imagecompress/webp/iblock/81e/yypuhdwg8uf7jtktf65opgzc4wthjo6w.webp"
+# substring = data_input_table["links"]["simple"][elem_number]["name"]
+# # substring = data_input_table["links"]["simple"][elem_number]["price"]
+# # substring = data_input_table["links"]["simple"][elem_number]["oldprice"]
+# # substring = data_input_table["links"]["simple"][elem_number]["brand"]
+# # substring = data_input_table["links"]["simple"][elem_number]["article"]
+# # substring = data_input_table["links"]["simple"][elem_number]["imageLink"]
+# # substring = "/upload/dev2fun.imagecompress/webp/iblock/81e/yypuhdwg8uf7jtktf65opgzc4wthjo6w.webp"
 
-selector_result = get_css_selector_from_text_value_element(html, substring)
-# selector_result = get_css_selector_from_text_value_element(html, substring, is_price = True)
-# selector_result = get_css_selector_from_text_value_element(html, substring, is_exact=False)
-# selector_result = get_css_selector_from_text_value_element(html, substring, is_exact=True)
+# selector_result = get_css_selector_from_text_value_element(html, substring)
+# # selector_result = get_css_selector_from_text_value_element(html, substring, is_price = True)
+# # selector_result = get_css_selector_from_text_value_element(html, substring, is_exact=False)
+# # selector_result = get_css_selector_from_text_value_element(html, substring, is_exact=True)
 
-print("")
-print(f"🟩 selector_result = {selector_result}")
+# print("")
+# print(f"🟩 selector_result = {selector_result}")
 
 
 
