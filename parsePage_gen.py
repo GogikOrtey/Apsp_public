@@ -454,21 +454,10 @@ def main_generate_parsePage():
     # и проверка, что мы нашли верный селектор, и извлекаем верные ссылки
     links_items = current_element.get("links_items", [])
     if links_items:
-
-        print("links_items = ")
-        print(links_items)
-        print("link_list = ")
-        print(link_list)
-
         # Фильтруем пустые значения
         links_items_filtered = list(filter(None, links_items))
         link_list_filtered = list(filter(None, link_list))
 
-        print("links_items_filtered = ")
-        print(links_items_filtered)
-        print("link_list_filtered = ")
-        print(link_list_filtered)
-        
         # Считаем, сколько ссылок из links_items найдено на странице
         found_count = 0
         

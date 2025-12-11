@@ -221,23 +221,23 @@ def gen_main_code():
     # region > test
 
 
-    # # Извлекаем все селекторы из всех страниц, для parseCard
-    # all_extracted_selectors = get_all_selectors(data_input_table)
-
-    # # Генерируем parseCard
-    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
-
-    # # Генерируем parsePage
-    # parse_page_code_value = ""
-
-
-
     # Извлекаем все селекторы из всех страниц, для parseCard
+    all_extracted_selectors = get_all_selectors(data_input_table)
+
     # Генерируем parseCard
-    parse_card_code_value = ""
+    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
     # Генерируем parsePage
-    parse_page_code_value = main_generate_parsePage()
+    parse_page_code_value = ""
+
+
+
+    # # Извлекаем все селекторы из всех страниц, для parseCard
+    # # Генерируем parseCard
+    # parse_card_code_value = ""
+
+    # # Генерируем parsePage
+    # parse_page_code_value = main_generate_parsePage()
 
 
 
@@ -344,12 +344,11 @@ def result_file_JS(result_code):
 
 # Печатает и сохраняет массив с сообщеними, ошибками и предупреждениями
 def print_and_save_message_global():  
+    generated_status = "🟩 Sucsess 🟩"
     if len(message_global) > 0:
 
         filename = "result_code_gen/result/message_global.txt"
-        with open(filename, "w", encoding="utf-8") as f:
-            
-            generated_status = "🟩 Sucsess 🟩"
+        with open(filename, "w", encoding="utf-8") as f:            
             print(f"\nСообщения из message_global:")
             for elem in message_global:
                 key = list(elem.keys())[0]
@@ -370,8 +369,8 @@ def print_and_save_message_global():
 
                 # Запись в файл
                 f.write(f"{key}: {value}\n")
-            print("")
-            print(f"Итоговый статус генерации: {generated_status}")
+    print("")
+    print(f"Итоговый статус генерации: {generated_status}")
 
 
 

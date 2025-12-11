@@ -1653,9 +1653,10 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False, return
 
 # # Поиск селекторов по подстроке на странице
 # isPrint = True
-# link = "https://gaz-shop78.ru/magazin/product/182893106"
-# finding_text_element = 'Котёл электрический Warmos Comfort - 18'
+# link = "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/"
+# finding_text_element = "\"Delacora\""
 # html = get_html_from_cache(link, print_msg = False)
+# # selector_result = get_css_selector_from_text_value_element(html, finding_text_element, is_exact=False)
 # selector_result = get_css_selector_from_text_value_element(html, finding_text_element)
 
 

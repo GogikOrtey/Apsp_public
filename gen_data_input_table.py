@@ -1050,6 +1050,8 @@ https://elevel.ru
 # }
 
 
+
+# parsePage плохо отрабатывает
 data_input_table = {
     "host": "https://galleryceramics.ru",
     "fields_str": "",
@@ -1059,7 +1061,6 @@ data_input_table = {
                 "link": "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
                 "name": "Bavaro Nova WT93BAV00 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)",
                 "price": "1 990 ₽/м",
-                "manufacturer": '"Delacora"',
                 "InStock_trigger": "В наличии",
                 "OutOfStock_trigger": "",
                 "imageLink": "https://galleryceramics.ru/upload/iblock/2a4/wu1295p0j3g69m3u16mv1kmtll69stl9.jpg"
@@ -1068,7 +1069,6 @@ data_input_table = {
                 "link": "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-color-wt93mnm55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
                 "name": "Millennium Line Color WT93MNM55 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)",
                 "price": "1 990 ₽/м",
-                "manufacturer": '"Delacora"',
                 "InStock_trigger": "В наличии",
                 "OutOfStock_trigger": "",
                 "imageLink": "https://galleryceramics.ru/upload/iblock/ac6/tldm6otiggjxm0nzvf2eau2m4yau66rf.jpg"
@@ -1077,7 +1077,6 @@ data_input_table = {
                 "link": "https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/rockstyle-gray-wt93rok15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/",
                 "name": "Rockstyle Gray WT93ROK15 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)",
                 "price": "1 990 ₽/м",
-                "manufacturer": '"Delacora"',
                 "InStock_trigger": "В наличии",
                 "OutOfStock_trigger": "",
                 "imageLink": "https://galleryceramics.ru/upload/iblock/877/yuts7v0k9vn4v61ptam3qfippbzh6hcu.jpg"

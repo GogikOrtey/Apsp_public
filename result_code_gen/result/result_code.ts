@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, imageLink, manufacturer, timestamp
+    name, stock, link, price, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,7 +16,7 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, imageLink, manufacturer, timestamp
+    name, stock, link, price, imageLink, timestamp
 }
 
 const HOST = "https://galleryceramics.ru"
@@ -72,33 +72,31 @@ export class JS_Base_galleryceramicsru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    async parsePage(set: SetType) {
-        временно отключил
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = 0 // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("") // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
+    
 
     //#region Парсинг товара
-    
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $("span.breadcrumbs__item-name.font_13").text()?.trim()
+		const stock = $("span.js-replace-status.status-icon.instock").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
+		const link = set.query
+		const price = $("span.price__new-val.font_24").text()?.trim().formatPrice()
+		let imageLink = $("#big-photo-0 > a.detail-gallery-big__link.popup_link.fancy.fancy-thumbs")?.attr("href")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, stock, link, price, imageLink, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
 
     //#region Выполнение запроса
     async makeRequest(url: string) {
