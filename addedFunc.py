@@ -259,3 +259,72 @@ def format_price(value: str, separator: str = ".") -> str:
 
     return match.group(0) if match else ""
     
+
+
+
+# Функция для очистки селектора от частей классов с двойным дефисом
+def clean_selector_from_double_hyphen(selector_str):
+    if not selector_str:
+        return selector_str
+    
+    import re
+    
+    # Самый простой и надежный подход: удаляем ВСЕ вхождения .--любой_класс
+    # Обрабатываем по частям, чтобы не сломать структуру селектора
+    
+    # Разбиваем по пробелам и комбинаторам, сохраняя разделители
+    # Регулярное выражение для разделения: пробелы или комбинаторы > + ~
+    parts = re.split(r'(\s*[>+~]\s*|\s+)', selector_str)
+    
+    result_parts = []
+    for i, part in enumerate(parts):
+        if i % 2 == 0:  # Это часть с селектором (четные индексы)
+            # Удаляем из этой части все .--класс
+            # Разбиваем по точкам, сохраняя их
+            subparts = re.split(r'(\.)', part)
+            
+            cleaned_subparts = []
+            skip_next = False
+            
+            for j, subpart in enumerate(subparts):
+                if skip_next:
+                    skip_next = False
+                    continue
+                    
+                if subpart == '.' and j + 1 < len(subparts):
+                    next_subpart = subparts[j + 1]
+                    # Проверяем, начинается ли следующий класс с --
+                    if next_subpart.startswith('--'):
+                        # Пропускаем эту точку и класс
+                        skip_next = True
+                        continue
+                    else:
+                        # Сохраняем точку и класс
+                        cleaned_subparts.append(subpart)
+                elif not skip_next:
+                    cleaned_subparts.append(subpart)
+            
+            # Собираем обратно
+            cleaned_part = ''.join(cleaned_subparts)
+            
+            # Удаляем возможные двойные точки
+            cleaned_part = re.sub(r'\.\.+', '.', cleaned_part)
+            
+            # Удаляем точку в начале части, если она осталась
+            if cleaned_part.startswith('.'):
+                cleaned_part = cleaned_part[1:]
+            
+            result_parts.append(cleaned_part)
+        else:  # Это разделитель (пробелы или комбинаторы)
+            result_parts.append(part)
+    
+    cleaned_selector = ''.join(result_parts)
+    
+    # Удаляем лишние пробелы
+    cleaned_selector = re.sub(r'\s+', ' ', cleaned_selector).strip()
+    
+    # Удаляем пробел в начале, если есть
+    if cleaned_selector.startswith(' '):
+        cleaned_selector = cleaned_selector[1:]
+    
+    return cleaned_selector

@@ -1183,65 +1183,6 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
             return {"result": result_value, "length_elem": elements_count}
         return result_value
 
-    # Функция для очистки селектора от частей классов с двойным дефисом
-    def clean_selector_from_double_hyphen(selector_str):
-        if not selector_str:
-            return selector_str
-        
-        import re
-        
-        # Простой подход: находим и удаляем все .--класс
-        # Используем более простое регулярное выражение
-        # Ищем паттерн: .--любые_символы_для_имени_класса
-        pattern = r'\.--[a-zA-Z0-9_-]+'
-        
-        # Заменяем найденные классы на пустую строку
-        cleaned_selector = re.sub(pattern, '', selector_str)
-        
-        # Удаляем возможные двойные точки, которые могли образоваться после удаления
-        # Пример: div.class1.--search.class2 -> div.class1..class2
-        cleaned_selector = re.sub(r'\.\.+', '.', cleaned_selector)
-        
-        # Удаляем точку в начале селектора или части селектора
-        # Проверяем каждую часть между комбинаторами
-        parts = re.split(r'(\s*[>+~]\s*|\s+)', cleaned_selector)
-        
-        result_parts = []
-        for i in range(0, len(parts), 2):
-            # parts[i] - селектор, parts[i+1] - разделитель (если есть)
-            selector_part = parts[i] if i < len(parts) else ""
-            
-            # Удаляем точку в начале селектора
-            selector_part = re.sub(r'^\.', '', selector_part)
-            
-            # Удаляем точку, которая стоит после другого класса (например: div.class. -> div.class)
-            # Но только если после точки нет буквы или цифры (т.е. это одинокая точка)
-            selector_part = re.sub(r'(?<=[a-zA-Z0-9_-])\.(?=\s|$|>|\[)', '', selector_part)
-            
-            # Удаляем точку, которая стоит перед пробелом или комбинатором
-            selector_part = re.sub(r'\.(?=\s|$|>|\[)', '', selector_part)
-            
-            # Удаляем точку, которая стоит после пробела (в начале части селектора)
-            selector_part = re.sub(r'(?<=\s)\.', '', selector_part)
-            
-            result_parts.append(selector_part)
-            
-            # Добавляем разделитель, если он есть
-            if i + 1 < len(parts):
-                result_parts.append(parts[i + 1])
-        
-        cleaned_selector = ''.join(result_parts)
-        
-        # Удаляем возможные двойные пробелы
-        cleaned_selector = re.sub(r'\s+', ' ', cleaned_selector).strip()
-        
-        # Удаляем лишние пробелы вокруг комбинаторов
-        cleaned_selector = re.sub(r'\s*>\s*', ' > ', cleaned_selector)
-        cleaned_selector = re.sub(r'\s*\+\s*', ' + ', cleaned_selector)
-        cleaned_selector = re.sub(r'\s*~\s*', ' ~ ', cleaned_selector)
-        
-        return cleaned_selector
-
     # Пустой селектор → пустая строка
     if not selector or not selector.strip():
         return format_result("", 0)
@@ -1249,6 +1190,9 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
     # Очищаем селектор от классов с двойным дефисом
     original_selector = selector.strip()
     selector = clean_selector_from_double_hyphen(original_selector)
+
+    print(f"original_selector = {original_selector}")
+    print(f"selector = {selector}")
     
     # Если после очистки селектор стал пустым, возвращаем пустой результат
     if not selector:
