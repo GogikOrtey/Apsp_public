@@ -73,9 +73,8 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/`);
-		url.searchParams.set("search", set.query);
-		url.searchParams.set("page", set.page);
+        let url = new URL(`${HOST}/search/?search=${set.query}`)
+		url.searchParams.set("page", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
@@ -110,8 +109,8 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
 		const stock = $(".html.dopinfo_tpl.dopinfo > .dopinfo_item > a").text()?.includes("Самовывоз.") ? "InStock" : "OutOfStock"
 		const link = set.query
 		const price = $(".item_price").text()?.trim().formatPrice(",")
-const article = $("span.text_atr > a").text()?.trim()?.toLowerCase().replace(/\s/g, "-");
-const imageLink = $("meta")?.attr("property")?.trim()?.at(0)?.split('/').at(0) + '//' + $("meta")?.attr("property")?.trim()?.at(0)?.split('/').at(-1).replace('-675x450.webp', '') + '/cachewebp/' + $("meta")?.attr("property")?.trim()?.at(0)?.split('/').at(-1);
+const article = $("span.text_atr > a").text()?.trim()?.toLowerCase()?.replace(/\s/g, '-');
+const imageLink = $("meta")?.attr("property")?.trim()?.at(0)?.split('/').at(0) + "//" + HOST + $("meta")?.attr("property")?.trim()?.at(0)?.split('/').at(2) + "-" + $("meta")?.attr("property")?.trim()?.at(0)?.split('/').at(3) + ".webp" || ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {

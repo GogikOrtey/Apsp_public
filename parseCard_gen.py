@@ -317,6 +317,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             add_info = ""
             if key == "imageLink":
                 add_info += f"Переменная HOST = {data_input_table['host']}"
+                
             request_AI = dedent(
                 f"""
                 Есть такой код на JS: 
@@ -331,7 +332,10 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             # И во втором примере
             # ...
             # хотя примеров может быть 1, на 3 входящие ссылки
-            line_result_code = f"\t\t" + send_message_to_AI_agent(request_AI)
+            ai_result = send_message_to_AI_agent(request_AI)
+            # Добавляем табы к каждой строке результата (на случай многострочного кода)
+            ai_result_lines = ai_result.split('\n')
+            line_result_code = '\n'.join(f"\t\t{line}" if line.strip() else line for line in ai_result_lines)
 
         # Добавляем строку кода в финальный массив, который вставляем в шаблон
         lines.append(line_result_code)
