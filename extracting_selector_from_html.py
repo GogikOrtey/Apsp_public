@@ -393,7 +393,6 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
         if isPrint: print("")
         if isPrint: print(f"🟢 Проверка селектора: {selector}")
         result_text = get_element_from_selector_universal(html, selector)
-        ############################
 
         if not result_text:
             if isPrint: print("❌ Элемент по селектору не найден или текст пуст")
@@ -413,7 +412,6 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
                 # Проверяем, содержится ли искомый текст в результате
                 if finding_element.strip() in result_text.strip():
                     # Находим максимальное вхождение искомого текста
-                    import re
                     matches = re.finditer(re.escape(finding_element.strip()), result_text.strip())
                     max_match_len = max([len(match.group()) for match in matches], default=0)
                     percent = max_match_len / result_len if result_len > 0 else 0
@@ -422,8 +420,10 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
                     match_score = compute_match_score(result_text, finding_element)
                     percent = match_score * (finding_len / result_len) if result_len > 0 else 0
         else:
-            # Если is_exact = True, устанавливаем фиктивное значение 1
+            if isPrint: print("is_exact = True, устанавливаем фиктивное значение 1")
             percent = 1.0
+
+        print(f"percent = {percent}")
 
         # Проверяем совпадение текста
         if finding_element.strip() in result_text.strip():
@@ -458,6 +458,12 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
         starts_with_id = selector.strip().startswith("#")
         length = len(selector)
         ends_with_attr = selector.strip().endswith("]")
+
+
+
+        ################# Вот на это место обратить внимание, при отладке
+
+
 
         return (
             -percent,                               # 0️⃣ По убыванию процентного соотношения соответствия исходному тексту (при is_exact=False)
@@ -1160,16 +1166,16 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False):
 
 # # Поиск селекторов по подстроке на странице
 # isPrint = True
-# link = "https://gresstore.ru/brend/estima/nolana"
-# finding_text_element = ''
+# link = "https://gaz-shop78.ru/magazin/product/182893106"
+# finding_text_element = 'Котёл электрический Warmos Comfort - 18'
 # html = get_html_from_cache(link, print_msg = False)
 # selector_result = get_css_selector_from_text_value_element(html, finding_text_element)
 
 
 # # Извлечение элемента по селектору
 # isPrint = True
-# link = "https://gresstore.ru/brend/estima/nolana"
-# selector = 'meta[property="og:image"][content]'
+# link = "https://gaz-shop78.ru/magazin/product/182893106"
+# selector = 'html > body.site.gr_hide_onload > div.site__wrapper > div.site-container.block_padding.site_container_inner_page > div.site-container__inner.block_width > div.site-container__right_panel > main.site-main.product_columns_4 > div.site-main__inner > div.site-path'
 # html = get_html_from_cache(link)
 # element_finded = get_element_from_selector_universal(html, selector)
 # print(element_finded)

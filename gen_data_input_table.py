@@ -952,7 +952,6 @@ data_input_table = {
                 "link": "https://gaz-shop78.ru/magazin/product/1894352706",
                 "name": "Электрический котёл ARDERIA E4",
                 "price": "40 000 ₽",
-                "brand": "ARDERIA",
                 "InStock_trigger": "В наличии",
                 "OutOfStock_trigger": "",
                 "imageLink": "https://gaz-shop78.ru/thumb/2/aoyhARqaj1bPrE77eRAF_A/750r750/d/arderi_elektrojpg.jpg"
@@ -961,7 +960,6 @@ data_input_table = {
                 "link": "https://gaz-shop78.ru/magazin/product/1894353706",
                 "name": "Электрический котёл ARDERIA E20",
                 "price": "46 500 ₽",
-                "brand": "ARDERIA",
                 "InStock_trigger": "В наличии",
                 "OutOfStock_trigger": "",
                 "imageLink": "https://gaz-shop78.ru/thumb/2/lCUI3aA241A3iTaFeRm2hA/750r750/d/arderi_elektrojpg_5.jpg"
@@ -970,7 +968,6 @@ data_input_table = {
                 "link": "https://gaz-shop78.ru/magazin/product/182893106",
                 "name": "Котёл электрический Warmos Comfort - 18",
                 "price": "54 000 ₽",
-                "brand": "Эван",
                 "InStock_trigger": "В наличии",
                 "OutOfStock_trigger": "",
                 "imageLink": "https://gaz-shop78.ru/thumb/2/5MFMp9e0txKhtnL9BxAkng/750r750/d/varmos_komfortjpg_1.jpg"

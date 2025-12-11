@@ -311,6 +311,9 @@ def main_generate_parsePage():
     if(current_element["count_of_page_on_pagination"]) != "0": 
         print("Извлекаем селектор кол-ва страниц")
         #TODO Нужно будет чистить селектор от :nth-of-type(), если это будет нужно
+        #TODO Да, следует удалять такие части li:nth-of-type(5)[data-value]
+        # что бы селектор был более точным, либо задавать их от конца а не от начала, 
+        # если он извлекает параметр в [] а не текст
 
         finding_element = current_element["count_of_page_on_pagination"]        
         pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = False)
