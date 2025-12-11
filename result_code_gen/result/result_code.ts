@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, brand, imageLink, timestamp
+    name, stock, link, price, imageLink, manufacturer, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, brand, imageLink, timestamp
+    name, stock, link, price, imageLink, manufacturer, timestamp
 }
 
-const HOST = "https://gazovik-omsk.ru"
+const HOST = "https://galleryceramics.ru"
 
-export class JS_Base_gazovikomskru extends JS_Base_Custom {
+export class JS_Base_galleryceramicsru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -81,20 +81,20 @@ export class JS_Base_gazovikomskru extends JS_Base_Custom {
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("html > body.custom_scroll > div.wrapper > main.page-catalog > section.page-catalog__catalog.catalog.--search > div.catalog__container > div.catalog__inner > div.catalog__content.--search > div.catalog__pagging.pagging > ul.pagging__list > li.pagging__item > a.pagging__link").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = 0 // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("html > body.custom_scroll > div.wrapper > main.page-catalog > section.page-catalog__catalog.catalog > div.catalog__container > div.catalog__inner > div.catalog__content > div.catalog__products.catalog-products > div.horizontal-card > a.horizontal-card__link[href]") 
+        let products = $("") // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
+            let link = $(product)?.attr("href")
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }

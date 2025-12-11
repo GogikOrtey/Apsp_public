@@ -356,7 +356,7 @@ def main_generate_parsePage():
             
             # Проверяем, не остался ли один элемент в селекторе
             if len(current_parts) == 1:
-                if len_of_products < 6:
+                if len_of_products < 6: ######################################################## <
                     raise ErrorHandler(f"Селектор содержит только одну часть и элементов < 6: найдено {len_of_products} элементов")
                 else:
                     product_selector = current_selector
@@ -406,10 +406,11 @@ def main_generate_parsePage():
 
 
     # Добавляем хост ко всем ссылкам, если они извлекаются со страницы без него
-    if link_list and set_item["host"] not in link_list[0]:
+    if link_list and link_list[0] and set_item["host"] not in link_list[0]:
         link_list = [f'{set_item["host"]}{value}' for value in link_list]
         set_item["is_add_host"] = True
-        
+
+            
     # # # Печать уже из массива
     # # for value in link_list:
     # #     print(value)

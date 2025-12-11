@@ -1,4 +1,4 @@
-11.12.2025 17:37:36
+11.12.2025 17:52:56
 
 
 
@@ -11,210 +11,6 @@
 
 
 field = name, stock, link, price, imageLink, manufacturer, timestamp
-
-
-
---------------------------------------------------------------------------------------------------
-
-                                       EXTRACTION SELECTOR
-
---------------------------------------------------------------------------------------------------
-
-
-Обработаем 3 страниц
-📤 Берем страницу из кеша: https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/ (возраст 0.08 ч.)
-
-Найдено 22 возможных селекторов
-Найден селектор для поля name
-
-Найдено 8 возможных селекторов
-Найден селектор для поля price
-
-Найдено 4 возможных селекторов
-Найден селектор для поля manufacturer
-
-Найдено 5 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 7 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-📤 Берем страницу из кеша: https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/millennium-line-color-wt93mnm55-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/ (возраст 0.08 ч.)
-
-Найдено 22 возможных селекторов
-Найден селектор для поля name
-
-Найдено 8 возможных селекторов
-Найден селектор для поля price
-
-Найдено 4 возможных селекторов
-Найден селектор для поля manufacturer
-
-Найдено 5 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 7 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-📤 Берем страницу из кеша: https://galleryceramics.ru/catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/rockstyle-gray-wt93rok15-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/ (возраст 0.08 ч.)
-
-Найдено 27 возможных селекторов
-Найден селектор для поля name
-
-Найдено 8 возможных селекторов
-Найден селектор для поля price
-
-Найдено 4 возможных селекторов
-Найден селектор для поля manufacturer
-
-Найдено 5 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 7 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-Используемые поля: ['name', 'price', 'manufacturer', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
-Кандидаты по полям (в порядке приоритета):
- - name: 1 селекторов -> ['span.breadcrumbs__item-name.font_13']
- - price: 1 селекторов -> ['span.price__new-val.font_24']
- - manufacturer: 1 селекторов -> ['.properties-group__value.color_222']
- - InStock_trigger: 1 селекторов -> ['span.js-replace-status.status-icon.instock']
- - OutOfStock_trigger: 0 селекторов -> []
- - imageLink: 1 селекторов -> ['#big-photo-0 > a.detail-gallery-big__link.popup_link.fancy.fancy-thumbs[href]']
-[WARN] Для поля OutOfStock_trigger не найден селектор(ы).
-
-📄 Кеш сохранён в cache.json, всего страниц: 51
-   Добавлено: 0, обновлено: 3
-
-
-✅ Итоговые селекторы:
-{
-    "name": [
-        "span.breadcrumbs__item-name.font_13"
-    ],
-    "price": [
-        "span.price__new-val.font_24"
-    ],
-    "manufacturer": [
-        ".properties-group__value.color_222"
-    ],
-    "InStock_trigger": [
-        "span.js-replace-status.status-icon.instock"
-    ],
-    "OutOfStock_trigger": [],
-    "imageLink": [
-        "#big-photo-0 > a.detail-gallery-big__link.popup_link.fancy.fancy-thumbs[href]"
-    ]
-}
-
-
-
---------------------------------------------------------------------------------------------------
-
-                                         PARSE CARD GEN
-
---------------------------------------------------------------------------------------------------
-
-
-Проверяем селекторы, и генерируем parseCard
-Оба триггера есть
-Обрабатываем поле name
-
-Проверяем селектор span.breadcrumbs__item-name.font_13 на странице №1
-    Bavaro Nova WT93BAV00 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)
-    Bavaro Nova WT93BAV00 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)
-
-    ✅ Полное совпадение селектора и оригинального значения поля name
-
-Проверяем селектор span.breadcrumbs__item-name.font_13 на странице №2
-    Millennium Line Color WT93MNM55 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)
-    Millennium Line Color WT93MNM55 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)
-
-    ✅ Полное совпадение селектора и оригинального значения поля name
-
-Проверяем селектор span.breadcrumbs__item-name.font_13 на странице №3
-    Rockstyle Gray WT93ROK15 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)
-    Rockstyle Gray WT93ROK15 Плитка настенная 300*900*10,5 (5 шт в уп/48,6 м в пал)
-
-    ✅ Полное совпадение селектора и оригинального значения поля name
-
-max_count_element_of_selectors = 🟡 1
-_____
-
-Обрабатываем поле price
-
-Проверяем селектор span.price__new-val.font_24 на странице №1
-    1 990 ₽/
-    1 990 ₽/м
-
-    💲 Обрабатываем поле price
-    Разделитель - точка
-
-Проверяем селектор span.price__new-val.font_24 на странице №2
-    1 990 ₽/
-    1 990 ₽/м
-
-    💲 Обрабатываем поле price
-    Разделитель - точка
-
-Проверяем селектор span.price__new-val.font_24 на странице №3
-    1 990 ₽/
-    1 990 ₽/м
-
-    💲 Обрабатываем поле price
-    Разделитель - точка
-
-max_count_element_of_selectors = 🟡 1
-_____
-
-Обрабатываем поле manufacturer
-
-Проверяем селектор .properties-group__value.color_222 на странице №1
-    ⬜ Нет результата у селектора  на странице 1 для поля manufacturer
-
-Проверяем селектор .properties-group__value.color_222 на странице №2
-    ⬜ Нет результата у селектора  на странице 2 для поля manufacturer
-
-Проверяем селектор .properties-group__value.color_222 на странице №3
-    ⬜ Нет результата у селектора  на странице 3 для поля manufacturer
-
-max_count_element_of_selectors = 🟡 0
-_____
-
-Обрабатываем поле imageLink
-
-Проверяем селектор #big-photo-0 > a.detail-gallery-big__link.popup_link.fancy.fancy-thumbs[href] на странице №1
-    В элементе /upload/iblock/2a4/wu1295p0j3g69m3u16mv1kmtll69stl9.jpg отсутствует хост. Добавляем:
-    https://galleryceramics.ru/upload/iblock/2a4/wu1295p0j3g69m3u16mv1kmtll69stl9.jpg
-    https://galleryceramics.ru/upload/iblock/2a4/wu1295p0j3g69m3u16mv1kmtll69stl9.jpg
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-Проверяем селектор #big-photo-0 > a.detail-gallery-big__link.popup_link.fancy.fancy-thumbs[href] на странице №2
-    В элементе /upload/iblock/ac6/tldm6otiggjxm0nzvf2eau2m4yau66rf.jpg отсутствует хост. Добавляем:
-    https://galleryceramics.ru/upload/iblock/ac6/tldm6otiggjxm0nzvf2eau2m4yau66rf.jpg
-    https://galleryceramics.ru/upload/iblock/ac6/tldm6otiggjxm0nzvf2eau2m4yau66rf.jpg
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-Проверяем селектор #big-photo-0 > a.detail-gallery-big__link.popup_link.fancy.fancy-thumbs[href] на странице №3
-    В элементе /upload/iblock/877/yuts7v0k9vn4v61ptam3qfippbzh6hcu.jpg отсутствует хост. Добавляем:
-    https://galleryceramics.ru/upload/iblock/877/yuts7v0k9vn4v61ptam3qfippbzh6hcu.jpg
-    https://galleryceramics.ru/upload/iblock/877/yuts7v0k9vn4v61ptam3qfippbzh6hcu.jpg
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-max_count_element_of_selectors = 🟡 1
-_____
-
-Статистика нахождения селекторов:
-🟩: name 
-💲 : price 
-🟩: imageLink 
-
 
 
 
@@ -285,8 +81,188 @@ url.searchParams.set("PAGEN_2", set.page)
 processed_url_product = /catalog/keramicheskaya-plitka-i-keramogranit/kollektsii/bavaro-nova-wt93bav00-plitka-nastennaya-300-900-10-5-5-sht-v-up-48-6-m-v-pal/
 
 Найдено 4 возможных селекторов
+Исходный селектор: #bx_3966226736_86362 > div.catalog-block__inner.flexbox.height-100 > link[itemprop="url"][href]
+Части селектора: ['#bx_3966226736_86362>', 'div.catalog-block__inner.flexbox.height-100>', 'link[itemprop="url"][href]']
+Количество частей: 3
 
-product_selector = #bx_3966226736_86362 > div.catalog-block__inner.flexbox.height-100 > link[itemprop="url"][href]
+Проверяем селектор: #bx_3966226736_86362>div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
+Найдено элементов: 1
+✅ Найден подходящий селектор: #bx_3966226736_86362>div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
+
+Итоговый product_selector = #bx_3966226736_86362>div.catalog-block__inner.flexbox.height-100>link[itemprop="url"][href]
+Количество элементов по итоговому селектору: 1
 len_of_products_on_this_page = 1
-🟡 Скорее всего селектор неверный, элементов < 6
-Пробуем другие ссылки
+Ссылок по селектору: 1
+Совпадение ссылок = 0.00 (0/3)
+async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/catalog/?`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("PAGEN_2", set.page)
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = 0 // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("") // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = $(product)?.attr("href")
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
+Имя парсера: JS_Base_galleryceramicsru
+
+
+
+--------------------------------------------------------------------------------------------------
+
+                                    FINAL RESULT PARSER CODE
+
+--------------------------------------------------------------------------------------------------
+
+
+import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
+import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
+import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
+import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
+import { getTimestamp } from "../Base-Custom/Utils";
+import { SetType, tools } from "a-parser-types";
+import { Cacher } from "../Base-Custom/Cache";
+import {
+    toArray, isBadLink,
+    name, stock, link, price, imageLink, manufacturer, timestamp
+} from "../Base-Custom/Fields"
+import * as cheerio from "cheerio";
+
+//#region Кастомные типы данных
+type ResultItem = Item<typeof fields>
+
+//#region Константы
+const fields = {
+    name, stock, link, price, imageLink, manufacturer, timestamp
+}
+
+const HOST = "https://galleryceramics.ru"
+
+export class JS_Base_galleryceramicsru extends JS_Base_Custom {
+    static defaultConf: defaultConf = {
+            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
+            parsecodes: { 200: 1, 404: 1 },
+            proxyChecker: "tor.proxy.ru",
+            requestdelay: "3,5",
+            engine: "a-parser",
+            mode: "normal",
+        };
+
+    static editableConf: editableConf = [
+        ...defaultEditableConf
+    ];
+
+    //#region Точка входа
+    async parse(set: SetType, results: { [key: string]: any }) {
+        if (!set.type || set.type === "none") set.type = "page";
+        if (!set.region || set.region === "none") set.region = "";
+        try {
+            switch (set.type) {
+                case "page": {
+                    if (!set.page || set.page === "none") set.page = 1;
+                    await this.parsePage(set);
+                    results.success = 1;
+                    break;
+                }
+                case "card": {
+                    const cacher = getCacher<ResultItem>(this, set)
+                    let items = cacher.cache || await this.parseCard(set, cacher);
+                    items.forEach(item => results.items.addElement(item));
+                    results.success = 1;
+                    break;
+                }
+                default:
+                    this.logger.put("Указан неверный тип сбора")
+                    results.success = 0;
+            }
+        } catch (e: any) {
+            if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
+                this.logger.put(e.message);
+                results.isBadLink = 1;
+                results.success = 1;
+            } else {
+                this.logger.put(`${e.name} >> ${e.message}   ${set.query}  type - ${set.type} page ${set.page} }`);
+                results.success = 0;
+            }
+        }
+        return results;
+    }
+
+    //#region Парсинг поиска
+    async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/catalog/?`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("PAGEN_2", set.page)
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = 0 // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("") // [Ошибка генерации APSP]: Не удалось подобрать значения для поля
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = $(product)?.attr("href")
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
+
+    //#region Парсинг товара
+    
+
+    //#region Выполнение запроса
+    async makeRequest(url: string) {
+        const opts: AsyncHTTPXRequestOptsCustom = {
+            ...defaultOpts,
+            engine: this.conf.engine,
+            mode: this.conf.mode,
+        };
+        this.debugger.put(opts)
+
+        const { success, headers, data } = await this.request("GET", url, {}, opts);
+        this.debugger.put(data)
+
+        if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
+        if (headers.Status === 404) throw new NotFoundError();
+
+        return data;
+    }
+}
+
+// Код сгенерирован APSP v0.1
+// Дата: 11 Дек 2025
+// © BrandPol
+
+Сообщения из message_global:
+🟡 [Предупреждение]: timestamp нет в массиве, данные для parsePage могут быть неактуальными
+🟧 Ни одной ссылки не совпало
+
+Итоговый статус генерации: 🟧 Falled 🟧
+
+🕚 Время выполнения: 1.65 секунд
+🧢 Кол-во обращений к внешнему ИИ: 1
