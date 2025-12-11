@@ -1,4 +1,4 @@
-11.12.2025 11:20:43
+11.12.2025 11:37:47
 
 
 
@@ -22,7 +22,7 @@ field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 
 
 Обработаем 3 страниц
-📤 Берем страницу из кеша: https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/ (возраст 11.19 ч.)
+📤 Берем страницу из кеша: https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/ (возраст 11.47 ч.)
 
 Найдено 10 возможных селекторов
 Найден селектор для поля name
@@ -43,7 +43,7 @@ field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/ (возраст 11.19 ч.)
+📤 Берем страницу из кеша: https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/ (возраст 11.47 ч.)
 
 Найдено 8 возможных селекторов
 Найден селектор для поля name
@@ -66,7 +66,7 @@ _______________________
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/ (возраст 11.19 ч.)
+📤 Берем страницу из кеша: https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/ (возраст 11.47 ч.)
 
 Найдено 10 возможных селекторов
 Найден селектор для поля name
@@ -307,7 +307,7 @@ _____
 
 --------------------------------------------------------------------------------------------------
 
-                                       EXTRACTION SELECTOR
+                                         PARSE PAGE GEN
 
 --------------------------------------------------------------------------------------------------
 
@@ -364,10 +364,10 @@ url.searchParams.set('/?page', set.page);
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/content/search/`);
-url.searchParams.set("s", "");
-url.searchParams.set("q", set.query);
-url.searchParams.set("PAGEN_1", set.page);
+let url = new URL(`${HOST}/content/search/`)
+url.searchParams.set("s", "")
+url.searchParams.set("q", set.query)
+url.searchParams.set("PAGEN_1", set.page)
 ```"
 
 
@@ -388,38 +388,38 @@ js_code_extract_pagination = 			let totalItems = $("h2")?.first()?.text()?.trim(
 
 💫 PROMPT:
 Есть такой код на JS: 
-			let totalItems = $("h2")?.first()?.text()?.trim()
+let totalItems = $("h2")?.first()?.text()?.trim()
 Однако он извлекает "По вашему запросу найдено 3 762 результата"
 А должен извлекать: "3 762"
 Измени исходный код, что бы он делал это.
 Обязательные правила:
-— Используй только опциональную цепочку ?. и не используй просто .
+— Используй только опциональную цепочку ?. и не используй просто . для безопасности
+— Однако можно использовать функции .match .replace и остальные подобные
 — Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
-— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную 
-строку или фрагмент кода.
+— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную строку или фрагмент кода.
     
 
 
 💬 AI ANSWER:
 "```
-let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
+let totalItems = $("h2")?.first()?.text()?.trim()?.match(/\d+/)?.at(0);
 ```"
 
 result_pagination_block = 
 
-let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
+let totalItems = $("h2")?.first()?.text()?.trim()?.match(/\d+/)?.at(0);
 			let totalPages = Math.ceil(+totalItems / 12)
 async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/content/search/`);
-		url.searchParams.set("s", "");
-		url.searchParams.set("q", set.query);
-		url.searchParams.set("PAGEN_1", set.page);
+        let url = new URL(`${HOST}/content/search/`)
+		url.searchParams.set("s", "")
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("PAGEN_1", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
+            let totalItems = $("h2")?.first()?.text()?.trim()?.match(/\d+/)?.at(0);
 			let totalPages = Math.ceil(+totalItems / 12) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
@@ -523,16 +523,16 @@ export class JS_Base_stroytorg812ru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/content/search/`);
-		url.searchParams.set("s", "");
-		url.searchParams.set("q", set.query);
-		url.searchParams.set("PAGEN_1", set.page);
+        let url = new URL(`${HOST}/content/search/`)
+		url.searchParams.set("s", "")
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("PAGEN_1", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
+            let totalItems = $("h2")?.first()?.text()?.trim()?.match(/\d+/)?.at(0);
 			let totalPages = Math.ceil(+totalItems / 12) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
@@ -604,7 +604,7 @@ export class JS_Base_stroytorg812ru extends JS_Base_Custom {
 Сообщения из message_global:
 🟡 timestamp нет в массиве, данные для parsePage могут быть неактуальными
 
-Статус генерации: sucsess
+Итоговый статус генерации: 🟩 Sucsess 🟩
 
-🕚 Время выполнения: 8.69 секунд
+🕚 Время выполнения: 8.26 секунд
 🧢 Кол-во обращений к внешнему ИИ: 2

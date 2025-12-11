@@ -383,7 +383,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             request_AI = dedent(
                 f"""
                 Есть такой код на JS: 
-                {line_result_code}
+                {line_result_code.strip()}
                 Однако он извлекает "{ccs_result_value}"
                 А должен извлекать: "{ccs_necessary_value}"
                 {add_info}

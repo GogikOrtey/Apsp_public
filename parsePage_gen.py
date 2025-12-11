@@ -14,7 +14,7 @@ this_module_title = """
 
 --------------------------------------------------------------------------------------------------
 
-                                       EXTRACTION SELECTOR
+                                         PARSE PAGE GEN
 
 --------------------------------------------------------------------------------------------------
 
@@ -540,7 +540,7 @@ def main_generate_parsePage():
             request_AI = dedent(
                 f"""
                 Есть такой код на JS: 
-                {js_code_extract_pagination}
+                {js_code_extract_pagination.strip()}
                 Однако он извлекает "{checked_selector}"
                 А должен извлекать: "{finding_element}"
                 Измени исходный код, что бы он делал это.

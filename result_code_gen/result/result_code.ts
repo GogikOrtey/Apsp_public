@@ -73,16 +73,16 @@ export class JS_Base_stroytorg812ru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/content/search/`);
-		url.searchParams.set("s", "");
-		url.searchParams.set("q", set.query);
-		url.searchParams.set("PAGEN_1", set.page);
+        let url = new URL(`${HOST}/content/search/`)
+		url.searchParams.set("s", "")
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("PAGEN_1", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
+            let totalItems = $("h2")?.first()?.text()?.trim()?.match(/\d+/)?.at(0);
 			let totalPages = Math.ceil(+totalItems / 12) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
