@@ -37,145 +37,6 @@ def strip_host(url: str) -> str:
     parts = urlsplit(url)
     return urlunsplit(("", "", parts.path, parts.query, parts.fragment))
 
-# # region Extract URL
-# def generate_parsePage_search_requests(data_input_table):
-#     set_item = {}
-
-#     # TODO Добавить итерацию по всем элементам search_requests
-#     current_url = data_input_table["search_requests"][0]["url_search_query_page_2"]
-#     set_item["link"] = current_url
-#     extracted_params_from_url = extract_params(current_url)
-#     print(extracted_params_from_url)
-
-#     # data = {'s': '', 'q': 'Ванна акриловая', 'PAGEN_1': '2'}
-#     data = extracted_params_from_url
-
-#     # Возможные варианты названий параметров поиска и пагинации
-#     search_param_names = ["q", "query", "search", "find"]
-#     pagination_param_names = ["page", "p", "PAGEN_1", "PAGEN", "page_num"]
-
-#     # Переменные с найденными названиями параметров
-#     search_param = None
-#     pagination_param = None
-
-#     #TODO Потом ещё дополнительно тестировать это, и на других сайтах
-
-#     # Ищем, какой из параметров присутствует, по прямому совпадению
-#     for name in search_param_names:
-#         if name in data:
-#             search_param = name
-#             break
-
-#     for name in pagination_param_names:
-#         if name in data:
-#             pagination_param = name
-#             break
-
-#     # Если не нашли прямым совпадением, ищем по подстрокам 
-#     if not search_param:
-#         search_substrings = ["query", "search"]
-#         found_search_keys = []
-#         for key in data.keys():
-#             key_upper = key.upper()
-#             for substring in search_substrings:
-#                 if substring.upper() in key_upper:
-#                     found_search_keys.append(key)
-#                     break
-        
-#         if len(found_search_keys) == 1:
-#             search_param = found_search_keys[0]
-#         elif len(found_search_keys) >= 2:
-#             print(f"🟧 Найдено {len(found_search_keys)} ключей, содержащих подстроки для search_param: {found_search_keys}. Значение не присвоено.")
-    
-#     if not pagination_param:
-#         pagination_substring = "page"
-#         found_pagination_keys = []
-#         for key in data.keys():
-#             if pagination_substring.upper() in key.upper():
-#                 found_pagination_keys.append(key)
-        
-#         if len(found_pagination_keys) == 1:
-#             pagination_param = found_pagination_keys[0]
-#         elif len(found_pagination_keys) >= 2:
-#             print(f"🟧 Найдено {len(found_pagination_keys)} ключей, содержащих подстроку '{pagination_substring}' для pagination_param: {found_pagination_keys}. Значение не присвоено.")
-
-#     # Если и по подстрокам не нашли, то используем ИИ
-
-#     def _build_ai_request(instruction: str) -> str:
-#         for AI_attempts in range(3): # YandexGPT не максимально хорошо понимает это, и иногда выдаёт длинный ответ
-#             AI_request = dedent(
-#                 f"""
-#                 В таком запросе: {current_url}
-#                 Есть такие параметры: "{all_http_params}"
-#                 {instruction}
-#                 Обязательное правило:
-#                 Не пиши никаких комментариев, пояснений, вариантов и текста вокруг, потому что я вставлю твой ответ сразу в код. 
-#                 В результате выдай только один параметр.
-#                 """
-#             ).strip()
-#             AI_answer = send_message_to_AI_agent(AI_request, no_hint=True)
-#             if(len(AI_answer) > 16):
-#                 print("ИИ дал неверный ответ, пробуем ещё раз")
-#                 continue
-#             return AI_answer.strip()
-#         return ""
-
-#     all_http_params = ", ".join(data.keys())
-
-#     if not search_param:
-#             print("Используем ИИ для поиска параметра, соответствующего запросу")
-#             search_param = _build_ai_request("Верни мне параметр, в котором задаётся запрос на поиск.")
-#     if not search_param:
-#         raise ErrorHandler("Не смогли подобрать параметр для поиска, в запросе")
-
-#     if not pagination_param:
-#         print("Используем ИИ для поиска параметра, соответствующего текущей странице")
-#         pagination_param = _build_ai_request("Верни мне параметр, в котором задаётся текущая страница (в данном случае страница = 2).")
-#     if not pagination_param:
-#         raise ErrorHandler("Не смогли подобрать параметр для пагинации")
-
-#     # Создаём копию словаря без этих ключей
-#     data_clean = {
-#         k: v for k, v in data.items()
-#         if k not in (search_param, pagination_param)
-#     }
-
-#     print("Параметр поиска:", search_param)
-#     print("Параметр пагинации:", pagination_param)
-#     print("Очищенный словарь:", data_clean)
-
-#     added_url_params = ""
-#     for key, value in data_clean.items():
-#         added_url_params += f'url.searchParams.set("{key}", "{value}")\n'
-
-#     set_item["search_param"] = search_param
-#     set_item["pagination_param"] = pagination_param
-#     set_item["added_url_params"] = added_url_params
-
-#     # Далее извлекаем хост для поиска
-
-#     parsed = urlparse(current_url)
-#     search_host = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-#     print("search_host = " + search_host)
-
-#     # Хост с протоколом
-#     host = f"{parsed.scheme}://{parsed.netloc}"
-
-#     # Путь без хоста
-#     path = parsed.path
-
-#     print("host:", host)
-#     print("path:", path)
-    
-#     set_item["host"] = host
-#     set_item["path"] = path
-
-#     return set_item
-
-#     #TODO Потом переписать покрасивее тут всё
-
-
-
 
 
 
@@ -251,35 +112,6 @@ def generate_parsePage(set_item):
     elem_1_items = f"\nlet items: ResultItem[] = [];"
     elem_2_result_items = f"\nreturn items;"
 
-    # template_parseCard = Template("""
-    # async parsePage(set: SetType) {
-    #     let url = new URL(`$${HOST}$hostPatch`)
-    #     url.searchParams.set("$searchQuery", set.query)
-    #     url.searchParams.set("$paginationParams", set.page)
-    #     $addedUrlParams
-    #     const data = await this.makeRequest(url.href)
-    #     const $$ = cheerio.load(data)
-
-    #     if (set.page === 1) {
-    #         $result_pagination_block_value
-    #         this.debugger.put(`totalPages = $${totalPages}`)
-    #         for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-    #             this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-    #         }
-    #     }
-    #     $elem_1_items_value
-    #     let products = $$("$productSelector")
-    #     if (products.length == 0) {
-    #         this.logger.put(`По запросу $${set.query} ничего не найдено`)
-    #         throw new NotFoundError()
-    #     }
-    #     products.slice(0, +this.conf.itemsCount).each((i, product) => {
-    #         let link = $finalProductLink
-    #         this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-    #     }) $elem_2_result_items_value
-    # }
-    # """)
-
     template_parseCard = Template("""
     async parsePage(set: SetType) {
         $create_url_block
@@ -315,11 +147,6 @@ def generate_parsePage(set_item):
     error_message = "// [Ошибка генерации APSP]: Не удалось подобрать значения для поля"
 
     result = template_parseCard.substitute(
-        # hostPatch = set_item["path"],
-        # searchQuery = set_item["search_param"],
-        # paginationParams = set_item["pagination_param"],
-        # addedUrlParams = set_item["added_url_params"],
-        
         result_pagination_block_value = set_item.get("result_pagination_block") or "let totalPages = 0",
         productSelector = set_item.get("product_selector") or "",
         #TODO Как-то проверить, что товар извлекается по $(product)?.attr("href")

@@ -734,60 +734,60 @@ https://elevel.ru
 #     ]
 # }
 
-# data_input_table = {
-#     "host": "https://gidro-top.ru",
-#     "fields_str": "",
-#     "links": {
-#         "simple": [
-#             {
-#                 "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
-#                 "name": "Aquanet SD-1200A душевая дверь",
-#                 "price": "19 850 ₽",
-#                 "oldprice": "",
-#                 "article": "00209406",
-#                 "brand": "Aquanet",
-#                 "InStock_trigger": "В наличии",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
-#             },
-#             {
-#                 "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
-#                 "name": "Aquastone Малибу Ванна из искусственного камня",
-#                 "price": "55 000 ₽",
-#                 "oldprice": "69 000 ₽",
-#                 "article": "MAlibu",
-#                 "brand": "Aquastone",
-#                 "InStock_trigger": "В наличии",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
-#             },
-#             {
-#                 "link": "https://gidro-top.ru/product/aquastone-bali-180/",
-#                 "name": "Aquastone Бали 180 Ванна из искусственного камня",
-#                 "price": "53 000 ₽",
-#                 "oldprice": "",
-#                 "article": "Bali180",
-#                 "brand": "Aquastone",
-#                 "InStock_trigger": "В наличии",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
-#             }
-#         ]
-#     },
-#     "search_requests": [
-#         {
-#             "query": "Ванна",
-#             "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
-#             "count_of_page_on_pagination": "255",
-#             "total_count_of_results": "0",
-#             "links_items": [
-#                 "https://gidro-top.ru/product/salini-orlanda-102114g-vanna-vstraivaemaya-belyy-190x100/",
-#                 "https://gidro-top.ru/product/azario-kapris-1700R/",
-#                 "https://gidro-top.ru/product/abber-stein-as9624-17-vanna-iz-iskusstvennogo-kamnya/",
-#             ]
-#         }
-#     ]
-# }
+data_input_table = {
+    "host": "https://gidro-top.ru",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
+                "name": "Aquanet SD-1200A душевая дверь",
+                "price": "19 850 ₽",
+                "oldprice": "",
+                "article": "00209406",
+                "brand": "Aquanet",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
+            },
+            {
+                "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
+                "name": "Aquastone Малибу Ванна из искусственного камня",
+                "price": "55 000 ₽",
+                "oldprice": "69 000 ₽",
+                "article": "MAlibu",
+                "brand": "Aquastone",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
+            },
+            {
+                "link": "https://gidro-top.ru/product/aquastone-bali-180/",
+                "name": "Aquastone Бали 180 Ванна из искусственного камня",
+                "price": "53 000 ₽",
+                "oldprice": "",
+                "article": "Bali180",
+                "brand": "Aquastone",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
+            }
+        ]
+    },
+    "search_requests": [
+        {
+            "query": "Ванна",
+            "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
+            "count_of_page_on_pagination": "255",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://gidro-top.ru/product/triton-nika-180-akrilovaya-vanna-180x80/",
+                "https://gidro-top.ru/product/vanna-astra-form-nyu-form-170x75-belaya/",
+                "https://gidro-top.ru/product/aquatek-layma-170/",
+            ]
+        }
+    ]
+}
 
 
 # data_input_table = {
@@ -836,57 +836,57 @@ https://elevel.ru
 #     ]
 # }
 
-data_input_table = {
-    "host": "https://stroytorg812.ru",
-    "fields_str": "",
-    "links": {
-        "simple": [
-            {
-                "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
-                "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
-                "price": "8 390 руб.",
-                "oldprice": "",
-                "article": "U4031689", 
-                "brand": "ТРИТОН",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
-            },
-            {
-                "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
-                "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
-                "price": "1 860,10",
-                "oldprice": "1 958",
-                "article": "B2508830", 
-                "brand": "Bonaparte",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
-            },
-            {
-                "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
-                "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
-                "price": "9 400,00",
-                "oldprice": "12 450,00",
-                "article": "U4079315", 
-                "brand": "EMMY",
-                "InStock_trigger": "есть на складе",
-                "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
-            }
-        ]
-    },
-    "search_requests": [ ### Не очень, потому что page count, но этот случай АПСП обрабатывает
-        {
-            "query": "ванна",
-            "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
-            "count_of_page_on_pagination": "0",
-            "total_count_of_results": "3 762",
-            "links_items": [
-                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_60_s_umyvalnikom_vega_60_belaya/",
-                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/esper_60_tumba_podvesnaya1_yashchik_tsvet_belyy_s_umyvalnikom_esp60w0i95k/",
-                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_70_s_umyvalnikom_vega_70_belaya/",
-            ]
-        }
-    ]
-}
+# data_input_table = {
+#     "host": "https://stroytorg812.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
+#                 "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
+#                 "price": "8 390 руб.",
+#                 "oldprice": "",
+#                 "article": "U4031689", 
+#                 "brand": "ТРИТОН",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
+#             },
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
+#                 "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
+#                 "price": "1 860,10",
+#                 "oldprice": "1 958",
+#                 "article": "B2508830", 
+#                 "brand": "Bonaparte",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
+#             },
+#             {
+#                 "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
+#                 "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
+#                 "price": "9 400,00",
+#                 "oldprice": "12 450,00",
+#                 "article": "U4079315", 
+#                 "brand": "EMMY",
+#                 "InStock_trigger": "есть на складе",
+#                 "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
+#             }
+#         ]
+#     },
+#     "search_requests": [ ### Не очень, потому что page count, но этот случай АПСП обрабатывает
+#         {
+#             "query": "ванна",
+#             "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
+#             "count_of_page_on_pagination": "0",
+#             "total_count_of_results": "3 762",
+#             "links_items": [
+#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_60_s_umyvalnikom_vega_60_belaya/",
+#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/esper_60_tumba_podvesnaya1_yashchik_tsvet_belyy_s_umyvalnikom_esp60w0i95k/",
+#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_70_s_umyvalnikom_vega_70_belaya/",
+#             ]
+#         }
+#     ]
+# }
 
 
 
