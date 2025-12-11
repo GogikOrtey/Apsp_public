@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, article, imageLink, timestamp
+    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, article, imageLink, timestamp
+    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 }
 
-const HOST = "https://gresstore.ru"
+const HOST = "https://stroytorg812.ru"
 
-export class JS_Base_gresstoreru extends JS_Base_Custom {
+export class JS_Base_stroytorg812ru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,28 +73,30 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/`);
-		url.searchParams.set("search", set.query);
-		url.searchParams.set("page", set.page);
+        let url = new URL(`${HOST}/content/search/`);
+		url.searchParams.set("s", "");
+		url.searchParams.set("q", set.query);
+		url.searchParams.set("PAGEN_1", set.page);
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("div.col-sm-6.text-right").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalItems = $("h2")?.first()?.text()?.trim()?.split(' ')?.at(2)?.trim();
+			let totalPages = Math.ceil(+totalItems / 12) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("div.image > a[href]") 
+        let products = $("a.product-name[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
+            let link = `${HOST}${$(product)?.attr("href")}`
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
@@ -106,17 +108,19 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1").text()?.trim()
-		const stock = $(".html.dopinfo_tpl.dopinfo > .dopinfo_item > a").text()?.includes("Самовывоз.") ? "InStock" : "OutOfStock"
+        const name = $("h1.name").text()?.trim()
+		const stock = $(".nal.y").text()?.includes("есть на складе") ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = $(".item_price").text()?.trim().formatPrice(",")
-		const article = $("span.text_atr > a").text()?.trim()?.toLowerCase()?.replace(/\s+/g, '');
-		let imageLink = $("meta[property='og:image']")?.attr("content")?.trim()?.replace(/\/catalog\/collection\/(.*?)\/([^\.]*)\.(\w+)/, "/catalog/collection/$1/$2-$675x450.$3")?.replace(/\.jpg$/, "-675x450.webp");
-		imageLink = imageLink ? HOST + imageLink : "";
+		const price = $(".b").text()?.trim().formatPrice(",")
+		const oldprice = $(".thr").text()?.trim().formatPrice(",")
+		const article = $(".char > p:nth-of-type(1)").text()?.trim()
+		const brand = $(".char > p:nth-of-type(2)").text()?.trim()
+		let imageLink = $(".img > a.fancybox")?.first()?.attr("href")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, article, imageLink, timestamp
+            name, stock, link, price, oldprice, article, brand, imageLink, timestamp
         }
         items.push(item);
 

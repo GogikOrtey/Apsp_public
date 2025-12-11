@@ -349,7 +349,7 @@ def print_and_save_message_global():
         filename = "result_code_gen/result/message_global.txt"
         with open(filename, "w", encoding="utf-8") as f:
             
-            generated_status = "sucsess"
+            generated_status = "🟩 Sucsess 🟩"
             print(f"\nСообщения из message_global:")
             for elem in message_global:
                 key = list(elem.keys())[0]
@@ -358,7 +358,7 @@ def print_and_save_message_global():
                 # Печать
                 if key == "1":
                     print(f"🟧 {value}")
-                    generated_status = "falled"
+                    generated_status = "🟧 Falled 🟧"
                 elif key == "2":
                     print(f"🟡 {value}")
                 else:
@@ -371,7 +371,7 @@ def print_and_save_message_global():
                 # Запись в файл
                 f.write(f"{key}: {value}\n")
             print("")
-            print(f"Статус генерации: {generated_status}")
+            print(f"Итоговый статус генерации: {generated_status}")
 
 
 

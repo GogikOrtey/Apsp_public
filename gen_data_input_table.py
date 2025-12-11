@@ -836,107 +836,107 @@ https://elevel.ru
 #     ]
 # }
 
-# data_input_table = {
-#     "host": "https://stroytorg812.ru",
-#     "fields_str": "",
-#     "links": {
-#         "simple": [
-#             {
-#                 "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
-#                 "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
-#                 "price": "8 390 руб.",
-#                 "oldprice": "",
-#                 "article": "U4031689", 
-#                 "brand": "ТРИТОН",
-#                 "InStock_trigger": "есть на складе",
-#                 "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
-#             },
-#             {
-#                 "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
-#                 "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
-#                 "price": "1 860,10",
-#                 "oldprice": "1 958",
-#                 "article": "B2508830", 
-#                 "brand": "Bonaparte",
-#                 "InStock_trigger": "есть на складе",
-#                 "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
-#             },
-#             {
-#                 "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
-#                 "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
-#                 "price": "9 400,00",
-#                 "oldprice": "12 450,00",
-#                 "article": "U4079315", 
-#                 "brand": "EMMY",
-#                 "InStock_trigger": "есть на складе",
-#                 "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
-#             }
-#         ]
-#     },
-#     "search_requests": [ ### Не очень, потому что page count, но этот случай АПСП обрабатывает
-#         {
-#             "query": "ванна",
-#             "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
-#             "count_of_page_on_pagination": "0",
-#             "total_count_of_results": "3 762",
-#             "links_items": [
-#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_60_s_umyvalnikom_vega_60_belaya/",
-#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/esper_60_tumba_podvesnaya1_yashchik_tsvet_belyy_s_umyvalnikom_esp60w0i95k/",
-#                 "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_70_s_umyvalnikom_vega_70_belaya/",
-#             ]
-#         }
-#     ]
-# }
-
-
-
-
-# Когда починю извлчение из двойных тегов - будет раочий пример
 data_input_table = {
-    "host": "https://gresstore.ru",
+    "host": "https://stroytorg812.ru",
     "fields_str": "",
     "links": {
         "simple": [
             {
-                "link": "https://gresstore.ru/brend/estima/nolana",
-                "name": "Керамогранит Nolana Estima",
-                "price": "от 850 руб.",
-                "article": "Nolana",
-                "InStock_trigger": "Самовывоз.",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/estima/nolana_1-675x450.webp"
+                "link": "https://stroytorg812.ru/catalog/vanny/vanna_akrilovaya_1_70kh0_70_ultra_170/",
+                "name": "Ванна акриловая 170х70 Ультра-170 # ТРИТОН",
+                "price": "8 390 руб.",
+                "oldprice": "",
+                "article": "U4031689", 
+                "brand": "ТРИТОН",
+                "InStock_trigger": "есть на складе",
+                "imageLink": "https://stroytorg812.ru/upload/iblock/db8/4db0f322_ffe9_11e6_94b1_002590746688_bed22781_05a3_11e7_94b1_002590746688.jpeg"
             },
             {
-                "link": "https://gresstore.ru/brend/atlas-concorde-italy/111-1",
-                "name": "Керамогранит 3D Wall Carve Atlas Concorde Italy",
-                "price": "от 5 640 руб.",
-                "article": "3d-wall-carve",
-                "InStock_trigger": "Самовывоз.",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/atlas-concorde-italy/3d-wall-carve-675x450.webp"
+                "link": "https://stroytorg812.ru/catalog/mozaika/32_7kh32_7_mozaika_aqua_100_na_bumage/",
+                "name": "32,7х32,7 Мозаика Aqua 100 (на бумаге) 20*20*4 Bonaparte",
+                "price": "1 860,10",
+                "oldprice": "1 958",
+                "article": "B2508830", 
+                "brand": "Bonaparte",
+                "InStock_trigger": "есть на складе",
+                "imageLink": "https://stroytorg812.ru/upload/iblock/672/fe473651_57f3_11e3_a425_00148557b27c_f22d79df_bddb_11e3_beaf_a65927533166.jpeg"
             },
             {
-                "link": "https://gresstore.ru/brend/grani-taganaya/ajanta",
-                "name": "Керамогранит Ajanta Грани Таганая",
-                "price": "от 2 140 руб.",
-                "article": "Ajanta",
-                "InStock_trigger": "Самовывоз.",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/grani-taganaya/ajanta-675x450.webp"
-            },
+                "link": "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_agata_55_s_umyvalnikom_vizit_55_belaya/",
+                "name": "Тумба Агата 55 напольная с умывальником Визит-55, белая EMMY",
+                "price": "9 400,00",
+                "oldprice": "12 450,00",
+                "article": "U4079315", 
+                "brand": "EMMY",
+                "InStock_trigger": "есть на складе",
+                "imageLink": "https://stroytorg812.ru/upload/iblock/6f8/103ef337_79a5_11f0_8c17_002590746688_b21dfec2_7e5d_11f0_8c17_002590746688.jpeg"
+            }
         ]
     },
-    "search_requests": [
+    "search_requests": [ ### Не очень, потому что page count, но этот случай АПСП обрабатывает
         {
-            "query": "керамогранит",
-            "url_search_query_page_2": "https://gresstore.ru/search/?search=керамогранит&page=2",
-            "count_of_page_on_pagination": "133",
-            "total_count_of_results": "0",
+            "query": "ванна",
+            "url_search_query_page_2": "https://stroytorg812.ru/content/search/?s=&q=%D0%B2%D0%B0%D0%BD%D0%BD%D0%B0&PAGEN_1=2",
+            "count_of_page_on_pagination": "0",
+            "total_count_of_results": "3 762",
             "links_items": [
-                "https://gresstore.ru/brend/ametis-estima/keramogranit-arti-at02-belyj-160x80",
-                "https://gresstore.ru/brend/ametis-estima/keramogranit-arti-at02-belyj-80x80",
-                "https://gresstore.ru/brend/estima-profi/keramogranit-artwood-aw01-bezhevyj-120x194",
+                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_60_s_umyvalnikom_vega_60_belaya/",
+                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/esper_60_tumba_podvesnaya1_yashchik_tsvet_belyy_s_umyvalnikom_esp60w0i95k/",
+                "https://stroytorg812.ru/catalog/mebel_dlya_vannoy/tumba_napolnaya_vega_70_s_umyvalnikom_vega_70_belaya/",
             ]
         }
     ]
 }
+
+
+
+
+
+# data_input_table = {
+#     "host": "https://gresstore.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://gresstore.ru/brend/estima/nolana",
+#                 "name": "Керамогранит Nolana Estima",
+#                 "price": "от 850 руб.",
+#                 "article": "Nolana",
+#                 "InStock_trigger": "Самовывоз.",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/estima/nolana_1-675x450.webp"
+#             },
+#             {
+#                 "link": "https://gresstore.ru/brend/atlas-concorde-italy/111-1",
+#                 "name": "Керамогранит 3D Wall Carve Atlas Concorde Italy",
+#                 "price": "от 5 640 руб.",
+#                 "article": "3d-wall-carve",
+#                 "InStock_trigger": "Самовывоз.",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/atlas-concorde-italy/3d-wall-carve-675x450.webp"
+#             },
+#             {
+#                 "link": "https://gresstore.ru/brend/grani-taganaya/ajanta",
+#                 "name": "Керамогранит Ajanta Грани Таганая",
+#                 "price": "от 2 140 руб.",
+#                 "article": "Ajanta",
+#                 "InStock_trigger": "Самовывоз.",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://gresstore.ru/image/cachewebp/catalog/collection/grani-taganaya/ajanta-675x450.webp"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "керамогранит",
+#             "url_search_query_page_2": "https://gresstore.ru/search/?search=керамогранит&page=2",
+#             "count_of_page_on_pagination": "133",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://gresstore.ru/brend/ametis-estima/keramogranit-arti-at02-belyj-160x80",
+#                 "https://gresstore.ru/brend/ametis-estima/keramogranit-arti-at02-belyj-80x80",
+#                 "https://gresstore.ru/brend/estima-profi/keramogranit-artwood-aw01-bezhevyj-120x194",
+#             ]
+#         }
+#     ]
+# }

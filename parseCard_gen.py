@@ -251,9 +251,6 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                             selector_result_data = host + selector_result_data
                             is_add_host = True
 
-                    # print(f"💠{selector_result_data}💠") # Что селектор вернул
-                    # print(f"🔶{original_field_value}🔶") # Что лежит во входном массиве
-
                     print(f"    {selector_result_data}") # Что селектор вернул
                     print(f"    {original_field_value}") # Что лежит во входном массиве
                     print("")
@@ -357,7 +354,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         if is_add_host: # По большей части, используется для поля imageLink
                         # тут мы хост приделываем спереди, если извлекли ссылку
             line_result_code =  f'\t\tlet {key} = {selector_result_code}'
-            line_result_code += f'\t\t{key} = {key} ? HOST + {key} : ""'
+            line_result_code += f'\n\t\t{key} = {key} ? HOST + {key} : ""'
         else:
             line_result_code = f'\t\tconst {key} = {selector_result_code}'
 
