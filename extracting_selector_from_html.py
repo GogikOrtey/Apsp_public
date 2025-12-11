@@ -397,7 +397,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
                     percent = max_match_len / result_len if result_len > 0 else 0
                 else:
                     # Если точного вхождения нет, используем коэффициент сходства
-                    match_score = compute_match_score(result_text, finding_element)
+                    match_score = compute_match_score_2(result_text, finding_element)
                     percent = match_score * (finding_len / result_len) if result_len > 0 else 0
         else:
             if isPrint: print("is_exact = True, устанавливаем фиктивное значение 1")
@@ -410,7 +410,7 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
             match_score = 1.0
             if isPrint: print(f"✅ Строгое совпадение: [{result_text[:250]}]{':250' if len(result_text) > 250 else ''}")
         else:
-            match_score = compute_match_score(result_text, finding_element)
+            match_score = compute_match_score_2(result_text, finding_element)
             if isPrint: print(f"⚪ Совпадение {match_score*100:.1f}%: [{result_text}]")
 
         # Находим позицию селектора элемента на странице

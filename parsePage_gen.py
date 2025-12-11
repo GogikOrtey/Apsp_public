@@ -464,8 +464,8 @@ def main_generate_parsePage():
             found = False
             
             for link_page in link_list_filtered:
-                # Сравниваем две строки с помощью compute_match_score
-                match_score = compute_match_score(link_item, link_page)
+                # Сравниваем две строки с помощью compute_match_score_2
+                match_score = compute_match_score_2(link_item, link_page)
                 
                 # Если совпадение больше 70%, считаем что ссылка найдена
                 if match_score > 0.7:
@@ -611,7 +611,7 @@ def main_generate_parsePage():
         # И для этого, нам нужно извлечь селектор, который указывает на товар
         # (а точнее на ссылку на товар)
 
-    print("result_pagination_block = \n\n" + result_pagination_block) 
+    # print("result_pagination_block = \n\n" + result_pagination_block) 
 
     set_item["result_pagination_block"] = result_pagination_block
     set_item["product_selector"] = product_selector

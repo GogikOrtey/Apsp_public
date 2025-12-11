@@ -221,14 +221,14 @@ def gen_main_code():
     # region > test
 
 
-    # Извлекаем все селекторы из всех страниц, для parseCard
-    all_extracted_selectors = get_all_selectors(data_input_table)
+    # # Извлекаем все селекторы из всех страниц, для parseCard
+    # all_extracted_selectors = get_all_selectors(data_input_table)
 
-    # Генерируем parseCard
-    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+    # # Генерируем parseCard
+    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
-    # Генерируем parsePage
-    parse_page_code_value = ""
+    # # Генерируем parsePage
+    # parse_page_code_value = ""
 
 
 
@@ -241,16 +241,16 @@ def gen_main_code():
 
 
 
-    # # Обе функции
+    # Обе функции
 
-    # # Извлекаем все селекторы из всех страниц, для parseCard
-    # all_extracted_selectors = get_all_selectors(data_input_table)
+    # Извлекаем все селекторы из всех страниц, для parseCard
+    all_extracted_selectors = get_all_selectors(data_input_table)
 
-    # # Генерируем parseCard
-    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+    # Генерируем parseCard
+    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
-    # # Генерируем parsePage
-    # parse_page_code_value = main_generate_parsePage()
+    # Генерируем parsePage
+    parse_page_code_value = main_generate_parsePage()
 
 
 
@@ -322,9 +322,11 @@ $subtitle_from_code
         subtitle_from_code = get_cuurent_subtitle(),
         parser_name_val = parser_name
     ).strip()
-
-    ################### Потом убрать
+    
     print(final_title)
+    print("")
+    print("📗 Результат:")
+    print("")
     print(result)
 
     return result
@@ -369,6 +371,9 @@ def print_and_save_message_global():
 
                 # Запись в файл
                 f.write(f"{key}: {value}\n")
+    
+    print("")
+    print(f'Ссылка на 1й товар: {data_input_table["links"]["simple"][0]["link"]}')
     print("")
     print(f"Итоговый статус генерации: {generated_status}")
 

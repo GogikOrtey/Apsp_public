@@ -1,4 +1,4 @@
-11.12.2025 23:32:43
+12.12.2025 00:19:26
 
 
 
@@ -22,447 +22,63 @@ field = name, stock, link, price, oldprice, article, imageLink, timestamp
 
 
 Обработаем 3 страниц
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/ (возраст 0.23 ч.)
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/ (возраст 1.01 ч.)
 
 Найдено 6 возможных селекторов
-original_selector = #element > div.element__title.title-elem
-selector = #element > div.element__title.title-elem
-original_selector = #element > div.element__title.title-elem > h1
-selector = #element > div.element__title.title-elem > h1
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][alt]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][alt]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][title]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][title]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem > h1
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem > h1
-original_selector = #element > div.element__title.title-elem > h1
-selector = #element > div.element__title.title-elem > h1
-original_selector = div.element__title.title-elem > h1
-selector = div.element__title.title-elem > h1
 Найден селектор для поля name
 
 Найдено 20 возможных селекторов
-original_selector = #blocks > div.blocks-elem__item
-selector = #blocks > div.blocks-elem__item
-original_selector = #blocks > div.blocks-elem__item > div.price-elem
-selector = #blocks > div.blocks-elem__item > div.price-elem
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div > meta[itemprop="price"][content]
-selector = #blocks > div.blocks-elem__item > div.price-elem > div > meta[itemprop="price"][content]
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp[data-price]
-selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp[data-price]
-original_selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp > div.buy-elem__item.panel-elem > div.panel-elem__item
-selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp > div.buy-elem__item.panel-elem > div.panel-elem__item
-original_selector = #panel-sum
-selector = #panel-sum
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col > div.item-price__value
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col > div.item-price__value
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = div.price-elem > div.price-elem__value
-selector = div.price-elem > div.price-elem__value
-original_selector = div.price-elem__value
-selector = div.price-elem__value
 Найден селектор для поля price
 ⬜ Пропускаем поле oldprice: Не строка или пустое значение
 
 Найдено 1 возможных селекторов
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
 
 Найдено 23 возможных селекторов
-original_selector = html
-selector = html
-original_selector = #main
-selector = #main
-original_selector = #main > section.middle
-selector = #main > section.middle
-original_selector = #main > section.middle > div.wrapper_inner
-selector = #main > section.middle > div.wrapper_inner
-original_selector = #container
-selector = #container
-original_selector = #content
-selector = #content
-original_selector = #content > div.catalog_detail.element
-selector = #content > div.catalog_detail.element
-original_selector = #content > div.catalog_detail.element > div.element
-selector = #content > div.catalog_detail.element > div.element
-original_selector = #element
-selector = #element
-original_selector = #element > div.element__header
-selector = #element > div.element__header
-original_selector = #element > div.element__header > div.header-elem
-selector = #element > div.element__header > div.header-elem
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = #element > div.element__main.main-elem
-selector = #element > div.element__main.main-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col
-selector = #element > div.element__main.main-elem > div.main-elem__col
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody > tr.props-elem__row
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody > tr.props-elem__row
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.header-elem__item.header-elem__item_s > span
-selector = div.header-elem__item.header-elem__item_s > span
 Найден селектор для поля article
 ⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
 Найдено 1 возможных селекторов
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = img[itemprop="image"][src]
-selector = img[itemprop="image"][src]
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/ (возраст 0.23 ч.)
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/ (возраст 1.01 ч.)
 
 Найдено 6 возможных селекторов
-original_selector = #element > div.element__title.title-elem
-selector = #element > div.element__title.title-elem
-original_selector = #element > div.element__title.title-elem > h1
-selector = #element > div.element__title.title-elem > h1
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][alt]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][alt]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][title]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][title]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem > h1
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem > h1
-original_selector = #element > div.element__title.title-elem > h1
-selector = #element > div.element__title.title-elem > h1
-original_selector = div.element__title.title-elem > h1
-selector = div.element__title.title-elem > h1
 Найден селектор для поля name
 
 Найдено 22 возможных селекторов
-original_selector = #blocks > div.blocks-elem__item
-selector = #blocks > div.blocks-elem__item
-original_selector = #blocks > div.blocks-elem__item > div.price-elem
-selector = #blocks > div.blocks-elem__item > div.price-elem
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div > meta[itemprop="price"][content]
-selector = #blocks > div.blocks-elem__item > div.price-elem > div > meta[itemprop="price"][content]
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp[data-price]
-selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp[data-price]
-original_selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp > div.buy-elem__item.panel-elem > div.panel-elem__item
-selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp > div.buy-elem__item.panel-elem > div.panel-elem__item
-original_selector = #panel-sum
-selector = #panel-sum
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col > div.item-price__value
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col > div.item-price__value
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = div.price-elem > div.price-elem__value
-selector = div.price-elem > div.price-elem__value
-original_selector = div.price-elem__value
-selector = div.price-elem__value
 Найден селектор для поля price
 ⬜ Пропускаем поле oldprice: Не строка или пустое значение
 
 Найдено 1 возможных селекторов
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
 
 Найдено 23 возможных селекторов
-original_selector = html
-selector = html
-original_selector = #main
-selector = #main
-original_selector = #main > section.middle
-selector = #main > section.middle
-original_selector = #main > section.middle > div.wrapper_inner
-selector = #main > section.middle > div.wrapper_inner
-original_selector = #container
-selector = #container
-original_selector = #content
-selector = #content
-original_selector = #content > div.catalog_detail.element
-selector = #content > div.catalog_detail.element
-original_selector = #content > div.catalog_detail.element > div.element
-selector = #content > div.catalog_detail.element > div.element
-original_selector = #element
-selector = #element
-original_selector = #element > div.element__header
-selector = #element > div.element__header
-original_selector = #element > div.element__header > div.header-elem
-selector = #element > div.element__header > div.header-elem
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = #element > div.element__main.main-elem
-selector = #element > div.element__main.main-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col
-selector = #element > div.element__main.main-elem > div.main-elem__col
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody > tr.props-elem__row
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody > tr.props-elem__row
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.header-elem__item.header-elem__item_s > span
-selector = div.header-elem__item.header-elem__item_s > span
 Найден селектор для поля article
 ⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
 Найдено 1 возможных селекторов
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = img[itemprop="image"][src]
-selector = img[itemprop="image"][src]
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/ (возраст 0.23 ч.)
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/ (возраст 1.01 ч.)
 
 Найдено 6 возможных селекторов
-original_selector = #element > div.element__title.title-elem
-selector = #element > div.element__title.title-elem
-original_selector = #element > div.element__title.title-elem > h1
-selector = #element > div.element__title.title-elem > h1
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][alt]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][alt]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][title]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][title]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem > h1
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item.title-elem > h1
-original_selector = #element > div.element__title.title-elem > h1
-selector = #element > div.element__title.title-elem > h1
-original_selector = div.element__title.title-elem > h1
-selector = div.element__title.title-elem > h1
 Найден селектор для поля name
 
 Найдено 6 возможных селекторов
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div > meta[itemprop="price"][content]
-selector = #blocks > div.blocks-elem__item > div.price-elem > div > meta[itemprop="price"][content]
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp[data-price]
-selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp[data-price]
-original_selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp > div.buy-elem__item.panel-elem > div.panel-elem__item
-selector = #blocks > div.blocks-elem__item.blocks-elem__item_fixed.buy-elem.counter_wrapp > div.buy-elem__item.panel-elem > div.panel-elem__item
-original_selector = #panel-sum
-selector = #panel-sum
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col > div.item-price__value
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col > div.item-price__value
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = div.blocks-elem__item > div.price-elem > div.price-elem__value
-selector = div.blocks-elem__item > div.price-elem > div.price-elem__value
-original_selector = div.price-elem > div.price-elem__value
-selector = div.price-elem > div.price-elem__value
-original_selector = div.price-elem__value
-selector = div.price-elem__value
 Найден селектор для поля price
 
 Найдено 2 возможных селекторов
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value.price-elem__value_old
-selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value.price-elem__value_old
-original_selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col > div.item-price__value.item-price__value_old
-selector = #any-recs-container > div.carousel__item > div.catalog-item.catalog-item_block.any-recs-product > div.catalog-item__footer > div.catalog-item__prices > div.catalog-item__price.item-price > div.item-price__block > div.item-price__col > div.item-price__value.item-price__value_old
-original_selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value.price-elem__value_old
-selector = #blocks > div.blocks-elem__item > div.price-elem > div.price-elem__value.price-elem__value_old
-original_selector = div.blocks-elem__item > div.price-elem > div.price-elem__value.price-elem__value_old
-selector = div.blocks-elem__item > div.price-elem > div.price-elem__value.price-elem__value_old
-original_selector = div.price-elem > div.price-elem__value.price-elem__value_old
-selector = div.price-elem > div.price-elem__value.price-elem__value_old
-original_selector = div.price-elem__value.price-elem__value_old
-selector = div.price-elem__value.price-elem__value_old
 Найден селектор для поля oldprice
 
 Найдено 1 возможных селекторов
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
 
 Найдено 23 возможных селекторов
-original_selector = html
-selector = html
-original_selector = #main
-selector = #main
-original_selector = #main > section.middle
-selector = #main > section.middle
-original_selector = #main > section.middle > div.wrapper_inner
-selector = #main > section.middle > div.wrapper_inner
-original_selector = #container
-selector = #container
-original_selector = #content
-selector = #content
-original_selector = #content > div.catalog_detail.element
-selector = #content > div.catalog_detail.element
-original_selector = #content > div.catalog_detail.element > div.element
-selector = #content > div.catalog_detail.element > div.element
-original_selector = #element
-selector = #element
-original_selector = #element > div.element__header
-selector = #element > div.element__header
-original_selector = #element > div.element__header > div.header-elem
-selector = #element > div.element__header > div.header-elem
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = #element > div.element__main.main-elem
-selector = #element > div.element__main.main-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col
-selector = #element > div.element__main.main-elem > div.main-elem__col
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody > tr.props-elem__row
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table > tbody > tr.props-elem__row
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.props-elem > table.props-elem__table tr:has(td:contains("Код")) > td:nth-child(2)
-original_selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = #element > div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = div.element__header > div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.header-elem > div.header-elem__item.header-elem__item_s > span
-selector = div.header-elem > div.header-elem__item.header-elem__item_s > span
-original_selector = div.header-elem__item.header-elem__item_s > span
-selector = div.header-elem__item.header-elem__item_s > span
 Найден селектор для поля article
 ⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
 Найдено 2 возможных селекторов
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first > img[itemprop="image"][src]
-original_selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = #element > div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = div.element__main.main-elem > div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = div.main-elem__col > div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = div.body-elem > div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = div.body-elem__item > div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = div.body-elem__content > div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = div.view-elem > div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = div.view-elem__imgs.imgs-elem > div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = div.imgs-elem__slider > a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-original_selector = a.imgs-elem__item.fancy.imgs-elem__item_first[href]
-selector = a.imgs-elem__item.fancy.imgs-elem__item_first[href]
 Найден селектор для поля imageLink
 _______________________
 Используемые поля: ['name', 'price', 'oldprice', 'article', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
@@ -519,8 +135,452 @@ _______________________
 Обрабатываем поле name
 
 Проверяем селектор .element__title.title-elem > h1 на странице №1
-original_selector = .element__title.title-elem > h1
-selector = element__title.title-elem > h1
-##### result_selector = {'result': '', 'length_elem': 0}
-    ⬜ Нет результата у селектора  на странице 1 для поля name
+##### result_selector = {'result': 'Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая', 'length_elem': 1}
+    Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая
+    Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая
 
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+Проверяем селектор .element__title.title-elem > h1 на странице №2
+##### result_selector = {'result': 'Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая', 'length_elem': 1}
+    Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая
+    Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая
+
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+Проверяем селектор .element__title.title-elem > h1 на странице №3
+##### result_selector = {'result': 'Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая', 'length_elem': 1}
+    Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая
+    Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая
+
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле price
+
+Проверяем селектор .price-elem__value на странице №1
+##### result_selector = {'result': '26 499', 'length_elem': 1}
+    26 499
+    26 499
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+Проверяем селектор .price-elem__value на странице №2
+##### result_selector = {'result': '41 999', 'length_elem': 1}
+    41 999
+    41 999
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+Проверяем селектор .price-elem__value на странице №3
+##### result_selector = {'result': '9 490', 'length_elem': 2}
+    9 490
+    9 490
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+max_count_element_of_selectors = 🟡 2
+_____
+
+Нашли больше одного селектора для поля price
+Обрабатываем поле oldprice
+
+Проверяем селектор .price-elem__value.price-elem__value_old на странице №1
+##### result_selector = {'result': '', 'length_elem': 0}
+    ⬜ Нет результата у селектора  на странице 1 для поля oldprice
+
+Проверяем селектор .price-elem__value.price-elem__value_old на странице №2
+##### result_selector = {'result': '', 'length_elem': 0}
+    ⬜ Нет результата у селектора  на странице 2 для поля oldprice
+
+Проверяем селектор .price-elem__value.price-elem__value_old на странице №3
+##### result_selector = {'result': '13 999', 'length_elem': 1}
+    13 999
+    13 999
+
+    💲 Обрабатываем поле oldprice
+    Разделитель - точка
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле article
+
+Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №1
+##### result_selector = {'result': 'Код: 00-01631492', 'length_elem': 1}
+    Код: 00-01631492
+    00-01631492
+
+    🟨 Частичное совпадение
+
+Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №2
+##### result_selector = {'result': 'Код: 00-01616855', 'length_elem': 1}
+    Код: 00-01616855
+    00-01616855
+
+    🟨 Частичное совпадение
+
+Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №3
+##### result_selector = {'result': 'Код: 00-01624852', 'length_elem': 1}
+    Код: 00-01624852
+    00-01624852
+
+    🟨 Частичное совпадение
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+🧢 Отправляю запрос к ИИ на исправление строки кода для поля article
+Посылаю запрос к YandexGPT:
+
+💫 PROMPT:
+Есть такой код на JS: 
+const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()
+Однако он извлекает "Код: 00-01631492"
+А должен извлекать: "00-01631492"
+
+Измени исходный код, что бы он делал это.
+Обязательные правила:
+— Для безопасности, используй только опциональную цепочку ?. и не используй просто . 
+— Однако можно использовать функции .match .replace и остальные подобные
+— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
+— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную строку или фрагмент кода.
+    
+
+
+💬 AI ANSWER:
+"```
+const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: (.+)$/, '$1');
+```"
+
+Обрабатываем поле imageLink
+
+Проверяем селектор img[itemprop="image"][src] на странице №1
+##### result_selector = {'result': '/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp', 'length_elem': 1}
+    В элементе /upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp отсутствует хост. Добавляем:
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+Проверяем селектор img[itemprop="image"][src] на странице №2
+##### result_selector = {'result': '/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp', 'length_elem': 1}
+    В элементе /upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp отсутствует хост. Добавляем:
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+Проверяем селектор img[itemprop="image"][src] на странице №3
+##### result_selector = {'result': '/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp', 'length_elem': 1}
+    В элементе /upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp отсутствует хост. Добавляем:
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Статистика нахождения селекторов:
+🟩: name 
+💲 : price  🟡 > 1
+💲 : oldprice 
+🟨: article  🧢 use ИИ
+🟩: imageLink 
+
+
+
+
+--------------------------------------------------------------------------------------------------
+
+                                         PARSE PAGE GEN
+
+--------------------------------------------------------------------------------------------------
+
+
+🟧 timestamp нет в массиве, данные для parsePage могут быть неактуальными
+Посылаю запрос к YandexGPT:
+
+💫 PROMPT:
+Тебе нужно написать код, который формирует URL адрес запроса на поиск товара. Мы используем такой синтаксис:
+
+let url = new URL(`${HOST}/search`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("page", set.page)
+
+Твоя задача: Выше в коде заданые переменные set.query - это текст запроса на поиск, и set.page - это текущая страница поиска, она начинается с 1. Тебе нужно написать и вернуть только необходимый фрагмент кода на JS, в котором будет формироваться URL с использованием этих параметров. Чаще всего параметры поиска и текущей страницы задаются в searchParams, но иногда они задаются напрямую в строке URL, в таком случае нужно будет использовать синтаксис с `${}`. Также, в исходном URL могут быть заданы дополнительные параметры, которые не влияют на запрос и текущую страницу, все эти параметры нужно будет сохранить.
+
+Пример 1:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://galen.bg/catalogsearch/result/index/?p=2&q=мл
+
+Фрагмент с формированием URL:
+let url = new URL(`${HOST}/catalogsearch/result/index/`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("p", set.page)
+
+Пример 2:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://stroytorg812.ru/content/search/?s=&q=Ванна&PAGEN_1=2
+
+Фрагмент с формированием URL:
+let url = new URL(`${HOST}/content/search/`)
+url.searchParams.set("s", "")
+url.searchParams.set("q", set.query)
+url.searchParams.set("PAGEN_1", set.page)
+
+
+Пример 3:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://gidro-top.ru/search/Ванна/?page=2
+
+Фрагмент с формированием URL:
+let url = new URL(`${HOST}/search/${set.query}/`)
+url.searchParams.set('/?page', set.page);
+
+-----
+
+Текущее задание:
+Строка на поиск у сайта, на 2ю страницу поиска: https://c-s-k.ru/catalog/?q=%D0%B4%D0%B2%D0%B5%D1%80%D1%8C&s=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&PAGEN_1=2
+
+Значение переменной HOST = https://c-s-k.ru
+
+Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
+
+
+💬 AI ANSWER:
+"```
+let url = new URL(`${HOST}/catalog/`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("s", "Поиск")
+url.searchParams.set("PAGEN_1", set.page)
+```"
+
+processed_url_product = /catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/
+
+Найдено 3 возможных селекторов
+Исходный селектор: a.catalog-item__img.img-item.img-item_slider.thumb[href]
+Части селектора: ['a.catalog-item__img.img-item.img-item_slider.thumb[href]']
+Количество частей: 1
+
+Проверяем селектор: a.catalog-item__img.img-item.img-item_slider.thumb[href]
+Найдено элементов: 20
+✅ Найден подходящий селектор: a.catalog-item__img.img-item.img-item_slider.thumb[href]
+
+Итоговый product_selector = a.catalog-item__img.img-item.img-item_slider.thumb[href]
+Количество элементов по итоговому селектору: 20
+len_of_products_on_this_page = 20
+Ссылок по селектору: 20
+Совпадение ссылок = 1.00 (3/3)
+Извлекаем селектор кол-ва страниц
+
+Найдено 584 возможных селекторов
+pagination_selctor = span.nums > a:nth-of-type(4)
+Проверили, и нашли такой элемент по найденному селектору пагинации: 20
+async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/catalog/`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("s", "Поиск")
+		url.searchParams.set("PAGEN_1", set.page)
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("a.catalog-item__img.img-item.img-item_slider.thumb[href]") 
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = `${HOST}${$(product)?.attr("href")}`
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
+Имя парсера: JS_Base_cskru
+
+
+
+--------------------------------------------------------------------------------------------------
+
+                                    FINAL RESULT PARSER CODE
+
+--------------------------------------------------------------------------------------------------
+
+
+
+📗 Результат:
+
+import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
+import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
+import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
+import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
+import { getTimestamp } from "../Base-Custom/Utils";
+import { SetType, tools } from "a-parser-types";
+import { Cacher } from "../Base-Custom/Cache";
+import {
+    toArray, isBadLink,
+    name, stock, link, price, oldprice, article, imageLink, timestamp
+} from "../Base-Custom/Fields"
+import * as cheerio from "cheerio";
+
+//#region Кастомные типы данных
+type ResultItem = Item<typeof fields>
+
+//#region Константы
+const fields = {
+    name, stock, link, price, oldprice, article, imageLink, timestamp
+}
+
+const HOST = "https://c-s-k.ru"
+
+export class JS_Base_cskru extends JS_Base_Custom {
+    static defaultConf: defaultConf = {
+            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
+            parsecodes: { 200: 1, 404: 1 },
+            proxyChecker: "tor.proxy.ru",
+            requestdelay: "3,5",
+            engine: "a-parser",
+            mode: "normal",
+        };
+
+    static editableConf: editableConf = [
+        ...defaultEditableConf
+    ];
+
+    //#region Точка входа
+    async parse(set: SetType, results: { [key: string]: any }) {
+        if (!set.type || set.type === "none") set.type = "page";
+        if (!set.region || set.region === "none") set.region = "";
+        try {
+            switch (set.type) {
+                case "page": {
+                    if (!set.page || set.page === "none") set.page = 1;
+                    await this.parsePage(set);
+                    results.success = 1;
+                    break;
+                }
+                case "card": {
+                    const cacher = getCacher<ResultItem>(this, set)
+                    let items = cacher.cache || await this.parseCard(set, cacher);
+                    items.forEach(item => results.items.addElement(item));
+                    results.success = 1;
+                    break;
+                }
+                default:
+                    this.logger.put("Указан неверный тип сбора")
+                    results.success = 0;
+            }
+        } catch (e: any) {
+            if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
+                this.logger.put(e.message);
+                results.isBadLink = 1;
+                results.success = 1;
+            } else {
+                this.logger.put(`${e.name} >> ${e.message}   ${set.query}  type - ${set.type} page ${set.page} }`);
+                results.success = 0;
+            }
+        }
+        return results;
+    }
+
+    //#region Парсинг поиска
+    async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/catalog/`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("s", "Поиск")
+		url.searchParams.set("PAGEN_1", set.page)
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("a.catalog-item__img.img-item.img-item_slider.thumb[href]") 
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = `${HOST}${$(product)?.attr("href")}`
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
+
+    //#region Парсинг товара
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $(".element__title.title-elem > h1").text()?.trim()
+		const stock = "InStock"
+		const link = set.query
+		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
+		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: (.+)$/, '$1');
+		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, stock, link, price, oldprice, article, imageLink, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
+
+    //#region Выполнение запроса
+    async makeRequest(url: string) {
+        const opts: AsyncHTTPXRequestOptsCustom = {
+            ...defaultOpts,
+            engine: this.conf.engine,
+            mode: this.conf.mode,
+        };
+        this.debugger.put(opts)
+
+        const { success, headers, data } = await this.request("GET", url, {}, opts);
+        this.debugger.put(data)
+
+        if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
+        if (headers.Status === 404) throw new NotFoundError();
+
+        return data;
+    }
+}
+
+// Код сгенерирован APSP v0.1
+// Дата: 12 Дек 2025
+// © BrandPol
+
+Сообщения из message_global:
+🟡 [Предупреждение]: timestamp нет в массиве, данные для parsePage могут быть неактуальными
+
+Ссылка на 1й товар: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/
+
+Итоговый статус генерации: 🟩 Sucsess 🟩
+
+🕚 Время выполнения: 21.67 секунд
+🧢 Кол-во обращений к внешнему ИИ: 2
