@@ -109,8 +109,8 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
 		const stock = $(".html.dopinfo_tpl.dopinfo > .dopinfo_item > a").text()?.includes("Самовывоз.") ? "InStock" : "OutOfStock"
 		const link = set.query
 		const price = $(".item_price").text()?.trim().formatPrice(",")
-		const article = $("span.text_atr > a").text()?.trim()?.toLowerCase()?.replace(/[^a-z0-9-]+/g, '-');
-		const imageLink = $("meta")?.attr("property")?.trim()?.at(0)?.includes("cachewebp") ? HOST + $("meta")?.attr("property")?.trim()?.at(0) : $("meta")?.attr("property")?.trim()?.at(0)?.replace(".jpg", "-675x450.webp") ? HOST + $("meta")?.attr("property")?.trim()?.at(0)?.replace(".jpg", "-675x450.webp") : ""
+		const article = $("span.text_atr > a").text()?.trim()?.toLowerCase()?.replace(/\s/g, '-');
+		const imageLink = $("meta")?.attr("property")?.trim()?.at(0)?.split('/')?.at(7)?.replace('.jpg', '-675x450.webp') || "" ? HOST + $("meta")?.attr("property")?.trim()?.at(0)?.split('/')?.at(7)?.replace('.jpg', '-675x450.webp') || "" : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
