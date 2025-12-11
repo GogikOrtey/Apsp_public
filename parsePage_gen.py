@@ -250,7 +250,7 @@ def main_generate_parsePage():
     # Извлекаем product_selector
     processed_url_product = strip_host(current_element["links_items"][0])
     print(f"processed_url_product = {processed_url_product}")
-    original_product_selector = get_css_selector_from_text_value_element(set_item["page_html"], processed_url_product, is_exact=False, is_multiply_sel_result=True)
+    original_product_selector = get_css_selector_from_text_value_element(set_item["page_html"], processed_url_product, is_exact=False, is_multiply_sel_result=True, is_low_priority_id=True)
     original_product_selector = clean_selector_from_double_hyphen(original_product_selector)
 
     if not original_product_selector:
@@ -302,28 +302,60 @@ def main_generate_parsePage():
         
         return grouped
 
+    # # Функция для сборки селектора из частей
+    # def build_selector_from_parts(parts):
+    #     selector = ""
+    #     for i, part in enumerate(parts):
+    #         # Проверяем, содержит ли часть комбинатор в конце
+    #         if part.endswith('>'):
+    #             selector += part
+    #         elif part.endswith('+'):
+    #             selector += part
+    #         elif part.endswith('~'):
+    #             selector += part
+    #         elif i < len(parts) - 1:
+    #             # Следующая часть начинается с комбинатора?
+    #             next_part = parts[i + 1]
+    #             if next_part.startswith(('>', '+', '~')):
+    #                 selector += part
+    #             else:
+    #                 selector += part + " "
+    #         else:
+    #             selector += part
+        
+    #     return selector.strip()
+
+
+
+
     # Функция для сборки селектора из частей
     def build_selector_from_parts(parts):
-        selector = ""
-        for i, part in enumerate(parts):
-            # Проверяем, содержит ли часть комбинатор в конце
-            if part.endswith('>'):
-                selector += part
-            elif part.endswith('+'):
-                selector += part
-            elif part.endswith('~'):
-                selector += part
-            elif i < len(parts) - 1:
-                # Следующая часть начинается с комбинатора?
-                next_part = parts[i + 1]
-                if next_part.startswith(('>', '+', '~')):
-                    selector += part
-                else:
-                    selector += part + " "
-            else:
-                selector += part
+        # Определяем комбинаторы, вокруг которых должны быть пробелы
+        COMBINATORS_WITH_SPACES = ('>', '+', '~')
+
+        # Заменяем все комбинаторы (>, +, ~) в частях на версию с пробелами
+        processed_parts = []
+        for part in parts:
+            temp_part = part
+            for combinator in COMBINATORS_WITH_SPACES:
+                # Заменяем комбинатор без пробелов на комбинатор с пробелами
+                temp_part = temp_part.replace(combinator, f' {combinator} ')
+            processed_parts.append(temp_part)
+
+        # Объединяем части через пробел. Затем удаляем лишние пробелы вокруг комбинаторов
+        # и в начале/конце, используя ' '.join(...) и strip().
+        # Регулярные комбинаторы (пробел) уже обрабатываются ' '.join()
+        selector = ' '.join(processed_parts)
+        
+        # Удаляем лишние пробелы, которые могли появиться из-за замены (например, "div > span" -> "div   >   span")
+        # Используем list comprehension с split() для эффективного удаления лишних пробелов,
+        # а затем объединяем обратно через один пробел.
+        selector = ' '.join(selector.split())
         
         return selector.strip()
+
+
+
 
     # Разбиваем селектор на части
     selector_parts = split_selector_by_combinators(original_product_selector)

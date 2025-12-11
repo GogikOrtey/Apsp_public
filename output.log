@@ -1,4 +1,4 @@
-12.12.2025 00:39:05
+12.12.2025 00:53:44
 
 
 
@@ -11,6 +11,347 @@
 
 
 field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+
+
+
+--------------------------------------------------------------------------------------------------
+
+                                       EXTRACTION SELECTOR
+
+--------------------------------------------------------------------------------------------------
+
+
+Обработаем 3 страниц
+📤 Берем страницу из кеша: https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/ (возраст 0.34 ч.)
+
+Найдено 7 возможных селекторов
+Найден селектор для поля name
+
+Найдено 2 возможных селекторов
+Найден селектор для поля price
+
+Найдено 3 возможных селекторов
+Найден селектор для поля oldprice
+
+
+Найдено 14 возможных селекторов
+Найден селектор для поля article
+
+Найдено 3 возможных селекторов
+Найден селектор для поля brand
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+
+Найдено 2 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+📤 Берем страницу из кеша: https://cosmofun.ru/product/krem_regenyal/ (возраст 0.34 ч.)
+
+Найдено 7 возможных селекторов
+Найден селектор для поля name
+
+Найдено 7 возможных селекторов
+Найден селектор для поля price
+⬜ Пропускаем поле oldprice: Не строка или пустое значение
+
+
+Найдено 14 возможных селекторов
+Найден селектор для поля article
+
+Найдено 5 возможных селекторов
+Найден селектор для поля brand
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+
+Найдено 2 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+📤 Берем страницу из кеша: https://cosmofun.ru/product/osvetlyayushchaya_pudra_ub_freedom_blonde_1/ (возраст 0.34 ч.)
+
+Найдено 7 возможных селекторов
+Найден селектор для поля name
+
+Найдено 3 возможных селекторов
+Найден селектор для поля price
+
+Найдено 3 возможных селекторов
+Найден селектор для поля oldprice
+
+Найдено 10 возможных селекторов
+Найден селектор для поля article
+
+Найдено 3 возможных селекторов
+Найден селектор для поля brand
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+
+Найдено 2 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+Используемые поля: ['name', 'price', 'oldprice', 'article', 'brand', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
+Кандидаты по полям (в порядке приоритета):
+ - name: 1 селекторов -> ['h1']
+ - price: 2 селекторов -> ['.bxr-detail-price', 'title']
+ - oldprice: 1 селекторов -> ['title']
+ - article: 3 селекторов -> ['.detail-items > div:nth-of-type(4)', '.detail-items > div:nth-of-type(3)', '#bxr-multilevel-menu > li.content-child > ul > li.parent[data-child]']
+ - brand: 2 селекторов -> ['a.js-brand', '.brand-list > a']
+ - InStock_trigger: 0 селекторов -> []
+ - OutOfStock_trigger: 0 селекторов -> []
+ - imageLink: 3 селекторов -> ['#bx_117848907_24289_main_photo[href]', '#bx_117848907_15343_main_photo[href]', '#bx_117848907_26780_main_photo[href]']
+  [SKIP] oldprice on https://cosmofun.ru/product/krem_regenyal/: no expected value or no original selector
+[WARN] Для поля InStock_trigger не найден селектор(ы).
+[WARN] Для поля OutOfStock_trigger не найден селектор(ы).
+
+📄 Кеш сохранён в cache.json, всего страниц: 57
+   Добавлено: 0, обновлено: 3
+
+
+✅ Итоговые селекторы:
+{
+    "name": [
+        "h1"
+    ],
+    "price": [
+        ".bxr-detail-price"
+    ],
+    "oldprice": [
+        "title"
+    ],
+    "article": [
+        ".detail-items > div:nth-of-type(4)"
+    ],
+    "brand": [
+        "a.js-brand"
+    ],
+    "InStock_trigger": [],
+    "OutOfStock_trigger": [],
+    "imageLink": [
+        "#bx_117848907_24289_main_photo[href]"
+    ]
+}
+
+
+
+--------------------------------------------------------------------------------------------------
+
+                                         PARSE CARD GEN
+
+--------------------------------------------------------------------------------------------------
+
+
+Проверяем селекторы, и генерируем parseCard
+Оба триггера есть
+Они одинаковые, используем InStock
+Обрабатываем поле name
+
+Проверяем селектор h1 на странице №1
+##### result_selector = {'result': 'Маска анти-стресс для волос и кожи головы The Wake-Up Circle', 'length_elem': 1}
+    Маска анти-стресс для волос и кожи головы The Wake-Up Circle
+    Маска анти-стресс для волос и кожи головы The Wake-Up Circle
+
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+Проверяем селектор h1 на странице №2
+##### result_selector = {'result': 'Крем Regenyal', 'length_elem': 1}
+    Крем Regenyal
+    Крем Regenyal
+
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+Проверяем селектор h1 на странице №3
+##### result_selector = {'result': 'Осветляющая пудра Ub freedom blonde', 'length_elem': 1}
+    Осветляющая пудра Ub freedom blonde
+    Осветляющая пудра Ub freedom blonde
+
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле price
+
+Проверяем селектор .bxr-detail-price на странице №1
+##### result_selector = {'result': '4 420', 'length_elem': 1}
+    4 420
+    4 420
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+Проверяем селектор .bxr-detail-price на странице №2
+##### result_selector = {'result': '4 200', 'length_elem': 1}
+    4 200
+    4 200
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+Проверяем селектор .bxr-detail-price на странице №3
+##### result_selector = {'result': '4 292', 'length_elem': 1}
+    4 292
+    4 292
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле oldprice
+
+Проверяем селектор title на странице №1
+##### result_selector = {'result': 'Маска анти-стресс для волос и кожи головы The Wake-Up Circle купить по цене 5 200 руб. с доставкой по России, Москве | Интернет-магазин cosmofun.ru', 'length_elem': 1}
+    Маска анти-стресс для волос и кожи головы The Wake-Up Circle купить по цене 5 200 руб. с доставкой по России, Москве | Интернет-магазин cosmofun.ru
+    5 200 руб.
+
+    💲 Обрабатываем поле oldprice
+    Разделитель - запятая
+
+Проверяем селектор title на странице №2
+##### result_selector = {'result': 'Крем Regenyal купить по цене 4 200 руб. с доставкой по России, Москве | Интернет-магазин cosmofun.ru', 'length_elem': 1}
+    Крем Regenyal купить по цене 4 200 руб. с доставкой по России, Москве | Интернет-магазин cosmofun.ru
+    
+
+    💲 Обрабатываем поле oldprice
+    Разделитель - запятая
+
+Проверяем селектор title на странице №3
+##### result_selector = {'result': 'Осветляющая пудра Ub freedom blonde купить по цене 4 517 руб. с доставкой по России, Москве | Интернет-магазин cosmofun.ru', 'length_elem': 1}
+    Осветляющая пудра Ub freedom blonde купить по цене 4 517 руб. с доставкой по России, Москве | Интернет-магазин cosmofun.ru
+    4 517 руб.
+
+    💲 Обрабатываем поле oldprice
+    Разделитель - запятая
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле article
+
+Проверяем селектор .detail-items > div:nth-of-type(4) на странице №1
+##### result_selector = {'result': 'Артикул: 77005', 'length_elem': 1}
+    Артикул: 77005
+    77005
+
+    🟨 Частичное совпадение
+
+Проверяем селектор .detail-items > div:nth-of-type(4) на странице №2
+##### result_selector = {'result': '', 'length_elem': 0}
+    ⬜ Нет результата у селектора  на странице 2 для поля article
+
+Проверяем селектор .detail-items > div:nth-of-type(4) на странице №3
+##### result_selector = {'result': 'Артикул: 16428', 'length_elem': 1}
+    Артикул: 16428
+    16428
+
+    🟨 Частичное совпадение
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+🧢 Отправляю запрос к ИИ на исправление строки кода для поля article
+Посылаю запрос к YandexGPT:
+
+💫 PROMPT:
+Есть такой код на JS: 
+const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()
+Однако он извлекает "Артикул: 77005"
+А должен извлекать: "77005"
+
+Измени исходный код, что бы он делал это.
+Обязательные правила:
+— Для безопасности, используй только опциональную цепочку ?. и не используй просто . 
+— Однако можно использовать функции .match .replace и остальные подобные
+— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
+— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную строку или фрагмент кода.
+    
+
+
+💬 AI ANSWER:
+"```
+const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?(\d+).*/, '$1');
+```"
+
+Обрабатываем поле brand
+
+Проверяем селектор a.js-brand на странице №1
+##### result_selector = {'result': 'Davines', 'length_elem': 1}
+    Davines
+    Davines
+
+    ✅ Полное совпадение селектора и оригинального значения поля brand
+
+Проверяем селектор a.js-brand на странице №2
+##### result_selector = {'result': 'Sweet Skin System', 'length_elem': 1}
+    Sweet Skin System
+    Sweet Skin System
+
+    ✅ Полное совпадение селектора и оригинального значения поля brand
+
+Проверяем селектор a.js-brand на странице №3
+##### result_selector = {'result': 'Keune', 'length_elem': 1}
+    Keune
+    Keune
+
+    ✅ Полное совпадение селектора и оригинального значения поля brand
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле imageLink
+
+Проверяем селектор #bx_117848907_24289_main_photo[href] на странице №1
+##### result_selector = {'result': '/upload/ammina.optimizer/png/q75/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.png', 'length_elem': 1}
+    В элементе /upload/ammina.optimizer/png/q75/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.png отсутствует хост. Добавляем:
+    https://cosmofun.ru/upload/ammina.optimizer/png/q75/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.png
+    https://cosmofun.ru/upload/ammina.optimizer/png-webp/q80/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.webp
+
+    🟨 Частичное совпадение
+
+Проверяем селектор #bx_117848907_24289_main_photo[href] на странице №2
+##### result_selector = {'result': '', 'length_elem': 0}
+    ⬜ Нет результата у селектора  на странице 2 для поля imageLink
+
+Проверяем селектор #bx_117848907_24289_main_photo[href] на странице №3
+##### result_selector = {'result': '', 'length_elem': 0}
+    ⬜ Нет результата у селектора  на странице 3 для поля imageLink
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+🧢 Отправляю запрос к ИИ на исправление строки кода для поля imageLink
+Посылаю запрос к YandexGPT:
+
+💫 PROMPT:
+Есть такой код на JS: 
+                let imageLink = $("#bx_117848907_24289_main_photo")?.attr("href")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
+                Однако он извлекает "https://cosmofun.ru/upload/ammina.optimizer/png/q75/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.png"
+                А должен извлекать: "https://cosmofun.ru/upload/ammina.optimizer/png-webp/q80/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.webp"
+                Переменная HOST = https://cosmofun.ru
+                Измени исходный код, что бы он делал это.
+Обязательные правила:
+— Для безопасности, используй только опциональную цепочку ?. и не используй просто . 
+— Однако можно использовать функции .match .replace и остальные подобные
+— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
+— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную строку или фрагмент кода.
+    
+
+
+💬 AI ANSWER:
+"```
+let imageLink = $("#bx_117848907_24289_main_photo")?.attr("href")?.trim()?.replace(/png$/, 'png-webp');
+imageLink = imageLink ? HOST + imageLink : "";
+```"
+
+Статистика нахождения селекторов:
+🟩: name 
+💲 : price 
+💲 : oldprice 
+🟨: article  🧢 use ИИ
+🟩: brand 
+🟨: imageLink  🧢 use ИИ
+
 
 
 
@@ -81,42 +422,227 @@ url.searchParams.set("PAGEN_3", set.page)
 
 processed_url_product = /product/balzam_dlya_volos_hc_luxury_repair/
 
-🟦 Извлекли такие селекторы для поля "/product/balzam_dlya_volos_hc_luxury_repair/":
 Найдено 4 возможных селекторов
+Исходный селектор: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
+Части селектора: ['#bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f>', 'div.bxr-element-container>', 'div.bxr-element-image.bxr-img-container>', 'a.bxr-item-image-wrap.js-product[href]']
+Количество частей: 4
 
-🟢 Проверка селектора: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
-percent = 1.0
-✅ Строгое совпадение: [/product/balzam_dlya_volos_hc_luxury_repair/]
-
-🟢 Проверка селектора: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f_name[href]
-percent = 1.0
-✅ Строгое совпадение: [/product/balzam_dlya_volos_hc_luxury_repair/]
-
-🟢 Проверка селектора: html > body > script:nth-of-type(49)
-percent = 0.06153846153846154
-✅ Строгое совпадение: [if (!BXReady.Market.basketValues[9775])
-            BXReady.Market.basketValues[9775] = {
-                ID: '9775',
-                OFFER_ID: '',
-                NAME: 'Бальзам для волос HC luxury repair ',
-                LINK: '/product/balz]:250
-
-🟢 Проверка селектора: html > body > script:nth-of-type(50)
-percent = 0.014890016920473773
-✅ Строгое совпадение: [var useSkuLinks = '';
-            var obbx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f = new JCCatalogECommerce({'PRODUCT_TYPE':'1','SHOW_QUANTITY':false,'SHOW_ADD_BASKET_BTN':false,'SHOW_BUY_BTN':true,'SHOW_ABSENT':true,'SHOW_SKU_PROPS':'','SE]:250
-
-🔵 Отсортированные селекторы:
-1. #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f_name[href] score: 1.00, percent: 100.00%, pos: 0.2864
-2. #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href] score: 1.00, percent: 100.00%, pos: 0.2864
-3. html > body > script:nth-of-type(49) score: 1.00, percent: 6.15%, pos: 0.6379
-4. html > body > script:nth-of-type(50) score: 1.00, percent: 1.49%, pos: 0.6394
-
-Лучший селектор: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f_name[href] (совпадение 100.0%, процент содержания: 100.0%)
-Исходный селектор: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f_name[href]
-Части селектора: ['#bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f_name[href]']
-Количество частей: 1
-
-Проверяем селектор: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f_name[href]
+Проверяем селектор: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
 Найдено элементов: 1
-🟧 При генерации кода произошла критическая ошибка: 🔴 Агент завершил работу с ошибкой: Селектор содержит только одну часть и элементов < 6: найдено 1 элементов
+
+Проверяем селектор: div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
+Найдено элементов: 36
+✅ Найден подходящий селектор: div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
+
+Итоговый product_selector = div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
+Количество элементов по итоговому селектору: 36
+len_of_products_on_this_page = 36
+Ссылок по селектору: 36
+Совпадение ссылок = 1.00 (3/3)
+Извлекаем селектор кол-ва страниц
+
+Найдено 166 возможных селекторов
+pagination_selctor = div.navigation-pages > a.bxr-font-color
+Проверили, и нашли такой элемент по найденному селектору пагинации: 1
+async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/search/index.php`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("s", "")
+		url.searchParams.set("PAGEN_3", set.page)
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("div.navigation-pages > a.bxr-font-color").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]") 
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = `${HOST}${$(product)?.attr("href")}`
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
+Имя парсера: JS_Base_cosmofunru
+
+
+
+--------------------------------------------------------------------------------------------------
+
+                                    FINAL RESULT PARSER CODE
+
+--------------------------------------------------------------------------------------------------
+
+
+
+📗 Результат:
+
+import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
+import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
+import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
+import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
+import { getTimestamp } from "../Base-Custom/Utils";
+import { SetType, tools } from "a-parser-types";
+import { Cacher } from "../Base-Custom/Cache";
+import {
+    toArray, isBadLink,
+    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+} from "../Base-Custom/Fields"
+import * as cheerio from "cheerio";
+
+//#region Кастомные типы данных
+type ResultItem = Item<typeof fields>
+
+//#region Константы
+const fields = {
+    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+}
+
+const HOST = "https://cosmofun.ru"
+
+export class JS_Base_cosmofunru extends JS_Base_Custom {
+    static defaultConf: defaultConf = {
+            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
+            parsecodes: { 200: 1, 404: 1 },
+            proxyChecker: "tor.proxy.ru",
+            requestdelay: "3,5",
+            engine: "a-parser",
+            mode: "normal",
+        };
+
+    static editableConf: editableConf = [
+        ...defaultEditableConf
+    ];
+
+    //#region Точка входа
+    async parse(set: SetType, results: { [key: string]: any }) {
+        if (!set.type || set.type === "none") set.type = "page";
+        if (!set.region || set.region === "none") set.region = "";
+        try {
+            switch (set.type) {
+                case "page": {
+                    if (!set.page || set.page === "none") set.page = 1;
+                    await this.parsePage(set);
+                    results.success = 1;
+                    break;
+                }
+                case "card": {
+                    const cacher = getCacher<ResultItem>(this, set)
+                    let items = cacher.cache || await this.parseCard(set, cacher);
+                    items.forEach(item => results.items.addElement(item));
+                    results.success = 1;
+                    break;
+                }
+                default:
+                    this.logger.put("Указан неверный тип сбора")
+                    results.success = 0;
+            }
+        } catch (e: any) {
+            if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
+                this.logger.put(e.message);
+                results.isBadLink = 1;
+                results.success = 1;
+            } else {
+                this.logger.put(`${e.name} >> ${e.message}   ${set.query}  type - ${set.type} page ${set.page} }`);
+                results.success = 0;
+            }
+        }
+        return results;
+    }
+
+    //#region Парсинг поиска
+    async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/search/index.php`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("s", "")
+		url.searchParams.set("PAGEN_3", set.page)
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("div.navigation-pages > a.bxr-font-color").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]") 
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = `${HOST}${$(product)?.attr("href")}`
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
+
+    //#region Парсинг товара
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $("h1").text()?.trim()
+		const stock = "InStock"
+		const link = set.query
+		const price = $(".bxr-detail-price").text()?.trim().formatPrice()
+		const oldprice = $("title").text()?.trim().formatPrice(",")
+		const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?(\d+).*/, '$1');
+		const brand = $("a.js-brand").text()?.trim()
+		let imageLink = $("#bx_117848907_24289_main_photo")?.attr("href")?.trim()?.replace(/png$/, 'png-webp');
+		imageLink = imageLink ? HOST + imageLink : "";
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
+
+    //#region Выполнение запроса
+    async makeRequest(url: string) {
+        const opts: AsyncHTTPXRequestOptsCustom = {
+            ...defaultOpts,
+            engine: this.conf.engine,
+            mode: this.conf.mode,
+        };
+        this.debugger.put(opts)
+
+        const { success, headers, data } = await this.request("GET", url, {}, opts);
+        this.debugger.put(data)
+
+        if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
+        if (headers.Status === 404) throw new NotFoundError();
+
+        return data;
+    }
+}
+
+// Код сгенерирован APSP v0.1
+// Дата: 12 Дек 2025
+// © BrandPol
+
+Сообщения из message_global:
+🟡 [Предупреждение]: timestamp нет в массиве, данные для parsePage могут быть неактуальными
+
+Ссылка на 1й товар: https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/
+
+Итоговый статус генерации: 🟩 Sucsess 🟩
+
+🕚 Время выполнения: 22.59 секунд
+🧢 Кол-во обращений к внешнему ИИ: 3
