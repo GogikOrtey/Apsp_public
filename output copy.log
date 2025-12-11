@@ -1,4 +1,4 @@
-11.12.2025 11:07:44
+11.12.2025 10:01:24
 
 
 
@@ -22,7 +22,7 @@ field = name, stock, link, price, article, imageLink, timestamp
 
 
 Обработаем 3 страниц
-📤 Берем страницу из кеша: https://gresstore.ru/brend/estima/nolana (возраст 9.41 ч.)
+📤 Берем страницу из кеша: https://gresstore.ru/brend/estima/nolana (возраст 8.30 ч.)
 
 Найдено 9 возможных селекторов
 Найден селектор для поля name
@@ -40,7 +40,7 @@ field = name, stock, link, price, article, imageLink, timestamp
 Найдено 7 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://gresstore.ru/brend/atlas-concorde-italy/111-1 (возраст 9.41 ч.)
+📤 Берем страницу из кеша: https://gresstore.ru/brend/atlas-concorde-italy/111-1 (возраст 8.30 ч.)
 
 Найдено 8 возможных селекторов
 Найден селектор для поля name
@@ -58,7 +58,7 @@ _______________________
 Найдено 4 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://gresstore.ru/brend/grani-taganaya/ajanta (возраст 9.40 ч.)
+📤 Берем страницу из кеша: https://gresstore.ru/brend/grani-taganaya/ajanta (возраст 8.30 ч.)
 
 Найдено 8 возможных селекторов
 Найден селектор для поля name
@@ -219,7 +219,7 @@ _____
 
 💬 AI ANSWER:
 "```
-const article = $("span.text_atr > a").text()?.trim()?.replace(/\s/g, '');
+const article = $("span.text_atr > a").text()?.trim()?.toLowerCase()?.replace(/\s/g, '-');
 ```"
 
 Обрабатываем поле imageLink
@@ -253,7 +253,7 @@ _____
 
 💫 PROMPT:
 Есть такой код на JS: 
-		const imageLink = $("meta[property='og:image']")?.attr("content")?.trim() ? HOST + $("meta[property='og:image']")?.attr("content")?.trim() : ""
+		const imageLink = $("meta")?.attr("property")?.trim() ? HOST + $("meta")?.attr("property")?.trim() : ""
 Однако он извлекает "https://gresstore.ruimage/catalog/collection/estima/nolana_1.jpg"
 А должен извлекать: "https://gresstore.ru/image/cachewebp/catalog/collection/estima/nolana_1-675x450.webp"
 Переменная HOST = https://gresstore.ru
@@ -268,7 +268,7 @@ _____
 
 💬 AI ANSWER:
 "```
-const imageLink = $("meta[property='og:image']")?.attr("content")?.trim()?.at(0)?.replace(/cache(?!\.)/g, "") + (HOST + $("meta[property='og:image']")?.attr("content")?.trim()?.at(0)?.replace(/cache(?!\.)/g, "") || "");
+const imageLink = $("meta")?.attr("property")?.trim()?.at(0)?.split('/')?.at(7)?.replace('.jpg', '-675x450.webp') || "" ? HOST + $("meta")?.attr("property")?.trim()?.at(0)?.split('/')?.at(7)?.replace('.jpg', '-675x450.webp') || "" : ""
 ```"
 
 Статистика нахождения селекторов:
@@ -504,8 +504,8 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
 		const stock = $(".html.dopinfo_tpl.dopinfo > .dopinfo_item > a").text()?.includes("Самовывоз.") ? "InStock" : "OutOfStock"
 		const link = set.query
 		const price = $(".item_price").text()?.trim().formatPrice(",")
-		const article = $("span.text_atr > a").text()?.trim()?.replace(/\s/g, '');
-		const imageLink = $("meta[property='og:image']")?.attr("content")?.trim()?.at(0)?.replace(/cache(?!\.)/g, "") + (HOST + $("meta[property='og:image']")?.attr("content")?.trim()?.at(0)?.replace(/cache(?!\.)/g, "") || "");
+		const article = $("span.text_atr > a").text()?.trim()?.toLowerCase()?.replace(/\s/g, '-');
+		const imageLink = $("meta")?.attr("property")?.trim()?.at(0)?.split('/')?.at(7)?.replace('.jpg', '-675x450.webp') || "" ? HOST + $("meta")?.attr("property")?.trim()?.at(0)?.split('/')?.at(7)?.replace('.jpg', '-675x450.webp') || "" : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
@@ -545,5 +545,5 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
 
 Статус генерации: sucsess
 
-🕚 Время выполнения: 7.78 секунд
+🕚 Время выполнения: 9.17 секунд
 🧢 Кол-во обращений к внешнему ИИ: 3

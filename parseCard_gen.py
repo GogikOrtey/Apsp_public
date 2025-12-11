@@ -64,32 +64,75 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         # объединяем через запятую — это корректно для cheerio/jQuery
         return ", ".join(sel_array)
 
-    # Вспомог: извлекает атрибут из квадратных скобок в селекторе и удаляет его
+    # # Вспомог: извлекает атрибут из квадратных скобок в селекторе и удаляет его
+    # def extract_and_remove_attr_from_selector(sel_array):
+    #     """
+    #     Ищет атрибут в квадратных скобках в селекторе.
+    #     Например: '.img > a.fancybox[href]' -> ('.img > a.fancybox', 'href')
+    #     Возвращает: (очищенный массив селекторов, имя атрибута или None)
+    #     """
+    #     cleaned_array = []
+    #     found_attr = None
+        
+    #     for sel in sel_array:
+    #         # Ищем атрибут в квадратных скобках
+    #         # Паттерн: [attr] или [attr="value"] или [attr='value']
+    #         pattern = r'\[([a-zA-Z][a-zA-Z0-9_-]*)(?:=["\'].*?["\'])?\]'
+    #         match = re.search(pattern, sel)
+            
+    #         if match:
+    #             # Найден атрибут, извлекаем его имя
+    #             attr_name = match.group(1)
+    #             # Удаляем атрибут из селектора
+    #             cleaned_sel = re.sub(pattern, '', sel)
+    #             cleaned_array.append(cleaned_sel)
+    #             # Сохраняем первый найденный атрибут (если их несколько, берем первый)
+    #             if found_attr is None:
+    #                 found_attr = attr_name
+    #         else:
+    #             cleaned_array.append(sel)
+        
+    #     return cleaned_array, found_attr
+
     def extract_and_remove_attr_from_selector(sel_array):
         """
         Ищет атрибут в квадратных скобках в селекторе.
-        Например: '.img > a.fancybox[href]' -> ('.img > a.fancybox', 'href')
+        Если атрибутов несколько, удаляет только последний.
+        Например: '.img > a.fancybox[href][target]' -> ('.img > a.fancybox[href]', 'target')
         Возвращает: (очищенный массив селекторов, имя атрибута или None)
         """
         cleaned_array = []
         found_attr = None
         
         for sel in sel_array:
-            # Ищем атрибут в квадратных скобках
-            # Паттерн: [attr] или [attr="value"] или [attr='value']
-            pattern = r'\[([a-zA-Z][a-zA-Z0-9_-]*)(?:=["\'].*?["\'])?\]'
-            match = re.search(pattern, sel)
+            # Ищем ВСЕ атрибуты в квадратных скобках в текущем селекторе
+            # Используем finditer для получения всех вхождений с позициями
+            all_attrs = list(re.finditer(r'(\[[^\]]+\])', sel))
             
-            if match:
-                # Найден атрибут, извлекаем его имя
-                attr_name = match.group(1)
-                # Удаляем атрибут из селектора
-                cleaned_sel = re.sub(pattern, '', sel)
-                cleaned_array.append(cleaned_sel)
-                # Сохраняем первый найденный атрибут (если их несколько, берем первый)
-                if found_attr is None:
+            if all_attrs:
+                # Берем последний найденный атрибут
+                last_attr = all_attrs[-1]
+                
+                # Извлекаем содержимое атрибута (без скобок)
+                attr_content = last_attr.group(1)[1:-1]  # Убираем квадратные скобки
+                
+                # Проверяем, содержит ли атрибут значение (с оператором =)
+                # Если содержит =, то это условие поиска, а не атрибут для извлечения
+                # Для извлечения нужен атрибут без оператора (просто имя)
+                if '=' not in attr_content:
+                    # Это атрибут для извлечения (просто имя атрибута)
+                    attr_name = attr_content.strip()
+                    # Удаляем только этот (последний) атрибут из селектора
+                    start = last_attr.start()
+                    end = last_attr.end()
+                    cleaned_sel = sel[:start] + sel[end:]
+                    cleaned_array.append(cleaned_sel)
                     found_attr = attr_name
+                else:
+                    # Это условие поиска (с оператором =), оставляем как есть
+                    cleaned_array.append(sel)
             else:
+                # Атрибутов нет в этом селекторе
                 cleaned_array.append(sel)
         
         return cleaned_array, found_attr
@@ -303,12 +346,33 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         else:    # Пример:           $("h1.name")     ?.first()            .text()?.trim()
             selector_result_code = f'$("{sel_string}"){elem_selector_first}.text()?.trim(){add_formatPrice}'
 
+        # line_result_code = ""
+        # if is_add_host: # По большей части, используется для поля imageLink
+        #                 # тут мы хост приделываем спереди, если извлекли ссылку
+        #     line_result_code = f'\t\tconst {key} = {selector_result_code} ? HOST + {selector_result_code} : ""'
+        # else:
+        #     line_result_code = f'\t\tconst {key} = {selector_result_code}'
+
         line_result_code = ""
         if is_add_host: # По большей части, используется для поля imageLink
                         # тут мы хост приделываем спереди, если извлекли ссылку
             line_result_code = f'\t\tconst {key} = {selector_result_code} ? HOST + {selector_result_code} : ""'
         else:
             line_result_code = f'\t\tconst {key} = {selector_result_code}'
+
+
+        """ #############
+        Потом переделать логику imageLink под это:
+        
+        let imageLink = $(".detail-gallery-big__link").attr('href');
+        imageLink = imageLink ? HOST + imageLink : "";
+
+        Также интересный шаблон для imageLink
+
+        const src = $('.detail-gallery-big__picture').attr('src') ?? '';
+        const imageLink = src.startsWith('http') ? src : `${HOST}${src}`;        
+
+        """
 
         if is_clarify_code_selector:
             # Прошу ИИ дополнить строку кода
@@ -344,18 +408,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
 
 
-        """ #############
-        Потом переделать логику imageLink под это:
-        
-        let imageLink = $(".detail-gallery-big__link").attr('href');
-        imageLink = imageLink ? HOST + imageLink : "";
 
-        Также интересный шаблон для imageLink
-
-        const src = $('.detail-gallery-big__picture').attr('src') ?? '';
-        const imageLink = src.startsWith('http') ? src : `${HOST}${src}`;        
-
-        """
 
         """
 
