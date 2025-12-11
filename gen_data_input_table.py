@@ -773,7 +773,6 @@ https://coffeeservice.bg
 https://coffeespot.bg
 https://comfort-klimat.ru
 https://cosmofun.ru
-https://msearch.space
 https://c-s-k.ru                  *
 https://csk-rus.ru // нет пагинации
 
@@ -810,6 +809,8 @@ https://gresstore.ru         *
 https://elevel.ru
 """
 
+
+
 # data_input_table = {
 #     "host": "НЕ ЗАБЫТЬ",
 #     "fields_str": "",
@@ -842,6 +843,7 @@ https://elevel.ru
 # }
 
 
+# # Отличный пример!
 # data_input_table = {
 #     "host": "https://c-s-k.ru",
 #     "fields_str": "",
@@ -1151,4 +1153,61 @@ https://elevel.ru
 # }
 
 
-# # Отличный пример!
+
+
+
+
+data_input_table = {
+    "host": "https://cosmofun.ru",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/",
+                "name": "Маска анти-стресс для волос и кожи головы The Wake-Up Circle",
+                "price": "4 420",
+                "oldprice": "5 200 руб.",
+                "article": "77005",
+                "brand": "Davines",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/png-webp/q80/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.webp"
+            },
+            {
+                "link": "https://cosmofun.ru/product/krem_regenyal/",
+                "name": "Крем Regenyal",
+                "price": "4 200",
+                "oldprice": "",
+                "article": "REG003",
+                "brand": "Sweet Skin System",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/jpeg-webp/q80/upload/iblock/6f5/6f5adb5df39cfac97d35892707f3f568.webp"
+            },
+            {
+                "link": "https://cosmofun.ru/product/osvetlyayushchaya_pudra_ub_freedom_blonde_1/",
+                "name": "Осветляющая пудра Ub freedom blonde",
+                "price": "4 292",
+                "oldprice": "4 517 руб.",
+                "article": "16428",
+                "brand": "Keune",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/jpeg-webp/q80/upload/iblock/0b0/0b0fca32b4aecc7caea1e90278732812.webp"
+            },
+        ]
+    },
+    "search_requests": [
+        {
+            "query": "волос",
+            "url_search_query_page_2": "https://cosmofun.ru/search/index.php?q=%D0%B2%D0%BE%D0%BB%D0%BE%D1%81&s=&PAGEN_3=2",
+            "count_of_page_on_pagination": "12",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://cosmofun.ru/product/balzam_dlya_volos_hc_luxury_repair/",
+                "https://cosmofun.ru/product/kraska_dlya_volos_materia_lt_layner/",
+                "https://cosmofun.ru/product/shampun_dlya_volos_hc_luxury_blond__1/",
+            ]
+        }
+    ]
+}

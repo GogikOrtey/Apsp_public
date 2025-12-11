@@ -8,8 +8,8 @@ from saving_cache import *
 
 #############################################
 
-isPrint = False
-# isPrint = True 
+# isPrint = False
+isPrint = True 
 
 # region Доп. методы
 
@@ -337,7 +337,13 @@ def find_text_selector(
     return None
 
 # region Выбирает один sel
-def get_css_selector_from_text_value_element(html, finding_element, is_price=False, is_exact=True, is_multiply_sel_result = True):
+def get_css_selector_from_text_value_element(
+        html, 
+        finding_element, 
+        is_price=False, 
+        is_exact=True, 
+        is_multiply_sel_result = True,
+        is_low_priority_id = False):
     print("")
     if not finding_element:
         print("Поле finding_element пусто, пропускаю получение селектора")
@@ -443,16 +449,31 @@ def get_css_selector_from_text_value_element(html, finding_element, is_price=Fal
 
         ################# Вот на это место обратить внимание, при отладке
 
+        if not is_low_priority_id:
+            # Стандартное поведение
+            return (
+                -percent,                               # 0️⃣ По убыванию процентного соотношения соответствия исходному тексту (при is_exact=False)
+                -score,                                 # 1️⃣ По убыванию score
+                pos,                                    # 2️⃣ По положению в документе (выше = меньше)
+                not starts_with_id,                     # 3️⃣ Сначала селекторы с #
+                ends_with_attr,                         # 4️⃣ Селекторы с атрибутами в конце
+                length if starts_with_id else -length,  # 5️⃣ Короткие селекторы лучше
+            )
+        else:
+            # Требования для is_low_priority_id = True:
+            # 3️⃣ По starts_with_id обратная: Сначала селекторы БЕЗ #
+            # 5️⃣ По длине обратная: Сначала ДЛИННЫЕ селекторы
+            return (
+                -percent,        # 0️⃣ По убыванию процентного соотношения соответствия исходному тексту (при is_exact=False)
+                -score,          # 1️⃣ По убыванию score
+                pos,             # 2️⃣ По положению в документе (выше = меньше)
+                starts_with_id,  # 3️⃣ Сначала селекторы с #
+                ends_with_attr,  # 4️⃣ Селекторы с атрибутами в конце
+                -length,         # 5️⃣ Короткие селекторы лучше
+            )
 
 
-        return (
-            -percent,                               # 0️⃣ По убыванию процентного соотношения соответствия исходному тексту (при is_exact=False)
-            -score,                                 # 1️⃣ По убыванию score
-            pos,                                    # 2️⃣ По положению в документе (выше = меньше)
-            not starts_with_id,                     # 3️⃣ Сначала селекторы с #
-            ends_with_attr,                         # 4️⃣ Селекторы с атрибутами в конце
-            length if starts_with_id else -length,  # 5️⃣ Короткие селекторы лучше
-        )
+
 
     valid_selectors.sort(key=sort_key)
 
