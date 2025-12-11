@@ -73,8 +73,9 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/?search=${set.query}`)
-		url.searchParams.set("page", set.page)
+        let url = new URL(`${HOST}/search/`);
+		url.searchParams.set("search", set.query);
+		url.searchParams.set("page", set.page);
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
@@ -109,8 +110,9 @@ export class JS_Base_gresstoreru extends JS_Base_Custom {
 		const stock = $(".html.dopinfo_tpl.dopinfo > .dopinfo_item > a").text()?.includes("Самовывоз.") ? "InStock" : "OutOfStock"
 		const link = set.query
 		const price = $(".item_price").text()?.trim().formatPrice(",")
-		const article = $("span.text_atr > a").text()?.trim()?.replace(/\s/g, '');
-		const imageLink = $("meta[property='og:image']")?.attr("content")?.trim()?.at(0)?.replace(/cache(?!\.)/g, "") + (HOST + $("meta[property='og:image']")?.attr("content")?.trim()?.at(0)?.replace(/cache(?!\.)/g, "") || "");
+		const article = $("span.text_atr > a").text()?.trim()?.toLowerCase()?.replace(/\s+/g, '');
+		let imageLink = $("meta[property='og:image']")?.attr("content")?.trim()?.replace(/\/catalog\/collection\/(.*?)\/([^\.]*)\.(\w+)/, "/catalog/collection/$1/$2-$675x450.$3")?.replace(/\.jpg$/, "-675x450.webp");
+		imageLink = imageLink ? HOST + imageLink : "";
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
