@@ -944,31 +944,49 @@ https://elevel.ru
 
 
 data_input_table = {
-    "host": "",
+    "host": "https://gaz-shop78.ru",
     "fields_str": "",
     "links": {
         "simple": [
             {
-                "link": "",
-                "name": "",
-                "price": "",
-                "oldprice": "",
-                "article": "",
-                "brand": "",
-                "InStock_trigger": "",
+                "link": "https://gaz-shop78.ru/magazin/product/1894352706",
+                "name": "Электрический котёл ARDERIA E4",
+                "price": "40 000 ₽",
+                "brand": "ARDERIA",
+                "InStock_trigger": "В наличии",
                 "OutOfStock_trigger": "",
-                "imageLink": ""
+                "imageLink": "https://gaz-shop78.ru/thumb/2/aoyhARqaj1bPrE77eRAF_A/750r750/d/arderi_elektrojpg.jpg"
+            },
+            {
+                "link": "https://gaz-shop78.ru/magazin/product/1894353706",
+                "name": "Электрический котёл ARDERIA E20",
+                "price": "46 500 ₽",
+                "brand": "ARDERIA",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gaz-shop78.ru/thumb/2/lCUI3aA241A3iTaFeRm2hA/750r750/d/arderi_elektrojpg_5.jpg"
+            },
+            {
+                "link": "https://gaz-shop78.ru/magazin/product/182893106",
+                "name": "Котёл электрический Warmos Comfort - 18",
+                "price": "54 000 ₽",
+                "brand": "Эван",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gaz-shop78.ru/thumb/2/5MFMp9e0txKhtnL9BxAkng/750r750/d/varmos_komfortjpg_1.jpg"
             },
         ]
     },
     "search_requests": [
         {
-            "query": "",
-            "url_search_query_page_2": "",
-            "count_of_page_on_pagination": "",
+            "query": "котёл",
+            "url_search_query_page_2": "https://gaz-shop78.ru/magazin/search?p=1&gr_smart_search=1&s%5Bname%5D=%D0%BA%D0%BE%D1%82%D1%91%D0%BB",
+            "count_of_page_on_pagination": "56",
             "total_count_of_results": "0",
             "links_items": [
-                "",
+                "https://gaz-shop78.ru/magazin/product/1894352706",
+                "https://gaz-shop78.ru/magazin/product/1894352906",
+                "https://gaz-shop78.ru/magazin/product/1894353106",
             ]
         }
     ]

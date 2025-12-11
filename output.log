@@ -1,4 +1,4 @@
-11.12.2025 11:44:53
+11.12.2025 15:06:33
 
 
 
@@ -10,7 +10,7 @@
 --------------------------------------------------------------------------------------------------
 
 
-field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+field = name, stock, link, price, brand, imageLink, timestamp
 
 
 
@@ -23,20 +23,16 @@ field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 
 Обработаем 3 страниц
 
-Найдено 31 возможных селекторов
+Найдено 20 возможных селекторов
 Найден селектор для поля name
 
-Найдено 28 возможных селекторов
+Найдено 23 возможных селекторов
 Найден селектор для поля price
-⬜ Пропускаем поле oldprice: Не строка или пустое значение
 
-Найдено 25 возможных селекторов
-Найден селектор для поля article
-
-Найдено 102 возможных селекторов
+Найдено 94 возможных селекторов
 Найден селектор для поля brand
 
-Найдено 89 возможных селекторов
+Найдено 18 возможных селекторов
 Найден селектор для поля InStock_trigger
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
@@ -44,90 +40,70 @@ field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 Найден селектор для поля imageLink
 _______________________
 
-Найдено 41 возможных селекторов
+Найдено 20 возможных селекторов
 Найден селектор для поля name
 
-Найдено 48 возможных селекторов
+Найдено 20 возможных селекторов
 Найден селектор для поля price
 
-Найдено 25 возможных селекторов
-Найден селектор для поля oldprice
-
-Найдено 36 возможных селекторов
-Найден селектор для поля article
-
-Найдено 127 возможных селекторов
+Найдено 94 возможных селекторов
 Найден селектор для поля brand
 
-Найдено 82 возможных селекторов
+Найдено 18 возможных селекторов
 Найден селектор для поля InStock_trigger
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
-Найдено 3 возможных селекторов
+Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
 
-Найдено 65 возможных селекторов
+Найдено 20 возможных селекторов
 Найден селектор для поля name
 
-Найдено 48 возможных селекторов
+Найдено 21 возможных селекторов
 Найден селектор для поля price
-⬜ Пропускаем поле oldprice: Не строка или пустое значение
 
-Найдено 25 возможных селекторов
-Найден селектор для поля article
-
-Найдено 138 возможных селекторов
+Найдено 79 возможных селекторов
 Найден селектор для поля brand
 
-Найдено 91 возможных селекторов
+Найдено 18 возможных селекторов
 Найден селектор для поля InStock_trigger
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
-Найдено 3 возможных селекторов
+Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-Используемые поля: ['name', 'price', 'oldprice', 'article', 'brand', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
+Используемые поля: ['name', 'price', 'brand', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
 Кандидаты по полям (в порядке приоритета):
- - name: 1 селекторов -> ['h1.c-header.c-header_h1']
- - price: 2 селекторов -> ['span.price.c-product-add-to-cart__price', 'span.price.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare']
- - oldprice: 1 селекторов -> ['span.c-product-add-to-cart__compare-price']
- - article: 1 селекторов -> ['span.c-value__value-text.c-product-cart-form__sku-value']
- - brand: 1 селекторов -> ['span.c-value__value-text > a.c-link']
- - InStock_trigger: 1 селекторов -> ['.c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content']
+ - name: 1 селекторов -> ['.site-path']
+ - price: 1 селекторов -> ['.price-current > strong']
+ - brand: 2 селекторов -> ['ul.level-4 > li:nth-of-type(17) > a > span', 'ul.level-3 > li.opened.active > a > span']
+ - InStock_trigger: 1 селекторов -> ['.gr-amount-flag.has_amount > span']
  - OutOfStock_trigger: 0 селекторов -> []
- - imageLink: 2 селекторов -> ['.c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]', '.c-product-images__image > a.l-image-box.l-image-box_fill > span.c-lazy-image-provider[data-src]']
-  [SKIP] oldprice on https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/: no expected value or no original selector
-  [SKIP] oldprice on https://gidro-top.ru/product/aquastone-bali-180/: no expected value or no original selector
+ - imageLink: 1 селекторов -> ['img.gr_image_contain[src]']
 [WARN] Для поля OutOfStock_trigger не найден селектор(ы).
 
-📄 Кеш сохранён в cache.json, всего страниц: 42
-   Добавлено: 0, обновлено: 3
+📄 Кеш сохранён в cache.json, всего страниц: 45
+   Добавлено: 3, обновлено: 0
 
 
 ✅ Итоговые селекторы:
 {
     "name": [
-        "h1.c-header.c-header_h1"
+        ".site-path"
     ],
     "price": [
-        "span.price.c-product-add-to-cart__price"
-    ],
-    "oldprice": [
-        "span.c-product-add-to-cart__compare-price"
-    ],
-    "article": [
-        "span.c-value__value-text.c-product-cart-form__sku-value"
+        ".price-current > strong"
     ],
     "brand": [
-        "span.c-value__value-text > a.c-link"
+        "ul.level-4 > li:nth-of-type(17) > a > span"
     ],
     "InStock_trigger": [
-        ".c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content"
+        ".gr-amount-flag.has_amount > span"
     ],
     "OutOfStock_trigger": [],
     "imageLink": [
-        ".c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]"
+        "img.gr_image_contain[src]"
     ]
 }
 
@@ -144,21 +120,21 @@ _______________________
 Оба триггера есть
 Обрабатываем поле name
 
-Проверяем селектор h1.c-header.c-header_h1 на странице №1
-    Aquanet SD-1200A душевая дверь
-    Aquanet SD-1200A душевая дверь
+Проверяем селектор .site-path на странице №1
+    Электрический котёл ARDERIA E4
+    Электрический котёл ARDERIA E4
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
-Проверяем селектор h1.c-header.c-header_h1 на странице №2
-    Aquastone Малибу Ванна из искусственного камня
-    Aquastone Малибу Ванна из искусственного камня
+Проверяем селектор .site-path на странице №2
+    Электрический котёл ARDERIA E20
+    Электрический котёл ARDERIA E20
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
-Проверяем селектор h1.c-header.c-header_h1 на странице №3
-    Aquastone Бали 180 Ванна из искусственного камня
-    Aquastone Бали 180 Ванна из искусственного камня
+Проверяем селектор .site-path на странице №3
+    Котёл электрический Warmos Comfort - 18
+    Котёл электрический Warmos Comfort - 18
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
@@ -167,110 +143,73 @@ _____
 
 Обрабатываем поле price
 
-Проверяем селектор span.price.c-product-add-to-cart__price на странице №1
-    19 850
-    19 850 ₽
+Проверяем селектор .price-current > strong на странице №1
+    40 000
+    40 000 ₽
 
     💲 Обрабатываем поле price
     Разделитель - точка
 
-Проверяем селектор span.price.c-product-add-to-cart__price на странице №2
-    55 000
-    55 000 ₽
+Проверяем селектор .price-current > strong на странице №2
+    46 500
+    46 500 ₽
 
     💲 Обрабатываем поле price
     Разделитель - точка
 
-Проверяем селектор span.price.c-product-add-to-cart__price на странице №3
-    53 000
-    53 000 ₽
+Проверяем селектор .price-current > strong на странице №3
+    54 000
+    54 000 ₽
 
     💲 Обрабатываем поле price
     Разделитель - точка
-
-max_count_element_of_selectors = 🟡 1
-_____
-
-Обрабатываем поле oldprice
-
-Проверяем селектор span.c-product-add-to-cart__compare-price на странице №1
-    ⬜ Нет результата у селектора  на странице 1 для поля oldprice
-
-Проверяем селектор span.c-product-add-to-cart__compare-price на странице №2
-    69 000
-    69 000 ₽
-
-    💲 Обрабатываем поле oldprice
-    Разделитель - точка
-
-Проверяем селектор span.c-product-add-to-cart__compare-price на странице №3
-    ⬜ Нет результата у селектора  на странице 3 для поля oldprice
-
-max_count_element_of_selectors = 🟡 1
-_____
-
-Обрабатываем поле article
-
-Проверяем селектор span.c-value__value-text.c-product-cart-form__sku-value на странице №1
-    00209406
-    00209406
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
-
-Проверяем селектор span.c-value__value-text.c-product-cart-form__sku-value на странице №2
-    MAlibu
-    MAlibu
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
-
-Проверяем селектор span.c-value__value-text.c-product-cart-form__sku-value на странице №3
-    Bali180
-    Bali180
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
 
 max_count_element_of_selectors = 🟡 1
 _____
 
 Обрабатываем поле brand
 
-Проверяем селектор span.c-value__value-text > a.c-link на странице №1
-    Aquanet
-    Aquanet
+Проверяем селектор ul.level-4 > li:nth-of-type(17) > a > span на странице №1
+    ARDERIA
+    ARDERIA
 
     ✅ Полное совпадение селектора и оригинального значения поля brand
 
-Проверяем селектор span.c-value__value-text > a.c-link на странице №2
-    Aquastone
-    Aquastone
+Проверяем селектор ul.level-4 > li:nth-of-type(17) > a > span на странице №2
+    ARDERIA
+    ARDERIA
 
     ✅ Полное совпадение селектора и оригинального значения поля brand
 
-Проверяем селектор span.c-value__value-text > a.c-link на странице №3
-    Aquastone
-    Aquastone
+Проверяем селектор ul.level-4 > li:nth-of-type(17) > a > span на странице №3
+    ARDERIA
+    Эван
 
-    ✅ Полное совпадение селектора и оригинального значения поля brand
+    🟧 Нет совпадений. score_match = 0.0
 
 max_count_element_of_selectors = 🟡 1
 _____
 
 Обрабатываем поле imageLink
 
-Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №1
-    ⬜ Нет результата у селектора  на странице 1 для поля imageLink
-
-Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №2
-    В элементе /wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg отсутствует хост. Добавляем:
-    https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg
-    https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg
+Проверяем селектор img.gr_image_contain[src] на странице №1
+    В элементе /thumb/2/aoyhARqaj1bPrE77eRAF_A/750r750/d/arderi_elektrojpg.jpg отсутствует хост. Добавляем:
+    https://gaz-shop78.ru/thumb/2/aoyhARqaj1bPrE77eRAF_A/750r750/d/arderi_elektrojpg.jpg
+    https://gaz-shop78.ru/thumb/2/aoyhARqaj1bPrE77eRAF_A/750r750/d/arderi_elektrojpg.jpg
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
 
-Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №3
-    В элементе /wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg отсутствует хост. Добавляем:
-    https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg
-    https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg
+Проверяем селектор img.gr_image_contain[src] на странице №2
+    В элементе /thumb/2/lCUI3aA241A3iTaFeRm2hA/750r750/d/arderi_elektrojpg_5.jpg отсутствует хост. Добавляем:
+    https://gaz-shop78.ru/thumb/2/lCUI3aA241A3iTaFeRm2hA/750r750/d/arderi_elektrojpg_5.jpg
+    https://gaz-shop78.ru/thumb/2/lCUI3aA241A3iTaFeRm2hA/750r750/d/arderi_elektrojpg_5.jpg
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+Проверяем селектор img.gr_image_contain[src] на странице №3
+    В элементе /thumb/2/5MFMp9e0txKhtnL9BxAkng/750r750/d/varmos_komfortjpg_1.jpg отсутствует хост. Добавляем:
+    https://gaz-shop78.ru/thumb/2/5MFMp9e0txKhtnL9BxAkng/750r750/d/varmos_komfortjpg_1.jpg
+    https://gaz-shop78.ru/thumb/2/5MFMp9e0txKhtnL9BxAkng/750r750/d/varmos_komfortjpg_1.jpg
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
 
@@ -280,9 +219,6 @@ _____
 Статистика нахождения селекторов:
 🟩: name 
 💲 : price 
-💲 : oldprice 
-🟩: article 
-🟩: brand 
 🟩: imageLink 
 
 
@@ -338,47 +274,53 @@ url.searchParams.set('/?page', set.page);
 -----
 
 Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://gidro-top.ru/search/Ванна/?page=2
+Строка на поиск у сайта, на 2ю страницу поиска: https://gaz-shop78.ru/magazin/search?p=1&gr_smart_search=1&s%5Bname%5D=%D0%BA%D0%BE%D1%82%D1%91%D0%BB
 
-Значение переменной HOST = https://gidro-top.ru
+Значение переменной HOST = https://gaz-shop78.ru
 
 Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
 
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/search/${set.query}/?page=${set.page}`)
+let url = new URL(`${HOST}/magazin/search`)
+url.searchParams.set("p", set.page)
+url.searchParams.set("gr_smart_search", "1")
+url.searchParams.set("s[name]", set.query)
 ```"
 
 
-Найдено 3 возможных селекторов
+Найдено 6 возможных селекторов
 
-product_selector = div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]
-len_of_products_on_this_page = 32
-Совпадение ссылок = 0.67 (2/3)
+product_selector = button.shop-product-btn.type-2.buy[data-url]
+len_of_products_on_this_page = 12
+Совпадение ссылок = 1.00 (3/3)
 Извлекаем селектор кол-ва страниц
 
-Найдено 30 возможных селекторов
-pagination_selctor = div.c-products[data-pages_count]
-Проверили, и нашли такой элемент по найденному селектору пагинации: 255
+Найдено 46 возможных селекторов
+pagination_selctor = li:nth-of-type(5)[data-value]
+Проверили, и нашли такой элемент по найденному селектору пагинации: 756107
 result_pagination_block = 
 
-let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean))
+let totalPages = Math.max(...$("li:nth-of-type(5)[data-value]").get().map(item => +$(item).text().trim()).filter(Boolean))
 async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/${set.query}/?page=${set.page}`)
+        let url = new URL(`${HOST}/magazin/search`)
+		url.searchParams.set("p", set.page)
+		url.searchParams.set("gr_smart_search", "1")
+		url.searchParams.set("s[name]", set.query)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("li:nth-of-type(5)[data-value]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]") 
+        let products = $("button.shop-product-btn.type-2.buy[data-url]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -388,7 +330,7 @@ async parsePage(set: SetType) {
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
-Имя парсера: JS_Base_gidrotopru
+Имя парсера: JS_Base_gazshop78ru
 
 
 
@@ -408,7 +350,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, brand, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -417,12 +359,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, brand, imageLink, timestamp
 }
 
-const HOST = "https://gidro-top.ru"
+const HOST = "https://gaz-shop78.ru"
 
-export class JS_Base_gidrotopru extends JS_Base_Custom {
+export class JS_Base_gazshop78ru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -474,20 +416,23 @@ export class JS_Base_gidrotopru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/${set.query}/?page=${set.page}`)
+        let url = new URL(`${HOST}/magazin/search`)
+		url.searchParams.set("p", set.page)
+		url.searchParams.set("gr_smart_search", "1")
+		url.searchParams.set("s[name]", set.query)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("li:nth-of-type(5)[data-value]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("div.c-product.c-product-thumb.c-product-thumb_adaptive.c-product-thumb_hidden-blocks[data-url]") 
+        let products = $("button.shop-product-btn.type-2.buy[data-url]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -505,19 +450,17 @@ export class JS_Base_gidrotopru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.c-header.c-header_h1").text()?.trim()
-		const stock = $(".c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
+        const name = $(".site-path").text()?.trim()
+		const stock = $(".gr-amount-flag.has_amount > span").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = $("span.price.c-product-add-to-cart__price").text()?.trim().formatPrice()
-		const oldprice = $("span.c-product-add-to-cart__compare-price").text()?.trim().formatPrice()
-		const article = $("span.c-value__value-text.c-product-cart-form__sku-value").text()?.trim()
-		const brand = $("span.c-value__value-text > a.c-link").text()?.trim()
-		let imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim()
+		const price = $(".price-current > strong").text()?.trim().formatPrice()
+		const brand = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+		let imageLink = $("img.gr_image_contain")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+            name, stock, link, price, brand, imageLink, timestamp
         }
         items.push(item);
 
@@ -549,9 +492,10 @@ export class JS_Base_gidrotopru extends JS_Base_Custom {
 // © BrandPol
 
 Сообщения из message_global:
+🟧 Ошибка генерации строки кода извлечения значения по селектору, для поля brand: 		const brand = "" 
 🟡 timestamp нет в массиве, данные для parsePage могут быть неактуальными
 
-Итоговый статус генерации: 🟩 Sucsess 🟩
+Итоговый статус генерации: 🟧 Falled 🟧
 
-🕚 Время выполнения: 17.60 секунд
+🕚 Время выполнения: 10.74 секунд
 🧢 Кол-во обращений к внешнему ИИ: 1
