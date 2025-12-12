@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, article, imageLink, manufacturer, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, article, imageLink, manufacturer, timestamp
 }
 
-const HOST = "https://cosmofun.ru"
+const HOST = "https://comfort-klimat.ru"
 
-export class JS_Base_cosmofunru extends JS_Base_Custom {
+export class JS_Base_comfortklimatru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,23 +73,24 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/index.php`)
+        let url = new URL(`${HOST}/search/?`)
+		url.searchParams.set("tags", "")
 		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "")
-		url.searchParams.set("PAGEN_3", set.page)
+		url.searchParams.set("how", "r")
+		url.searchParams.set("PAGEN_1", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("div.navigation-pages > a.bxr-font-color").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("div.navigation > a:nth-of-type(6)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.bxr-item-image-wrap.js-product[href]") 
+        let products = $("a.nm[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -107,19 +108,17 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1").text()?.trim()
-		const stock = "InStock"
+        const name = $("h1.pagetitle").text()?.trim()
+		const stock = $("span.js-stores__title").text()?.includes("В наличии: есть") ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = $(".bxr-detail-price").text()?.trim().formatPrice()
-		const oldprice = $(".bxr-detail-old-price").text()?.trim().formatPrice(",")
-		const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^\d]+(\d+).*/, '$1');
-		const brand = $("a.js-brand").text()?.trim()
-		let imageLink = $("#bx_117848907_24289_main_photo")?.attr("href")?.trim()?.replace(/png$/, 'png-webp');
-		imageLink = imageLink ? HOST + imageLink : "";
+		const price = $("span.c-prices__value.js-prices_pdv_BASE").text()?.trim().formatPrice()
+		const article = $("#bx_117848907_119714 > .b-properties-block.position-relative > .__grid > ul.b-properties-list.--3 > li:nth-of-type(1) > span.__value").text()?.trim()
+		const imageLink = $("meta[property='og:image']")?.attr("content")?.trim()
+		const manufacturer = $("#bx_117848907_119714 > .b-properties-block.position-relative > .__grid > ul.b-properties-list.--3 > li:nth-of-type(2) > span.__value").text()?.trim()
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+            name, stock, link, price, article, imageLink, manufacturer, timestamp
         }
         items.push(item);
 

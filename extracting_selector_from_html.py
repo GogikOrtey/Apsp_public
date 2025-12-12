@@ -504,9 +504,9 @@ def get_css_selector_from_text_value_element(
     if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%, процент содержания: {best['percent']:.1%})")
 
     # Дистилляция пути
-    print(f"🔶 Селектор до дистилляции: {best["selector"]}")
+    # print(f"🔶 Селектор до дистилляции: {best["selector"]}")
     result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector_universal, is_multiply_sel_result)
-    print(f"🔶 Селектор после дистилляции: {result_distill_selector}")
+    # print(f"🔶 Селектор после дистилляции: {result_distill_selector}")
     return result_distill_selector
 
 

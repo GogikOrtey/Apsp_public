@@ -161,7 +161,7 @@ def generate_parsePage(set_item):
         error_msg_2 = error_message if not set_item.get("result_pagination_block") else ""
     ).strip()
 
-    print(result)
+    # print(result)
     return result
 
 
@@ -526,6 +526,8 @@ def main_generate_parsePage():
             return result
     
     # Извлекаем селектор для пагинации
+
+    #TODO Добавить обработку варианта, когда у сайта нет пагинации, и он всегда отдаёт все результаты на 1 странице
 
     #TODO Также может быть такая ситуация, что вообще нет параметров в поиске
     # это значит всё ищется запросами, и нужно будет смотреть их

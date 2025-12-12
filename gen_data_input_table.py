@@ -771,7 +771,7 @@ https://www.chipdip.ru
 https://cleansan.ru
 https://coffeeservice.bg
 https://coffeespot.bg
-https://comfort-klimat.ru
+https://comfort-klimat.ru         *
 https://cosmofun.ru               *
 https://c-s-k.ru                  *
 https://csk-rus.ru // нет пагинации
@@ -1158,59 +1158,112 @@ https://cosmofun.ru
 
 
 
+# # Отлично генерирует
+# # Есть объём, не лучший пример, но генерация проходит ок
+# data_input_table = {
+#     "host": "https://cosmofun.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/",
+#                 "name": "Маска анти-стресс для волос и кожи головы The Wake-Up Circle",
+#                 "price": "4 420",
+#                 "oldprice": "5 200 руб.",
+#                 "article": "77005",
+#                 "brand": "Davines",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/png-webp/q80/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.webp"
+#             },
+#             {
+#                 "link": "https://cosmofun.ru/product/krem_regenyal/",
+#                 "name": "Крем Regenyal",
+#                 "price": "4 200",
+#                 "oldprice": "",
+#                 "article": "REG003",
+#                 "brand": "Sweet Skin System",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/jpeg-webp/q80/upload/iblock/6f5/6f5adb5df39cfac97d35892707f3f568.webp"
+#             },
+#             {
+#                 "link": "https://cosmofun.ru/product/osvetlyayushchaya_pudra_ub_freedom_blonde_1/",
+#                 "name": "Осветляющая пудра Ub freedom blonde",
+#                 "price": "4 292",
+#                 "oldprice": "4 517 руб.",
+#                 "article": "16428",
+#                 "brand": "Keune",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/jpeg-webp/q80/upload/iblock/0b0/0b0fca32b4aecc7caea1e90278732812.webp"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "волос",
+#             "url_search_query_page_2": "https://cosmofun.ru/search/index.php?q=%D0%B2%D0%BE%D0%BB%D0%BE%D1%81&s=&PAGEN_3=2",
+#             "count_of_page_on_pagination": "12",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://cosmofun.ru/product/balzam_dlya_volos_hc_luxury_repair/",
+#                 "https://cosmofun.ru/product/kraska_dlya_volos_materia_lt_layner/",
+#                 "https://cosmofun.ru/product/shampun_dlya_volos_hc_luxury_blond__1/",
+#             ]
+#         }
+#     ]
+# }
 
-# Отлично генерирует
-# Есть объём, не лучший пример, но генерация проходит ок
+
+
 data_input_table = {
-    "host": "https://cosmofun.ru",
+    "host": "https://comfort-klimat.ru",
     "fields_str": "",
     "links": {
         "simple": [
             {
-                "link": "https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/",
-                "name": "Маска анти-стресс для волос и кожи головы The Wake-Up Circle",
-                "price": "4 420",
-                "oldprice": "5 200 руб.",
-                "article": "77005",
-                "brand": "Davines",
-                "InStock_trigger": "",
+                "link": "https://comfort-klimat.ru/catalog/vodonagrevateli-i-boylery/vodonagrevateli-parpol/vodonagrevateli-parpol-vs-kosvennogo-nagreva-s-teploobmennikom-s-flantsem/vodonagrevatel_kosvennogo_nagreva_parpol_vs_150/",
+                "name": "Водонагреватель косвенного нагрева Parpol VS 150",
+                "price": "94 500 ₽",
+                "article": "500150",
+                "manufacturer": "Parpol",
+                "InStock_trigger": "В наличии: есть",
                 "OutOfStock_trigger": "",
-                "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/png-webp/q80/upload/iblock/4ad/4ad0c878cdbacb73a7c8f40ac12ce3a8.webp"
+                "imageLink": "https://comfort-klimat.ru/upload/dev2fun.imagecompress/webp/iblock/80d/nhlhb4l4in7bvq2sh7x4mqd3ofkon1o1/26498.webp"
             },
             {
-                "link": "https://cosmofun.ru/product/krem_regenyal/",
-                "name": "Крем Regenyal",
-                "price": "4 200",
-                "oldprice": "",
-                "article": "REG003",
-                "brand": "Sweet Skin System",
-                "InStock_trigger": "",
+                "link": "https://comfort-klimat.ru/catalog/vodonagrevateli-i-boylery/vodonagrevateli-parpol/napolnye-boylery-kosvennogo-nagreva-parpol-vs-ultra-s-teploobmennikom/napolnyy-boyler-parpol-vs-ultra-3000-s-odnim-teploobmennikom/",
+                "name": "Напольный бойлер Parpol VS Ultra 3000 с одним теплообменником",
+                "price": "852 000 ₽",
+                "article": "753000",
+                "manufacturer": "Parpol",
+                "InStock_trigger": "В наличии: есть",
                 "OutOfStock_trigger": "",
-                "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/jpeg-webp/q80/upload/iblock/6f5/6f5adb5df39cfac97d35892707f3f568.webp"
+                "imageLink": "https://comfort-klimat.ru/upload/dev2fun.imagecompress/webp/iblock/b1f/jw9b4zyof0o7j3haxn9h5sgdrft8ntzi/Parpol_VS_U.webp"
             },
             {
-                "link": "https://cosmofun.ru/product/osvetlyayushchaya_pudra_ub_freedom_blonde_1/",
-                "name": "Осветляющая пудра Ub freedom blonde",
-                "price": "4 292",
-                "oldprice": "4 517 руб.",
-                "article": "16428",
-                "brand": "Keune",
-                "InStock_trigger": "",
+                "link": "https://comfort-klimat.ru/catalog/vodonagrevateli-i-boylery/vodonagrevateli-parpol/nastennye-kombinirovannye-boylery-parpol-msh-s-teploobmennikom-i-el-tenom-23-kvt/kombinirovannyy-boyler-parpol-msh-150/",
+                "name": "Комбинированный бойлер Parpol MSH 150",
+                "price": "56 000 ₽",
+                "article": "701150",
+                "manufacturer": "Parpol",
+                "InStock_trigger": "В наличии: есть",
                 "OutOfStock_trigger": "",
-                "imageLink": "https://cosmofun.ru/upload/ammina.optimizer/jpeg-webp/q80/upload/iblock/0b0/0b0fca32b4aecc7caea1e90278732812.webp"
+                "imageLink": "https://comfort-klimat.ru/upload/dev2fun.imagecompress/webp/iblock/1fc/x4qb923enwoq5krnakg7izwem6j5y233/4_2048x1227.webp"
             },
         ]
     },
     "search_requests": [
         {
-            "query": "волос",
-            "url_search_query_page_2": "https://cosmofun.ru/search/index.php?q=%D0%B2%D0%BE%D0%BB%D0%BE%D1%81&s=&PAGEN_3=2",
-            "count_of_page_on_pagination": "12",
+            "query": "котёл",
+            "url_search_query_page_2": "https://comfort-klimat.ru/search/?tags=&q=%D0%BA%D0%BE%D1%82%D1%91%D0%BB&how=r&PAGEN_1=2",
+            "count_of_page_on_pagination": "50",
             "total_count_of_results": "0",
             "links_items": [
-                "https://cosmofun.ru/product/balzam_dlya_volos_hc_luxury_repair/",
-                "https://cosmofun.ru/product/kraska_dlya_volos_materia_lt_layner/",
-                "https://cosmofun.ru/product/shampun_dlya_volos_hc_luxury_blond__1/",
+                "https://comfort-klimat.ru/catalog/otoplenie/kotelnoe-oborudovanie/kotly-tverdotoplivnye/kotel-tverdotoplivnyy-zota-topol-vk-16/",
+                "https://comfort-klimat.ru/catalog/otoplenie/kotelnoe-oborudovanie/kotly-tverdotoplivnye/kotel-tverdotoplivnyy-zota-bulat-turbo-37/",
+                "https://comfort-klimat.ru/catalog/otoplenie/kotelnoe-oborudovanie/kotly-tverdotoplivnye/kotel-tverdotoplivnyy-zota-bulat-turbo-25/",
             ]
         }
     ]
