@@ -309,6 +309,52 @@ def compute_match_score_2(found_text, target_text):
 
 
 
+# # region check_avialible_html
+# # Проверяю, что название первого товара содержится в html первой ссылки
+# # Это проверка на то, есть ли на сайте какая-то защита, типо куратора
+# def check_avialible_html():
+#     # 1. Данные
+#     first_item_link = data_input_table["links"]["simple"][0]["link"]
+#     target_name = data_input_table["links"]["simple"][0]["name"].strip().lower()
+    
+#     # Получаем HTML
+#     html_content = get_html(first_item_link).lower()
+    
+#     # 2. Быстрая очистка HTML от тегов (оставляем только текст)
+#     # Это важно, чтобы название не "разбилось" тегами типа <b>Name</b>
+#     text_content = re.sub(r'<[^>]+>', ' ', html_content)
+#     # Убираем лишние пробелы (превращаем "  " в " ")
+#     text_content = " ".join(text_content.split())
+
+#     # 3. Магия difflib: ищем самый длинный общий кусок
+#     # SequenceMatcher(isjunk, string_A, string_B)
+#     matcher = SequenceMatcher(None, target_name, text_content)
+    
+#     # Ищем совпадение в границах всей длины строк
+#     match = matcher.find_longest_match(0, len(target_name), 0, len(text_content))
+    
+#     # match.size — это длина совпавшего куска
+#     # Считаем процент: (длина совпадения) / (длина искомого названия)
+#     similarity = match.size / len(target_name)
+
+#     # 4. Проверка
+#     threshold = 0.8 # 80%
+    
+#     if similarity < threshold:
+#         print(f"🟠 Частичное совпадение слишком слабое: {similarity:.2%}")
+#         print(f"Искали: {target_name}")
+#         # Показываем, что именно нашлось (срез текста по найденным индексам)
+#         found_part = text_content[match.b : match.b + match.size]
+#         print(f"Нашли кусок: '{found_part}'")
+        
+#         raise ErrorHandler("Название товара не найдено на странице (даже частично).")        
+    # print(f"🟢 Товар найден! Совпадение: {similarity:.2%}")
+
+
+
+
+
+
 # region check_avialible_html
 # Проверяю, что название первого товара содержится в html первой ссылки
 # Это проверка на то, есть ли на сайте какая-то защита, типо куратора
@@ -327,25 +373,26 @@ def check_avialible_html():
     text_content = " ".join(text_content.split())
 
     # 3. Магия difflib: ищем самый длинный общий кусок
-    # SequenceMatcher(isjunk, string_A, string_B)
     matcher = SequenceMatcher(None, target_name, text_content)
-    
-    # Ищем совпадение в границах всей длины строк
     match = matcher.find_longest_match(0, len(target_name), 0, len(text_content))
     
-    # match.size — это длина совпавшего куска
-    # Считаем процент: (длина совпадения) / (длина искомого названия)
     similarity = match.size / len(target_name)
 
     # 4. Проверка
-    threshold = 0.8 # 80%
+    threshold = 0.8  # 80%
     
     if similarity < threshold:
         print(f"🟠 Частичное совпадение слишком слабое: {similarity:.2%}")
         print(f"Искали: {target_name}")
-        # Показываем, что именно нашлось (срез текста по найденным индексам)
         found_part = text_content[match.b : match.b + match.size]
         print(f"Нашли кусок: '{found_part}'")
-        
-        raise ErrorHandler("Название товара не найдено на странице (даже частично).")        
-    # print(f"🟢 Товар найден! Совпадение: {similarity:.2%}")
+
+        # Сохраняем HTML перед ошибкой
+        try:
+            with open("current_html.html", "w", encoding="utf-8") as f:
+                f.write(html_content)
+            print("HTML сохранён в current_html.html")
+        except Exception as save_err:
+            print(f"Ошибка сохранения HTML: {save_err}")
+
+        raise ErrorHandler("Название товара не найдено на странице (даже частично).")

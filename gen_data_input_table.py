@@ -800,6 +800,62 @@
 
 
 
+
+# # Некорректно извлекает селектор product для parsePage
+# # И неправильно article
+# data_input_table = {
+#     "host": "https://www.chipdip.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://www.chipdip.ru/product/mhu-3-ds1074-3-f-rozetka-kabelnaya-s-kontaktami-5.08mm-connfly-55967?from=mainpage_hits",
+#                 "name": "MHU-3 (DS1074-3 F), Розетка кабельная с контактами 5.08мм 3pin",
+#                 "price": "9 руб.",
+#                 "article": "MHU-3 (DS1074-3 F)",
+#                 "brand": "Connfly electronic (Zhenqin)",
+#                 "InStock_trigger": "из магазина г.Екатеринбург",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://static.chipdip.ru/lib/204/DOC001204670.jpg"
+#             },
+#             {
+#                 "link": "https://www.chipdip.ru/product/irl3705npbf-tranzistor-n-kanal-55v-89a-to-220ab-infineon-45575?from=mainpage_hits",
+#                 "name": "IRL3705NPBF, Транзистор, N-канал 55В 89А [TO-220AB]",
+#                 "price": "160 руб.",
+#                 "article": "IRL3705NPBF",
+#                 "brand": "INFINEON TECHNOLOGIES AG.",
+#                 "InStock_trigger": "из магазина г.Екатеринбург",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://static.chipdip.ru/lib/210/DOC001210841.jpg"
+#             },
+#             {
+#                 "link": "https://www.chipdip.ru/product/av1104-50x166x9-profil-ligra-9000532348?from=mainpage_hits",
+#                 "name": "АВ1104 50x166x9, Профиль",
+#                 "price": "240 руб.",
+#                 "article": "АВ1104 50x166x9",
+#                 "brand": "Лигра",
+#                 "InStock_trigger": "из магазина г.Екатеринбург",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://static.chipdip.ru/lib/121/DOC004121485.jpg"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "pin",
+#             "url_search_query_page_2": "https://www.chipdip.ru/search?searchtext=pin&page=2",
+#             "count_of_page_on_pagination": "12",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "https://www.chipdip.ru/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317",
+#                 "https://www.chipdip.ru/product/idc-08f-ds1016-08-rozetka-2-54mm-na-shleyf-8-pin-s-connfly-9000050229",
+#                 "https://www.chipdip.ru/product/idc-10f-ds1016-10-rozetka-2.54mm-na-shleyf-10-pin-s-connfly-45325",
+#             ]
+#         }
+#     ]
+# }
+
+
 #######################################################################################################
 
 # Новые данные
@@ -823,11 +879,11 @@ https://ceramictilecenter.ru
 https://ceram-stroy.ru
 https://www.ceramtrade.ru
 championtool.ru
-https://chel-heating.ru
-https://www.chipdip.ru
-https://comfort-klimat.ru         *
-https://cosmofun.ru               *
-https://c-s-k.ru                  *
+
+https://www.chipdip.ru       * 
+https://comfort-klimat.ru    *
+https://cosmofun.ru          *
+https://c-s-k.ru             *
 https://csk-rus.ru // нет пагинации
 
 
@@ -869,6 +925,9 @@ https://cosmofun.ru
 Цена двойная:
 https://coffeeservice.bg
 https://coffeespot.bg
+
+Пагинация оффсетом
+https://chel-heating.ru
 """
 
 
@@ -1275,57 +1334,3 @@ https://coffeespot.bg
 # }
 
 
-
-# Некорректно извлекает селектор product для parsePage
-# И неправильно article
-data_input_table = {
-    "host": "https://www.chipdip.ru",
-    "fields_str": "",
-    "links": {
-        "simple": [
-            {
-                "link": "https://www.chipdip.ru/product/mhu-3-ds1074-3-f-rozetka-kabelnaya-s-kontaktami-5.08mm-connfly-55967?from=mainpage_hits",
-                "name": "MHU-3 (DS1074-3 F), Розетка кабельная с контактами 5.08мм 3pin",
-                "price": "9 руб.",
-                "article": "MHU-3 (DS1074-3 F)",
-                "brand": "Connfly electronic (Zhenqin)",
-                "InStock_trigger": "из магазина г.Екатеринбург",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://static.chipdip.ru/lib/204/DOC001204670.jpg"
-            },
-            {
-                "link": "https://www.chipdip.ru/product/irl3705npbf-tranzistor-n-kanal-55v-89a-to-220ab-infineon-45575?from=mainpage_hits",
-                "name": "IRL3705NPBF, Транзистор, N-канал 55В 89А [TO-220AB]",
-                "price": "160 руб.",
-                "article": "IRL3705NPBF",
-                "brand": "INFINEON TECHNOLOGIES AG.",
-                "InStock_trigger": "из магазина г.Екатеринбург",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://static.chipdip.ru/lib/210/DOC001210841.jpg"
-            },
-            {
-                "link": "https://www.chipdip.ru/product/av1104-50x166x9-profil-ligra-9000532348?from=mainpage_hits",
-                "name": "АВ1104 50x166x9, Профиль",
-                "price": "240 руб.",
-                "article": "АВ1104 50x166x9",
-                "brand": "Лигра",
-                "InStock_trigger": "из магазина г.Екатеринбург",
-                "OutOfStock_trigger": "",
-                "imageLink": "https://static.chipdip.ru/lib/121/DOC004121485.jpg"
-            },
-        ]
-    },
-    "search_requests": [
-        {
-            "query": "pin",
-            "url_search_query_page_2": "https://www.chipdip.ru/search?searchtext=pin&page=2",
-            "count_of_page_on_pagination": "12",
-            "total_count_of_results": "0",
-            "links_items": [
-                "https://www.chipdip.ru/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317",
-                "https://www.chipdip.ru/product/idc-08f-ds1016-08-rozetka-2-54mm-na-shleyf-8-pin-s-connfly-9000050229",
-                "https://www.chipdip.ru/product/idc-10f-ds1016-10-rozetka-2.54mm-na-shleyf-10-pin-s-connfly-45325",
-            ]
-        }
-    ]
-}
