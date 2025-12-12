@@ -513,9 +513,6 @@ def get_css_selector_from_text_value_element(
 
 
 
-
-
-
 # region Дистилляция пути
 # Дистилляция пути css селектора
 # Принимает полный и точный селектор, очищает, и возвращает сокращённый
@@ -691,6 +688,199 @@ def simplify_selector_keep_value(
     # собрать итоговый селектор
     simplified = " > ".join(parts)
     return simplified
+
+
+#TODO Потом посмотреть, возможно нужно будет улучшить simplify_selector_keep_value
+# добавив в него новые функции, взамен простых и устаревших
+
+
+# # # region Дистилляция пути
+# # Дистилляция пути css селектора
+# # Принимает полный и точный селектор, очищает, и возвращает сокращённый
+# # удаляя все ненужные звенья
+# def simplify_selector_keep_value(
+#     html: str,
+#     selector: str,
+#     get_element_from_selector_universal,
+#     is_multiply_sel_result: bool = True,
+# ):
+#     print(f"🔶🔶 is_multiply_sel_result = {is_multiply_sel_result}")
+
+#     """
+#     Пытается удалить ненужные звенья в селекторе (слева направо).
+#     Возвращает упрощённый селектор, который гарантированно возвращает
+#     такое же значение, как исходный селектор, по вызову get_element_from_selector.
+#     Параметры:
+#       - html: текст html страницы
+#       - selector: исходный строгий селектор (через '>')
+#       - get_element_from_selector: функция (html, selector) -> value (строка)
+#       - is_multiply_sel_result: True — ориентируемся на количество совпадений,
+#         False — оставляем старую проверку уникальности (только один результат у селектора)
+#     """
+
+#     def _split_selector_preserving_brackets(selector: str):
+#         """
+#         Разбивает селектор по '>' но игнорирует '>' внутри [], (), '' и "".
+#         Возвращает список звеньев (строк) без лишних пробелов по краям.
+#         """
+#         parts = []
+#         buf = []
+#         bracket_sq = 0  # []
+#         bracket_par = 0 # ()
+#         in_single = False
+#         in_double = False   
+
+#         i = 0
+#         while i < len(selector):
+#             ch = selector[i]    
+
+#             # переключение состояния строк
+#             if ch == "'" and not in_double:
+#                 in_single = not in_single
+#                 buf.append(ch)
+#                 i += 1
+#                 continue
+#             if ch == '"' and not in_single:
+#                 in_double = not in_double
+#                 buf.append(ch)
+#                 i += 1
+#                 continue    
+
+#             if not in_single and not in_double:
+#                 if ch == '[':
+#                     bracket_sq += 1
+#                     buf.append(ch)
+#                     i += 1
+#                     continue
+#                 if ch == ']':
+#                     if bracket_sq > 0:
+#                         bracket_sq -= 1
+#                     buf.append(ch)
+#                     i += 1
+#                     continue
+#                 if ch == '(':
+#                     bracket_par += 1
+#                     buf.append(ch)
+#                     i += 1
+#                     continue
+#                 if ch == ')':
+#                     if bracket_par > 0:
+#                         bracket_par -= 1
+#                     buf.append(ch)
+#                     i += 1
+#                     continue    
+
+#             # разделитель '>' только если мы не внутри скобок/строк
+#             if ch == '>' and not in_single and not in_double and bracket_sq == 0 and bracket_par == 0:
+#                 part = ''.join(buf).strip()
+#                 if part != '':
+#                     parts.append(part)
+#                 buf = []
+#                 # пропускаем возможные пробелы вокруг >
+#                 i += 1
+#                 # skip following spaces
+#                 while i < len(selector) and selector[i].isspace():
+#                     i += 1
+#                 continue    
+
+#             buf.append(ch)
+#             i += 1  
+
+#         last = ''.join(buf).strip()
+#         if last != '':
+#             parts.append(last)
+#         return parts
+
+#     # начальная проверка: получаем исходное значение
+#     try:
+#         original_value = get_element_from_selector_universal(html, selector, is_ret_len = True, return_all = True)
+#     except Exception:
+#         # если исходный селектор уже валидный, но функция кидает — лучше вернуть исходный
+#         return selector
+
+#     if isPrint:
+#         print(f"original_value = {original_value}")
+#         print(f"selector = {selector}")
+
+#     # Парсим дерево один раз для оценки уникальности совпадений
+#     # tree = html_lx.fromstring(html)
+
+#     # Парсим дерево и фиксируем исходное количество совпадений
+#     try:
+#         # original_nodes = tree.cssselect(selector)
+#         # original_count = len(original_nodes)
+#         original_count = get_element_from_selector_universal(html, selector, is_ret_len = True)["length_elem"]
+#     except Exception:
+#         original_count = None
+
+#     # разбиваем селектор корректно
+#     parts = _split_selector_preserving_brackets(selector)
+
+#     # если один сегмент — возвратим как есть
+#     if len(parts) <= 1:
+#         return selector.strip()
+
+#     if isPrint:
+#         print(f"original_count = {original_count}")
+
+#     i = 0
+#     # проходим слева направо. Для каждого индекса пробуем удалить parts[i].
+#     # Если после удаления результат совпадает с original_value — применяем удаление и
+#     # остаёмся на том же i (т.к. дальше сдвинулись элементы).
+#     # Иначе переходим к следующему i.
+#     while i < len(parts) - 1:
+#         # нельзя удалить все звенья — должен остаться хотя бы одно
+#         if len(parts) == 1:
+#             break
+
+#         candidate_parts = parts[:i] + parts[i+1:]
+#         candidate_selector = " > ".join(candidate_parts)
+
+#         # Проверяем количество элементов, которое возвращает кандидат
+#         try:
+#             candidate_nodes = get_element_from_selector_universal(html, candidate_selector, return_all = True)
+#         except Exception:
+#             candidate_nodes = []
+
+#         candidate_value = None
+#         candidate_match_ok = False
+
+#         if is_multiply_sel_result:
+#             if (
+#                 original_count is not None
+#                 and len(candidate_nodes) == original_count
+#             ):
+#                 try:
+#                     candidate_value = get_element_from_selector_universal(
+#                         html, candidate_selector, is_ret_len = True, return_all = True
+#                     )
+#                     if isPrint:
+#                         print(f"candidate_value = {candidate_value}")
+#                 except Exception:
+#                     candidate_value = None
+#                 candidate_match_ok = candidate_value == original_value
+#         else:
+#             if len(candidate_nodes) == 1:
+#                 try:
+#                     candidate_value = get_element_from_selector_universal(
+#                         html, candidate_selector, is_ret_len = True, return_all = True
+#                     )
+#                     if isPrint:
+#                         print(f"candidate_value = {candidate_value}")
+#                 except Exception:
+#                     candidate_value = None
+#                 candidate_match_ok = candidate_value == original_value
+
+#         if candidate_match_ok:
+#             parts = candidate_parts
+#             continue
+#         else:
+#             # удаление ломает — оставляем звено и идём дальше
+#             i += 1
+
+#     # собрать итоговый селектор
+#     simplified = " > ".join(parts)
+#     return simplified
 
     
 
@@ -1522,15 +1712,15 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False, return
 # print(f"element_finded = {element_finded}")
 
 
-# Дистилляция селектора
-isPrint = True
-link = "https://cosmofun.ru/search/index.php?q=%D0%B2%D0%BE%D0%BB%D0%BE%D1%81&s=&PAGEN_3=2"
-html = get_html_from_cache(link, print_msg = False)
-original_selector = "#bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]"
-result_distill_selector = simplify_selector_keep_value(
-    html, 
-    original_selector, 
-    get_element_from_selector_universal, 
-    is_multiply_sel_result = True
-)
-print(f"result_distill_selector = {result_distill_selector}")
+# # Дистилляция селектора
+# isPrint = True
+# link = "https://cosmofun.ru/search/index.php?q=%D0%B2%D0%BE%D0%BB%D0%BE%D1%81&s=&PAGEN_3=2"
+# html = get_html_from_cache(link, print_msg = False)
+# original_selector = "div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]"
+# result_distill_selector = simplify_selector_keep_value(
+#     html, 
+#     original_selector, 
+#     get_element_from_selector_universal, 
+#     is_multiply_sel_result = True
+# )
+# print(f"result_distill_selector = {result_distill_selector}")

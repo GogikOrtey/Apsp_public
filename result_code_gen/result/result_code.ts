@@ -89,7 +89,7 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
             }
         }
         
-        let products = $("div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]") 
+        let products = $("a.bxr-item-image-wrap.js-product[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()

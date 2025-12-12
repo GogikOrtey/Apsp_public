@@ -420,6 +420,8 @@ def main_generate_parsePage():
         else:
             raise ErrorHandler(f"Не удалось найти селектор с <=100 элементами. Последний вариант: {len_of_products} элементов")
 
+    # Дистиллируем итоговый селектор
+    product_selector = simplify_selector_keep_value( set_item["page_html"], product_selector, get_element_from_selector_universal, is_multiply_sel_result = True)
     print(f"\nИтоговый product_selector = {product_selector}")
     print(f"Количество элементов по итоговому селектору: {len(tree.cssselect(product_selector))}")
 
