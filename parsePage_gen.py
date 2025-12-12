@@ -253,6 +253,8 @@ def main_generate_parsePage():
     original_product_selector = get_css_selector_from_text_value_element(set_item["page_html"], processed_url_product, is_exact=False, is_multiply_sel_result=True, is_low_priority_id=True)
     original_product_selector = clean_selector_from_double_hyphen(original_product_selector)
 
+    
+
     if not original_product_selector:
         raise ErrorHandler("Не был найден селектор для товара")
 
