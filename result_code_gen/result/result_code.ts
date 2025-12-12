@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, article, brand, imageLink, timestamp
+    name, stock, link, price, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, article, brand, imageLink, timestamp
+    name, stock, link, price, imageLink, timestamp
 }
 
-const HOST = "https://www.chipdip.ru"
+const HOST = "https://champion.ru"
 
-export class JS_Base_chipdipru extends JS_Base_Custom {
+export class JS_Base_championru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -81,17 +81,16 @@ export class JS_Base_chipdipru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1").text()?.trim()
-		const stock = $("span.item__avail.item__avail_available.item__avail_float").text()?.includes("из магазина г.Екатеринбург") ? "InStock" : "OutOfStock"
+        const name = $("h1.product-info__title").text()?.trim()
+		const stock = "InStock"
 		const link = set.query
-		const price = $("#topbox_cart_sum_w > span.rub").text()?.trim().formatPrice()
-		const article = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
-		const brand = $("a.link > span").text()?.trim()
-		const imageLink = $("img.product__image-preview.item__image_medium[itemprop='image']")?.attr("src")?.trim() || ""
+		const price = $("span.common-price.product-info__price-value > span.common-price__current").text()?.trim().formatPrice()
+		let imageLink = $("img.base-image.base-image--image.product-info__gallery-main-item-image.product-info__gallery-main-item-image--lens")?.first()?.attr("src")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, article, brand, imageLink, timestamp
+            name, stock, link, price, imageLink, timestamp
         }
         items.push(item);
 

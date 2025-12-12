@@ -1,4 +1,4 @@
-12.12.2025 17:28:28
+12.12.2025 17:38:15
 
 
 
@@ -10,7 +10,7 @@
 --------------------------------------------------------------------------------------------------
 
 
-field = name, stock, link, price, article, brand, imageLink, timestamp
+field = name, stock, link, price, imageLink, timestamp
 
 
 
@@ -21,141 +21,46 @@ field = name, stock, link, price, article, brand, imageLink, timestamp
 --------------------------------------------------------------------------------------------------
 
 
-Обработаем 3 страниц
-📤 Берем страницу из кеша: https://www.chipdip.ru/product/mhu-3-ds1074-3-f-rozetka-kabelnaya-s-kontaktami-5.08mm-connfly-55967?from=mainpage_hits (возраст 1.07 ч.)
+Обработаем 1 страниц
+📤 Берем страницу из кеша: https://champion.ru/catalog/pily-tsepnye/benzinovye-pily/champion-237-16-quot/ (возраст 0.05 ч.)
 
-Найдено 4 возможных селекторов
+Найдено 14 возможных селекторов
 Найден селектор для поля name
 
-Найдено 17 возможных селекторов
+Найдено 6 возможных селекторов
 Найден селектор для поля price
-
-Найдено 3 возможных селекторов
-Найден селектор для поля article
-
-Найдено 3 возможных селекторов
-Найден селектор для поля brand
-
-Найдено 2 возможных селекторов
-Найден селектор для поля InStock_trigger
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://www.chipdip.ru/product/irl3705npbf-tranzistor-n-kanal-55v-89a-to-220ab-infineon-45575?from=mainpage_hits (возраст 1.07 ч.)
-
-Найдено 4 возможных селекторов
-Найден селектор для поля name
-
-Найдено 5 возможных селекторов
-
-Найдено 5 возможных селекторов
-🟨 Не нашли при exact=True, пробуем частичным совпадением
-🟧 Не удалось найти селектор для поля price даже при exact=False
-
-Найдено 3 возможных селекторов
-Найден селектор для поля article
-
-Найдено 3 возможных селекторов
-Найден селектор для поля brand
-
-Найдено 2 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 1 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-📤 Берем страницу из кеша: https://www.chipdip.ru/product/av1104-50x166x9-profil-ligra-9000532348?from=mainpage_hits (возраст 1.07 ч.)
-
-Найдено 5 возможных селекторов
-Найден селектор для поля name
-
-Найдено 4 возможных селекторов
-
-Найдено 4 возможных селекторов
-🟨 Не нашли при exact=True, пробуем частичным совпадением
-🟧 Не удалось найти селектор для поля price даже при exact=False
-
-Найдено 3 возможных селекторов
-Найден селектор для поля article
-
-Найдено 4 возможных селекторов
-Найден селектор для поля brand
-
-Найдено 2 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 1 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-Используемые поля: ['name', 'price', 'article', 'brand', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
+Используемые поля: ['name', 'price', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
 Кандидаты по полям (в порядке приоритета):
- - name: 2 селекторов -> ['h1', 'span.bc__item']
- - price: 1 селекторов -> ['#topbox_cart_sum_w > span.rub']
- - article: 2 селекторов -> ['.summary__value', '.summary__value > span']
- - brand: 1 селекторов -> ['a.link > span']
- - InStock_trigger: 1 селекторов -> ['span.item__avail.item__avail_available.item__avail_float']
+ - name: 1 селекторов -> ['h1.product-info__title']
+ - price: 1 селекторов -> ['span.common-price.product-info__price-value > span.common-price__current']
+ - InStock_trigger: 0 селекторов -> []
  - OutOfStock_trigger: 0 селекторов -> []
- - imageLink: 1 селекторов -> ['img.product__image-preview.item__image_medium[itemprop="image"][src]']
-  [SKIP] price on https://www.chipdip.ru/product/irl3705npbf-tranzistor-n-kanal-55v-89a-to-220ab-infineon-45575?from=mainpage_hits: no expected value or no original selector
-  [SKIP] price on https://www.chipdip.ru/product/av1104-50x166x9-profil-ligra-9000532348?from=mainpage_hits: no expected value or no original selector
-[🟧 FAIL] article on https://www.chipdip.ru/product/mhu-3-ds1074-3-f-rozetka-kabelnaya-s-kontaktami-5.08mm-connfly-55967?from=mainpage_hits: 
-  искали: 'MHU-3 (DS1074-3 F)' 
-  нашли:  '55967' 
-  селектор: ('.summary__value',)
-[🟧 FAIL] article on https://www.chipdip.ru/product/irl3705npbf-tranzistor-n-kanal-55v-89a-to-220ab-infineon-45575?from=mainpage_hits: 
-  искали: 'IRL3705NPBF' 
-  нашли:  '45575' 
-  селектор: ('.summary__value',)
-[🟧 FAIL] article on https://www.chipdip.ru/product/av1104-50x166x9-profil-ligra-9000532348?from=mainpage_hits: 
-  искали: 'АВ1104 50x166x9' 
-  нашли:  '9000532348' 
-  селектор: ('.summary__value',)
-[🟧 FAIL] article on https://www.chipdip.ru/product/mhu-3-ds1074-3-f-rozetka-kabelnaya-s-kontaktami-5.08mm-connfly-55967?from=mainpage_hits: 
-  искали: 'MHU-3 (DS1074-3 F)' 
-  нашли:  '55967' 
-  селектор: ('.summary__value > span',)
-[🟧 FAIL] article on https://www.chipdip.ru/product/irl3705npbf-tranzistor-n-kanal-55v-89a-to-220ab-infineon-45575?from=mainpage_hits: 
-  искали: 'IRL3705NPBF' 
-  нашли:  '45575' 
-  селектор: ('.summary__value > span',)
-[🟧 FAIL] article on https://www.chipdip.ru/product/av1104-50x166x9-profil-ligra-9000532348?from=mainpage_hits: 
-  искали: 'АВ1104 50x166x9' 
-  нашли:  '9000532348' 
-  селектор: ('.summary__value > span',)
-[INFO] Для поля article выбраны селекторы (по возрастанию частоты срабатывания):
-  - .summary__value: сработал 3 из 3, качество: 0.00
-  - .summary__value > span: сработал 3 из 3, качество: 0.00
+ - imageLink: 1 селекторов -> ['img.base-image.base-image--image.product-info__gallery-main-item-image.product-info__gallery-main-item-image--lens[src]']
+[WARN] Для поля InStock_trigger не найден селектор(ы).
 [WARN] Для поля OutOfStock_trigger не найден селектор(ы).
 
-📄 Кеш сохранён в cache.json, всего страниц: 63
-   Добавлено: 0, обновлено: 3
+📄 Кеш сохранён в cache.json, всего страниц: 64
+   Добавлено: 0, обновлено: 1
 
 
 ✅ Итоговые селекторы:
 {
     "name": [
-        "h1"
+        "h1.product-info__title"
     ],
     "price": [
-        "#topbox_cart_sum_w > span.rub"
+        "span.common-price.product-info__price-value > span.common-price__current"
     ],
-    "article": [
-        ".summary__value",
-        ".summary__value > span"
-    ],
-    "brand": [
-        "a.link > span"
-    ],
-    "InStock_trigger": [
-        "span.item__avail.item__avail_available.item__avail_float"
-    ],
+    "InStock_trigger": [],
     "OutOfStock_trigger": [],
     "imageLink": [
-        "img.product__image-preview.item__image_medium[itemprop="image"][src]"
+        "img.base-image.base-image--image.product-info__gallery-main-item-image.product-info__gallery-main-item-image--lens[src]"
     ]
 }
 
@@ -170,26 +75,13 @@ _______________________
 
 Проверяем селекторы, и генерируем parseCard
 Оба триггера есть
+Они одинаковые, используем InStock
 Обрабатываем поле name
 
-Проверяем селектор h1 на странице №1
-##### result_selector = {'result': 'MHU-3 (DS1074-3 F), Розетка кабельная с контактами 5.08мм 3pin', 'length_elem': 1}
-    MHU-3 (DS1074-3 F), Розетка кабельная с контактами 5.08мм 3pin
-    MHU-3 (DS1074-3 F), Розетка кабельная с контактами 5.08мм 3pin
-
-    ✅ Полное совпадение селектора и оригинального значения поля name
-
-Проверяем селектор h1 на странице №2
-##### result_selector = {'result': 'IRL3705NPBF, Транзистор, N-канал 55В 89А [TO-220AB]', 'length_elem': 1}
-    IRL3705NPBF, Транзистор, N-канал 55В 89А [TO-220AB]
-    IRL3705NPBF, Транзистор, N-канал 55В 89А [TO-220AB]
-
-    ✅ Полное совпадение селектора и оригинального значения поля name
-
-Проверяем селектор h1 на странице №3
-##### result_selector = {'result': 'АВ1104 50x166x9, Профиль', 'length_elem': 1}
-    АВ1104 50x166x9, Профиль
-    АВ1104 50x166x9, Профиль
+Проверяем селектор h1.product-info__title на странице №1
+##### result_selector = {'result': 'Бензиновая цепная пила CHAMPION 237-16', 'length_elem': 1}
+    Бензиновая цепная пила CHAMPION 237-16
+    Бензиновая цепная пила CHAMPION 237-16
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
@@ -198,140 +90,37 @@ _____
 
 Обрабатываем поле price
 
-Проверяем селектор #topbox_cart_sum_w > span.rub на странице №1
-##### result_selector = {'result': 'руб.', 'length_elem': 1}
-    руб.
-    9 руб.
+Проверяем селектор span.common-price.product-info__price-value > span.common-price__current на странице №1
+##### result_selector = {'result': '11 190', 'length_elem': 1}
+    11 190
+    11 190 рублей₽
 
     💲 Обрабатываем поле price
     Разделитель - точка
-
-Проверяем селектор #topbox_cart_sum_w > span.rub на странице №2
-##### result_selector = {'result': 'руб.', 'length_elem': 1}
-    руб.
-    160 руб.
-
-    💲 Обрабатываем поле price
-    Разделитель - точка
-
-Проверяем селектор #topbox_cart_sum_w > span.rub на странице №3
-##### result_selector = {'result': 'руб.', 'length_elem': 1}
-    руб.
-    240 руб.
-
-    💲 Обрабатываем поле price
-    Разделитель - точка
-
-max_count_element_of_selectors = 🟡 1
-_____
-
-Обрабатываем поле article
-
-Проверяем селектор .summary__value на странице №1
-##### result_selector = {'result': '3', 'length_elem': 4}
-    3
-    MHU-3 (DS1074-3 F)
-
-    🟨 Частичное совпадение
-
-Проверяем селектор .summary__value > span на странице №1
-##### result_selector = {'result': '55967', 'length_elem': 3}
-    55967
-    MHU-3 (DS1074-3 F)
-
-    🟧 Нет совпадений. score_match = 0.08695652173913043
-
-Проверяем селектор .summary__value на странице №2
-##### result_selector = {'result': 'N-канал', 'length_elem': 4}
-    N-канал
-    IRL3705NPBF
-
-    🟧 Нет совпадений. score_match = 0.1111111111111111
-
-Проверяем селектор .summary__value > span на странице №2
-##### result_selector = {'result': '45575', 'length_elem': 2}
-    45575
-    IRL3705NPBF
-
-    🟧 Нет совпадений. score_match = 0.125
-
-Проверяем селектор .summary__value на странице №3
-##### result_selector = {'result': '50', 'length_elem': 4}
-    50
-    АВ1104 50x166x9
-
-    🟨 Частичное совпадение
-
-Проверяем селектор .summary__value > span на странице №3
-##### result_selector = {'result': '9000532348', 'length_elem': 3}
-    9000532348
-    АВ1104 50x166x9
-
-    🟧 Нет совпадений. score_match = 0.08
-
-max_count_element_of_selectors = 🟡 4
-_____
-
-Нашли больше одного селектора для поля article
-Обрабатываем поле brand
-
-Проверяем селектор a.link > span на странице №1
-##### result_selector = {'result': 'Connfly electronic (Zhenqin)', 'length_elem': 1}
-    Connfly electronic (Zhenqin)
-    Connfly electronic (Zhenqin)
-
-    ✅ Полное совпадение селектора и оригинального значения поля brand
-
-Проверяем селектор a.link > span на странице №2
-##### result_selector = {'result': 'INFINEON TECHNOLOGIES AG.', 'length_elem': 1}
-    INFINEON TECHNOLOGIES AG.
-    INFINEON TECHNOLOGIES AG.
-
-    ✅ Полное совпадение селектора и оригинального значения поля brand
-
-Проверяем селектор a.link > span на странице №3
-##### result_selector = {'result': 'Лигра', 'length_elem': 1}
-    Лигра
-    Лигра
-
-    ✅ Полное совпадение селектора и оригинального значения поля brand
 
 max_count_element_of_selectors = 🟡 1
 _____
 
 Обрабатываем поле imageLink
 
-Проверяем селектор img.product__image-preview.item__image_medium[itemprop="image"][src] на странице №1
-##### result_selector = {'result': 'https://static.chipdip.ru/lib/204/DOC001204670.jpg', 'length_elem': 1}
-    https://static.chipdip.ru/lib/204/DOC001204670.jpg
-    https://static.chipdip.ru/lib/204/DOC001204670.jpg
+Проверяем селектор img.base-image.base-image--image.product-info__gallery-main-item-image.product-info__gallery-main-item-image--lens[src] на странице №1
+##### result_selector = {'result': '/_ipx/fit_cover,b_%23fff/upload/iblock/abc/1100ii38tz4u7b060jorex361e38w0q1/237_16_360_01.jpg', 'length_elem': 13}
+    В элементе /_ipx/fit_cover,b_%23fff/upload/iblock/abc/1100ii38tz4u7b060jorex361e38w0q1/237_16_360_01.jpg отсутствует хост и "http". Добавляем:
+    https://champion.ru/_ipx/fit_cover,b_%23fff/upload/iblock/abc/1100ii38tz4u7b060jorex361e38w0q1/237_16_360_01.jpg
+    https://champion.ru/_ipx/fit_cover,b_%23fff/upload/iblock/abc/1100ii38tz4u7b060jorex361e38w0q1/237_16_360_01.jpg
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
 
-Проверяем селектор img.product__image-preview.item__image_medium[itemprop="image"][src] на странице №2
-##### result_selector = {'result': 'https://static.chipdip.ru/lib/210/DOC001210841.jpg', 'length_elem': 1}
-    https://static.chipdip.ru/lib/210/DOC001210841.jpg
-    https://static.chipdip.ru/lib/210/DOC001210841.jpg
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-Проверяем селектор img.product__image-preview.item__image_medium[itemprop="image"][src] на странице №3
-##### result_selector = {'result': 'https://static.chipdip.ru/lib/121/DOC004121485.jpg', 'length_elem': 1}
-    https://static.chipdip.ru/lib/121/DOC004121485.jpg
-    https://static.chipdip.ru/lib/121/DOC004121485.jpg
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-max_count_element_of_selectors = 🟡 1
+max_count_element_of_selectors = 🟡 13
 _____
 
+Нашли больше одного селектора для поля imageLink
 Статистика нахождения селекторов:
 🟩: name 
 💲 : price 
-🟩: brand 
-🟩: imageLink 
+🟩: imageLink  🟡 > 1
 
-Имя парсера: JS_Base_chipdipru
+Имя парсера: JS_Base_championru
 
 
 
@@ -354,7 +143,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, article, brand, imageLink, timestamp
+    name, stock, link, price, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -363,12 +152,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, article, brand, imageLink, timestamp
+    name, stock, link, price, imageLink, timestamp
 }
 
-const HOST = "https://www.chipdip.ru"
+const HOST = "https://champion.ru"
 
-export class JS_Base_chipdipru extends JS_Base_Custom {
+export class JS_Base_championru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -428,17 +217,16 @@ export class JS_Base_chipdipru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1").text()?.trim()
-		const stock = $("span.item__avail.item__avail_available.item__avail_float").text()?.includes("из магазина г.Екатеринбург") ? "InStock" : "OutOfStock"
+        const name = $("h1.product-info__title").text()?.trim()
+		const stock = "InStock"
 		const link = set.query
-		const price = $("#topbox_cart_sum_w > span.rub").text()?.trim().formatPrice()
-		const article = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
-		const brand = $("a.link > span").text()?.trim()
-		const imageLink = $("img.product__image-preview.item__image_medium[itemprop='image']")?.attr("src")?.trim() || ""
+		const price = $("span.common-price.product-info__price-value > span.common-price__current").text()?.trim().formatPrice()
+		let imageLink = $("img.base-image.base-image--image.product-info__gallery-main-item-image.product-info__gallery-main-item-image--lens")?.first()?.attr("src")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, article, brand, imageLink, timestamp
+            name, stock, link, price, imageLink, timestamp
         }
         items.push(item);
 
@@ -469,12 +257,9 @@ export class JS_Base_chipdipru extends JS_Base_Custom {
 // Дата: 12 Дек 2025
 // © BrandPol
 
-Сообщения из message_global:
-🟧 Ошибка генерации строки кода извлечения значения по селектору, для поля article: 		const article = "" 
+Ссылка на 1й товар: https://champion.ru/catalog/pily-tsepnye/benzinovye-pily/champion-237-16-quot/
 
-Ссылка на 1й товар: https://www.chipdip.ru/product/mhu-3-ds1074-3-f-rozetka-kabelnaya-s-kontaktami-5.08mm-connfly-55967?from=mainpage_hits
+Итоговый статус генерации: 🟩 Sucsess 🟩
 
-Итоговый статус генерации: 🟧 Falled 🟧
-
-🕚 Время выполнения: 1.32 секунд
+🕚 Время выполнения: 1.30 секунд
 🧢 Кол-во обращений к внешнему ИИ: 0

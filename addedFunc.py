@@ -293,7 +293,7 @@ def compute_match_score_2(found_text, target_text):
 
 
 
-# # region Check html
+# region Check html
 # # Проверяю, что html-страница доступна, и данные первого товара на ней есть
 # def check_avialible_html():
 #     # TODO: Потом добавить обработку, что бы он искал не полным сравнением подстроки названия товара при проверке, а частичным
@@ -382,6 +382,17 @@ def check_avialible_html():
     threshold = 0.8  # 80%
     
     if similarity < threshold:
+        # Если не совпало частичным, то пробуем простым включением
+        # (старая логика)
+        first_item_link = data_input_table["links"]["simple"][0]["link"]
+        html = get_html(first_item_link)
+
+        text_includes = data_input_table["links"]["simple"][0]["name"] 
+        if text_includes in html:
+            return
+
+        # Если всё таки нет вхождений
+
         print(f"🟠 Частичное совпадение слишком слабое: {similarity:.2%}")
         print(f"Искали: {target_name}")
         found_part = text_content[match.b : match.b + match.size]
