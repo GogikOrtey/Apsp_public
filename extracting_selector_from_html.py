@@ -523,7 +523,6 @@ def simplify_selector_keep_value(
     get_element_from_selector_universal,
     is_multiply_sel_result: bool = True,
 ):
-    print(f"🔶🔶 is_multiply_sel_result = {is_multiply_sel_result}")
 
     """
     Пытается удалить ненужные звенья в селекторе (слева направо).

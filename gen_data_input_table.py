@@ -1159,7 +1159,7 @@ https://cosmofun.ru
 
 
 
-# 
+# Отлично генерирует
 # Есть объём, не лучший пример, но генерация проходит ок
 data_input_table = {
     "host": "https://cosmofun.ru",
