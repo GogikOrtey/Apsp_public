@@ -101,31 +101,7 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
     }
 
     //#region Парсинг товара
-    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
-        let items: ResultItem[] = []
-
-        const data = await this.makeRequest(set.query);
-        const $ = cheerio.load(data);
-
-        const name = $("h1").text()?.trim()
-		const stock = "InStock"
-		const link = set.query
-		const price = $(".bxr-detail-price").text()?.trim().formatPrice()
-		const oldprice = $(".bxr-detail-old-price").text()?.trim().formatPrice(",")
-		const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?(\d+).*/, '$1');
-		const brand = $("a.js-brand").text()?.trim()
-		let imageLink = $("#bx_117848907_24289_main_photo")?.attr("href")?.trim()?.replace(/png$/, 'png-webp');
-		imageLink = imageLink ? HOST + imageLink : "";
-        const timestamp = getTimestamp()
-
-        const item: ResultItem = {
-            name, stock, link, price, oldprice, article, brand, imageLink, timestamp
-        }
-        items.push(item);
-
-        cacher.cache = items
-        return items;
-    }
+    
 
     //#region Выполнение запроса
     async makeRequest(url: string) {

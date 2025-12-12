@@ -504,7 +504,9 @@ def get_css_selector_from_text_value_element(
     if isPrint: print(f"Лучший селектор: {best['selector']} (совпадение {best['score']*100:.1f}%, процент содержания: {best['percent']:.1%})")
 
     # Дистилляция пути
+    print(f"🔶 Селектор до дистилляции: {best["selector"]}")
     result_distill_selector = simplify_selector_keep_value(html, best["selector"], get_element_from_selector_universal, is_multiply_sel_result)
+    print(f"🔶 Селектор после дистилляции: {result_distill_selector}")
     return result_distill_selector
 
 
@@ -524,6 +526,8 @@ def simplify_selector_keep_value(
     get_element_from_selector_universal,
     is_multiply_sel_result: bool = True,
 ):
+    print(f"🔶🔶 is_multiply_sel_result = {is_multiply_sel_result}")
+
     """
     Пытается удалить ненужные звенья в селекторе (слева направо).
     Возвращает упрощённый селектор, который гарантированно возвращает
@@ -1510,11 +1514,23 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False, return
 
 # # Извлечение элемента по селектору
 # isPrint = True
-# link = "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/"
-# # selector = 'html > body.custom_scroll > div.wrapper > main.page-catalog > section.page-catalog__catalog.catalog.--search > div.catalog__container > div.catalog__inner > div.catalog__content.--search > div.catalog__products.catalog-products > div.horizontal-card > a.horizontal-card__link[href]'
-# # selector = 'html > body.custom_scroll > div.wrapper > main.page-catalog > section.page-catalog__catalog.catalog.--search > div.catalog__container > div.catalog__inner > div.catalog__content.--search > div.catalog__products.catalog-products > div.horizontal-card > a.horizontal-card__link[href]'
-# selector = 'div.element__title.title-elem > h1'
+# link = "https://cosmofun.ru/search/index.php?q=%D0%B2%D0%BE%D0%BB%D0%BE%D1%81&s=&PAGEN_3=2"
+# selector = 'a.bxr-item-image-wrap.js-product[href]'
 # html = get_html_from_cache(link)
 # # element_finded = get_element_from_selector_universal(html, selector)
 # element_finded = get_element_from_selector_universal(html, selector, is_ret_len=True)
 # print(f"element_finded = {element_finded}")
+
+
+# Дистилляция селектора
+isPrint = True
+link = "https://cosmofun.ru/search/index.php?q=%D0%B2%D0%BE%D0%BB%D0%BE%D1%81&s=&PAGEN_3=2"
+html = get_html_from_cache(link, print_msg = False)
+original_selector = "#bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]"
+result_distill_selector = simplify_selector_keep_value(
+    html, 
+    original_selector, 
+    get_element_from_selector_universal, 
+    is_multiply_sel_result = True
+)
+print(f"result_distill_selector = {result_distill_selector}")
