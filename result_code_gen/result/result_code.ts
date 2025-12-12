@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, article, imageLink, manufacturer, timestamp
+    name, stock, link, price, article, brand, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, article, imageLink, manufacturer, timestamp
+    name, stock, link, price, article, brand, imageLink, timestamp
 }
 
-const HOST = "https://comfort-klimat.ru"
+const HOST = "https://www.chipdip.ru"
 
-export class JS_Base_comfortklimatru extends JS_Base_Custom {
+export class JS_Base_chipdipru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -72,34 +72,7 @@ export class JS_Base_comfortklimatru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/?`)
-		url.searchParams.set("tags", "")
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("how", "r")
-		url.searchParams.set("PAGEN_1", set.page)
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = Math.max(...$("div.navigation > a:nth-of-type(6)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("a.nm[href]") 
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
+    
 
     //#region Парсинг товара
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -108,17 +81,17 @@ export class JS_Base_comfortklimatru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.pagetitle").text()?.trim()
-		const stock = $("span.js-stores__title").text()?.includes("В наличии: есть") ? "InStock" : "OutOfStock"
+        const name = $("h1").text()?.trim()
+		const stock = $("span.item__avail.item__avail_available.item__avail_float").text()?.includes("из магазина г.Екатеринбург") ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = $("span.c-prices__value.js-prices_pdv_BASE").text()?.trim().formatPrice()
-		const article = $("#bx_117848907_119714 > .b-properties-block.position-relative > .__grid > ul.b-properties-list.--3 > li:nth-of-type(1) > span.__value").text()?.trim()
-		const imageLink = $("meta[property='og:image']")?.attr("content")?.trim()
-		const manufacturer = $("#bx_117848907_119714 > .b-properties-block.position-relative > .__grid > ul.b-properties-list.--3 > li:nth-of-type(2) > span.__value").text()?.trim()
+		const price = $("#topbox_cart_sum_w > span.rub").text()?.trim().formatPrice()
+		const article = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+		const brand = $("a.link > span").text()?.trim()
+		let imageLink = $("img.product__image-preview.item__image_medium[itemprop='image']")?.attr("src")?.trim()?.replace(/(https:\/\/www\.chipdip\.ru).*/, "$1");
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, article, imageLink, manufacturer, timestamp
+            name, stock, link, price, article, brand, imageLink, timestamp
         }
         items.push(item);
 

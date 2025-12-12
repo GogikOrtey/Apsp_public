@@ -247,8 +247,12 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                 if selector_result_data:
                     host = data_input_table["host"]
                     if key == "imageLink":
-                        if host not in selector_result_data:
-                            print(f"    В элементе {selector_result_data} отсутствует хост. Добавляем:")
+                        if (
+                            host not in selector_result_data 
+                            and not "https://" in selector_result_data
+                            and not "http://" in selector_result_data
+                            ):
+                            print(f'    В элементе {selector_result_data} отсутствует хост и "http". Добавляем:')
                             selector_result_data = host + selector_result_data
                             is_add_host = True
 
