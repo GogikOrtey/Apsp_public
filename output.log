@@ -1,9 +1,24 @@
-12.12.2025 16:46:37
+12.12.2025 17:03:27
 
 
 🟦 Извлекли такие селекторы для строки "/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317":
+--- Начинаем поиск селектора ---
+Искомый текст: '/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317'
+Точное совпадение: True
+Контекст таблицы: False
+
+--- Фаза 1: Точное совпадение (текст / атрибуты) ---
+LOG: Attribute MATCH found in tag <a>. Attr: 'href', Value: '/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shley...'
+LOG: Final base selector (standard): '#item9000404317 > td.h_name > div.name > a.link'
+LOG: Make selector: #item9000404317 > td.h_name > div.name > a.link[href="/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317"] (Added IGNORED with value: href)
 Найдено 1 возможных селекторов
 
-🟢 Проверка селектора: #itemlist tr:has(td:contains("IDC-06F (DS1016-06), Розетка 2.54мм на шлейф 6pinс фиксатором кабеля209 шт.Бренд:Connfly")) > *:nth-child(1)[href="/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317"]
-❌ Элемент по селектору не найден или текст пуст
-🔴 Не найдено корректных селекторов
+🟢 Проверка селектора: #item9000404317 > td.h_name > div.name > a.link[href="/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317"]
+is_exact = True, устанавливаем фиктивное значение 1
+percent = 1.0
+⚪ Совпадение 33.9%: [IDC-06F (DS1016-06), Розетка 2.54мм на шлейф 6]
+
+🔵 Отсортированные селекторы:
+1. #item9000404317 > td.h_name > div.name > a.link[href="/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317"] score: 0.34, percent: 100.00%, pos: 0.2518
+
+Лучший селектор: #item9000404317 > td.h_name > div.name > a.link[href="/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317"] (совпадение 33.9%, процент содержания: 100.0%)
