@@ -772,7 +772,7 @@ https://cleansan.ru
 https://coffeeservice.bg
 https://coffeespot.bg
 https://comfort-klimat.ru
-https://cosmofun.ru
+https://cosmofun.ru               *
 https://c-s-k.ru                  *
 https://csk-rus.ru // нет пагинации
 
@@ -807,6 +807,9 @@ https://gresstore.ru         *
 
 Бесконечная пагинация:
 https://elevel.ru
+
+С вариациями товара по объёму:
+https://cosmofun.ru
 """
 
 
@@ -1156,7 +1159,8 @@ https://elevel.ru
 
 
 
-# Всё равботает отлично, кроме селектора oldprice
+# Всё работает отлично, кроме селектора oldprice
+# Есть объём, не лучший пример, но генерация проходит ок
 data_input_table = {
     "host": "https://cosmofun.ru",
     "fields_str": "",

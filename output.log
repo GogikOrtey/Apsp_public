@@ -1,4 +1,4 @@
-12.12.2025 00:53:44
+12.12.2025 09:23:25
 
 
 
@@ -22,7 +22,7 @@ field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 
 
 Обработаем 3 страниц
-📤 Берем страницу из кеша: https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/ (возраст 0.34 ч.)
+📤 Берем страницу из кеша: https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/ (возраст 8.83 ч.)
 
 Найдено 7 возможных селекторов
 Найден селектор для поля name
@@ -45,7 +45,7 @@ field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
 Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://cosmofun.ru/product/krem_regenyal/ (возраст 0.34 ч.)
+📤 Берем страницу из кеша: https://cosmofun.ru/product/krem_regenyal/ (возраст 8.83 ч.)
 
 Найдено 7 возможных селекторов
 Найден селектор для поля name
@@ -66,7 +66,7 @@ _______________________
 Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://cosmofun.ru/product/osvetlyayushchaya_pudra_ub_freedom_blonde_1/ (возраст 0.34 ч.)
+📤 Берем страницу из кеша: https://cosmofun.ru/product/osvetlyayushchaya_pudra_ub_freedom_blonde_1/ (возраст 8.83 ч.)
 
 Найдено 7 возможных селекторов
 Найден селектор для поля name
@@ -269,7 +269,7 @@ const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()
 
 💬 AI ANSWER:
 "```
-const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?(\d+).*/, '$1');
+const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?([0-9]+).*/, '$1');
 ```"
 
 Обрабатываем поле brand
@@ -599,7 +599,7 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
 		const link = set.query
 		const price = $(".bxr-detail-price").text()?.trim().formatPrice()
 		const oldprice = $("title").text()?.trim().formatPrice(",")
-		const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?(\d+).*/, '$1');
+		const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?([0-9]+).*/, '$1');
 		const brand = $("a.js-brand").text()?.trim()
 		let imageLink = $("#bx_117848907_24289_main_photo")?.attr("href")?.trim()?.replace(/png$/, 'png-webp');
 		imageLink = imageLink ? HOST + imageLink : "";
@@ -644,5 +644,5 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
 
 Итоговый статус генерации: 🟩 Sucsess 🟩
 
-🕚 Время выполнения: 22.59 секунд
+🕚 Время выполнения: 10.43 секунд
 🧢 Кол-во обращений к внешнему ИИ: 3
