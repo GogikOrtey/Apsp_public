@@ -111,8 +111,8 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
 		const stock = "InStock"
 		const link = set.query
 		const price = $(".bxr-detail-price").text()?.trim().formatPrice()
-		const oldprice = $("title").text()?.trim().formatPrice(",")
-		const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?([0-9]+).*/, '$1');
+		const oldprice = $(".bxr-detail-old-price").text()?.trim().formatPrice(",")
+		const article = $(".detail-items > div:nth-of-type(4)").text()?.trim()?.replace(/^[^0-9]*?(\d+).*/, '$1');
 		const brand = $("a.js-brand").text()?.trim()
 		let imageLink = $("#bx_117848907_24289_main_photo")?.attr("href")?.trim()?.replace(/png$/, 'png-webp');
 		imageLink = imageLink ? HOST + imageLink : "";

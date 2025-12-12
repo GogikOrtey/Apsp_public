@@ -1501,8 +1501,8 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False, return
 
 # # Поиск селекторов по подстроке на странице
 # isPrint = True
-# link = "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/"
-# finding_text_element = "Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая"
+# link = "https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/"
+# finding_text_element = "5 200 руб."
 # html = get_html_from_cache(link, print_msg = False)
 # # selector_result = get_css_selector_from_text_value_element(html, finding_text_element, is_exact=False)
 # selector_result = get_css_selector_from_text_value_element(html, finding_text_element)
