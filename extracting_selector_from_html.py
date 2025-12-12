@@ -1864,13 +1864,13 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False, return
 
 # # Для локальной проверки
 
-# Поиск селекторов по подстроке на странице
-isPrint = True
-link = "https://www.chipdip.ru/search?searchtext=pin&page=2"
-finding_text_element = "/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317"
-html = get_html_from_cache(link)
-# selector_result = get_css_selector_from_text_value_element(html, finding_text_element, is_exact=False)
-selector_result = get_css_selector_from_text_value_element(html, finding_text_element)
+# # Поиск селекторов по подстроке на странице
+# isPrint = True
+# link = "https://www.chipdip.ru/search?searchtext=pin&page=2"
+# finding_text_element = "/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317"
+# html = get_html_from_cache(link)
+# # selector_result = get_css_selector_from_text_value_element(html, finding_text_element, is_exact=False)
+# selector_result = get_css_selector_from_text_value_element(html, finding_text_element)
 
 
 # # Извлечение элемента по селектору

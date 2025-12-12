@@ -87,7 +87,7 @@ export class JS_Base_chipdipru extends JS_Base_Custom {
 		const price = $("#topbox_cart_sum_w > span.rub").text()?.trim().formatPrice()
 		const article = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
 		const brand = $("a.link > span").text()?.trim()
-		let imageLink = $("img.product__image-preview.item__image_medium[itemprop='image']")?.attr("src")?.trim()?.replace(/(https:\/\/www\.chipdip\.ru).*/, "$1");
+		const imageLink = $("img.product__image-preview.item__image_medium[itemprop='image']")?.attr("src")?.trim() || ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {

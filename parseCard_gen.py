@@ -213,6 +213,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
         elem_selector_first = "" # Нужно ли добавить ?.first() после извлечения результата селектора?
         is_use_comma_on_formatPrice = ""
         count_page = 0
+        add_or_null_operator = ""
         
         is_clarify_code_selector = False # Потребуется ли помощь ИИ для этой строки кода?
         ccs_result_value = "" # Первое значение, которое мы получили из селектора
@@ -247,6 +248,7 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
                 if selector_result_data:
                     host = data_input_table["host"]
                     if key == "imageLink":
+                        add_or_null_operator = ' || ""'
                         if (
                             host not in selector_result_data 
                             and not "https://" in selector_result_data
@@ -361,7 +363,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
             line_result_code =  f'\t\tlet {key} = {selector_result_code}'
             line_result_code += f'\n\t\t{key} = {key} ? HOST + {key} : ""'
         else:
-            line_result_code = f'\t\tconst {key} = {selector_result_code}'
+            line_result_code = f'\t\tconst {key} = {selector_result_code}{add_or_null_operator}'
+            # add_or_null_operator - только для imageLink
 
         if is_clarify_code_selector:
             # Прошу ИИ дополнить строку кода
@@ -399,6 +402,23 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
     for elem in result_logger_fields:
         print(elem)
     print("")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # region Генерируем шаблон
     lines.append(f"\t\tconst link = set.query")

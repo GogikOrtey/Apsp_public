@@ -1276,6 +1276,8 @@ https://coffeespot.bg
 
 
 
+# Некорректно извлекает селектор product для parsePage
+# И неправильно article
 data_input_table = {
     "host": "https://www.chipdip.ru",
     "fields_str": "",
