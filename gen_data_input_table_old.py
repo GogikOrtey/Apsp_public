@@ -1059,7 +1059,7 @@ data_input_table = {
                 "InStock_trigger": "",
                 "OutOfStock_trigger": "",
                 "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp"
-            },
+            }
         ]
     },
     "search_requests": [
@@ -1071,7 +1071,7 @@ data_input_table = {
             "links_items": [
                 "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/",
                 "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/",
-                "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/246297/",
+                "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/246297/"
             ]
         }
     ]

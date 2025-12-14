@@ -3,6 +3,7 @@
 Собирает данные в единый JSON формат data_input_table
 """
 import json
+import time
 from collections import OrderedDict
 from urllib.parse import urlparse
 
@@ -96,6 +97,7 @@ def process_results(examples_data, search_requests_data, selected_fields=None):
     # Инициализируем структуру результата с сохранением порядка ключей
     data_input_table = OrderedDict([
         ("host", extracted_host),
+        ("timestamp", int(time.time())),
         ("fields_str", ""),
         ("links", OrderedDict([
             ("simple", simple_ordered)

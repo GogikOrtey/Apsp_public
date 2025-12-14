@@ -1,41 +1,21 @@
 # Автогенерация из шага 4. Не редактируйте вручную.
-# Сохранено: 2025-12-15 04:16:53
+# Сохранено: 2025-12-15 04:42:11
 import json
 
 data_input_table = json.loads(r'''{
   "host": "https://c-s-k.ru",
+  "timestamp": 1765755725,
   "fields_str": "",
   "links": {
     "simple": [
       {
         "link": "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/",
         "name": "Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая",
-        "price": "26 499",
-        "oldprice": "",
-        "article": "00-01631492",
+        "price": "26 499/шт",
+        "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp",
+        "product_id": "00-01631492",
         "InStock_trigger": "",
-        "OutOfStock_trigger": "",
-        "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp"
-      },
-      {
-        "link": "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/",
-        "name": "Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая",
-        "price": "41 999",
-        "oldprice": "",
-        "article": "00-01616855",
-        "InStock_trigger": "",
-        "OutOfStock_trigger": "",
-        "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp"
-      },
-      {
-        "link": "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/",
-        "name": "Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая",
-        "price": "9 490",
-        "oldprice": "13 999",
-        "article": "00-01624852",
-        "InStock_trigger": "",
-        "OutOfStock_trigger": "",
-        "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp"
+        "OutOfStock_trigger": ""
       }
     ]
   },

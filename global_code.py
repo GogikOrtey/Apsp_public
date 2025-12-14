@@ -219,14 +219,14 @@ def gen_main_code():
     # region > test
 
 
-    # Извлекаем все селекторы из всех страниц, для parseCard
-    all_extracted_selectors = get_all_selectors(data_input_table)
+    # # Извлекаем все селекторы из всех страниц, для parseCard
+    # all_extracted_selectors = get_all_selectors(data_input_table)
 
-    # Генерируем parseCard
-    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+    # # Генерируем parseCard
+    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
-    # Генерируем parsePage
-    parse_page_code_value = ""
+    # # Генерируем parsePage
+    # parse_page_code_value = ""
 
 
 
@@ -238,16 +238,16 @@ def gen_main_code():
 
 
 
-    # # Обе функции
+    # Обе функции
 
-    # # Извлекаем все селекторы из всех страниц, для parseCard
-    # all_extracted_selectors = get_all_selectors(data_input_table)
+    # Извлекаем все селекторы из всех страниц, для parseCard
+    all_extracted_selectors = get_all_selectors(data_input_table)
 
-    # # Генерируем parseCard
-    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+    # Генерируем parseCard
+    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
-    # # Генерируем parsePage
-    # parse_page_code_value = main_generate_parsePage()
+    # Генерируем parsePage
+    parse_page_code_value = main_generate_parsePage()
 
 
 
@@ -333,8 +333,15 @@ $subtitle_from_code
 
 # region result_file_JS
 # Сохраняет результирующий код парсера в файл
-RESULT_CODE_TS_PATH = "result_code_gen/result/result_code.ts"
-MESSAGE_GLOBAL_TXT_PATH = "result_code_gen/result/message_global.txt"
+from pathlib import Path
+
+# Важно: используем абсолютные пути относительно корня проекта (директория этого файла),
+# чтобы генератор писал/чистил те же файлы независимо от текущей рабочей директории
+# (например, когда генерация запускается из Flask-приложения в Apsp_front).
+PROJECT_ROOT = Path(__file__).resolve().parent
+RESULT_OUTPUT_DIR = PROJECT_ROOT / "result_code_gen" / "result"
+RESULT_CODE_TS_PATH = RESULT_OUTPUT_DIR / "result_code.ts"
+MESSAGE_GLOBAL_TXT_PATH = RESULT_OUTPUT_DIR / "message_global.txt"
 
 def clear_result_outputs():
     """
@@ -349,17 +356,13 @@ def clear_result_outputs():
         pass
 
     # гарантируем наличие директории и обнуляем файлы
-    for filename in (RESULT_CODE_TS_PATH, MESSAGE_GLOBAL_TXT_PATH):
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write("")
+    RESULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    for filepath in (RESULT_CODE_TS_PATH, MESSAGE_GLOBAL_TXT_PATH):
+        filepath.write_text("", encoding="utf-8")
 
 def result_file_JS(result_code):
-    filename = RESULT_CODE_TS_PATH
-    os.makedirs(os.path.dirname(filename), exist_ok=True)  # создаём папку, если её нет
-
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(result_code)
+    RESULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    RESULT_CODE_TS_PATH.write_text(result_code, encoding="utf-8")
 
 
 # Печатает и сохраняет массив с сообщеними, ошибками и предупреждениями
@@ -389,7 +392,7 @@ def print_and_save_message_global(is_print_status_on_log, start):
 
             if key == "1":
                 emit(f"🟧 {value}")
-                generated_status = "🟧 Falled 🟧"
+                generated_status = "💠 Need review 💠"
             elif key == "2":
                 emit(f"🟡 [Предупреждение]: {value}")
             else:
@@ -414,10 +417,8 @@ def print_and_save_message_global(is_print_status_on_log, start):
     emit(f"Итоговый статус генерации: {generated_status}")
 
     if not is_print_status_on_log:
-        filename = MESSAGE_GLOBAL_TXT_PATH
-        os.makedirs(os.path.dirname(filename), exist_ok=True)  # создаём папку, если её нет
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write("\n".join(buffered_lines) + "\n")
+        RESULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        MESSAGE_GLOBAL_TXT_PATH.write_text("\n".join(buffered_lines) + "\n", encoding="utf-8")
 
 
 

@@ -1,4 +1,4 @@
-15.12.2025 04:16:58
+15.12.2025 04:42:14
 
 🚀 Запуск генерации...
 
@@ -9,7 +9,7 @@
 ------------------------------------------------------------------------------
 
 
-field = name, stock, link, price, oldprice, article, imageLink, timestamp
+field = name, stock, link, price, imageLink, product_id, timestamp
 
 
 
@@ -20,79 +20,38 @@ field = name, stock, link, price, oldprice, article, imageLink, timestamp
 ------------------------------------------------------------------------------
 
 
-Обработаем 3 страниц
+Обработаем 1 страниц
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/ (возраст 0.42 ч.)
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
 
-Найдено 18 возможных селекторов
+Найдено 13 возможных селекторов
 Найден селектор для поля price
-⬜ Пропускаем поле oldprice: Не строка или пустое значение
+
+Найдено 1 возможных селекторов
+Найден селектор для поля imageLink
 
 Найдено 1 возможных селекторов
 
 Найдено 23 возможных селекторов
-Найден селектор для поля article
+Найден селектор для поля product_id
 ⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 1 возможных селекторов
-Найден селектор для поля imageLink
 _______________________
-
-Найдено 6 возможных селекторов
-Найден селектор для поля name
-
-Найдено 17 возможных селекторов
-Найден селектор для поля price
-⬜ Пропускаем поле oldprice: Не строка или пустое значение
-
-Найдено 1 возможных селекторов
-
-Найдено 23 возможных селекторов
-Найден селектор для поля article
-⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 1 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-
-Найдено 6 возможных селекторов
-Найден селектор для поля name
-
-Найдено 9 возможных селекторов
-Найден селектор для поля price
-
-Найдено 4 возможных селекторов
-Найден селектор для поля oldprice
-
-Найдено 1 возможных селекторов
-
-Найдено 23 возможных селекторов
-Найден селектор для поля article
-⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
-
-Найдено 2 возможных селекторов
-Найден селектор для поля imageLink
-_______________________
-Используемые поля: ['name', 'price', 'oldprice', 'article', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
+Используемые поля: ['name', 'price', 'imageLink', 'product_id', 'InStock_trigger', 'OutOfStock_trigger']
 Кандидаты по полям (в порядке приоритета):
  - name: 1 селекторов -> ['.element__title.title-elem > h1']
  - price: 1 селекторов -> ['.price-elem__value']
- - oldprice: 1 селекторов -> ['.price-elem__value.price-elem__value_old']
- - article: 1 селекторов -> ['.header-elem__item.header-elem__item_s > span']
+ - imageLink: 1 селекторов -> ['img[itemprop="image"][src]']
+ - product_id: 1 селекторов -> ['.header-elem__item.header-elem__item_s > span']
  - InStock_trigger: 0 селекторов -> []
  - OutOfStock_trigger: 0 селекторов -> []
- - imageLink: 2 селекторов -> ['img[itemprop="image"][src]', 'a.imgs-elem__item.fancy.imgs-elem__item_first[href]']
-  [SKIP] oldprice on https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/: no expected value or no original selector
-  [SKIP] oldprice on https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/: no expected value or no original selector
 [WARN] Для поля InStock_trigger не найден селектор(ы).
 [WARN] Для поля OutOfStock_trigger не найден селектор(ы).
 
 📄 Кеш сохранён в cache.json, всего страниц: 64
-   Добавлено: 0, обновлено: 3
+   Добавлено: 0, обновлено: 1
 
 
 ✅ Итоговые селекторы:
@@ -103,17 +62,14 @@ _______________________
     "price": [
         ".price-elem__value"
     ],
-    "oldprice": [
-        ".price-elem__value.price-elem__value_old"
+    "imageLink": [
+        "img[itemprop="image"][src]"
     ],
-    "article": [
+    "product_id": [
         ".header-elem__item.header-elem__item_s > span"
     ],
     "InStock_trigger": [],
-    "OutOfStock_trigger": [],
-    "imageLink": [
-        "img[itemprop="image"][src]"
-    ]
+    "OutOfStock_trigger": []
 }
 
 
@@ -136,20 +92,6 @@ _______________________
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
-Проверяем селектор .element__title.title-elem > h1 на странице №2
-##### result_selector = {'result': 'Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая', 'length_elem': 1}
-    Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая
-    Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая
-
-    ✅ Полное совпадение селектора и оригинального значения поля name
-
-Проверяем селектор .element__title.title-elem > h1 на странице №3
-##### result_selector = {'result': 'Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая', 'length_elem': 1}
-    Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая
-    Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая
-
-    ✅ Полное совпадение селектора и оригинального значения поля name
-
 max_count_element_of_selectors = 🟡 1
 _____
 
@@ -158,53 +100,28 @@ _____
 Проверяем селектор .price-elem__value на странице №1
 ##### result_selector = {'result': '26 499', 'length_elem': 1}
     26 499
-    26 499
+    26 499/шт
 
     💲 Обрабатываем поле price
-    Разделитель - точка
-
-Проверяем селектор .price-elem__value на странице №2
-##### result_selector = {'result': '41 999', 'length_elem': 1}
-    41 999
-    41 999
-
-    💲 Обрабатываем поле price
-    Разделитель - точка
-
-Проверяем селектор .price-elem__value на странице №3
-##### result_selector = {'result': '9 490', 'length_elem': 2}
-    9 490
-    9 490
-
-    💲 Обрабатываем поле price
-    Разделитель - точка
-
-max_count_element_of_selectors = 🟡 2
-_____
-
-Нашли больше одного селектора для поля price
-Обрабатываем поле oldprice
-
-Проверяем селектор .price-elem__value.price-elem__value_old на странице №1
-##### result_selector = {'result': '', 'length_elem': 0}
-    ⬜ Нет результата у селектора  на странице 1 для поля oldprice
-
-Проверяем селектор .price-elem__value.price-elem__value_old на странице №2
-##### result_selector = {'result': '', 'length_elem': 0}
-    ⬜ Нет результата у селектора  на странице 2 для поля oldprice
-
-Проверяем селектор .price-elem__value.price-elem__value_old на странице №3
-##### result_selector = {'result': '13 999', 'length_elem': 1}
-    13 999
-    13 999
-
-    💲 Обрабатываем поле oldprice
     Разделитель - точка
 
 max_count_element_of_selectors = 🟡 1
 _____
 
-Обрабатываем поле article
+Обрабатываем поле imageLink
+
+Проверяем селектор img[itemprop="image"][src] на странице №1
+##### result_selector = {'result': '/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp', 'length_elem': 1}
+    В элементе /upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp отсутствует хост и "http". Добавляем:
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле product_id
 
 Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №1
 ##### result_selector = {'result': 'Код: 00-01631492', 'length_elem': 1}
@@ -213,29 +130,15 @@ _____
 
     🟨 Частичное совпадение
 
-Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №2
-##### result_selector = {'result': 'Код: 00-01616855', 'length_elem': 1}
-    Код: 00-01616855
-    00-01616855
-
-    🟨 Частичное совпадение
-
-Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №3
-##### result_selector = {'result': 'Код: 00-01624852', 'length_elem': 1}
-    Код: 00-01624852
-    00-01624852
-
-    🟨 Частичное совпадение
-
 max_count_element_of_selectors = 🟡 1
 _____
 
-🧢 Отправляю запрос к ИИ на исправление строки кода для поля article
+🧢 Отправляю запрос к ИИ на исправление строки кода для поля product_id
 Посылаю запрос к YandexGPT:
 
 💫 PROMPT:
 Есть такой код на JS: 
-const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()
+const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()
 Однако он извлекает "Код: 00-01631492"
 А должен извлекать: "00-01631492"
 
@@ -250,45 +153,103 @@ const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim(
 
 💬 AI ANSWER:
 "```
-const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
+const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^.*?:\s*/, '');
 ```"
-
-Обрабатываем поле imageLink
-
-Проверяем селектор img[itemprop="image"][src] на странице №1
-##### result_selector = {'result': '/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp', 'length_elem': 1}
-    В элементе /upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp отсутствует хост и "http". Добавляем:
-    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
-    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-Проверяем селектор img[itemprop="image"][src] на странице №2
-##### result_selector = {'result': '/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp', 'length_elem': 1}
-    В элементе /upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp отсутствует хост и "http". Добавляем:
-    https://c-s-k.ru/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp
-    https://c-s-k.ru/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-Проверяем селектор img[itemprop="image"][src] на странице №3
-##### result_selector = {'result': '/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp', 'length_elem': 1}
-    В элементе /upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp отсутствует хост и "http". Добавляем:
-    https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp
-    https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-max_count_element_of_selectors = 🟡 1
-_____
 
 Статистика нахождения селекторов:
 🟩: name 
-💲 : price  🟡 > 1
-💲 : oldprice 
-🟨: article  🧢 use ИИ
+💲 : price 
 🟩: imageLink 
+🟨: product_id  🧢 use ИИ
 
+
+
+
+------------------------------------------------------------------------------
+
+                               PARSE PAGE GEN
+
+------------------------------------------------------------------------------
+
+
+Посылаю запрос к YandexGPT:
+
+💫 PROMPT:
+Тебе нужно написать код, который формирует URL адрес запроса на поиск товара. Мы используем такой синтаксис:
+
+let url = new URL(`${HOST}/search`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("page", set.page)
+
+Твоя задача: Выше в коде заданые переменные set.query - это текст запроса на поиск, и set.page - это текущая страница поиска, она начинается с 1. Тебе нужно написать и вернуть только необходимый фрагмент кода на JS, в котором будет формироваться URL с использованием этих параметров. Чаще всего параметры поиска и текущей страницы задаются в searchParams, но иногда они задаются напрямую в строке URL, в таком случае нужно будет использовать синтаксис с `${}`. Также, в исходном URL могут быть заданы дополнительные параметры, которые не влияют на запрос и текущую страницу, все эти параметры нужно будет сохранить.
+
+Пример 1:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://galen.bg/catalogsearch/result/index/?p=2&q=мл
+
+Фрагмент с формированием URL:
+let url = new URL(`${HOST}/catalogsearch/result/index/`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("p", set.page)
+
+Пример 2:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://stroytorg812.ru/content/search/?s=&q=Ванна&PAGEN_1=2
+
+Фрагмент с формированием URL:
+let url = new URL(`${HOST}/content/search/`)
+url.searchParams.set("s", "")
+url.searchParams.set("q", set.query)
+url.searchParams.set("PAGEN_1", set.page)
+
+
+Пример 3:
+Строка на поиск у сайта, на 2ю страницу поиска: 
+https://gidro-top.ru/search/Ванна/?page=2
+
+Фрагмент с формированием URL:
+let url = new URL(`${HOST}/search/${set.query}/`)
+url.searchParams.set('/?page', set.page);
+
+-----
+
+Текущее задание:
+Строка на поиск у сайта, на 2ю страницу поиска: https://c-s-k.ru/catalog/?q=%D0%B4%D0%B2%D0%B5%D1%80%D1%8C&s=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&PAGEN_1=2
+
+Значение переменной HOST = https://c-s-k.ru
+
+Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
+
+
+💬 AI ANSWER:
+"```
+let url = new URL(`${HOST}/catalog/`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("s", "Поиск")
+url.searchParams.set("PAGEN_1", set.page)
+```"
+
+processed_url_product = /catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/
+
+Найдено 3 возможных селекторов
+Исходный селектор: a.catalog-item__title[href]
+Части селектора: ['a.catalog-item__title[href]']
+Количество частей: 1
+
+Проверяем селектор: a.catalog-item__title[href]
+Найдено элементов: 20
+✅ Найден подходящий селектор: a.catalog-item__title[href]
+
+Итоговый product_selector = a.catalog-item__title[href]
+Количество элементов по итоговому селектору: 20
+len_of_products_on_this_page = 20
+Ссылок по селектору: 20
+Совпадение ссылок = 1.00 (3/3)
+Извлекаем селектор кол-ва страниц
+
+Найдено 586 возможных селекторов
+pagination_selctor = span.nums > a:nth-of-type(4)
+Проверили, и нашли такой элемент по найденному селектору пагинации: 20
 Имя парсера: JS_Base_cskru
 
 
@@ -312,7 +273,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, article, imageLink, timestamp
+    name, stock, link, price, imageLink, product_id, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -321,7 +282,7 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, article, imageLink, timestamp
+    name, stock, link, price, imageLink, product_id, timestamp
 }
 
 const HOST = "https://c-s-k.ru"
@@ -377,7 +338,33 @@ export class JS_Base_cskru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    
+    async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/catalog/`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("s", "Поиск")
+		url.searchParams.set("PAGEN_1", set.page)
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("a.catalog-item__title[href]") 
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = `${HOST}${$(product)?.attr("href")}`
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
 
     //#region Парсинг товара
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -389,15 +376,14 @@ export class JS_Base_cskru extends JS_Base_Custom {
         const name = $(".element__title.title-elem > h1").text()?.trim()
 		const stock = "InStock"
 		const link = set.query
-		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
-		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
-		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
+		const price = $(".price-elem__value").text()?.trim().formatPrice()
+		const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^.*?:\s*/, '');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, oldprice, article, imageLink, timestamp
+            name, stock, link, price, imageLink, product_id, timestamp
         }
         items.push(item);
 
