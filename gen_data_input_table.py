@@ -856,6 +856,38 @@
 # }
 
 
+
+
+# oldprice неверно генерируется
+# data_input_table = {
+#     "host": "https://champion.ru",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "https://champion.ru/catalog/pily-tsepnye/benzinovye-pily/champion-237-16-quot/",
+#                 "name": "Бензиновая цепная пила CHAMPION 237-16",
+#                 "price": "11 190 рублей₽",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": "https://champion.ru/_ipx/fit_cover,b_%23fff/upload/iblock/abc/1100ii38tz4u7b060jorex361e38w0q1/237_16_360_01.jpg"
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "",
+#             "url_search_query_page_2": "",
+#             "count_of_page_on_pagination": "",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "",
+#             ]
+#         }
+#     ]
+# }
+
+
 #######################################################################################################
 
 # Новые данные
@@ -943,6 +975,35 @@ https://chel-heating.ru
 #                 "oldprice": "",
 #                 "article": "",
 #                 "brand": "",
+#                 "InStock_trigger": "",
+#                 "OutOfStock_trigger": "",
+#                 "imageLink": ""
+#             },
+#         ]
+#     },
+#     "search_requests": [
+#         {
+#             "query": "",
+#             "url_search_query_page_2": "",
+#             "count_of_page_on_pagination": "",
+#             "total_count_of_results": "0",
+#             "links_items": [
+#                 "",
+#             ]
+#         }
+#     ]
+# }
+
+# data_input_table = {
+#     "host": "НЕ ЗАБЫТЬ",
+#     "fields_str": "",
+#     "links": {
+#         "simple": [
+#             {
+#                 "link": "",
+#                 "name": "",
+#                 "price": "",
+#                 "oldprice": "",
 #                 "InStock_trigger": "",
 #                 "OutOfStock_trigger": "",
 #                 "imageLink": ""
@@ -1334,32 +1395,3 @@ data_input_table = {
 
 
 
-
-# ???
-# data_input_table = {
-#     "host": "https://champion.ru",
-#     "fields_str": "",
-#     "links": {
-#         "simple": [
-#             {
-#                 "link": "https://champion.ru/catalog/pily-tsepnye/benzinovye-pily/champion-237-16-quot/",
-#                 "name": "Бензиновая цепная пила CHAMPION 237-16",
-#                 "price": "11 190 рублей₽",
-#                 "InStock_trigger": "",
-#                 "OutOfStock_trigger": "",
-#                 "imageLink": "https://champion.ru/_ipx/fit_cover,b_%23fff/upload/iblock/abc/1100ii38tz4u7b060jorex361e38w0q1/237_16_360_01.jpg"
-#             },
-#         ]
-#     },
-#     "search_requests": [
-#         {
-#             "query": "",
-#             "url_search_query_page_2": "",
-#             "count_of_page_on_pagination": "",
-#             "total_count_of_results": "0",
-#             "links_items": [
-#                 "",
-#             ]
-#         }
-#     ]
-# }
