@@ -12,21 +12,22 @@ from import_all_libraries import *
 from global_code import * 
 
 
+def main_func(is_print_status_on_log = True):
+    try:
+        print("🚀 Запуск генерации...")
+
+        # Проверяю, что html-страница доступна, и данные первого товара на ней есть
+        check_avialible_html()
+
+        # Запускает генерацию кода парсера
+        result_parser_code(is_print_status_on_log)
+
+    except Exception as ex:
+        print(f"🟧 При генерации кода произошла критическая ошибка: {ex}")
 
 
-try:
-    # Проверяю, что html-страница доступна, и данные первого товара на ней есть
-    check_avialible_html()
 
-    # Запускает генерацию кода парсера
-    result_parser_code()
-
-except Exception as ex:
-    print(f"🟧 При генерации кода произошла критическая ошибка: {ex}")
-
-
-
-
+main_func()
 
 
 

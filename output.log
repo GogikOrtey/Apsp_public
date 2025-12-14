@@ -1,27 +1,27 @@
-14.12.2025 09:47:58
+14.12.2025 23:32:25
 
+🚀 Запуск генерации...
 
+------------------------------------------------------------------------------
 
+                              GLOBAL CODE GEN
 
---------------------------------------------------------------------------------------------------
-
-                                        GLOBAL CODE GEN
-
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 
 field = name, stock, link, price, oldprice, article, imageLink, timestamp
 
 
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
-                                       EXTRACTION SELECTOR
+                             EXTRACTION SELECTOR
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 
 Обработаем 3 страниц
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/ (возраст 13.74 ч.)
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -40,6 +40,7 @@ field = name, stock, link, price, oldprice, article, imageLink, timestamp
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/ (возраст 13.74 ч.)
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -58,6 +59,7 @@ _______________________
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/ (возраст 13.74 ч.)
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -118,12 +120,11 @@ _______________________
 }
 
 
+------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------------------------
+                                PARSE CARD GEN
 
-                                         PARSE CARD GEN
-
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 
 Проверяем селекторы, и генерируем parseCard
@@ -252,7 +253,7 @@ const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim(
 
 💬 AI ANSWER:
 "```
-const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Код: /, '');
+const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: /, '');
 ```"
 
 Обрабатываем поле imageLink
@@ -291,104 +292,15 @@ _____
 🟨: article  🧢 use ИИ
 🟩: imageLink 
 
-
-
-
---------------------------------------------------------------------------------------------------
-
-                                         PARSE PAGE GEN
-
---------------------------------------------------------------------------------------------------
-
-
-🟧 timestamp нет в массиве, данные для parsePage могут быть неактуальными
-Посылаю запрос к YandexGPT:
-
-💫 PROMPT:
-Тебе нужно написать код, который формирует URL адрес запроса на поиск товара. Мы используем такой синтаксис:
-
-let url = new URL(`${HOST}/search`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("page", set.page)
-
-Твоя задача: Выше в коде заданые переменные set.query - это текст запроса на поиск, и set.page - это текущая страница поиска, она начинается с 1. Тебе нужно написать и вернуть только необходимый фрагмент кода на JS, в котором будет формироваться URL с использованием этих параметров. Чаще всего параметры поиска и текущей страницы задаются в searchParams, но иногда они задаются напрямую в строке URL, в таком случае нужно будет использовать синтаксис с `${}`. Также, в исходном URL могут быть заданы дополнительные параметры, которые не влияют на запрос и текущую страницу, все эти параметры нужно будет сохранить.
-
-Пример 1:
-Строка на поиск у сайта, на 2ю страницу поиска: 
-https://galen.bg/catalogsearch/result/index/?p=2&q=мл
-
-Фрагмент с формированием URL:
-let url = new URL(`${HOST}/catalogsearch/result/index/`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("p", set.page)
-
-Пример 2:
-Строка на поиск у сайта, на 2ю страницу поиска: 
-https://stroytorg812.ru/content/search/?s=&q=Ванна&PAGEN_1=2
-
-Фрагмент с формированием URL:
-let url = new URL(`${HOST}/content/search/`)
-url.searchParams.set("s", "")
-url.searchParams.set("q", set.query)
-url.searchParams.set("PAGEN_1", set.page)
-
-
-Пример 3:
-Строка на поиск у сайта, на 2ю страницу поиска: 
-https://gidro-top.ru/search/Ванна/?page=2
-
-Фрагмент с формированием URL:
-let url = new URL(`${HOST}/search/${set.query}/`)
-url.searchParams.set('/?page', set.page);
-
------
-
-Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://c-s-k.ru/catalog/?q=%D0%B4%D0%B2%D0%B5%D1%80%D1%8C&s=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&PAGEN_1=2
-
-Значение переменной HOST = https://c-s-k.ru
-
-Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
-
-
-💬 AI ANSWER:
-"```
-let url = new URL(`${HOST}/catalog/?`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("s", "Поиск")
-url.searchParams.set("PAGEN_1", set.page)
-```"
-
-processed_url_product = /catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/
-
-Найдено 3 возможных селекторов
-Исходный селектор: a.catalog-item__title[href]
-Части селектора: ['a.catalog-item__title[href]']
-Количество частей: 1
-
-Проверяем селектор: a.catalog-item__title[href]
-Найдено элементов: 20
-✅ Найден подходящий селектор: a.catalog-item__title[href]
-
-Итоговый product_selector = a.catalog-item__title[href]
-Количество элементов по итоговому селектору: 20
-len_of_products_on_this_page = 20
-Ссылок по селектору: 20
-Совпадение ссылок = 1.00 (3/3)
-Извлекаем селектор кол-ва страниц
-
-Найдено 584 возможных селекторов
-pagination_selctor = span.nums > a:nth-of-type(4)
-Проверили, и нашли такой элемент по найденному селектору пагинации: 20
 Имя парсера: JS_Base_cskru
 
 
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
-                                    FINAL RESULT PARSER CODE
+                           FINAL RESULT PARSER CODE
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 
 
@@ -468,33 +380,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/?`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "Поиск")
-		url.searchParams.set("PAGEN_1", set.page)
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("a.catalog-item__title[href]") 
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
+    
 
     //#region Парсинг товара
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -508,7 +394,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 		const link = set.query
 		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
 		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
-		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Код: /, '');
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: /, '');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
@@ -545,12 +431,9 @@ export class JS_Base_cskru extends JS_Base_Custom {
 // Дата: 14 Дек 2025
 // © BrandPol
 
-Сообщения из message_global:
-🟡 [Предупреждение]: timestamp нет в массиве, данные для parsePage могут быть неактуальными
-
 Ссылка на 1й товар: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/
 
 Итоговый статус генерации: 🟩 Sucsess 🟩
 
-🕚 Время выполнения: 27.61 секунд
-🧢 Кол-во обращений к внешнему ИИ: 2
+🕚 Время выполнения: 0.00 секунд
+🧢 Кол-во обращений к внешнему ИИ: 1

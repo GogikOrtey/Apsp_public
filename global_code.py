@@ -17,24 +17,22 @@ from extraction_selectors_main import *
 
 
 this_module_title = """
+------------------------------------------------------------------------------
 
+                              GLOBAL CODE GEN
 
---------------------------------------------------------------------------------------------------
-
-                                        GLOBAL CODE GEN
-
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 """
 
 final_title = """
 
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
-                                    FINAL RESULT PARSER CODE
+                           FINAL RESULT PARSER CODE
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 """
 
@@ -221,14 +219,14 @@ def gen_main_code():
     # region > test
 
 
-    # # Извлекаем все селекторы из всех страниц, для parseCard
-    # all_extracted_selectors = get_all_selectors(data_input_table)
+    # Извлекаем все селекторы из всех страниц, для parseCard
+    all_extracted_selectors = get_all_selectors(data_input_table)
 
-    # # Генерируем parseCard
-    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+    # Генерируем parseCard
+    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
-    # # Генерируем parsePage
-    # parse_page_code_value = ""
+    # Генерируем parsePage
+    parse_page_code_value = ""
 
 
 
@@ -240,16 +238,16 @@ def gen_main_code():
 
 
 
-    # Обе функции
+    # # Обе функции
 
-    # Извлекаем все селекторы из всех страниц, для parseCard
-    all_extracted_selectors = get_all_selectors(data_input_table)
+    # # Извлекаем все селекторы из всех страниц, для parseCard
+    # all_extracted_selectors = get_all_selectors(data_input_table)
 
-    # Генерируем parseCard
-    parse_card_code_value = get_parseCard_code(all_extracted_selectors)
+    # # Генерируем parseCard
+    # parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
-    # Генерируем parsePage
-    parse_page_code_value = main_generate_parsePage()
+    # # Генерируем parsePage
+    # parse_page_code_value = main_generate_parsePage()
 
 
 
@@ -335,8 +333,29 @@ $subtitle_from_code
 
 # region result_file_JS
 # Сохраняет результирующий код парсера в файл
+RESULT_CODE_TS_PATH = "result_code_gen/result/result_code.ts"
+MESSAGE_GLOBAL_TXT_PATH = "result_code_gen/result/message_global.txt"
+
+def clear_result_outputs():
+    """
+    Очищает выходные файлы при старте, чтобы при ранней ошибке не оставались данные с прошлого запуска.
+    Также сбрасывает массив message_global (на случай повторного запуска в одном процессе).
+    """
+    # сброс глобальных сообщений (важно для повторных запусков без перезапуска интерпретатора)
+    try:
+        message_global.clear()
+    except Exception:
+        # на всякий случай, если message_global вдруг переопределили
+        pass
+
+    # гарантируем наличие директории и обнуляем файлы
+    for filename in (RESULT_CODE_TS_PATH, MESSAGE_GLOBAL_TXT_PATH):
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("")
+
 def result_file_JS(result_code):
-    filename = "result_code_gen/result/result_code.ts"
+    filename = RESULT_CODE_TS_PATH
     os.makedirs(os.path.dirname(filename), exist_ok=True)  # создаём папку, если её нет
 
     with open(filename, "w", encoding="utf-8") as f:
@@ -344,66 +363,71 @@ def result_file_JS(result_code):
 
 
 # Печатает и сохраняет массив с сообщеними, ошибками и предупреждениями
-def print_and_save_message_global():  
+def print_and_save_message_global(is_print_status_on_log):  
     generated_status = "🟩 Sucsess 🟩"
-    if len(message_global) > 0:
+    # Если is_print_status_on_log=True -> печатаем в консоль через print
+    # Если is_print_status_on_log=False -> вместо print сохраняем всё в message_global.txt (со смайликами)
+    buffered_lines = []
 
-        filename = "result_code_gen/result/message_global.txt"
-        with open(filename, "w", encoding="utf-8") as f:            
-            print(f"\nСообщения из message_global:")
-            for elem in message_global:
-                key = list(elem.keys())[0]
-                value = elem[key]
-
-                # Печать
-                if key == "1":
-                    print(f"🟧 {value}")
-                    generated_status = "🟧 Falled 🟧"
-                elif key == "2":
-                    print(f"🟡 [Предупреждение]: {value}")
-                else:
-                    print(f"🟦 {value}")
-
-                # Ошибки, которые рейзятся через raise ErrorHandler, не попадают сюда, т.к. они прерывают скрипт
-                # А здесь ошибки которые с типом 🟧 - это те, которые произошли, но программа пошла дальше
-                # Все эти ошибки, предупреждения и информационные сообщения будут выводиться пользователю
-
-                # Запись в файл
-                f.write(f"{key}: {value}\n")
-    
-    print("")
-    print(f'Ссылка на 1й товар: {data_input_table["links"]["simple"][0]["link"]}')
-    print("")
-    print(f"Итоговый статус генерации: {generated_status}")
-
-
-
-
-# Декоратор, который засекает время генерации всего кода
-def measure_time(func):
-    def wrapper(*args, **kwargs):
-        start = time.time()
-        result = func(*args, **kwargs)
-        elapsed = time.time() - start
-
-        print("")
-        if elapsed < 60:
-            print(f"🕚 Время выполнения: {elapsed:.2f} секунд")
+    def emit(line: str = ""):
+        if is_print_status_on_log:
+            print(line)
         else:
-            print(f"🕚 Время выполнения: {elapsed / 60:.1f} минут")
+            buffered_lines.append(line)
 
-        import import_all_libraries        
-        print(f"🧢 Кол-во обращений к внешнему ИИ: {import_all_libraries.count_request_to_AI}") 
+    if len(message_global) > 0:
+        emit("")
+        emit("Сообщения из message_global:")
 
-        return result
-    return wrapper
+        for elem in message_global:
+            key = list(elem.keys())[0]
+            value = elem[key]
+
+            # Ошибки, которые рейзятся через raise ErrorHandler, не попадают сюда, т.к. они прерывают скрипт
+            # А здесь ошибки которые с типом 🟧 - это те, которые произошли, но программа пошла дальше
+            # Все эти ошибки, предупреждения и информационные сообщения будут выводиться пользователю
+
+            if key == "1":
+                emit(f"🟧 {value}")
+                generated_status = "🟧 Falled 🟧"
+            elif key == "2":
+                emit(f"🟡 [Предупреждение]: {value}")
+            else:
+                emit(f"🟦 {value}")
+
+    emit("")
+    emit(f'Ссылка на 1й товар: {data_input_table["links"]["simple"][0]["link"]}')
+    emit("")
+    emit(f"Итоговый статус генерации: {generated_status}")
+
+    start = time.time()
+    elapsed = time.time() - start
+
+    emit("")
+    if elapsed < 60:
+        emit(f"🕚 Время выполнения: {elapsed:.2f} секунд")
+    else:
+        emit(f"🕚 Время выполнения: {elapsed / 60:.1f} минут")
+
+    import import_all_libraries
+    emit(f"🧢 Кол-во обращений к внешнему ИИ: {import_all_libraries.count_request_to_AI}")
+
+    if not is_print_status_on_log:
+        filename = MESSAGE_GLOBAL_TXT_PATH
+        os.makedirs(os.path.dirname(filename), exist_ok=True)  # создаём папку, если её нет
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("\n".join(buffered_lines) + "\n")
+
+
+
 
 # Основная функция
-@measure_time
-def result_parser_code():
+def result_parser_code(is_print_status_on_log):
+    # Важно: очищаем выходные файлы в самом начале, чтобы при любой ошибке не оставались старые результаты
+    clear_result_outputs()
     result_code = gen_main_code()
     result_file_JS(result_code)
-    print_and_save_message_global() # Печатает и сохраняет массив с ошибками и предупреждениями
+    print_and_save_message_global(is_print_status_on_log) # Печатает и сохраняет массив с ошибками и предупреждениями
 
 
 # result_parser_code()

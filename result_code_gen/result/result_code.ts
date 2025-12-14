@@ -72,33 +72,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/?`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "Поиск")
-		url.searchParams.set("PAGEN_1", set.page)
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("a.catalog-item__title[href]") 
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
+    
 
     //#region Парсинг товара
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -112,7 +86,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 		const link = set.query
 		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
 		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
-		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Код: /, '');
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: /, '');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
