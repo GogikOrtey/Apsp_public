@@ -86,7 +86,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 		const link = set.query
 		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
 		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
-		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: /, '');
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()

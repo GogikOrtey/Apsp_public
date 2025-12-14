@@ -27,6 +27,7 @@ def main_func(is_print_status_on_log = True):
 
 
 
+# main_func(is_print_status_on_log = False)
 main_func()
 
 

@@ -363,7 +363,7 @@ def result_file_JS(result_code):
 
 
 # Печатает и сохраняет массив с сообщеними, ошибками и предупреждениями
-def print_and_save_message_global(is_print_status_on_log):  
+def print_and_save_message_global(is_print_status_on_log, start):  
     generated_status = "🟩 Sucsess 🟩"
     # Если is_print_status_on_log=True -> печатаем в консоль через print
     # Если is_print_status_on_log=False -> вместо print сохраняем всё в message_global.txt (со смайликами)
@@ -395,14 +395,15 @@ def print_and_save_message_global(is_print_status_on_log):
             else:
                 emit(f"🟦 {value}")
 
-    emit("")
-    emit(f'Ссылка на 1й товар: {data_input_table["links"]["simple"][0]["link"]}')
+    if is_print_status_on_log:
+        emit("")
+        emit(f'Ссылка на 1й товар: {data_input_table["links"]["simple"][0]["link"]}')
+
     emit("")
     emit(f"Итоговый статус генерации: {generated_status}")
 
-    start = time.time()
+    # Засекаем время
     elapsed = time.time() - start
-
     emit("")
     if elapsed < 60:
         emit(f"🕚 Время выполнения: {elapsed:.2f} секунд")
@@ -423,11 +424,11 @@ def print_and_save_message_global(is_print_status_on_log):
 
 # Основная функция
 def result_parser_code(is_print_status_on_log):
-    # Важно: очищаем выходные файлы в самом начале, чтобы при любой ошибке не оставались старые результаты
+    start = time.time()
     clear_result_outputs()
     result_code = gen_main_code()
     result_file_JS(result_code)
-    print_and_save_message_global(is_print_status_on_log) # Печатает и сохраняет массив с ошибками и предупреждениями
+    print_and_save_message_global(is_print_status_on_log, start) # Печатает и сохраняет массив с ошибками и предупреждениями
 
 
 # result_parser_code()

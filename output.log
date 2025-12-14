@@ -1,4 +1,4 @@
-14.12.2025 23:32:25
+14.12.2025 23:36:52
 
 🚀 Запуск генерации...
 
@@ -21,7 +21,7 @@ field = name, stock, link, price, oldprice, article, imageLink, timestamp
 
 
 Обработаем 3 страниц
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/ (возраст 13.74 ч.)
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/ (возраст 13.81 ч.)
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -40,7 +40,7 @@ field = name, stock, link, price, oldprice, article, imageLink, timestamp
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/ (возраст 13.74 ч.)
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/ (возраст 13.81 ч.)
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -59,7 +59,7 @@ _______________________
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/ (возраст 13.74 ч.)
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/ (возраст 13.81 ч.)
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -253,7 +253,7 @@ const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim(
 
 💬 AI ANSWER:
 "```
-const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: /, '');
+const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
 ```"
 
 Обрабатываем поле imageLink
@@ -394,7 +394,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 		const link = set.query
 		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
 		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
-		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: /, '');
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
@@ -430,10 +430,3 @@ export class JS_Base_cskru extends JS_Base_Custom {
 // Код сгенерирован APSP v0.1
 // Дата: 14 Дек 2025
 // © BrandPol
-
-Ссылка на 1й товар: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/
-
-Итоговый статус генерации: 🟩 Sucsess 🟩
-
-🕚 Время выполнения: 0.00 секунд
-🧢 Кол-во обращений к внешнему ИИ: 1
