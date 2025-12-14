@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, s
 import json
 import os
 import zipfile
+from pathlib import Path
 from io import BytesIO
 from datetime import datetime
 from collections import OrderedDict
@@ -10,12 +11,23 @@ from result_processer import process_results
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'  # Важно для работы сессий
 
-# Создаем папку data, если её нет
-os.makedirs('data', exist_ok=True) 
+# Абсолютные пути: не зависят от текущей рабочей директории.
+FRONT_DIR = Path(__file__).resolve().parent              # .../APSP_public/Apsp_front
+PROJECT_ROOT = FRONT_DIR.parent                         # .../APSP_public
+
+# Создаем папку data, если её нет (храним рядом с фронтом)
+DATA_DIR = FRONT_DIR / 'data'
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Путь к JSON файлу
-JSON_FILE = 'data/submissions.json'
-FIELDS_DESCRIPTIONS_FILE = 'fields_descriptions.json'
+JSON_FILE = DATA_DIR / 'submissions.json'
+FIELDS_DESCRIPTIONS_FILE = FRONT_DIR / 'fields_descriptions.json'
+
+# Выходные файлы генерации (лежат в корне проекта / рядом с беком)
+RESULT_OUTPUT_DIR = PROJECT_ROOT / 'result_code_gen' / 'result'
+RESULT_CODE_FILE_PATH = RESULT_OUTPUT_DIR / 'result_code.ts'
+MESSAGE_GLOBAL_FILE_PATH = RESULT_OUTPUT_DIR / 'message_global.txt'
+LOG_FILE_PATH = PROJECT_ROOT / 'output.log'
 
 def load_fields_descriptions():
     """Загрузка описаний полей из JSON файла"""
@@ -524,15 +536,14 @@ def reset():
 @app.route('/content/<path:filename>')
 def content(filename):
     """Обслуживание статических файлов из папки content"""
-    return send_from_directory('content', filename)
+    return send_from_directory(str(FRONT_DIR / 'content'), filename)
 
 @app.route('/api/log')
 def get_log():
     """Возвращает содержимое файла output.log"""
-    log_file_path = 'content_files/output.log'
     try:
-        if os.path.exists(log_file_path):
-            with open(log_file_path, 'r', encoding='utf-8') as f:
+        if LOG_FILE_PATH.is_file():
+            with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
                 content = f.read()
             return Response(content, mimetype='text/plain; charset=utf-8')
         else:
@@ -543,10 +554,9 @@ def get_log():
 @app.route('/api/result_code')
 def get_result_code():
     """Возвращает содержимое файла result_code.ts"""
-    code_file_path = 'content_files/result_code.ts'
     try:
-        if os.path.exists(code_file_path):
-            with open(code_file_path, 'r', encoding='utf-8') as f:
+        if RESULT_CODE_FILE_PATH.is_file():
+            with open(RESULT_CODE_FILE_PATH, 'r', encoding='utf-8') as f:
                 content = f.read()
             return Response(content, mimetype='text/plain; charset=utf-8')
         else:
@@ -558,10 +568,9 @@ def get_result_code():
 @app.route('/api/message_global')
 def get_message_global():
     """Возвращает содержимое файла message_global.txt (с обрезкой переносов строк сверху/снизу)."""
-    message_file_path = 'content_files/message_global.txt'
     try:
-        if os.path.exists(message_file_path):
-            with open(message_file_path, 'r', encoding='utf-8') as f:
+        if MESSAGE_GLOBAL_FILE_PATH.is_file():
+            with open(MESSAGE_GLOBAL_FILE_PATH, 'r', encoding='utf-8') as f:
                 content = f.read()
             # Удаляем переносы строк только сверху и снизу (внутренние переносы сохраняем)
             content = content.strip('\r\n')
@@ -575,12 +584,11 @@ def get_message_global():
 @app.route('/download/parser_ts')
 def download_parser_ts():
     """Скачать сгенерированный парсер .ts"""
-    code_file_path = os.path.join('content_files', 'result_code.ts')
-    if not os.path.exists(code_file_path):
+    if not RESULT_CODE_FILE_PATH.is_file():
         return Response('Файл result_code.ts не найден', mimetype='text/plain; charset=utf-8', status=404)
 
     return send_file(
-        code_file_path,
+        str(RESULT_CODE_FILE_PATH),
         as_attachment=True,
         download_name='result_code.ts',
         mimetype='text/plain; charset=utf-8'
@@ -590,24 +598,19 @@ def download_parser_ts():
 @app.route('/download/all_files_zip')
 def download_all_files_zip():
     """Скачать все полезные выходные файлы одним .zip"""
-    base_dir = 'content_files'
-    if not os.path.isdir(base_dir):
-        return Response('Папка content_files не найдена', mimetype='text/plain; charset=utf-8', status=404)
-
-    required_names = [
-        'result_code.ts',
-        'output.log',
-        'message_global.txt',
+    required_files = [
+        ('result_code.ts', RESULT_CODE_FILE_PATH),
+        ('output.log', LOG_FILE_PATH),
+        ('message_global.txt', MESSAGE_GLOBAL_FILE_PATH),
     ]
 
     candidates = []
     missing = []
-    for name in required_names:
-        full_path = os.path.join(base_dir, name)
-        if not os.path.isfile(full_path):
-            missing.append(name)
+    for arcname, full_path in required_files:
+        if not full_path.is_file():
+            missing.append(arcname)
         else:
-            candidates.append((name, full_path))
+            candidates.append((arcname, full_path))
 
     if missing:
         return Response(
@@ -620,7 +623,7 @@ def download_all_files_zip():
     # Без сжатия (store)
     with zipfile.ZipFile(buf, mode='w', compression=zipfile.ZIP_STORED) as zf:
         for arcname, full_path in candidates:
-            zf.write(full_path, arcname=arcname)
+            zf.write(str(full_path), arcname=arcname)
 
     buf.seek(0)
 
