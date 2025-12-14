@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory, Response, send_file
 import json
 import os
+import sys
+import threading
 import zipfile
 from pathlib import Path
 from io import BytesIO
@@ -15,6 +17,10 @@ app.secret_key = 'your-secret-key-change-this-in-production'  # Важно дл�
 FRONT_DIR = Path(__file__).resolve().parent              # .../APSP_public/Apsp_front
 PROJECT_ROOT = FRONT_DIR.parent                         # .../APSP_public
 
+# Добавляем корень проекта в sys.path, чтобы можно было импортировать MainFuncAgent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
 # Создаем папку data, если её нет (храним рядом с фронтом)
 DATA_DIR = FRONT_DIR / 'data'
 DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -28,6 +34,15 @@ RESULT_OUTPUT_DIR = PROJECT_ROOT / 'result_code_gen' / 'result'
 RESULT_CODE_FILE_PATH = RESULT_OUTPUT_DIR / 'result_code.ts'
 MESSAGE_GLOBAL_FILE_PATH = RESULT_OUTPUT_DIR / 'message_global.txt'
 LOG_FILE_PATH = PROJECT_ROOT / 'output.log'
+GEN_DATA_INPUT_TABLE_PATH = PROJECT_ROOT / 'gen_data_input_table.py'
+
+# Глобальное состояние генерации (используется для опроса фронтом)
+CODE_GEN_STATE = {
+    "running": False,
+    "done": False,
+    "error": None,
+}
+CODE_GEN_STATE_LOCK = threading.Lock()
 
 def load_fields_descriptions():
     """Загрузка описаний полей из JSON файла"""
@@ -130,6 +145,76 @@ def reorder_result_json(result_json, selected_fields):
     ])
 
     return ordered_result
+
+
+def set_code_gen_state(running=False, done=False, error=None):
+    """Атомарно обновляет глобальное состояние генерации кода."""
+    with CODE_GEN_STATE_LOCK:
+        CODE_GEN_STATE["running"] = running
+        CODE_GEN_STATE["done"] = done
+        CODE_GEN_STATE["error"] = error
+
+
+def get_code_gen_state():
+    """Возвращает копию текущего состояния генерации."""
+    with CODE_GEN_STATE_LOCK:
+        return dict(CODE_GEN_STATE)
+
+
+def write_data_input_table_file(result_json):
+    """
+    Сохраняет итоговый JSON с шага 4 в gen_data_input_table.py,
+    чтобы main_func использовала актуальные данные.
+    """
+    if not result_json:
+        return
+
+    try:
+        # Нормализуем структуру (убираем OrderedDict) и сериализуем в JSON
+        normalized = json.loads(json.dumps(result_json, ensure_ascii=False, sort_keys=False))
+        json_content = json.dumps(normalized, ensure_ascii=False, indent=2, sort_keys=False)
+        safe_json_content = json_content.replace("'''", "\\'\\'\\'")
+
+        file_body = (
+            "# Автогенерация из шага 4. Не редактируйте вручную.\n"
+            f"# Сохранено: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            "import json\n\n"
+            "data_input_table = json.loads(r'''"
+            f"{safe_json_content}\n"
+            "''')\n"
+        )
+
+        with open(GEN_DATA_INPUT_TABLE_PATH, 'w', encoding='utf-8') as f:
+            f.write(file_body)
+
+        print(f'Данные сохранены в {GEN_DATA_INPUT_TABLE_PATH}')
+    except Exception as e:
+        print(f'Не удалось сохранить данные в {GEN_DATA_INPUT_TABLE_PATH}: {e}')
+
+
+def start_code_generation():
+    """
+    Запускает main_func в отдельном потоке, чтобы фронт мог сразу перейти на step6.
+    """
+    with CODE_GEN_STATE_LOCK:
+        if CODE_GEN_STATE["running"]:
+            print("Генерация уже запущена, повторный старт пропущен.")
+            return
+        CODE_GEN_STATE["running"] = True
+        CODE_GEN_STATE["done"] = False
+        CODE_GEN_STATE["error"] = None
+
+    def runner():
+        try:
+            from MainFuncAgent import main_func
+            main_func(is_print_status_on_log=False)
+            set_code_gen_state(running=False, done=True, error=None)
+        except Exception as e:
+            print(f"Ошибка при выполнении main_func: {e}")
+            set_code_gen_state(running=False, done=True, error=str(e))
+
+    thread = threading.Thread(target=runner, daemon=True)
+    thread.start()
 
 @app.route('/')
 def index():
@@ -387,12 +472,14 @@ def step4():
     if request.method == 'POST':
         # Получаем отредактированный JSON из формы
         edited_json_str = request.form.get('edited_json', '')
+        result_json_for_save = session.get('result_json')
         
         if edited_json_str.strip():
             try:
                 # Парсим и сохраняем отредактированный JSON в сессию
                 edited_json = json.loads(edited_json_str)
                 session['result_json'] = edited_json
+                result_json_for_save = edited_json
                 
                 # Выводим отредактированный JSON в консоль сервера
                 print('\n=== Отредактированный JSON (шаг 4) ===')
@@ -403,6 +490,10 @@ def step4():
                 # все равно пробуем перейти, но используем данные из сессии
                 print('\n=== ОШИБКА: JSON невалидный ===')
                 print('Используются данные из сессии\n')
+
+        # Сохраняем данные в файл, если есть валидный JSON
+        if result_json_for_save:
+            write_data_input_table_file(result_json_for_save)
         
         # Переходим на следующий шаг
         return redirect(url_for('step5'))
@@ -445,6 +536,7 @@ def step5():
     if request.method == 'POST':
         # Выводим сообщение в консоль сервера
         print("Начинаем генерацию")
+        start_code_generation()
         
         # Переходим на следующий шаг
         return redirect(url_for('step6'))
@@ -550,6 +642,13 @@ def get_log():
             return Response('', mimetype='text/plain; charset=utf-8')
     except Exception as e:
         return Response(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+
+
+@app.route('/api/code_gen_status')
+def code_gen_status():
+    """Возвращает состояние фоновой генерации main_func."""
+    status = get_code_gen_state()
+    return status
 
 @app.route('/api/result_code')
 def get_result_code():

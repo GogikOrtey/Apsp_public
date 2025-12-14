@@ -1059,6 +1059,46 @@
         loadResultCode();
     }
 
+    // Опрос состояния генерации на бэке
+    let codeGenStatusTimer = null;
+
+    function stopCodeGenStatusPolling() {
+        if (codeGenStatusTimer) {
+            clearInterval(codeGenStatusTimer);
+            codeGenStatusTimer = null;
+        }
+    }
+
+    function pollCodeGenStatus() {
+        // Если уже завершили — останавливаем опрос
+        if (code_gen_complete) {
+            stopCodeGenStatusPolling();
+            return;
+        }
+
+        fetch('/api/code_gen_status')
+            .then(response => response.json())
+            .then(data => {
+                if (!data) return;
+
+                if (data.done) {
+                    code_gen_complete = true;
+                    handleCodeGenComplete();
+                    stopCodeGenStatusPolling();
+                }
+            })
+            .catch(err => {
+                console.error('Ошибка при проверке статуса генерации:', err);
+            });
+    }
+
+    function startCodeGenStatusPolling() {
+        pollCodeGenStatus();
+        if (!codeGenStatusTimer) {
+            codeGenStatusTimer = setInterval(pollCodeGenStatus, 1000);
+        }
+    }
+
     // Обновляем содержимое при загрузке страницы
     document.addEventListener('DOMContentLoaded', function() {
         updateLogContent();
@@ -1070,12 +1110,8 @@
         startGenStatusesIfNeeded();
         updateGenStatusesVisibility();
 
-        /////////////////////////////////////////////////////////// Потом поменять
-        // Устанавливаем code_gen_complete в true через 15 секунд
-        setTimeout(function() {
-            code_gen_complete = true;
-            handleCodeGenComplete();
-        }, 5000);
+        // Стартуем опрос состояния генерации (вместо таймера)
+        startCodeGenStatusPolling();
 
         // На всякий случай: если состояние уже готово (например, при быстром переходе/кэше)
         showFinalActionsIfReady();
