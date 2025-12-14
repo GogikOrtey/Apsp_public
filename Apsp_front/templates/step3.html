@@ -1,0 +1,224 @@
+{% extends "layout.html" %}
+
+{% block title %}Шаг 3 - Вставьте данные для parsePage{% endblock %}
+
+{% block content %}
+<h1>Вставьте данные для parsePage</h1>
+
+<div class="step-indicator">
+    <div class="step completed">1</div>
+    <div class="step completed">2</div>
+    <div class="step active">3</div>
+    <div class="step">4</div>
+    <div class="step">5</div>
+    <div class="step">6</div>
+</div>
+
+<div class="debug-info-box">
+    <img src="{{ url_for('content', filename='info_icon.png') }}" alt="Info">
+    <div class="debug-text">Данный шаг в будущем будет автоматизирован</div>
+</div>
+
+<form method="POST" id="parsePageForm">
+    <div class="field-input-group">
+        <label class="field-label">
+            <span class="field-description">Поисковый запрос</span>
+            <span class="field-name">query</span>
+        </label>
+        <textarea class="field-textarea" name="query" rows="1">{{ saved_data.get('query', '') }}</textarea>
+    </div>
+
+    <div class="field-input-group">
+        <label class="field-label">
+            <span class="field-description">Ссылка на 2ю страницу поиска</span>
+            <span class="field-name">url_search_query_page_2</span>
+        </label>
+        <textarea class="field-textarea" name="url_search_query_page_2"
+            rows="1">{{ saved_data.get('url_search_query_page_2', '') }}</textarea>
+    </div>
+
+    <div class="field-input-group">
+        <label class="field-label">
+            <span class="field-description">Кол-во страниц в пагинации</span>
+            <span class="field-name">count_of_page_on_pagination</span>
+        </label>
+        <textarea class="field-textarea" name="count_of_page_on_pagination"
+            rows="1">{{ saved_data.get('count_of_page_on_pagination', '') }}</textarea>
+    </div>
+
+    <div class="field-input-group">
+        <label class="field-label">
+            <span class="field-description">(Опц.) Кол-во найденных результатов</span>
+            <span class="field-name">total_count_of_results</span>
+        </label>
+        <textarea class="field-textarea" name="total_count_of_results"
+            rows="1">{{ saved_data.get('total_count_of_results', '0') }}</textarea>
+    </div>
+
+    <div class="field-input-group field-input-group-compact">
+        <label class="field-label">
+            <span class="field-description">Ссылки на товары на странице поиска</span>
+            <span class="field-name">links_items</span>
+        </label>
+        <textarea class="field-textarea field-textarea-compact" name="links_items_0"
+            rows="1">{% if saved_data.get('links_items') and saved_data.get('links_items')|length > 0 %}{{ saved_data.get('links_items')[0] }}{% endif %}</textarea>
+    </div>
+
+    <div class="field-input-group field-input-group-compact">
+        <textarea class="field-textarea field-textarea-compact" name="links_items_1"
+            rows="1">{% if saved_data.get('links_items') and saved_data.get('links_items')|length > 1 %}{{ saved_data.get('links_items')[1] }}{% endif %}</textarea>
+    </div>
+
+    <div class="field-input-group field-input-group-compact">
+        <textarea class="field-textarea field-textarea-compact" name="links_items_2"
+            rows="1">{% if saved_data.get('links_items') and saved_data.get('links_items')|length > 2 %}{{ saved_data.get('links_items')[2] }}{% endif %}</textarea>
+    </div>
+
+    <div class="field-input-group field-input-group-compact">
+        <textarea class="field-textarea field-textarea-compact" name="links_items_3"
+            rows="1">{% if saved_data.get('links_items') and saved_data.get('links_items')|length > 3 %}{{ saved_data.get('links_items')[3] }}{% endif %}</textarea>
+    </div>
+
+    <div class="field-input-group field-input-group-compact">
+        <textarea class="field-textarea field-textarea-compact" name="links_items_4"
+            rows="1">{% if saved_data.get('links_items') and saved_data.get('links_items')|length > 4 %}{{ saved_data.get('links_items')[4] }}{% endif %}</textarea>
+    </div>
+
+    <div class="btn-group">
+        <a href="{{ url_for('step2') }}" class="btn btn-secondary">← Назад</a>
+        <button type="submit" class="btn btn-primary">Далее →</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Увеличиваем ширину контейнера для этой страницы
+    .container {
+        max-width: 800px;
+    } */
+
+    .field-input-group {
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    .field-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+        color: #555;
+        font-weight: 500;
+    }
+
+    .field-description {
+        flex: 1;
+    }
+
+    .field-name {
+        margin-left: 15px;
+        color: #888;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9em;
+    }
+
+    .field-textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 16px;
+        font-family: inherit;
+        resize: none;
+        min-height: 1.5em;
+        line-height: 1.5;
+        overflow: hidden;
+        transition: border-color 0.3s;
+    }
+
+    .field-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    /* Компактность по вертикали */
+    h1 {
+        margin-bottom: 8px;
+    }
+
+    .step-indicator {
+        margin-bottom: 20px;
+    }
+
+    .btn-group {
+        margin-top: 20px;
+    }
+
+    /* Компактные поля для links_items */
+    .field-input-group-compact {
+        margin-bottom: 5px;
+    }
+
+    .field-textarea-compact {
+        padding: 5px 8px;
+        min-height: 1.2em;
+        font-size: 14px;
+    }
+
+    .debug-info-box {
+        width: 100%;
+        padding: 10px 15px 13px 5px;
+        margin-bottom: 20px;
+        background-color: #e3f2fd;
+        border: 2px solid #2196f3;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .debug-info-box img {
+        width: 35px;
+        height: 35px;
+        flex-shrink: 0;
+        margin-left: 5px;
+        margin-top: 2px;
+    }
+
+    .debug-info-box .debug-text {
+        flex: 1;
+        text-align: center;
+        color: #1976d2;
+        font-weight: 500;
+        font-size: 17px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Функция автоматического изменения высоты textarea
+    function autoResizeTextarea(textarea) {
+        // Сбрасываем высоту, чтобы получить правильную scrollHeight
+        textarea.style.height = 'auto';
+        // Устанавливаем высоту равной scrollHeight (содержимое + padding)
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function () {
+        // Инициализируем автоизменение высоты для всех textarea
+        const allTextareas = document.querySelectorAll('.field-textarea');
+        allTextareas.forEach(textarea => {
+            // Устанавливаем начальную высоту
+            autoResizeTextarea(textarea);
+
+            // Обработчик изменения содержимого
+            textarea.addEventListener('input', function () {
+                autoResizeTextarea(this);
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block title %}Шаг 5 - Генерация кода{% endblock %}
+
+{% block content %}
+<div class="step-indicator">
+    <div class="step completed">1</div>
+    <div class="step completed">2</div>
+    <div class="step completed">3</div>
+    <div class="step completed">4</div>
+    <div class="step active">5</div>
+    <div class="step">6</div>
+</div>
+
+<h1>Всё готово для старта, можем начинать</h1>
+
+<form method="POST" id="codeGenerationForm">
+    <div class="btn-group">
+        <button type="submit" class="btn btn-success btn-large">Начать генерацию</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    h1 {
+        margin-top: 12px;
+        margin-bottom: 8px;
+        font-size: 1.8em;
+        color: #667eea;
+        text-align: center;
+    }
+
+    .step-indicator {
+        margin-bottom: 10px;
+    }
+
+    #codeGenerationForm {
+        margin-top: 20px;
+    }
+
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .btn-success.btn-large {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 18px;
+        font-weight: 600;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.1s;
+        width: 100%;
+    }
+
+    .btn-group .btn-secondary {
+        width: auto;
+    }
+
+    .btn-success.btn-large:hover {
+        /* background-color: #218838; */
+        background-color: #1bc540;
+        border-radius: 10px;
+    }
+
+    .btn-success.btn-large:active {
+        /* background-color: #1e7e34; */
+        background-color: #1bc540;
+        transform: scale(0.986);
+        border-radius: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

@@ -1,0 +1,445 @@
+{% extends "layout.html" %}
+
+{% block title %}Шаг 2 - Заполните поля примерами{% endblock %}
+
+{% block content %}
+<h1>Заполните поля примерами</h1>
+
+<div class="step-indicator">
+    <div class="step completed">1</div>
+    <div class="step active">2</div>
+    <div class="step">3</div>
+    <div class="step">4</div>
+    <div class="step">5</div>
+    <div class="step">6</div>
+</div>
+
+<form method="POST" id="examplesForm">
+    <div id="examples-container">
+        <!-- Первый блок примера будет здесь -->
+    </div>
+
+    <button type="button" id="add-example-btn" class="btn btn-add">
+        <span class="btn-add-icon">+</span> Добавить ещё пример
+    </button>
+
+    <div class="btn-group">
+        <a href="{{ url_for('step1') }}" class="btn btn-secondary">← Назад</a>
+        <button type="submit" class="btn btn-primary">Далее →</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Увеличиваем ширину контейнера для этой страницы */
+    .container {
+        max-width: 800px;
+    }
+
+    /* Основной блок примера с полями */
+    .example-block {
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 30px;
+        position: relative;
+        box-shadow: 0 0px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .example-block:not(:first-of-type) {
+        margin-top: 20px;
+    }
+
+    .example-block:not(:first-of-type)::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        /* background-color: #5e5e5e; */
+        /* background-color: #869af5; */
+        background-color: #8fa2f3;
+        display: none;
+        /* Отключил горизонтальную линию между блоками */
+    }
+
+    .example-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .example-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .example-delete-btn {
+        width: 30px;
+        height: 30px;
+        border: none;
+        border-radius: 5px;
+        background: #dc3545;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s;
+        padding: 0;
+    }
+
+    .trash-icon {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+    }
+
+    .example-delete-btn:hover {
+        background: #c82333;
+    }
+
+    .example-delete-btn:active {
+        background: #bd2130;
+    }
+
+    .field-input-group {
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    .field-label {
+        display: block;
+        margin-bottom: 6px;
+        color: #555;
+        font-weight: 500;
+    }
+
+    .field-textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 5px;
+        font-size: 16px;
+        font-family: inherit;
+        resize: none;
+        min-height: 1.5em;
+        line-height: 1.5;
+        overflow: hidden;
+        transition: border-color 0.3s;
+    }
+
+    .field-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    .field-textarea.error {
+        background-color: #ffe0e0;
+        border-color: #ff9999;
+    }
+
+    .btn-add {
+        background: #667eea;
+        color: white;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-add:hover {
+        background: #5568d3;
+    }
+
+    .btn-add:active {
+        background: #4a5bc0;
+    }
+
+    .btn-add-icon {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    /* Компактность по вертикали */
+    h1 {
+        margin-bottom: 8px;
+    }
+
+    .step-indicator {
+        margin-bottom: 20px;
+    }
+
+    .btn-group {
+        margin-top: 20px;
+    }
+
+    .custom-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: -20px;
+        padding: 6px 10px;
+        background: #333333ec;
+        color: white;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 1000;
+    }
+
+    .custom-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: #333333ec;
+    }
+
+    .custom-tooltip.show {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Данные о выбранных полях из сервера
+    // @ts-ignore - Jinja2 template syntax, will be processed by server
+    const selectedFields = {{ selected_fields | tojson }} || [];
+    // @ts-ignore - Jinja2 template syntax, will be processed by server
+    const fieldsDescriptions = {{ fields_descriptions | tojson }} || {};
+    // @ts-ignore - Jinja2 template syntax, will be processed by server
+    const trashIconUrl = "{{ url_for('content', filename='trash_ico_3.png') }}";
+
+    let exampleCounter = 1;
+
+    // Функция создания блока примера
+    function createExampleBlock(exampleNumber, isFirst = false) {
+        const block = document.createElement('div');
+        block.className = 'example-block';
+        block.setAttribute('data-example-index', exampleNumber);
+
+        let headerHTML = `<div class="example-header">
+            <div class="example-title">Пример ${exampleNumber}</div>`;
+
+        if (!isFirst) {
+            headerHTML += `<button type="button" class="example-delete-btn" onclick="deleteExampleBlock(this)">
+                <img src="${trashIconUrl}" alt="Удалить" class="trash-icon">
+            </button>`;
+        }
+
+        headerHTML += `</div>`;
+
+        let fieldsHTML = '';
+        selectedFields.forEach(fieldKey => {
+            const fieldDescription = fieldsDescriptions[fieldKey] || fieldKey;
+            fieldsHTML += `
+                <div class="field-input-group">
+                    <label class="field-label">${fieldDescription}</label>
+                    <textarea 
+                        class="field-textarea" 
+                        name="example_${exampleNumber}_${fieldKey}"
+                        rows="1"></textarea>
+                </div>
+            `;
+        });
+
+        block.innerHTML = headerHTML + fieldsHTML;
+        return block;
+    }
+
+    // Функция удаления блока примера
+    function deleteExampleBlock(button) {
+        const block = button.closest('.example-block');
+        block.remove();
+        updateExampleNumbers();
+    }
+
+    // Функция обновления номеров примеров после удаления
+    function updateExampleNumbers() {
+        const blocks = document.querySelectorAll('.example-block');
+        blocks.forEach((block, index) => {
+            const newNumber = index + 1;
+            const titleElement = block.querySelector('.example-title');
+            if (titleElement) {
+                titleElement.textContent = `Пример ${newNumber}`;
+            }
+
+            // Обновляем имена полей
+            block.setAttribute('data-example-index', newNumber);
+            const textareas = block.querySelectorAll('textarea');
+            textareas.forEach(textarea => {
+                const nameMatch = textarea.name.match(/^example_(\d+)_(.+)$/);
+                if (nameMatch) {
+                    textarea.name = `example_${newNumber}_${nameMatch[2]}`;
+                }
+            });
+        });
+    }
+
+    // Функция автоматического изменения высоты textarea
+    function autoResizeTextarea(textarea) {
+        // Сбрасываем высоту, чтобы получить правильную scrollHeight
+        textarea.style.height = 'auto';
+        // Устанавливаем высоту равной scrollHeight (содержимое + padding)
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    // Обязательные поля
+    const requiredFields = ['name', 'link', 'price'];
+
+    // Функция для удаления класса ошибки и tooltip при вводе
+    function removeErrorClass(textarea) {
+        textarea.classList.remove('error');
+        // Удаляем tooltip, если он есть
+        const fieldGroup = textarea.closest('.field-input-group');
+        if (fieldGroup) {
+            const tooltip = fieldGroup.querySelector('.custom-tooltip');
+            if (tooltip) {
+                tooltip.remove();
+            }
+        }
+    }
+
+    // Функция для создания и показа tooltip над полем
+    function showTooltip(textarea, message) {
+        const fieldGroup = textarea.closest('.field-input-group');
+        if (!fieldGroup) return;
+
+        // Удаляем существующий tooltip, если есть
+        const existingTooltip = fieldGroup.querySelector('.custom-tooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+
+        // Создаем новый tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'custom-tooltip';
+        tooltip.textContent = message;
+        fieldGroup.appendChild(tooltip);
+
+        // Показываем tooltip с небольшой задержкой для плавности
+        setTimeout(() => {
+            tooltip.classList.add('show');
+        }, 10);
+    }
+
+    // Функция валидации формы
+    function validateForm() {
+        const form = document.getElementById('examplesForm');
+        const exampleBlocks = document.querySelectorAll('.example-block');
+        let isValid = true;
+
+        // Убираем все предыдущие ошибки и tooltip
+        document.querySelectorAll('.field-textarea.error').forEach(textarea => {
+            textarea.classList.remove('error');
+        });
+        document.querySelectorAll('.custom-tooltip').forEach(tooltip => {
+            tooltip.remove();
+        });
+
+        // Проверяем каждый блок примера
+        exampleBlocks.forEach(block => {
+            const exampleIndex = block.getAttribute('data-example-index');
+
+            // Проверяем каждое обязательное поле
+            requiredFields.forEach(fieldKey => {
+                // Проверяем, есть ли это поле в выбранных полях
+                if (selectedFields.includes(fieldKey)) {
+                    const fieldName = `example_${exampleIndex}_${fieldKey}`;
+                    const textarea = form.querySelector(`textarea[name="${fieldName}"]`);
+
+                    if (textarea) {
+                        const value = textarea.value.trim();
+                        if (value === '') {
+                            isValid = false;
+                            textarea.classList.add('error');
+                            const fieldDescription = fieldsDescriptions[fieldKey] || fieldKey;
+                            // Показываем tooltip над полем
+                            // showTooltip(textarea, `Поле "${fieldDescription}" обязательно для заполнения`);
+                            showTooltip(textarea, `Поле обязательно для заполнения`);
+                        }
+                    }
+                }
+            });
+        });
+
+        // Прокручиваем к первому полю с ошибкой, если есть
+        if (!isValid) {
+            const firstError = form.querySelector('.field-textarea.error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Фокусируемся на поле после небольшой задержки
+                setTimeout(() => {
+                    firstError.focus();
+                }, 300);
+            }
+        }
+
+        return isValid;
+    }
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('examples-container');
+        const form = document.getElementById('examplesForm');
+
+        // Создаем первый блок примера
+        const firstBlock = createExampleBlock(1, true);
+        container.appendChild(firstBlock);
+
+        // Инициализируем автоизменение высоты для всех textarea
+        const allTextareas = document.querySelectorAll('.field-textarea');
+        allTextareas.forEach(textarea => {
+            // Устанавливаем начальную высоту
+            autoResizeTextarea(textarea);
+
+            // Обработчик изменения содержимого
+            textarea.addEventListener('input', function () {
+                autoResizeTextarea(this);
+                removeErrorClass(this);
+            });
+        });
+
+        // Обработчик кнопки добавления примера
+        document.getElementById('add-example-btn').addEventListener('click', function () {
+            exampleCounter++;
+            const newBlock = createExampleBlock(exampleCounter, false);
+            container.appendChild(newBlock);
+
+            // Инициализируем автоизменение высоты для новых textarea
+            const newTextareas = newBlock.querySelectorAll('.field-textarea');
+            newTextareas.forEach(textarea => {
+                autoResizeTextarea(textarea);
+                textarea.addEventListener('input', function () {
+                    autoResizeTextarea(this);
+                    removeErrorClass(this);
+                });
+            });
+        });
+
+        // Обработчик отправки формы
+        form.addEventListener('submit', function (e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

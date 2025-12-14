@@ -1,0 +1,1084 @@
+{% extends "layout.html" %}
+
+{% block title %}Шаг 6 - Генерация кода{% endblock %}  
+
+{% block content %}
+<h1>Генерация кода</h1>
+
+<div class="step-indicator">
+    <div class="step completed">1</div>
+    <div class="step completed">2</div>
+    <div class="step completed">3</div>
+    <div class="step completed">4</div>
+    <div class="step completed">5</div>
+    <div class="step active">6</div>
+</div>
+
+<form method="POST" id="codeGenerationForm">
+    <div class="accordion-container">
+        <div class="accordion-item active" id="log-block">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="accordion-title">Log</span>
+                <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <div id="gen-statuses" class="gen-statuses" aria-live="polite"></div>
+                    <textarea id="log-textarea" class="accordion-textarea" readonly>Логи будут отображаться здесь</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" id="code-gen-block">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="accordion-title">Code gen</span>
+                <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <textarea id="code-gen-textarea" class="accordion-textarea" readonly>Сгенерированный код будет отображаться здесь</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" id="status-block">
+            <div class="accordion-header" onclick="toggleAccordion(this)">
+                <span class="accordion-title">Status</span>
+                <span class="accordion-icon">▼</span>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-content-inner">
+                    <!-- <p class="accordion-text">Статус генерации:</p> -->
+                    <textarea id="status-textarea" class="accordion-textarea" readonly>Статус будет отображаться здесь</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="final-actions-bar">
+        <!-- Плейсхолдер сохраняет высоту нижней зоны, пока кнопки скрыты -->
+        <div class="final-actions-bar__placeholder" aria-hidden="true"></div>
+
+        <!-- Показываем только после завершения всех этапов и допечатывания Status -->
+        <div id="final-actions" class="final-actions" hidden>
+            <a class="final-actions__btn final-actions__btn--ts" href="{{ url_for('download_parser_ts') }}">.ts</a>
+            <a class="final-actions__btn final-actions__btn--zip" href="{{ url_for('download_all_files_zip') }}">Скачать все файлы .zip</a>
+            <a class="final-actions__btn final-actions__btn--start" href="{{ url_for('index') }}">В начало</a>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/tomorrow-night-bright.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/nord.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/midnight.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/cobalt.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/tomorrow-night-eighties.min.css">
+<style>
+    .container {
+        max-width: 900px !important;
+    }
+
+    .CodeMirror {
+        margin-top: 10px;
+        border: 1px solid #444;
+        border-radius: 5px;
+        height: auto;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    /*
+      Тема material: "активная строка" выглядела контрастнее из-за фона
+      .CodeMirror-activeline-background{ background: rgba(0,0,0,.5) }.
+      Делаем такой же (по сути) фон для всего редактора, чтобы весь код выглядел одинаково.
+    */
+    .cm-s-material.CodeMirror,
+    .cm-s-material .CodeMirror-gutters {
+        background-color: #13191c;
+    }
+
+    .CodeMirror-scroll {
+        /* Внутренний скролл CodeMirror не нужен — редактор растягиваем по контенту через JS */
+        overflow: hidden !important;
+    }
+
+    /* Убираем "мигающие" полосы прокрутки CodeMirror (они рисуются отдельными div'ами) */
+    .CodeMirror-vscrollbar,
+    .CodeMirror-hscrollbar,
+    .CodeMirror-scrollbar-filler,
+    .CodeMirror-gutter-filler {
+        display: none !important;
+    }
+
+    /* На всякий случай: скрыть webkit-скроллбар внутри области прокрутки */
+    .CodeMirror-scroll::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
+    }
+
+    .CodeMirror-sizer {
+        border-bottom: 0 !important;
+    }
+
+    .accordion-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .accordion-item {
+        width: 100%;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: border-color 0.3s;
+    }
+
+    /* .accordion-item:hover {
+        border-color: #667eea;
+    } */
+
+    .accordion-header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: #f8f9fa;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.3s;
+    }
+
+    .accordion-header:hover {
+        background-color: #e9ecef;
+    }
+
+    .accordion-title {
+        font-weight: 600;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .accordion-icon {
+        font-size: 14px;
+        color: #667eea;
+        transition: transform 0.3s;
+    }
+
+    .accordion-item.active .accordion-icon {
+        transform: rotate(180deg);
+    }
+
+    .accordion-content {
+        display: grid;
+        grid-template-rows: 0fr;
+        padding: 0 20px;
+        opacity: 0;
+        background-color: #fff;
+        transition: grid-template-rows 260ms ease, padding 260ms ease, opacity 200ms ease;
+    }
+
+    .accordion-item.active .accordion-content {
+        grid-template-rows: 1fr;
+        padding: 20px;
+        opacity: 1;
+    }
+
+    .accordion-content-inner {
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    .accordion-text {
+        margin-bottom: 15px;
+        /* color: #555; */
+        color: #3d3d3d;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    /* ===========================
+       Генерационные статусы (над логом)
+       =========================== */
+    .gen-statuses {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 6px;
+        /* Контейнер статусов должен быть "невидимым": без фона/границы и без внутренних отступов */
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    /* Если статусы есть — можно оставить небольшой отступ до лога */
+    .gen-statuses:not(:empty) {
+        margin-bottom: 12px;
+    }
+
+    .gen-statuses__item {
+        display: grid;
+        grid-template-columns: 16px 1fr;
+        align-items: center;
+        column-gap: 6px;
+        min-height: 20px;
+        color: #2b2b2b;
+        font-size: 14px;
+        line-height: 1.25;
+    }
+
+    .gen-statuses__check {
+        width: 16px;
+        height: 16px;
+        display: block;
+        opacity: 0;
+        transform: translateY(0.5px);
+    }
+
+    .gen-statuses__item--done .gen-statuses__check {
+        opacity: 1;
+    }
+
+    .gen-statuses__item--active {
+        font-weight: 600;
+        color: #111;
+    }
+
+    .accordion-textarea {
+        width: 100%;
+        height: 300px;
+        padding: 12px;
+        border: 2px solid #2d2d2d;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        resize: none;
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+        overflow-y: auto;
+        line-height: 1.5;
+        tab-size: 4;
+    }
+
+    /* Status должен быть "высотой 4 строки" и выше при необходимости */
+    #status-textarea {
+        height: auto;
+        min-height: calc(4 * 1.5em + 28px); /* 4 строки + padding/border (примерно) */
+        overflow-y: hidden;
+        resize: none;
+    }
+
+    .accordion-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+
+    h1 {
+        margin-bottom: 8px;
+    }
+
+    .step-indicator {
+        margin-bottom: 20px;
+    }
+
+    .final-actions-bar {
+        margin-top: 20px;
+        display: grid;
+        grid-template-areas: "stack";
+    }
+
+    /* Резервируем высоту "как сейчас" (под старую пару кнопок) */
+    .final-actions-bar__placeholder {
+        grid-area: stack;
+        min-height: 44px;
+    }
+
+    .final-actions {
+        grid-area: stack;
+        display: grid;
+        grid-template-columns: 1fr 4fr 1fr;
+        gap: 10px;
+        align-items: center;
+        justify-content: stretch;
+    }
+
+    /* Важно: не даём нашему display:grid перебить стандартный [hidden]{display:none} */
+    .final-actions[hidden] {
+        display: none !important;
+    }
+
+    .final-actions__btn {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        padding: 12px 22px;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1;
+        text-decoration: none;
+        cursor: pointer;
+        user-select: none;
+        transition: filter 0.2s, transform 0.06s;
+    }
+
+    .final-actions__btn:hover {
+        filter: brightness(0.97);
+    }
+
+    .final-actions__btn:active {
+        transform: scale(0.99);
+    }
+
+    /* .ts — заливка светло-голубая, граница голубая */
+    .final-actions__btn--ts {
+        background: #667eea;
+        border: 0;
+        color: #ffffff;
+    }
+
+    .final-actions__btn--ts:hover {
+        background: #5568d3;
+    }
+
+    /* Скачать все файлы .zip — заливка зелёная, границы нет */
+    .final-actions__btn--zip {
+        background: #28a745;
+        border: 0;
+        color: #ffffff;
+    }
+
+    /* В начало — серая, без границы */
+    .final-actions__btn--start {
+        background: #9aa0a6;
+        border: 0;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/selection/active-line.min.js"></script>
+<script>
+    // ===========================
+    // Настройки
+    // ===========================
+    // Скорость "печати" кода (символов в секунду). Это единственная настройка, которую нужно менять
+    // const CODE_TYPEWRITER_CHARS_PER_SEC = 320;
+    // const CODE_TYPEWRITER_CHARS_PER_SEC = 450;
+    const CODE_TYPEWRITER_CHARS_PER_SEC = 370;
+
+    // Скорость "печати" статуса (символов в секунду)
+    const STATUS_TYPEWRITER_CHARS_PER_SEC = 90;
+
+    // Режим автопрокрутки страницы во время "генерации" кода:
+    // - 'follow' : текущий режим — держим низ блока в видимой области (может скроллить часто)
+    // - 'follow_smooth' : как follow, но плавно (без видимых "прыжков" текста)
+    // - 'paged'  : новый режим — скроллим вниз "порциями" по N строк только когда блок снова дошёл до низа экрана
+    // const CODE_AUTO_SCROLL_MODE = 'follow_smooth'; // 'follow' | 'follow_smooth' | 'paged'
+    const CODE_AUTO_SCROLL_MODE = 'paged'; // 'follow' | 'follow_smooth' | 'paged'
+    const CODE_PAGED_SCROLL_LINES = 20;
+    
+    // Запас по высоте редактора (в строках), чтобы при добавлении новой строки
+    // не было микродёрганий из-за пересчётов высоты/внутренней прокрутки.
+    // ВАЖНО: этот запас нужен только ВО ВРЕМЯ "печати" (генерации). После завершения
+    // мы убираем его, чтобы в паузе (3 секунды перед переключением блоков) не было
+    // пустого пространства снизу.
+    const CODE_EDITOR_EXTRA_LINES_DURING_GEN = 1;
+    const CODE_EDITOR_EXTRA_LINES_AFTER_GEN = 0;
+    let codeEditorExtraLines = CODE_EDITOR_EXTRA_LINES_DURING_GEN;
+
+    // Инициализация CodeMirror для отображения кода
+    const codeTextarea = document.getElementById('code-gen-textarea');
+    let codeEditor = null;
+    let codeTypewriterTimer = null;
+    let codeTypewriterInProgress = false;
+    let lastPageScrollAt = 0;
+    let adjustScheduled = false;
+    let pagedAutoScrollArmed = true;
+    let smoothPageScrollRaf = null;
+    let smoothPageScrollTargetY = null;
+    
+    if (codeTextarea) {
+        codeEditor = CodeMirror.fromTextArea(codeTextarea, {
+            mode: { name: "javascript", typescript: true },
+            // theme: "dracula",
+            theme: "material",
+            lineNumbers: true,
+            lineWrapping: true,
+            matchBrackets: true,
+            autoCloseBrackets: true,
+            // Убираем подсветку "активной строки" (строка с курсором)
+            styleActiveLine: false,
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false,
+            viewportMargin: Infinity,
+            readOnly: true
+        });
+
+        // Инициализация высоты при загрузке
+        setTimeout(scheduleAdjustCodeEditorHeight, 100);
+    }
+
+    // Автоматическое изменение высоты редактора
+    function adjustCodeEditorHeight() {
+        if (!codeEditor) return;
+        // Важно: задаём высоту через setSize(px), не трогаем напрямую scrollerElement.style.height,
+        // иначе получаются конфликтующие пересчёты и "дёрганье" на строку.
+        codeEditor.refresh();
+        const wrapper = codeEditor.getWrapperElement();
+        // Берём высоту именно КОНТЕНТА, а не scrollHeight скроллера.
+        // scrollHeight часто становится max(contentHeight, clientHeight) и может "саморазгоняться"
+        // при наших setSize(), из-за чего пустое место снизу растёт.
+        const sizer = wrapper ? wrapper.querySelector('.CodeMirror-sizer') : null;
+        const contentHeight = (sizer && sizer.offsetHeight) ? sizer.offsetHeight : codeEditor.getScrollInfo().height;
+        const linePx = (typeof codeEditor.defaultTextHeight === 'function')
+            ? codeEditor.defaultTextHeight()
+            : 18;
+        const safeExtraLines = Math.max(0, codeEditorExtraLines);
+        // "Подушка" внизу нужна только во время генерации, иначе видна как пустота.
+        const extraPaddingPx = codeTypewriterInProgress ? 20 : 0;
+        const extraPx = (safeExtraLines * linePx) + extraPaddingPx;
+        codeEditor.setSize(null, contentHeight + extraPx);
+    }
+
+    function setCodeEditorExtraLines(lines) {
+        codeEditorExtraLines = Math.max(0, Number(lines) || 0);
+        scheduleAdjustCodeEditorHeight();
+    }
+
+    function scheduleAdjustCodeEditorHeight() {
+        if (!codeEditor) return;
+        if (adjustScheduled) return;
+        adjustScheduled = true;
+        requestAnimationFrame(function() {
+            adjustScheduled = false;
+            adjustCodeEditorHeight();
+            keepCodeBlockBottomInView();
+        });
+    }
+
+    function onAccordionOpened(accordionItem) {
+        if (!accordionItem) return;
+
+        // CodeMirror корректно вычисляет размеры только когда блок видим
+        if (accordionItem.id === 'code-gen-block' && codeEditor) {
+            requestAnimationFrame(function() {
+                scheduleAdjustCodeEditorHeight();
+            });
+        }
+
+        // Стартуем список статусов только когда открыт Log и генерация ещё идёт
+        if (accordionItem.id === 'log-block') {
+            startGenStatusesIfNeeded();
+            updateGenStatusesVisibility();
+        }
+
+        // Подставляем итоговый статус только после завершения генерации и при раскрытии Status
+        if (accordionItem.id === 'status-block') {
+            maybeLoadGlobalStatusMessage();
+        }
+    }
+
+    function openOnlyAccordionItem(targetItem) {
+        if (!targetItem) return;
+        document.querySelectorAll('.accordion-item').forEach(item => item.classList.remove('active'));
+        targetItem.classList.add('active');
+        onAccordionOpened(targetItem);
+    }
+
+    // Функция переключения раскрывающегося блока
+    function toggleAccordion(header) {
+        const accordionItem = header.parentElement;
+        const isActive = accordionItem.classList.contains('active');
+        
+        // Закрываем все блоки
+        document.querySelectorAll('.accordion-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        updateGenStatusesVisibility();
+        
+        // Открываем текущий блок, если он был закрыт
+        if (!isActive) {
+            accordionItem.classList.add('active');
+            onAccordionOpened(accordionItem);
+        }
+        updateGenStatusesVisibility();
+    }
+
+    // Функция для обновления содержимого лог-файла
+    function updateLogContent() {
+        const logTextarea = document.getElementById('log-textarea');
+        if (!logTextarea) return;
+
+        fetch('/api/log')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке логов');
+                }
+                return response.text();
+            })
+            .then(text => {
+                const currentScrollTop = logTextarea.scrollTop;
+                const isScrolledToBottom = logTextarea.scrollHeight - logTextarea.clientHeight <= currentScrollTop + 1;
+                
+                logTextarea.value = text;
+                
+                // Если пользователь был внизу, прокручиваем вниз после обновления
+                if (isScrolledToBottom) {
+                    logTextarea.scrollTop = logTextarea.scrollHeight;
+                } else {
+                    logTextarea.scrollTop = currentScrollTop;
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при обновлении логов:', error);
+            });
+    }
+
+    // Фиктивная переменная для отслеживания завершения генерации кода
+    let code_gen_complete = false;
+    // Истинное завершение: когда весь код уже отобразился в Code gen (typewriter закончился)
+    let code_display_complete = false;
+    let status_message_loaded = false;
+    function showFinalActionsIfReady() {
+        const actionsEl = document.getElementById('final-actions');
+        if (!actionsEl) return;
+        const shouldShow = !!(code_display_complete && status_message_loaded);
+        actionsEl.hidden = !shouldShow;
+    }
+
+    let statusTypewriterTimer = null;
+    let statusTypewriterInProgress = false;
+
+    // ===========================
+    // Статусы генерации (над логом)
+    // ===========================
+    const GEN_STATUS_CHECK_ICON_URL = "{{ url_for('content', filename='check.png') }}";
+    const GEN_STATUSES = [
+        'Thinking',
+        'Planning',
+        'Exploring',
+        'Analyzing',
+        'Planning next moves',
+        'Processing',
+        'Solving',
+        'Generating',
+        'Cross‑checking',
+        'Optimizing',
+        'Summarizing',
+        'Finalizing'
+    ];
+
+    const genStatusesState = {
+        started: false,
+        finalized: false,
+        currentIndex: 0,
+        nextSwitchAtMs: 0,
+        dotPhase: 0,
+        lastDotTickAtMs: 0,
+        tickTimer: null
+    };
+
+    let genStatusesDom = null; // { container, items: [{itemEl, labelEl}] }
+
+    function randomIntInclusive(min, max) {
+        const a = Math.ceil(min);
+        const b = Math.floor(max);
+        return Math.floor(Math.random() * (b - a + 1)) + a;
+    }
+
+    function getGenStatusDurationSec(statusIndex) {
+        // Первые 5 статусов (0..4) — 3..6 секунд, далее — 8..16 секунд
+        return statusIndex <= 3
+            ? randomIntInclusive(3, 6)
+            : randomIntInclusive(8, 16);
+    }
+
+    function isLogAccordionOpen() {
+        const logBlock = document.getElementById('log-block');
+        return !!(logBlock && logBlock.classList.contains('active'));
+    }
+
+    function ensureGenStatusesDom() {
+        if (genStatusesDom && genStatusesDom.container) return genStatusesDom;
+        const container = document.getElementById('gen-statuses');
+        if (!container) return null;
+
+        container.innerHTML = '';
+        const items = GEN_STATUSES.map(function(label) {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'gen-statuses__item';
+
+            const checkEl = document.createElement('img');
+            checkEl.className = 'gen-statuses__check';
+            checkEl.src = GEN_STATUS_CHECK_ICON_URL;
+            checkEl.alt = '';
+
+            const labelEl = document.createElement('div');
+            labelEl.className = 'gen-statuses__label';
+            labelEl.textContent = label;
+
+            itemEl.appendChild(checkEl);
+            itemEl.appendChild(labelEl);
+            container.appendChild(itemEl);
+
+            return { itemEl, labelEl, baseLabel: label };
+        });
+
+        genStatusesDom = { container, items };
+        return genStatusesDom;
+    }
+
+    function updateGenStatusesVisibility() {
+        const dom = ensureGenStatusesDom();
+        if (!dom) return;
+
+        // Показываем список статусов, пока открыт Log:
+        // - во время генерации (code_gen_complete=false)
+        // - и после завершения, если статусы уже успели стартовать (чтобы увидеть финальную галочку)
+        const shouldShow = isLogAccordionOpen() && (!code_gen_complete || genStatusesState.started);
+        dom.container.style.display = shouldShow ? 'grid' : 'none';
+    }
+
+    function renderGenStatuses() {
+        const dom = ensureGenStatusesDom();
+        if (!dom) return;
+
+        const activeIdx = genStatusesState.currentIndex;
+        const showUntil = Math.max(0, activeIdx);
+        const lastIdx = GEN_STATUSES.length - 1;
+
+        dom.items.forEach(function(it, idx) {
+            const isVisible = idx <= showUntil;
+            it.itemEl.style.display = isVisible ? 'grid' : 'none';
+
+            if (!isVisible) return;
+
+            const isDone = idx < activeIdx || (genStatusesState.finalized && idx === activeIdx);
+            const isActive = (idx === activeIdx) && !genStatusesState.finalized;
+
+            it.itemEl.classList.toggle('gen-statuses__item--done', isDone);
+            it.itemEl.classList.toggle('gen-statuses__item--active', isActive);
+
+            if (isActive) {
+                const dots = '.'.repeat(genStatusesState.dotPhase || 0);
+                it.labelEl.textContent = it.baseLabel + dots;
+            } else {
+                it.labelEl.textContent = it.baseLabel;
+            }
+
+            // На Finalizing, если генерация не завершилась — остаёмся активными (с точками), не двигаемся дальше
+            if (idx === lastIdx && idx === activeIdx && !genStatusesState.finalized) {
+                // ничего дополнительно
+            }
+        });
+    }
+
+    function startGenStatusesIfNeeded() {
+        if (genStatusesState.started) return;
+        if (code_gen_complete) return;
+
+        genStatusesState.started = true;
+        genStatusesState.finalized = false;
+        genStatusesState.currentIndex = 0;
+        genStatusesState.dotPhase = 1;
+        genStatusesState.lastDotTickAtMs = Date.now();
+        genStatusesState.nextSwitchAtMs = Date.now() + (getGenStatusDurationSec(0) * 1000);
+
+        updateGenStatusesVisibility();
+        renderGenStatuses();
+
+        if (!genStatusesState.tickTimer) {
+            genStatusesState.tickTimer = setInterval(genStatusesTick, 250);
+        }
+    }
+
+    function finalizeGenStatuses() {
+        if (!genStatusesState.started) return;
+        if (genStatusesState.finalized) return;
+
+        genStatusesState.finalized = true;
+        genStatusesState.dotPhase = 0;
+        renderGenStatuses();
+
+        if (genStatusesState.tickTimer) {
+            clearInterval(genStatusesState.tickTimer);
+            genStatusesState.tickTimer = null;
+        }
+    }
+
+    function genStatusesTick() {
+        updateGenStatusesVisibility();
+        if (!genStatusesState.started) return;
+        if (genStatusesState.finalized) return;
+
+        if (code_gen_complete) {
+            finalizeGenStatuses();
+            return;
+        }
+
+        const now = Date.now();
+
+        // Анимация точек у активного статуса
+        if (now - genStatusesState.lastDotTickAtMs >= 300) {
+            genStatusesState.lastDotTickAtMs = now;
+            genStatusesState.dotPhase = (genStatusesState.dotPhase % 3) + 1;
+            renderGenStatuses();
+        }
+
+        // Переключение статусов по таймеру (доходим до Finalizing и остаёмся там)
+        if (now >= genStatusesState.nextSwitchAtMs) {
+            const lastIdx = GEN_STATUSES.length - 1;
+            if (genStatusesState.currentIndex < lastIdx) {
+                genStatusesState.currentIndex += 1;
+                genStatusesState.dotPhase = 1;
+                genStatusesState.lastDotTickAtMs = now;
+                genStatusesState.nextSwitchAtMs = now + (getGenStatusDurationSec(genStatusesState.currentIndex) * 1000);
+                renderGenStatuses();
+            } else {
+                // Уже на Finalizing — просто держим его активным
+                genStatusesState.nextSwitchAtMs = now + (getGenStatusDurationSec(genStatusesState.currentIndex) * 1000);
+            }
+        }
+    }
+
+    function stopStatusTypewriter() {
+        if (statusTypewriterTimer) {
+            clearInterval(statusTypewriterTimer);
+            statusTypewriterTimer = null;
+        }
+        statusTypewriterInProgress = false;
+    }
+
+    function adjustStatusTextareaHeight() {
+        const el = document.getElementById('status-textarea');
+        if (!el) return;
+
+        // Сброс, чтобы корректно померить scrollHeight
+        el.style.height = 'auto';
+
+        const cs = window.getComputedStyle(el);
+        const fontSize = parseFloat(cs.fontSize) || 14;
+        const lineHeight = (cs.lineHeight && cs.lineHeight !== 'normal')
+            ? parseFloat(cs.lineHeight)
+            : Math.round(fontSize * 1.5);
+
+        const padTop = parseFloat(cs.paddingTop) || 0;
+        const padBottom = parseFloat(cs.paddingBottom) || 0;
+        const borderTop = parseFloat(cs.borderTopWidth) || 0;
+        const borderBottom = parseFloat(cs.borderBottomWidth) || 0;
+
+        const minRows = 4;
+        const minHeightPx = (minRows * lineHeight) + padTop + padBottom + borderTop + borderBottom;
+        const nextHeight = Math.max(minHeightPx, el.scrollHeight);
+        el.style.height = nextHeight + 'px';
+    }
+
+    function startStatusTypewriter(fullText) {
+        const el = document.getElementById('status-textarea');
+        if (!el) return;
+
+        stopStatusTypewriter();
+        statusTypewriterInProgress = true;
+
+        // Начинаем печатать "с нуля"
+        el.value = '';
+        adjustStatusTextareaHeight();
+
+        const tickMs = 16;
+        const chunkSize = Math.max(1, Math.floor((STATUS_TYPEWRITER_CHARS_PER_SEC * tickMs) / 1000));
+        let idx = 0;
+
+        statusTypewriterTimer = setInterval(function() {
+            if (!statusTypewriterInProgress) return;
+
+            const nextIdx = Math.min(fullText.length, idx + chunkSize);
+            el.value = fullText.slice(0, nextIdx);
+            idx = nextIdx;
+
+            adjustStatusTextareaHeight();
+
+            if (idx >= fullText.length) {
+                stopStatusTypewriter();
+                status_message_loaded = true;
+                showFinalActionsIfReady();
+            }
+        }, tickMs);
+    }
+
+    function maybeLoadGlobalStatusMessage() {
+        if (!code_display_complete) return;
+        if (status_message_loaded || statusTypewriterInProgress) return;
+
+        const statusTextarea = document.getElementById('status-textarea');
+        if (!statusTextarea) return;
+
+        fetch('/api/message_global')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке итогового статуса');
+                }
+                return response.text();
+            })
+            .then(text => {
+                startStatusTypewriter(text);
+            })
+            .catch(error => {
+                console.error('Ошибка при обновлении итогового статуса:', error);
+            });
+    }
+
+    // Функция для загрузки содержимого result_code.ts
+    function loadResultCode() {
+        if (!codeEditor) return;
+
+        fetch('/api/result_code')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка при загрузке кода');
+                }
+                return response.text();
+            })
+            .then(text => {
+                startCodeTypewriter(text, function onDone() {
+                    // Код полностью отобразился
+                    code_display_complete = true;
+
+                    // Когда весь код "сгенерировался" и отобразился:
+                    // делаем паузу 3 секунды и потом
+                    // - свернуть 2й блок (Code gen)
+                    // - раскрыть 3й блок (Status)
+                    setTimeout(function() {
+                        const codeGenBlock = document.getElementById('code-gen-block');
+                        if (codeGenBlock) codeGenBlock.classList.remove('active');
+                        const statusBlock = document.getElementById('status-block');
+                        if (statusBlock) {
+                            openOnlyAccordionItem(statusBlock);
+                            // После автоперехода в Status подставляем итоговый статус из файла
+                            maybeLoadGlobalStatusMessage();
+                        }
+                    }, 3000);
+                });
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке кода:', error);
+            });
+    }
+
+    function stopCodeTypewriter() {
+        if (codeTypewriterTimer) {
+            clearInterval(codeTypewriterTimer);
+            codeTypewriterTimer = null;
+        }
+        codeTypewriterInProgress = false;
+    }
+
+    function keepCodeBlockBottomInView() {
+        if (!codeEditor) return;
+
+        const wrapper = codeEditor.getWrapperElement();
+        if (!wrapper) return;
+
+        const rect = wrapper.getBoundingClientRect();
+        const bottom = rect.bottom;
+        const viewportH = window.innerHeight || document.documentElement.clientHeight;
+        const margin = 24;
+        const threshold = viewportH - margin;
+
+        // Режим 1: "follow" — подгоняем страницу так, чтобы низ блока всегда был видим.
+        if (CODE_AUTO_SCROLL_MODE === 'follow') {
+            if (bottom > threshold) {
+                const now = Date.now();
+                // лёгкая "защита" от слишком частых скроллов
+                if (now - lastPageScrollAt < 50) return;
+                lastPageScrollAt = now;
+
+                const delta = bottom - threshold;
+                window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
+            }
+            return;
+        }
+
+        // Режим 1b: "follow_smooth" — как follow, но плавно (без скачков на строку).
+        if (CODE_AUTO_SCROLL_MODE === 'follow_smooth') {
+            if (bottom > threshold) {
+                const now = Date.now();
+                if (now - lastPageScrollAt < 50) return;
+                lastPageScrollAt = now;
+
+                const delta = bottom - threshold;
+                requestSmoothPageScrollBy(delta);
+            }
+            return;
+        }
+
+        // Режим 2: "paged" — скроллим "порциями" по N строк, только когда блок ДОШЁЛ до низа экрана,
+        // и повторяем только когда он снова туда дойдёт.
+        if (bottom > threshold) {
+            if (!pagedAutoScrollArmed) return;
+
+            const now = Date.now();
+            if (now - lastPageScrollAt < 80) return;
+            lastPageScrollAt = now;
+
+            const linePx = (typeof codeEditor.defaultTextHeight === 'function')
+                ? codeEditor.defaultTextHeight()
+                : 18;
+            const pagePx = Math.max(1, CODE_PAGED_SCROLL_LINES) * linePx;
+
+            pagedAutoScrollArmed = false;
+            window.scrollBy({ top: pagePx, left: 0, behavior: 'auto' });
+            return;
+        }
+
+        // Низ блока снова выше порога — "взводим" триггер для следующей порции
+        pagedAutoScrollArmed = true;
+    }
+
+    function requestSmoothPageScrollBy(deltaY) {
+        const docEl = document.documentElement;
+        const maxY = Math.max(0, (docEl ? docEl.scrollHeight : 0) - (window.innerHeight || 0));
+
+        // Накапливаем цель, чтобы частые вызовы не создавали "лес" анимаций
+        const currentY = window.scrollY || window.pageYOffset || 0;
+        const base = (smoothPageScrollTargetY == null) ? currentY : smoothPageScrollTargetY;
+        smoothPageScrollTargetY = Math.min(maxY, Math.max(0, base + deltaY));
+
+        if (smoothPageScrollRaf != null) return;
+
+        const step = function() {
+            const y = window.scrollY || window.pageYOffset || 0;
+            const target = (smoothPageScrollTargetY == null) ? y : smoothPageScrollTargetY;
+            const diff = target - y;
+
+            // Уже дошли — стопаемся
+            if (Math.abs(diff) < 0.75) {
+                window.scrollTo(0, target);
+                smoothPageScrollRaf = null;
+                return;
+            }
+
+            // Плавное приближение к цели
+            const delta = Math.sign(diff) * Math.min(Math.abs(diff), Math.max(2, Math.abs(diff) * 0.2));
+            window.scrollTo(0, y + delta);
+            smoothPageScrollRaf = requestAnimationFrame(step);
+        };
+
+        smoothPageScrollRaf = requestAnimationFrame(step);
+    }
+
+    function startCodeTypewriter(fullText, onComplete) {
+        if (!codeEditor) return;
+
+        // Если анимация уже идёт — перезапускаем корректно
+        stopCodeTypewriter();
+        codeTypewriterInProgress = true;
+        // Во время печати держим небольшой запас, чтобы не было микродёрганий высоты.
+        setCodeEditorExtraLines(CODE_EDITOR_EXTRA_LINES_DURING_GEN);
+
+        const tickMs = 16; // внутренняя частота обновления (примерно 60fps)
+        const chunkSize = Math.max(1, Math.floor((CODE_TYPEWRITER_CHARS_PER_SEC * tickMs) / 1000));
+
+        const doc = codeEditor.getDoc();
+        doc.setValue('');
+
+        let idx = 0;
+        let lastHeightAdjustAt = 0;
+
+        codeTypewriterTimer = setInterval(function() {
+            if (!codeTypewriterInProgress) return;
+
+            const nextIdx = Math.min(fullText.length, idx + chunkSize);
+            const chunk = fullText.slice(idx, nextIdx);
+            idx = nextIdx;
+
+            const lastLine = doc.lastLine();
+            const lastCh = doc.getLine(lastLine).length;
+            doc.replaceRange(chunk, { line: lastLine, ch: lastCh });
+
+            // Не пересчитываем высоту на каждом тике — это дорого.
+            const now = Date.now();
+            if (now - lastHeightAdjustAt > 200) {
+                lastHeightAdjustAt = now;
+                scheduleAdjustCodeEditorHeight();
+            }
+
+            // Если блок уходит ниже экрана — прокручиваем страницу к его низу
+            keepCodeBlockBottomInView();
+
+            if (idx >= fullText.length) {
+                stopCodeTypewriter();
+                // Сразу после завершения генерации убираем запас по высоте,
+                // чтобы во время паузы (3 секунды до автопереключения блоков)
+                // не было пустого пространства снизу.
+                setCodeEditorExtraLines(CODE_EDITOR_EXTRA_LINES_AFTER_GEN);
+                // Финальная подгонка высоты
+                setTimeout(function() {
+                    scheduleAdjustCodeEditorHeight();
+                }, 0);
+                if (typeof onComplete === 'function') onComplete();
+            }
+        }, tickMs);
+    }
+
+    // Функция для обработки завершения генерации кода
+    function handleCodeGenComplete() {
+        if (!code_gen_complete) return;
+
+        // Помечаем последний активный статус как завершённый
+        finalizeGenStatuses();
+
+        // Скрываем блок Log
+        const logBlock = document.getElementById('log-block');
+        if (logBlock) {
+            logBlock.classList.remove('active');
+        }
+
+        // Раскрываем блок Code gen
+        const codeGenBlock = document.getElementById('code-gen-block');
+        if (codeGenBlock) {
+            codeGenBlock.classList.add('active');
+            onAccordionOpened(codeGenBlock);
+        }
+
+        // Загружаем содержимое файла в textarea
+        loadResultCode();
+    }
+
+    // Обновляем содержимое при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLogContent();
+        
+        // Обновляем содержимое каждые 500 мс (2 раза в секунду)
+        setInterval(updateLogContent, 500);
+
+        // Log открыт по умолчанию — стартуем статусы сразу (если генерация ещё идёт)
+        startGenStatusesIfNeeded();
+        updateGenStatusesVisibility();
+
+        /////////////////////////////////////////////////////////// Потом поменять
+        // Устанавливаем code_gen_complete в true через 15 секунд
+        setTimeout(function() {
+            code_gen_complete = true;
+            handleCodeGenComplete();
+        }, 5000);
+
+        // На всякий случай: если состояние уже готово (например, при быстром переходе/кэше)
+        showFinalActionsIfReady();
+    });
+</script>
+{% endblock %}

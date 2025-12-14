@@ -1,0 +1,196 @@
+{% extends "layout.html" %}
+
+{% block title %}Шаг 4 - Подтверждение{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/tomorrow-night-bright.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/nord.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/cobalt.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/tomorrow-night-eighties.min.css">
+<style>
+    .container {
+        max-width: 800px !important;
+    }
+
+    .CodeMirror {
+        margin-top: 10px;
+        border: 1px solid #444;
+        border-radius: 5px;
+        height: auto;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .CodeMirror-scroll {
+        overflow: hidden !important;
+        height: auto !important;
+    }
+
+    .CodeMirror-sizer {
+        border-bottom: 0 !important;
+    }
+
+    .error-message {
+        display: none;
+        margin-top: 10px;
+        padding: 15px;
+        background: #ffcccc;
+        border: 1px solid #ff9999;
+        border-radius: 5px;
+        color: #cc0000;
+        font-weight: 500;
+    }
+
+    .error-message.show {
+        display: block;
+    }
+
+    .debug-info-box {
+        width: 100%;
+        padding: 10px 15px 13px 5px;
+        margin-bottom: 20px;
+        background-color: #e3f2fd;
+        border: 2px solid #2196f3;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .debug-info-box img {
+        width: 35px;
+        height: 35px;
+        flex-shrink: 0;
+        margin-left: 5px;
+        margin-top: 2px;
+    }
+
+    .debug-info-box .debug-text {
+        flex: 1;
+        text-align: center;
+        color: #1976d2;
+        font-weight: 500;
+        font-size: 19px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Шаг 4: Подтверждение данных</h1>
+
+<div class="step-indicator">
+    <div class="step completed">1</div>
+    <div class="step completed">2</div>
+    <div class="step completed">3</div>
+    <div class="step active">4</div>
+    <div class="step">5</div>
+    <div class="step">6</div>
+</div>
+
+<div class="debug-info-box">
+    <img src="{{ url_for('content', filename='info_icon.png') }}" alt="Info">
+    <div class="debug-text">Данный шаг нужен только для отладки</div>
+</div>
+
+<form method="POST" id="json-form">
+    <div style="margin-bottom: 30px;">
+        <h2 style="color: #667eea; margin-bottom: 20px;">Результирующий JSON</h2>
+
+        <textarea id="json-textarea" name="edited_json" style="display: none;">{{ result_json_str }}</textarea>
+        <div id="error-message" class="error-message">JSON невалидный</div>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('step3') }}" class="btn btn-secondary">← Назад</a>
+        <button type="submit" class="btn btn-primary">Далее →</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/selection/active-line.min.js"></script>
+<script>
+    const textarea = document.getElementById('json-textarea');
+    const errorMessage = document.getElementById('error-message');
+    const form = document.getElementById('json-form');
+
+    // Инициализация CodeMirror
+    // Тёмные темы CodeMirror (5.x), которые обычно ближе всего к Visual Studio Dark:
+    // "material-darker" / "material-ocean" - наиболее “VS-like” варианты material
+    // "darcula" / "dracula" - похожие тёмные темы
+    // "nord" - холодная тёмная тема
+    // "cobalt" - тёмная с синими оттенками
+    // "tomorrow-night-bright" / "tomorrow-night-eighties" - классические тёмные темы
+    // Важно: чтобы тема работала, её CSS должен быть подключён (theme/<name>.min.css)
+    const editor = CodeMirror.fromTextArea(textarea, {
+        mode: { name: "javascript", json: true },
+        // theme: "material", // Измените на другую тему при необходимости
+        theme: "dracula", // Измените на другую тему при необходимости
+        lineNumbers: true,
+        lineWrapping: true,
+        matchBrackets: true,
+        autoCloseBrackets: true,
+        styleActiveLine: true,
+        indentUnit: 2,
+        tabSize: 2,
+        indentWithTabs: false,
+        viewportMargin: Infinity
+    });
+
+    // Автоматическое изменение высоты редактора
+    function adjustEditorHeight() {
+        editor.setSize(null, 'auto');
+        const height = editor.getScrollInfo().height;
+        editor.getScrollerElement().style.height = (height + 20) + 'px';
+        editor.refresh();
+    }
+
+    // Инициализация высоты при загрузке
+    setTimeout(adjustEditorHeight, 100);
+
+    // Изменение высоты при изменении содержимого
+    editor.on('change', function () {
+        adjustEditorHeight();
+        // Скрываем ошибку при изменении текста
+        errorMessage.classList.remove('show');
+        // Синхронизируем с textarea для отправки формы
+        editor.save();
+    });
+
+    // Валидация JSON при отправке формы
+    form.addEventListener('submit', function (e) {
+        // Получаем актуальное значение из редактора
+        const jsonText = editor.getValue();
+
+        // Обновляем скрытый textarea для отправки формы
+        textarea.value = jsonText;
+
+        // Скрываем предыдущую ошибку
+        errorMessage.classList.remove('show');
+
+        try {
+            // Проверяем валидность JSON
+            const parsedJson = JSON.parse(jsonText);
+
+            // Если JSON валиден, выводим в консоль
+            console.log('=== Отредактированный JSON из поля ===');
+            console.log('Строка:', jsonText);
+            console.log('Объект:', parsedJson);
+
+            // Позволяем форме отправиться (не вызываем preventDefault)
+        } catch (error) {
+            // Если JSON невалиден, предотвращаем отправку и показываем ошибку
+            e.preventDefault();
+            errorMessage.classList.add('show');
+            console.error('Ошибка парсинга JSON:', error.message);
+        }
+    });
+</script>
+{% endblock %}
