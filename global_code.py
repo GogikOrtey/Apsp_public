@@ -399,9 +399,6 @@ def print_and_save_message_global(is_print_status_on_log, start):
         emit("")
         emit(f'Ссылка на 1й товар: {data_input_table["links"]["simple"][0]["link"]}')
 
-    emit("")
-    emit(f"Итоговый статус генерации: {generated_status}")
-
     # Засекаем время
     elapsed = time.time() - start
     emit("")
@@ -412,6 +409,9 @@ def print_and_save_message_global(is_print_status_on_log, start):
 
     import import_all_libraries
     emit(f"🧢 Кол-во обращений к внешнему ИИ: {import_all_libraries.count_request_to_AI}")
+
+    emit("")
+    emit(f"Итоговый статус генерации: {generated_status}")
 
     if not is_print_status_on_log:
         filename = MESSAGE_GLOBAL_TXT_PATH
