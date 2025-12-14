@@ -1,37 +1,78 @@
-template_parse_entry_point_code = Template("""
-        async parse(set: SetType, results: { [key: string]: any }) {
-            if (!set.type || set.type === "none") set.type = "page";
-            if (!set.region || set.region === "none") set.region = "";
-            try {
-                switch (set.type) {
-                    case "page": {
-                        if (!set.page || set.page === "none") set.page = 1;
-                        let items = await this.parsePage(set);
-                        items.forEach(item => results.items.addElement(item));
-                        results.success = 1;
-                        break;
-                    }
-                    case "card": {
-                        const cacher = getCacher<ResultItem>(this, set)
-                        let items = cacher.cache || await this.parseCard(set, cacher);
-                        items.forEach(item => results.items.addElement(item));
-                        results.success = 1;
-                        break;
-                    }
-                    default:
-                        this.logger.put("Указан неверный тип сбора")
-                        results.success = 0;
-                }
-            } catch (e) {
-                if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
-                    this.logger.put(e.message);
-                    results.isBadLink = 1;
-                    results.success = 1;
-                } else {
-                    this.logger.put(`$${e.name} >> $${e.message}   $${set.query}  type - $${set.type} page $${set.page} }`);
-                    results.success = 0;
-                }
+{
+    "host": "https://c-s-k.ru",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/",
+                "name": "Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая",
+                "price": "26 499",
+                "oldprice": "",
+                "article": "00-01631492",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp"
+            },
+            {
+                "link": "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/",
+                "name": "Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая",
+                "price": "41 999",
+                "oldprice": "",
+                "article": "00-01616855",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp"
+            },
+            {
+                "link": "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/",
+                "name": "Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая",
+                "price": "9 490",
+                "oldprice": "13 999",
+                "article": "00-01624852",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp"
             }
-            return results;
+        ]
+    },
+    "search_requests": [
+        {
+            "query": "дверь",
+            "url_search_query_page_2": "https://c-s-k.ru/catalog/?q=%D0%B4%D0%B2%D0%B5%D1%80%D1%8C&s=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&PAGEN_1=2",
+            "count_of_page_on_pagination": "20",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/",
+                "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/",
+                "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/246297/"
+            ]
         }
-    """)
+    ]
+}
+
+
+
+{
+    "host": "",
+    "fields_str": "",
+    "links": {
+      "simple": [
+        {
+          "link": "",
+          "name": "",
+          "price": "",
+          "InStock_trigger": "",
+          "OutOfStock_trigger": ""
+        }
+      ]
+    },
+    "search_requests": [
+      {
+        "query": "",
+        "url_search_query_page_2": "",
+        "count_of_page_on_pagination": "",
+        "total_count_of_results": "0",
+        "links_items": []
+      }
+    ]
+  }

@@ -120,5 +120,5 @@ export class JS_Base_cskru extends JS_Base_Custom {
 }
 
 // Код сгенерирован APSP v0.1
-// Дата: 14 Дек 2025
+// Дата: 15 Дек 2025
 // © BrandPol
