@@ -334,6 +334,7 @@ $subtitle_from_code
 # region result_file_JS
 # Сохраняет результирующий код парсера в файл
 from pathlib import Path
+import traceback
 
 # Важно: используем абсолютные пути относительно корня проекта (директория этого файла),
 # чтобы генератор писал/чистил те же файлы независимо от текущей рабочей директории
@@ -342,6 +343,51 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 RESULT_OUTPUT_DIR = PROJECT_ROOT / "result_code_gen" / "result"
 RESULT_CODE_TS_PATH = RESULT_OUTPUT_DIR / "result_code.ts"
 MESSAGE_GLOBAL_TXT_PATH = RESULT_OUTPUT_DIR / "message_global.txt"
+
+def append_message_global_txt(lines):
+    """
+    Добавляет строки в message_global.txt (не перетирая файл).
+    Удобно для записи критических ошибок, когда выполнение прервано и print_and_save_message_global не дошёл.
+    """
+    RESULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    if lines is None:
+        return
+
+    if isinstance(lines, str):
+        lines_to_write = [lines]
+    else:
+        try:
+            lines_to_write = list(lines)
+        except Exception:
+            lines_to_write = [str(lines)]
+
+    with MESSAGE_GLOBAL_TXT_PATH.open("a", encoding="utf-8") as f:
+        for line in lines_to_write:
+            if line is None:
+                continue
+            f.write(str(line).rstrip("\n") + "\n")
+
+def log_critical_error_to_message_global(ex: Exception, *, where: str = ""):
+    """
+    Записывает критическую ошибку и traceback в message_global.txt.
+    Используется в верхнеуровневых except, где иначе ошибка "теряется" в print.
+    """
+    header = "🟧 При генерации кода произошла критическая ошибка"
+    if where:
+        header += f" ({where})"
+
+    tb = traceback.format_exc()
+    lines = [
+        "",
+        header + ":",
+        f"🟧 {ex}",
+        # "",
+        # "Traceback:",
+        # *tb.rstrip("\n").splitlines(),
+        # "",
+    ]
+    append_message_global_txt(lines)
 
 def clear_result_outputs():
     """

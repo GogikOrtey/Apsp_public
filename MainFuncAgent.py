@@ -9,11 +9,15 @@ from extracting_selector_from_html import *
 from import_all_libraries import * 
 
 # Подключение модули
-from global_code import * 
+from global_code import clear_result_outputs, result_parser_code, log_critical_error_to_message_global
 
 
 def main_func(is_print_status_on_log = True):
     try:
+        # Очищаем файлы результатов в самом начале, чтобы при падении "до генерации"
+        # не оставались сообщения/код с прошлого запуска.
+        clear_result_outputs()
+
         print("🚀 Запуск генерации...")
 
         # Проверяю, что html-страница доступна, и данные первого товара на ней есть
@@ -24,6 +28,13 @@ def main_func(is_print_status_on_log = True):
 
     except Exception as ex:
         print(f"🟧 При генерации кода произошла критическая ошибка: {ex}")
+        # Дублируем ошибку в message_global.txt, чтобы фронт/скрипты могли её прочитать,
+        # даже если выполнение оборвалось до print_and_save_message_global().
+        try:
+            log_critical_error_to_message_global(ex, where="MainFuncAgent.main_func")
+        except Exception:
+            # Не даём логированию "затереть" исходную ошибку.
+            pass
 
 
 
