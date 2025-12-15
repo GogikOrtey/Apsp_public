@@ -5,6 +5,18 @@
 
 """
 
+https://kotel-nasos.ru
+https://portal.bpg.team/workgroups/group/78/tasks/task/view/46230/
+
+https://stroytorg812.ru
+https://c-s-k.ru
+https://gidro-top.ru
+
+
+
+
+
+
 Примеры с ауторсерских заданий:
 
 + https://kotel-nasos.ru

@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, oldprice, brand, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, oldprice, brand, imageLink, timestamp
 }
 
-const HOST = "https://stroytorg812.ru"
+const HOST = "https://kotel-nasos.ru"
 
-export class JS_Base_stroytorg812ru extends JS_Base_Custom {
+export class JS_Base_kotelnasosru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,24 +73,22 @@ export class JS_Base_stroytorg812ru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/content/search/`)
-		url.searchParams.set("s", "")
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("PAGEN_1", set.page)
+        let url = new URL(`${HOST}/search/?`)
+		url.searchParams.set("query", set.query)
+		url.searchParams.set("page", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalItems = $("h2")?.first()?.text()?.trim()?.match(/\d+/)?.at(0)
-			let totalPages = Math.ceil(+totalItems / 12) 
+            let totalPages = Math.max(...$("a.c-pagination-item").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.product-name[href]") 
+        let products = $("a.l-image-box.l-image-box_fill[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -108,19 +106,18 @@ export class JS_Base_stroytorg812ru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.name").text()?.trim()
-		const stock = $(".nal.y").text()?.includes("есть на складе") ? "InStock" : "OutOfStock"
+        const name = $("h1.c-header.c-header_h1").text()?.trim()
+		const stock = $("span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = $(".b").text()?.trim().formatPrice(",")
-		const oldprice = $(".thr").text()?.trim().formatPrice(",")
-		const article = $(".ctnr").text()?.replace(/.*:\s?/, '')?.trim()?.at(0);
-		const brand = $(".br_cr > ul > li:nth-of-type(4) > a").text()?.trim()
-		let imageLink = $("a.fancybox > img")?.first()?.attr("src")?.trim()
+		const price = $("span.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare").text()?.trim().formatPrice()
+		const oldprice = $("span.c-product-add-to-cart__compare-price").text()?.trim().formatPrice()
+		const brand = $("span.c-value__value-text > a.c-link").text()?.trim()
+		let imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+            name, stock, link, price, oldprice, brand, imageLink, timestamp
         }
         items.push(item);
 
