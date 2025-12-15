@@ -1,4 +1,4 @@
-15.12.2025 12:16:56
+15.12.2025 13:29:33
 
 🚀 Запуск генерации...
 
@@ -25,7 +25,7 @@ field = name, stock, link, price, oldprice, brand, imageLink, timestamp
 Найдено 17 возможных селекторов
 Найден селектор для поля name
 
-Найдено 3 возможных селекторов
+Найдено 4 возможных селекторов
 Найден селектор для поля price
 
 Найдено 1 возможных селекторов
@@ -36,13 +36,13 @@ field = name, stock, link, price, oldprice, brand, imageLink, timestamp
 
 Найдено 8 возможных селекторов
 Найден селектор для поля brand
-⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 
 Найдено 8 возможных селекторов
-Найден селектор для поля OutOfStock_trigger
+Найден селектор для поля InStock_trigger
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 _______________________
 
-Найдено 21 возможных селекторов
+Найдено 7 возможных селекторов
 Найден селектор для поля name
 
 Найдено 4 возможных селекторов
@@ -51,7 +51,7 @@ _______________________
 Найдено 1 возможных селекторов
 Найден селектор для поля oldprice
 
-Найдено 3 возможных селекторов
+Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 
 Найдено 8 возможных селекторов
@@ -66,13 +66,14 @@ _______________________
  - name: 1 селекторов -> ['h1.c-header.c-header_h1']
  - price: 1 селекторов -> ['span.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare']
  - oldprice: 1 селекторов -> ['span.c-product-add-to-cart__compare-price']
- - imageLink: 1 селекторов -> ['.c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]']
- - brand: 1 селекторов -> ['span.c-value__value-text > a.c-link']
- - InStock_trigger: 0 селекторов -> []
+ - imageLink: 2 селекторов -> ['a.l-image-box.l-image-box_fill > span.c-lazy-image-provider[data-src]', '.c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]']
+ - brand: 2 селекторов -> ['span.c-value__value-text > a.c-link', 'span.c-value__value-text.c-link-decorator']
+ - InStock_trigger: 1 селекторов -> ['span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content']
  - OutOfStock_trigger: 1 селекторов -> ['span.c-product-available.c-product-available_out-of-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content']
-[WARN] Для поля InStock_trigger не найден селектор(ы).
+  [SKIP] InStock_trigger on https://kotel-nasos.ru/gazovyy-nakopitelnyy-vodonagrevatel-ariston-sga-200-r/: no expected value or no original selector
+  [SKIP] OutOfStock_trigger on https://kotel-nasos.ru/napolnyy-gazovyy-kotel-60-kvt-baxi-slim-1-620in-9e/: no expected value or no original selector
 
-📄 Кеш сохранён в cache.json, всего страниц: 93
+📄 Кеш сохранён в cache.json, всего страниц: 95
    Добавлено: 1, обновлено: 1
 
 
@@ -88,12 +89,14 @@ _______________________
         "span.c-product-add-to-cart__compare-price"
     ],
     "imageLink": [
-        ".c-product-images__thumb.c-product-images__thumb_focus[data-extend_image]"
+        "a.l-image-box.l-image-box_fill > span.c-lazy-image-provider[data-src]"
     ],
     "brand": [
         "span.c-value__value-text > a.c-link"
     ],
-    "InStock_trigger": [],
+    "InStock_trigger": [
+        "span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content"
+    ],
     "OutOfStock_trigger": [
         "span.c-product-available.c-product-available_out-of-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content"
     ]
@@ -112,16 +115,16 @@ _______________________
 Обрабатываем поле name
 
 Проверяем селектор h1.c-header.c-header_h1 на странице №1
-##### result_selector = {'result': 'Настенный конденсационный газовый котел 28 кВт Baxi DUO-TEC COMPACT 28', 'length_elem': 1}
-    Настенный конденсационный газовый котел 28 кВт Baxi DUO-TEC COMPACT 28
-    Настенный конденсационный газовый котел 28 кВт Baxi DUO-TEC COMPACT 28
+##### result_selector = {'result': 'Напольный газовый котел 60 кВт Baxi SLIM 1.620 iN 9E', 'length_elem': 1}
+    Напольный газовый котел 60 кВт Baxi SLIM 1.620 iN 9E
+    Напольный газовый котел 60 кВт Baxi SLIM 1.620 iN 9E
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
 Проверяем селектор h1.c-header.c-header_h1 на странице №2
-##### result_selector = {'result': 'Настенный газовый котел ECA GERDA 28 HM NG', 'length_elem': 1}
-    Настенный газовый котел ECA GERDA 28 HM NG
-    Настенный газовый котел ECA GERDA 28 HM NG
+##### result_selector = {'result': 'Газовый накопительный водонагреватель Ariston SGA 200 R', 'length_elem': 1}
+    Газовый накопительный водонагреватель Ariston SGA 200 R
+    Газовый накопительный водонагреватель Ariston SGA 200 R
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
@@ -131,17 +134,17 @@ _____
 Обрабатываем поле price
 
 Проверяем селектор span.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare на странице №1
-##### result_selector = {'result': '99 800', 'length_elem': 1}
-    99 800
-    99 800 ₽
+##### result_selector = {'result': '195 000', 'length_elem': 1}
+    195 000
+    195 000 ₽
 
     💲 Обрабатываем поле price
     Разделитель - точка
 
 Проверяем селектор span.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare на странице №2
-##### result_selector = {'result': '55 500', 'length_elem': 1}
-    55 500
-    55 500 ₽
+##### result_selector = {'result': '85 000', 'length_elem': 1}
+    85 000
+    85 000 ₽
 
     💲 Обрабатываем поле price
     Разделитель - точка
@@ -152,17 +155,17 @@ _____
 Обрабатываем поле oldprice
 
 Проверяем селектор span.c-product-add-to-cart__compare-price на странице №1
-##### result_selector = {'result': '109 780', 'length_elem': 1}
-    109 780
-    109 780 ₽
+##### result_selector = {'result': '238 150', 'length_elem': 1}
+    238 150
+    238 150 ₽
 
     💲 Обрабатываем поле oldprice
     Разделитель - точка
 
 Проверяем селектор span.c-product-add-to-cart__compare-price на странице №2
-##### result_selector = {'result': '61 050', 'length_elem': 1}
-    61 050
-    61 050 ₽
+##### result_selector = {'result': '95 500', 'length_elem': 1}
+    95 500
+    95 500 ₽
 
     💲 Обрабатываем поле oldprice
     Разделитель - точка
@@ -172,25 +175,26 @@ _____
 
 Обрабатываем поле imageLink
 
-Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №1
-##### result_selector = {'result': '/wa-data/public/shop/products/18/99/29918/images/143135/143135.440.png', 'length_elem': 1}
-    В элементе /wa-data/public/shop/products/18/99/29918/images/143135/143135.440.png отсутствует хост и "http". Добавляем:
-    https://kotel-nasos.ru/wa-data/public/shop/products/18/99/29918/images/143135/143135.440.png
-    https://kotel-nasos.ru/wa-data/public/shop/products/18/99/29918/images/143135/143135.440.png
+Проверяем селектор a.l-image-box.l-image-box_fill > span.c-lazy-image-provider[data-src] на странице №1
+##### result_selector = {'result': '/wa-data/public/shop/products/17/01/30117/images/53793/53793.440.jpg', 'length_elem': 3}
+    В элементе /wa-data/public/shop/products/17/01/30117/images/53793/53793.440.jpg отсутствует хост и "http". Добавляем:
+    https://kotel-nasos.ru/wa-data/public/shop/products/17/01/30117/images/53793/53793.440.jpg
+    https://kotel-nasos.ru/wa-data/public/shop/products/17/01/30117/images/53793/53793.440.jpg
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
 
-Проверяем селектор .c-product-images__thumb.c-product-images__thumb_focus[data-extend_image] на странице №2
-##### result_selector = {'result': '/wa-data/public/shop/products/68/11/31168/images/57342/57342.440.jpg', 'length_elem': 1}
-    В элементе /wa-data/public/shop/products/68/11/31168/images/57342/57342.440.jpg отсутствует хост и "http". Добавляем:
-    https://kotel-nasos.ru/wa-data/public/shop/products/68/11/31168/images/57342/57342.440.jpg
-    https://kotel-nasos.ru/wa-data/public/shop/products/68/11/31168/images/57342/57342.440.jpg
+Проверяем селектор a.l-image-box.l-image-box_fill > span.c-lazy-image-provider[data-src] на странице №2
+##### result_selector = {'result': '/wa-data/public/shop/products/06/57/5706/images/10101/10101.440.jpg', 'length_elem': 1}
+    В элементе /wa-data/public/shop/products/06/57/5706/images/10101/10101.440.jpg отсутствует хост и "http". Добавляем:
+    https://kotel-nasos.ru/wa-data/public/shop/products/06/57/5706/images/10101/10101.440.jpg
+    https://kotel-nasos.ru/wa-data/public/shop/products/06/57/5706/images/10101/10101.440.jpg
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
 
-max_count_element_of_selectors = 🟡 1
+max_count_element_of_selectors = 🟡 3
 _____
 
+Нашли больше одного селектора для поля imageLink
 Обрабатываем поле brand
 
 Проверяем селектор span.c-value__value-text > a.c-link на странице №1
@@ -201,9 +205,9 @@ _____
     ✅ Полное совпадение селектора и оригинального значения поля brand
 
 Проверяем селектор span.c-value__value-text > a.c-link на странице №2
-##### result_selector = {'result': 'E.C.A', 'length_elem': 1}
-    E.C.A
-    E.C.A
+##### result_selector = {'result': 'Ariston', 'length_elem': 1}
+    Ariston
+    Ariston
 
     ✅ Полное совпадение селектора и оригинального значения поля brand
 
@@ -214,7 +218,7 @@ _____
 🟩: name 
 💲 : price 
 💲 : oldprice 
-🟩: imageLink 
+🟩: imageLink  🟡 > 1
 🟩: brand 
 
 
@@ -279,8 +283,8 @@ url.searchParams.set('/?page', set.page);
 💬 AI ANSWER:
 "```
 let url = new URL(`${HOST}/search/?`)
-url.searchParams.set("page", set.page)
 url.searchParams.set("query", set.query)
+url.searchParams.set("page", set.page)
 ```"
 
 processed_url_product = /elektricheskiy-kotel-evan-epo-pro-54/
@@ -394,8 +398,8 @@ export class JS_Base_kotelnasosru extends JS_Base_Custom {
     //#region Парсинг поиска
     async parsePage(set: SetType) {
         let url = new URL(`${HOST}/search/?`)
-		url.searchParams.set("page", set.page)
 		url.searchParams.set("query", set.query)
+		url.searchParams.set("page", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
@@ -427,12 +431,12 @@ export class JS_Base_kotelnasosru extends JS_Base_Custom {
         const $ = cheerio.load(data);
 
         const name = $("h1.c-header.c-header_h1").text()?.trim()
-		const stock = "InStock"
+		const stock = $("span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
 		const link = set.query
 		const price = $("span.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare").text()?.trim().formatPrice()
 		const oldprice = $("span.c-product-add-to-cart__compare-price").text()?.trim().formatPrice()
 		const brand = $("span.c-value__value-text > a.c-link").text()?.trim()
-		let imageLink = $(".c-product-images__thumb.c-product-images__thumb_focus")?.attr("data-extend_image")?.trim()
+		let imageLink = $("a.l-image-box.l-image-box_fill > span.c-lazy-image-provider")?.first()?.attr("data-src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
