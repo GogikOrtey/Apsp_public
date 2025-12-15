@@ -1,6 +1,5 @@
 # Данные формы
 data/
-*.json
 
 # Python
 __pycache__/

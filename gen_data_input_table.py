@@ -1,34 +1,57 @@
 # Автогенерация из шага 4. Не редактируйте вручную.
-# Сохранено: 2025-12-15 05:13:44
+# Сохранено: 2025-12-15 06:29:07
 import json
 
 data_input_table = json.loads(r'''{
-  "host": "https://c-s-k.ru",
-  "timestamp": 1765756692,
+  "host": "https://gidro-top.ru",
   "fields_str": "",
   "links": {
     "simple": [
       {
-        "link": "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/",
-        "name": "Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая",
-        "price": "26 499/шт",
-        "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp",
-        "product_id": "00-01631492",
-        "InStock_trigger": "",
-        "OutOfStock_trigger": ""
+        "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
+        "name": "Aquanet SD-1200A душевая дверь",
+        "price": "19 850 ₽",
+        "oldprice": "",
+        "article": "00209406",
+        "brand": "Aquanet",
+        "InStock_trigger": "В наличии",
+        "OutOfStock_trigger": "",
+        "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
+      },
+      {
+        "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
+        "name": "Aquastone Малибу Ванна из искусственного камня",
+        "price": "55 000 ₽",
+        "oldprice": "69 000 ₽",
+        "article": "MAlibu",
+        "brand": "Aquastone",
+        "InStock_trigger": "В наличии",
+        "OutOfStock_trigger": "",
+        "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
+      },
+      {
+        "link": "https://gidro-top.ru/product/aquastone-bali-180/",
+        "name": "Aquastone Бали 180 Ванна из искусственного камня",
+        "price": "53 000 ₽",
+        "oldprice": "",
+        "article": "Bali180",
+        "brand": "Aquastone",
+        "InStock_trigger": "В наличии",
+        "OutOfStock_trigger": "",
+        "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
       }
     ]
   },
   "search_requests": [
     {
-      "query": "дверь",
-      "url_search_query_page_2": "https://c-s-k.ru/catalog/?q=%D0%B4%D0%B2%D0%B5%D1%80%D1%8C&s=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&PAGEN_1=2",
-      "count_of_page_on_pagination": "20",
+      "query": "Ванна",
+      "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
+      "count_of_page_on_pagination": "255",
       "total_count_of_results": "0",
       "links_items": [
-        "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/",
-        "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/",
-        "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/246297/"
+        "https://gidro-top.ru/product/triton-nika-180-akrilovaya-vanna-180x80/",
+        "https://gidro-top.ru/product/vanna-astra-form-nyu-form-170x75-belaya/",
+        "https://gidro-top.ru/product/aquatek-layma-170/"
       ]
     }
   ]
