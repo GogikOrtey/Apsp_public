@@ -638,6 +638,13 @@ def content(filename):
     """Обслуживание статических файлов из папки content"""
     return send_from_directory(str(FRONT_DIR / 'content'), filename)
 
+# Многие браузеры (и некоторые боты) по умолчанию запрашивают /favicon.ico,
+# даже если в HTML указан <link rel="icon">. Чтобы на всех страницах стабильно
+# использовалась ваша фавиконка, отдаём favicon_2.png по этому пути.
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(str(FRONT_DIR / 'content'), 'favicon_2.png')
+
 @app.route('/api/log')
 def get_log():
     """Возвращает содержимое файла output.log"""
