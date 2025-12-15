@@ -1,10 +1,10 @@
 # Автогенерация из шага 4. Не редактируйте вручную.
-# Сохранено: 2025-12-15 05:01:36
+# Сохранено: 2025-12-15 05:08:20
 import json
 
 data_input_table = json.loads(r'''{
   "host": "https://c-s-k.ru",
-  "timestamp": 1765756894,
+  "timestamp": 1765757296,
   "fields_str": "",
   "links": {
     "simple": [

@@ -204,6 +204,14 @@ def start_code_generation():
         CODE_GEN_STATE["done"] = False
         CODE_GEN_STATE["error"] = None
 
+    # Чистим предыдущие результаты сразу, чтобы step6 не отображал старые файлы,
+    # пока поток с main_func ещё не запустился.
+    try:
+        from global_code import clear_result_outputs
+        clear_result_outputs()
+    except Exception as e:
+        print(f"Не удалось очистить выходные файлы перед запуском: {e}")
+
     def runner():
         try:
             from MainFuncAgent import main_func
