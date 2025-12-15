@@ -7,9 +7,11 @@
 
 Примеры с ауторсерских заданий:
 
-
++ https://kotel-nasos.ru
 - line-tools.ru
 - https://makitarussia.ru
+
+Остальные:
 
 https://gidro-top.ru
 https://c-s-k.ru
