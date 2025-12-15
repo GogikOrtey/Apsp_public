@@ -246,8 +246,20 @@ def gen_main_code():
     # Генерируем parseCard
     parse_card_code_value = get_parseCard_code(all_extracted_selectors)
 
-    # Генерируем parsePage
-    parse_page_code_value = main_generate_parsePage()
+    # Генерируем parsePage (безопасно обрабатываем отсутствующие ключи/пустые списки/неожиданные типы)
+    search_requests = data_input_table.get("search_requests") if isinstance(data_input_table, dict) else None
+    first_request = (
+        search_requests[0]
+        if isinstance(search_requests, list) and len(search_requests) > 0
+        else None
+    )
+    raw_query = first_request.get("query", "") if isinstance(first_request, dict) else ""
+    query = raw_query.strip() if isinstance(raw_query, str) else (str(raw_query).strip() if raw_query is not None else "")
+
+    if query:
+        parse_page_code_value = main_generate_parsePage()
+    else:
+        parse_page_code_value = "// Пропустили генерацию parsePage"
 
 
 

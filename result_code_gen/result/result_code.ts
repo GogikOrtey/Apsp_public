@@ -19,9 +19,9 @@ const fields = {
     name, stock, link, price, oldprice, article, timestamp
 }
 
-const HOST = "https://gidro-top.ru"
+const HOST = "https://makita-snab.ru"
 
-export class JS_Base_gidrotopru extends JS_Base_Custom {
+export class JS_Base_makitasnabru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -72,31 +72,7 @@ export class JS_Base_gidrotopru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/${set.query}/`)
-		url.searchParams.set('/?page', set.page)
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = Math.max(...$("div.c-products[data-pages_count]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("a.l-image-box.l-image-box_fill[href]") 
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
+    // Пропустили генерацию parsePage
 
     //#region Парсинг товара
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -105,12 +81,12 @@ export class JS_Base_gidrotopru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.c-header.c-header_h1").text()?.trim()
-		const stock = $(".c-product-skus-stocks__sku-stock-available > span.c-product-available.c-product-available_in-stock.c-product-available_size_s > span.l-icon-box > span.l-icon-box__content").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
+        const name = $("h1.h1.widget-34.widget-type-h1.editorElement.layer-type-widget").text()?.trim()
+		const stock = "InStock"
 		const link = set.query
-		const price = $("span.price.c-product-add-to-cart__price.c-product-add-to-cart__price_with-compare").text()?.trim().formatPrice()
-		const oldprice = $("span.c-product-add-to-cart__compare-price").text()?.trim().formatPrice()
-		const article = $("span.c-value__value-text.c-product-cart-form__sku-value").text()?.trim()
+		const price = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+		const oldprice = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
+		const article = $("b")?.first().text()?.trim()?.replace(/([a-z]+)(?=\s|$)/, "$1Z");
         const timestamp = getTimestamp()
 
         const item: ResultItem = {

@@ -1,6 +1,19 @@
 # region Входные данные
 # Здесь вынесен массив со входными данными
 
+
+
+"""
+
+https://gidro-top.ru
+https://c-s-k.ru
+stroytorg812.ru
+https://gaz-shop78.ru
+
+"""
+
+
+
 # # Пример данных
 # data_input_table = {
 #     "host": "",
@@ -1134,6 +1147,7 @@ data_input_table = {
 # }
 
 
+# Сейчас не работает генерация parsePage
 # data_input_table = {
 #     "host": "https://glavsantex.ru",
 #     "fields_str": "", 
