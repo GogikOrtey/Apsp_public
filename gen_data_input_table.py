@@ -1,31 +1,31 @@
 # Автогенерация из шага 4. Не редактируйте вручную.
-# Сохранено: 2025-12-15 11:27:17
+# Сохранено: 2025-12-15 12:00:26
 import json
 
 data_input_table = json.loads(r'''{
-  "host": "https://gaz-shop78.ru",
-  "timestamp": 1765772888,
+  "host": "https://klimat-vikom.ru",
+  "timestamp": 1765782025,
   "fields_str": "",
   "links": {
     "simple": [
       {
-        "link": "https://gaz-shop78.ru/magazin/product/1820809706",
-        "name": "Газовая колонка Mizudo ВПГ 4-12T",
-        "price": "23 200 ₽",
-        "oldprice": "23 400 ₽",
-        "imageLink": "https://gaz-shop78.ru/thumb/2/xuWnCL7IelXmn4Dq92W58A/750r750/d/vpg-4_12_14_t_1ppng_2.png",
-        "article": "нет",
-        "InStock_trigger": "",
-        "OutOfStock_trigger": "Под заказ"
+        "link": "https://klimat-vikom.ru/goods/BAXI-ECO-4S-2?mod_id=268908183",
+        "name": "BAXI ECO 4S 24",
+        "price": "63 690 рублей",
+        "oldprice": "74 500 рублей",
+        "imageLink": "https://i3.storeland.net/2/6948/169475010/075a3e/baxi-eco-4s-24.jpg?lc=1764768875",
+        "manufacturer": "Baxi",
+        "InStock_trigger": "В наличии",
+        "OutOfStock_trigger": ""
       },
       {
-        "link": "https://gaz-shop78.ru/magazin/product/49316306",
-        "name": "Газовый котел Baxi ECO Four 24 F",
-        "price": "88 400 ₽",
-        "oldprice": "",
-        "imageLink": "https://gaz-shop78.ru/thumb/2/6wNu6KYRNVyR4a53TEX0dA/750r750/d/4jpg_1.jpg",
-        "article": "CSE46624354",
-        "InStock_trigger": "В корзину",
+        "link": "https://klimat-vikom.ru/goods/BAXI-Eco-Life-1-24-F?mod_id=312782906",
+        "name": "BAXI Eco Life 1.24 F",
+        "price": "57 270 рублей",
+        "oldprice": "88 638 рублей",
+        "imageLink": "https://i1.storeland.net/3/610/206092286/075a3e/baxi-eco-life-24-f.jpg?lc=1764768875",
+        "manufacturer": "Baxi",
+        "InStock_trigger": "В наличии",
         "OutOfStock_trigger": ""
       }
     ]
@@ -33,13 +33,13 @@ data_input_table = json.loads(r'''{
   "search_requests": [
     {
       "query": "Котёл",
-      "url_search_query_page_2": "https://gaz-shop78.ru/magazin/search?p=1&gr_smart_search=1&s%5Bname%5D=%D0%9A%D0%BE%D1%82%D1%91%D0%BB",
-      "count_of_page_on_pagination": "56",
+      "url_search_query_page_2": "https://klimat-vikom.ru/search?q=Котёл&page=2",
+      "count_of_page_on_pagination": "13",
       "total_count_of_results": "0",
       "links_items": [
-        "https://gaz-shop78.ru/magazin/product/1894352706",
-        "https://gaz-shop78.ru/magazin/product/1894352906",
-        "https://gaz-shop78.ru/magazin/product/1894353106"
+        "https://klimat-vikom.ru/goods/NAVIEN-DELUXE-Comfort-40кВТ-2-х-конт-Turbo?mod_id=319607848",
+        "https://klimat-vikom.ru/goods/Navien-Deluxe-One-1-х-конт?mod_id=319607849",
+        "https://klimat-vikom.ru/goods/BAXI-Slim-1-300-iN?mod_id=214097934"
       ]
     }
   ]

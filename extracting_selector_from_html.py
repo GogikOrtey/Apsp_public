@@ -1866,11 +1866,11 @@ def get_element_from_selector_universal(html, selector, is_ret_len=False, return
 
 # # Поиск селекторов по подстроке на странице
 # isPrint = True
-# link = "https://www.chipdip.ru/search?searchtext=pin&page=2"
-# finding_text_element = "/product/idc-06f-ds1016-06-rozetka-2.54mm-na-shleyf-6-pin-s-connfly-9000404317"
+# link = "https://gaz-shop78.ru/magazin/search?p=1&gr_smart_search=1&s%5Bname%5D=%D0%9A%D0%BE%D1%82%D1%91%D0%BB"
+# finding_text_element = "56"
 # html = get_html_from_cache(link)
-# # selector_result = get_css_selector_from_text_value_element(html, finding_text_element, is_exact=False)
-# selector_result = get_css_selector_from_text_value_element(html, finding_text_element)
+# selector_result = get_css_selector_from_text_value_element(html, finding_text_element, is_exact=False)
+# # selector_result = get_css_selector_from_text_value_element(html, finding_text_element)
 
 
 # # Извлечение элемента по селектору

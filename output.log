@@ -1,4 +1,4 @@
-15.12.2025 11:27:18
+15.12.2025 12:00:28
 
 🚀 Запуск генерации...
 
@@ -9,7 +9,7 @@
 ------------------------------------------------------------------------------
 
 
-field = name, stock, link, price, oldprice, article, imageLink, timestamp
+field = name, stock, link, price, oldprice, imageLink, manufacturer, timestamp
 
 
 
@@ -21,90 +21,82 @@ field = name, stock, link, price, oldprice, article, imageLink, timestamp
 
 
 Обработаем 2 страниц
-📤 Берем страницу из кеша: https://gaz-shop78.ru/magazin/product/1820809706 (возраст 1.97 ч.)
 
-Найдено 12 возможных селекторов
+Найдено 9 возможных селекторов
 Найден селектор для поля name
 
-Найдено 5 возможных селекторов
+Найдено 77 возможных селекторов
 Найден селектор для поля price
 
-Найдено 7 возможных селекторов
+Найдено 71 возможных селекторов
 Найден селектор для поля oldprice
 
 Найдено 2 возможных селекторов
 Найден селектор для поля imageLink
 
-Найдено 3 возможных селекторов
-Найден селектор для поля article
-⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
-
-Найдено 2 возможных селекторов
-Найден селектор для поля OutOfStock_trigger
-_______________________
-📤 Берем страницу из кеша: https://gaz-shop78.ru/magazin/product/49316306 (возраст 1.97 ч.)
-
-Найдено 2 возможных селекторов
-Найден селектор для поля name
-
-Найдено 3 возможных селекторов
-Найден селектор для поля price
-⬜ Пропускаем поле oldprice: Не строка или пустое значение
-
-Найдено 2 возможных селекторов
-Найден селектор для поля imageLink
+Найдено 9 возможных селекторов
+Найден селектор для поля manufacturer
 
 Найдено 1 возможных селекторов
-Найден селектор для поля article
-
-Найдено 2 возможных селекторов
 Найден селектор для поля InStock_trigger
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 _______________________
-Используемые поля: ['name', 'price', 'oldprice', 'imageLink', 'article', 'InStock_trigger', 'OutOfStock_trigger']
-Кандидаты по полям (в порядке приоритета):
- - name: 1 селекторов -> ['h1']
- - price: 1 селекторов -> ['.price-current > strong']
- - oldprice: 1 селекторов -> ['span > strong']
- - imageLink: 1 селекторов -> ['a.gr-image-zoom > img.gr_image_contain[src]']
- - article: 2 селекторов -> ['option', '.shop2-product-article']
- - InStock_trigger: 1 селекторов -> ['button.shop-product-btn.type-3.buy > span']
- - OutOfStock_trigger: 1 селекторов -> ['button.shop-product-btn.type-3.onrequest > span']
-  [SKIP] oldprice on https://gaz-shop78.ru/magazin/product/49316306: no expected value or no original selector
-[🟧 FAIL] article on https://gaz-shop78.ru/magazin/product/49316306: 
-  искали: 'CSE46624354' 
-  нашли:  'Все' 
-  селектор: ('option',)
-  [SKIP] InStock_trigger on https://gaz-shop78.ru/magazin/product/1820809706: no expected value or no original selector
-  [SKIP] OutOfStock_trigger on https://gaz-shop78.ru/magazin/product/49316306: no expected value or no original selector
 
-📄 Кеш сохранён в cache.json, всего страниц: 82
-   Добавлено: 0, обновлено: 2
+Найдено 9 возможных селекторов
+Найден селектор для поля name
+
+Найдено 73 возможных селекторов
+Найден селектор для поля price
+
+Найдено 19 возможных селекторов
+Найден селектор для поля oldprice
+
+Найдено 6 возможных селекторов
+Найден селектор для поля imageLink
+
+Найдено 9 возможных селекторов
+Найден селектор для поля manufacturer
+
+Найдено 1 возможных селекторов
+Найден селектор для поля InStock_trigger
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+_______________________
+Используемые поля: ['name', 'price', 'oldprice', 'imageLink', 'manufacturer', 'InStock_trigger', 'OutOfStock_trigger']
+Кандидаты по полям (в порядке приоритета):
+ - name: 1 селекторов -> ['a > strong']
+ - price: 1 селекторов -> ['.price_now_formated.RUB > span[title]']
+ - oldprice: 1 селекторов -> ['.price_old_formated.RUB > span[title]']
+ - imageLink: 1 селекторов -> ['link[itemprop="image"][href]']
+ - manufacturer: 2 селекторов -> ['.feature-value', 'li.catalog-lvl0.parent.active > ul.accordion.lvl1 > li.catalog-lvl1.parent > ul.accordion.lvl2 > li.catalog-lvl2 > a.accAnchor']
+ - InStock_trigger: 1 селекторов -> ['.available-true']
+ - OutOfStock_trigger: 0 селекторов -> []
+[WARN] Для поля OutOfStock_trigger не найден селектор(ы).
+
+📄 Кеш сохранён в cache.json, всего страниц: 90
+   Добавлено: 2, обновлено: 0
 
 
 ✅ Итоговые селекторы:
 {
     "name": [
-        "h1"
+        "a > strong"
     ],
     "price": [
-        ".price-current > strong"
+        ".price_now_formated.RUB > span[title]"
     ],
     "oldprice": [
-        "span > strong"
+        ".price_old_formated.RUB > span[title]"
     ],
     "imageLink": [
-        "a.gr-image-zoom > img.gr_image_contain[src]"
+        "link[itemprop="image"][href]"
     ],
-    "article": [
-        ".shop2-product-article"
+    "manufacturer": [
+        ".feature-value"
     ],
     "InStock_trigger": [
-        "button.shop-product-btn.type-3.buy > span"
+        ".available-true"
     ],
-    "OutOfStock_trigger": [
-        "button.shop-product-btn.type-3.onrequest > span"
-    ]
+    "OutOfStock_trigger": []
 }
 
 
@@ -119,17 +111,17 @@ _______________________
 Оба триггера есть
 Обрабатываем поле name
 
-Проверяем селектор h1 на странице №1
-##### result_selector = {'result': 'Газовая колонка Mizudo ВПГ 4-12T', 'length_elem': 1}
-    Газовая колонка Mizudo ВПГ 4-12T
-    Газовая колонка Mizudo ВПГ 4-12T
+Проверяем селектор a > strong на странице №1
+##### result_selector = {'result': 'BAXI ECO 4S 24', 'length_elem': 1}
+    BAXI ECO 4S 24
+    BAXI ECO 4S 24
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
-Проверяем селектор h1 на странице №2
-##### result_selector = {'result': 'Газовый котел Baxi ECO Four 24 F', 'length_elem': 1}
-    Газовый котел Baxi ECO Four 24 F
-    Газовый котел Baxi ECO Four 24 F
+Проверяем селектор a > strong на странице №2
+##### result_selector = {'result': 'BAXI Eco Life 1.24 F', 'length_elem': 1}
+    BAXI Eco Life 1.24 F
+    BAXI Eco Life 1.24 F
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
@@ -138,18 +130,18 @@ _____
 
 Обрабатываем поле price
 
-Проверяем селектор .price-current > strong на странице №1
-##### result_selector = {'result': '23 200', 'length_elem': 1}
-    23 200
-    23 200 ₽
+Проверяем селектор .price_now_formated.RUB > span[title] на странице №1
+##### result_selector = {'result': '63 690 Российских рублей', 'length_elem': 1}
+    63 690 Российских рублей
+    63 690 рублей
 
     💲 Обрабатываем поле price
     Разделитель - точка
 
-Проверяем селектор .price-current > strong на странице №2
-##### result_selector = {'result': '88 400', 'length_elem': 1}
-    88 400
-    88 400 ₽
+Проверяем селектор .price_now_formated.RUB > span[title] на странице №2
+##### result_selector = {'result': '57 270 Российских рублей', 'length_elem': 1}
+    57 270 Российских рублей
+    57 270 рублей
 
     💲 Обрабатываем поле price
     Разделитель - точка
@@ -159,68 +151,70 @@ _____
 
 Обрабатываем поле oldprice
 
-Проверяем селектор span > strong на странице №1
-##### result_selector = {'result': '23 400', 'length_elem': 1}
-    23 400
-    23 400 ₽
+Проверяем селектор .price_old_formated.RUB > span[title] на странице №1
+##### result_selector = {'result': '74 500 Российских рублей', 'length_elem': 1}
+    74 500 Российских рублей
+    74 500 рублей
 
     💲 Обрабатываем поле oldprice
     Разделитель - точка
 
-Проверяем селектор span > strong на странице №2
-##### result_selector = {'result': '', 'length_elem': 0}
-    ⬜ Нет результата у селектора  на странице 2 для поля oldprice
+Проверяем селектор .price_old_formated.RUB > span[title] на странице №2
+##### result_selector = {'result': '88 638 Российских рублей', 'length_elem': 1}
+    88 638 Российских рублей
+    88 638 рублей
+
+    💲 Обрабатываем поле oldprice
+    Разделитель - точка
 
 max_count_element_of_selectors = 🟡 1
 _____
 
 Обрабатываем поле imageLink
 
-Проверяем селектор a.gr-image-zoom > img.gr_image_contain[src] на странице №1
-##### result_selector = {'result': '/thumb/2/xuWnCL7IelXmn4Dq92W58A/750r750/d/vpg-4_12_14_t_1ppng_2.png', 'length_elem': 4}
-    В элементе /thumb/2/xuWnCL7IelXmn4Dq92W58A/750r750/d/vpg-4_12_14_t_1ppng_2.png отсутствует хост и "http". Добавляем:
-    https://gaz-shop78.ru/thumb/2/xuWnCL7IelXmn4Dq92W58A/750r750/d/vpg-4_12_14_t_1ppng_2.png
-    https://gaz-shop78.ru/thumb/2/xuWnCL7IelXmn4Dq92W58A/750r750/d/vpg-4_12_14_t_1ppng_2.png
+Проверяем селектор link[itemprop="image"][href] на странице №1
+##### result_selector = {'result': 'https://i3.storeland.net/2/6948/169475010/075a3e/baxi-eco-4s-24.jpg?lc=1764768875', 'length_elem': 1}
+    https://i3.storeland.net/2/6948/169475010/075a3e/baxi-eco-4s-24.jpg?lc=1764768875
+    https://i3.storeland.net/2/6948/169475010/075a3e/baxi-eco-4s-24.jpg?lc=1764768875
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
 
-Проверяем селектор a.gr-image-zoom > img.gr_image_contain[src] на странице №2
-##### result_selector = {'result': '/thumb/2/6wNu6KYRNVyR4a53TEX0dA/750r750/d/4jpg_1.jpg', 'length_elem': 3}
-    В элементе /thumb/2/6wNu6KYRNVyR4a53TEX0dA/750r750/d/4jpg_1.jpg отсутствует хост и "http". Добавляем:
-    https://gaz-shop78.ru/thumb/2/6wNu6KYRNVyR4a53TEX0dA/750r750/d/4jpg_1.jpg
-    https://gaz-shop78.ru/thumb/2/6wNu6KYRNVyR4a53TEX0dA/750r750/d/4jpg_1.jpg
+Проверяем селектор link[itemprop="image"][href] на странице №2
+##### result_selector = {'result': 'https://i1.storeland.net/3/610/206092286/075a3e/baxi-eco-life-24-f.jpg?lc=1764768875', 'length_elem': 1}
+    https://i1.storeland.net/3/610/206092286/075a3e/baxi-eco-life-24-f.jpg?lc=1764768875
+    https://i1.storeland.net/3/610/206092286/075a3e/baxi-eco-life-24-f.jpg?lc=1764768875
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-max_count_element_of_selectors = 🟡 4
-_____
-
-Нашли больше одного селектора для поля imageLink
-Обрабатываем поле article
-
-Проверяем селектор .shop2-product-article на странице №1
-##### result_selector = {'result': 'нет', 'length_elem': 1}
-    нет
-    нет
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
-
-Проверяем селектор .shop2-product-article на странице №2
-##### result_selector = {'result': 'CSE46624354', 'length_elem': 1}
-    CSE46624354
-    CSE46624354
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
 
 max_count_element_of_selectors = 🟡 1
 _____
 
+Обрабатываем поле manufacturer
+
+Проверяем селектор .feature-value на странице №1
+##### result_selector = {'result': 'Baxi', 'length_elem': 7}
+    Baxi
+    Baxi
+
+    ✅ Полное совпадение селектора и оригинального значения поля manufacturer
+
+Проверяем селектор .feature-value на странице №2
+##### result_selector = {'result': 'Baxi', 'length_elem': 9}
+    Baxi
+    Baxi
+
+    ✅ Полное совпадение селектора и оригинального значения поля manufacturer
+
+max_count_element_of_selectors = 🟡 9
+_____
+
+Нашли больше одного селектора для поля manufacturer
 Статистика нахождения селекторов:
 🟩: name 
 💲 : price 
 💲 : oldprice 
-🟩: imageLink  🟡 > 1
-🟩: article 
+🟩: imageLink 
+🟩: manufacturer  🟡 > 1
 
 
 
@@ -274,43 +268,23 @@ url.searchParams.set('/?page', set.page);
 -----
 
 Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://gaz-shop78.ru/magazin/search?p=1&gr_smart_search=1&s%5Bname%5D=%D0%9A%D0%BE%D1%82%D1%91%D0%BB
+Строка на поиск у сайта, на 2ю страницу поиска: https://klimat-vikom.ru/search?q=Котёл&page=2
 
-Значение переменной HOST = https://gaz-shop78.ru
+Значение переменной HOST = https://klimat-vikom.ru
 
 Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
 
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/magazin/search`)
-url.searchParams.set("p", set.page)
-url.searchParams.set("gr_smart_search", "1")
-url.searchParams.set("s[name]", set.query)
+let url = new URL(`${HOST}/search`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("page", set.page)
 ```"
 
-processed_url_product = /magazin/product/1894352706
+processed_url_product = /goods/NAVIEN-DELUXE-Comfort-40кВТ-2-х-конт-Turbo?mod_id=319607848
 
-Найдено 6 возможных селекторов
-Исходный селектор: button.shop-product-btn.type-2.buy[data-url]
-Части селектора: ['button.shop-product-btn.type-2.buy[data-url]']
-Количество частей: 1
-
-Проверяем селектор: button.shop-product-btn.type-2.buy[data-url]
-Найдено элементов: 12
-✅ Найден подходящий селектор: button.shop-product-btn.type-2.buy[data-url]
-
-Итоговый product_selector = button.shop-product-btn.type-2.buy[data-url]
-Количество элементов по итоговому селектору: 12
-len_of_products_on_this_page = 12
-Ссылок по селектору: 12
-Совпадение ссылок = 1.00 (3/3)
-Извлекаем селектор кол-ва страниц
-
-Найдено 46 возможных селекторов
-pagination_selctor = li:nth-of-type(5)[data-value]
-Проверили, и нашли такой элемент по найденному селектору пагинации: 756107
-Имя парсера: JS_Base_gazshop78ru
+Имя парсера: JS_Base_klimatvikomru
 
 
 
@@ -333,7 +307,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, article, imageLink, timestamp
+    name, stock, link, price, oldprice, imageLink, manufacturer, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -342,12 +316,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, article, imageLink, timestamp
+    name, stock, link, price, oldprice, imageLink, manufacturer, timestamp
 }
 
-const HOST = "https://gaz-shop78.ru"
+const HOST = "https://klimat-vikom.ru"
 
-export class JS_Base_gazshop78ru extends JS_Base_Custom {
+export class JS_Base_klimatvikomru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -399,29 +373,28 @@ export class JS_Base_gazshop78ru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/magazin/search`)
-		url.searchParams.set("p", set.page)
-		url.searchParams.set("gr_smart_search", "1")
-		url.searchParams.set("s[name]", set.query)
+        let url = new URL(`${HOST}/search`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("page", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("li:nth-of-type(5)[data-value]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            /*[Ошибка генерации, не найден селектор]*/ 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("button.shop-product-btn.type-2.buy[data-url]") 
+        let products = $("/*[Ошибка генерации, не найден селектор]*/") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
+            let link = $(product)?.attr("href")
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
@@ -433,18 +406,17 @@ export class JS_Base_gazshop78ru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1").text()?.trim()
-		const stock = $("button.shop-product-btn.type-3.buy > span").text()?.includes("В корзину") ? "InStock" : "OutOfStock"
+        const name = $("a > strong").text()?.trim()
+		const stock = $(".available-true").text()?.includes("В наличии") ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = $(".price-current > strong").text()?.trim().formatPrice()
-		const oldprice = $("span > strong").text()?.trim().formatPrice()
-		const article = $(".shop2-product-article").text()?.trim()
-		let imageLink = $("a.gr-image-zoom > img.gr_image_contain")?.first()?.attr("src")?.trim()
-		imageLink = imageLink ? HOST + imageLink : ""
+		const price = $(".price_now_formated.RUB > span")?.attr("title")?.trim().formatPrice()
+		const oldprice = $(".price_old_formated.RUB > span")?.attr("title")?.trim().formatPrice()
+		const imageLink = $("link[itemprop='image']")?.attr("href")?.trim() || ""
+		const manufacturer = $(".feature-value")?.first().text()?.trim()
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, oldprice, article, imageLink, timestamp
+            name, stock, link, price, oldprice, imageLink, manufacturer, timestamp
         }
         items.push(item);
 

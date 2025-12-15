@@ -256,7 +256,18 @@ def main_generate_parsePage():
     
 
     if not original_product_selector:
-        raise ErrorHandler("Не был найден селектор для товара")
+        # raise ErrorHandler("Не был найден селектор для товара")
+
+        # set_item["result_pagination_block"] = "/*[Ошибка генерации, не найден селектор]*/"
+        set_item["result_pagination_block"] = 'let totalPages = Math.max(...$("/*[Ошибка генерации, не найден селектор]*/").get().map(item => +$(item).text().trim()).filter(Boolean))'
+        set_item["product_selector"] = "/*[Ошибка генерации, не найден селектор]*/"
+
+        message_global.append({"1": f"Не найден селектор для пагинации на parsePage"})
+        message_global.append({"1": f"Не найден селектор для товара на parsePage"})
+
+        # Генерирует итоговый шаблон parsePage
+        result = generate_parsePage(set_item)
+        return result
 
     tree = html_lx.fromstring(set_item["page_html"])
     product_selector = None
@@ -578,6 +589,7 @@ def main_generate_parsePage():
 
         finding_element = current_element["count_of_page_on_pagination"]        
         pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = False)
+        # pagination_selctor = get_css_selector_from_text_value_element(set_item["page_html"], finding_element, is_exact = True)
 
         print("pagination_selctor = " + pagination_selctor)
 
