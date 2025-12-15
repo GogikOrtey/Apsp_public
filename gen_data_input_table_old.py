@@ -5,10 +5,17 @@
 
 """
 
+Примеры с ауторсерских заданий:
+
+
+- line-tools.ru
+
 https://gidro-top.ru
 https://c-s-k.ru
 stroytorg812.ru
-https://gaz-shop78.ru
+
+
+- https://gaz-shop78.ru
 
 """
 

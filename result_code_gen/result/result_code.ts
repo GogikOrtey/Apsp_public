@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, article, timestamp
+    name, stock, link, price, oldprice, article, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, article, timestamp
+    name, stock, link, price, oldprice, article, imageLink, timestamp
 }
 
-const HOST = "https://makita-snab.ru"
+const HOST = "https://gaz-shop78.ru"
 
-export class JS_Base_makitasnabru extends JS_Base_Custom {
+export class JS_Base_gazshop78ru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -72,7 +72,33 @@ export class JS_Base_makitasnabru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    // Пропустили генерацию parsePage
+    async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/magazin/search`)
+		url.searchParams.set("p", set.page)
+		url.searchParams.set("gr_smart_search", "1")
+		url.searchParams.set("s[name]", set.query)
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("li:nth-of-type(5)[data-value]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+        
+        let products = $("button.shop-product-btn.type-2.buy[data-url]") 
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = `${HOST}${$(product)?.attr("href")}`
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        }) 
+    }
 
     //#region Парсинг товара
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -81,16 +107,18 @@ export class JS_Base_makitasnabru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.h1.widget-34.widget-type-h1.editorElement.layer-type-widget").text()?.trim()
-		const stock = "InStock"
+        const name = $("h1").text()?.trim()
+		const stock = $("button.shop-product-btn.type-3.buy > span").text()?.includes("В корзину") ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
-		const oldprice = "" // [Ошибка генерации APSP]: Не удалось подобрать селектор для поля
-		const article = $("b")?.first().text()?.trim()?.replace(/([a-z]+)(?=\s|$)/, "$1Z");
+		const price = $(".price-current > strong").text()?.trim().formatPrice()
+		const oldprice = $("span > strong").text()?.trim().formatPrice()
+		const article = $(".shop2-product-article").text()?.trim()
+		let imageLink = $("a.gr-image-zoom > img.gr_image_contain")?.first()?.attr("src")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, oldprice, article, timestamp
+            name, stock, link, price, oldprice, article, imageLink, timestamp
         }
         items.push(item);
 
