@@ -1,57 +1,43 @@
 # Автогенерация из шага 4. Не редактируйте вручную.
-# Сохранено: 2025-12-15 06:29:07
+# Сохранено: 2025-12-15 09:48:53
 import json
 
 data_input_table = json.loads(r'''{
   "host": "https://gidro-top.ru",
+  "timestamp": 1765774128,
   "fields_str": "",
   "links": {
     "simple": [
       {
-        "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
-        "name": "Aquanet SD-1200A душевая дверь",
-        "price": "19 850 ₽",
-        "oldprice": "",
-        "article": "00209406",
-        "brand": "Aquanet",
+        "link": "https://gidro-top.ru/product/azario-uno-az-2380-unitaz-podvesnoy-bezobodkovyy-s-sidenem-mikrolift/",
+        "name": "Azario UNO AZ-2380 Унитаз подвесной безободковый с сиденьем микролифт",
+        "price": "9 500 ₽",
+        "oldprice": "11 000 ₽",
+        "article": "AZ-2380",
         "InStock_trigger": "В наличии",
-        "OutOfStock_trigger": "",
-        "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
+        "OutOfStock_trigger": ""
       },
       {
-        "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
-        "name": "Aquastone Малибу Ванна из искусственного камня",
-        "price": "55 000 ₽",
-        "oldprice": "69 000 ₽",
-        "article": "MAlibu",
-        "brand": "Aquastone",
+        "link": "https://gidro-top.ru/product/triton-omega-170x70-vanna-iz-iskusstvennogo-kamnya/",
+        "name": "Triton Омега 170x70 Ванна из искусственного камня",
+        "price": "54 790 ₽",
+        "oldprice": "64 790 ₽",
+        "article": "Щ0000067077",
         "InStock_trigger": "В наличии",
-        "OutOfStock_trigger": "",
-        "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
-      },
-      {
-        "link": "https://gidro-top.ru/product/aquastone-bali-180/",
-        "name": "Aquastone Бали 180 Ванна из искусственного камня",
-        "price": "53 000 ₽",
-        "oldprice": "",
-        "article": "Bali180",
-        "brand": "Aquastone",
-        "InStock_trigger": "В наличии",
-        "OutOfStock_trigger": "",
-        "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
+        "OutOfStock_trigger": ""
       }
     ]
   },
   "search_requests": [
     {
-      "query": "Ванна",
-      "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
-      "count_of_page_on_pagination": "255",
+      "query": "ванна",
+      "url_search_query_page_2": "https://gidro-top.ru/search/ванна/?page=2",
+      "count_of_page_on_pagination": "252",
       "total_count_of_results": "0",
       "links_items": [
-        "https://gidro-top.ru/product/triton-nika-180-akrilovaya-vanna-180x80/",
-        "https://gidro-top.ru/product/vanna-astra-form-nyu-form-170x75-belaya/",
-        "https://gidro-top.ru/product/aquatek-layma-170/"
+        "https://gidro-top.ru/product/vanna-astra-form-atriya-170x85-belaya/",
+        "https://gidro-top.ru/product/wotte-start-170kh70/",
+        "https://gidro-top.ru/product/delice-malibu-dlr-230607/"
       ]
     }
   ]
