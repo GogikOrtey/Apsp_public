@@ -73,7 +73,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/?`)
+        let url = new URL(`${HOST}/catalog/`)
 		url.searchParams.set("q", set.query)
 		url.searchParams.set("s", "Поиск")
 		url.searchParams.set("PAGEN_1", set.page)
@@ -111,7 +111,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 		const stock = "InStock"
 		const link = set.query
 		const price = $(".price-elem__value").text()?.trim().formatPrice()
-		const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
+		const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^.*?:\s*/, '');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
