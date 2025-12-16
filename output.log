@@ -1,4 +1,4 @@
-16.12.2025 13:59:35
+17.12.2025 01:22:19
 
 🚀 Запуск генерации...
 
@@ -9,7 +9,7 @@
 ------------------------------------------------------------------------------
 
 
-field = name, stock, link, price, article, imageLink, timestamp
+field = name, stock, link, price, imageLink, product_id, timestamp
 
 
 
@@ -20,72 +20,55 @@ field = name, stock, link, price, article, imageLink, timestamp
 ------------------------------------------------------------------------------
 
 
-Обработаем 2 страниц
-
-Найдено 5 возможных селекторов
-Найден селектор для поля name
+Обработаем 1 страниц
 
 Найдено 6 возможных селекторов
+Найден селектор для поля name
+
+Найдено 13 возможных селекторов
 Найден селектор для поля price
 
-Найдено 29 возможных селекторов
+Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 
 Найдено 1 возможных селекторов
-Найден селектор для поля article
+
+Найдено 23 возможных селекторов
+Найден селектор для поля product_id
 ⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 _______________________
-
-Найдено 4 возможных селекторов
-Найден селектор для поля name
-
-Найдено 5 возможных селекторов
-Найден селектор для поля price
-
-Найдено 6 возможных селекторов
-Найден селектор для поля imageLink
-
-Найдено 1 возможных селекторов
-Найден селектор для поля article
-⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
-
-Найдено 2 возможных селекторов
-Найден селектор для поля OutOfStock_trigger
-_______________________
-Используемые поля: ['name', 'price', 'imageLink', 'article', 'InStock_trigger', 'OutOfStock_trigger']
+Используемые поля: ['name', 'price', 'imageLink', 'product_id', 'InStock_trigger', 'OutOfStock_trigger']
 Кандидаты по полям (в порядке приоритета):
- - name: 1 селекторов -> ['h1.product_title.entry-title']
- - price: 1 селекторов -> ['p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi']
- - imageLink: 1 селекторов -> ['.woocommerce-product-gallery__image > a[href]']
- - article: 1 селекторов -> ['span.sku']
+ - name: 1 селекторов -> ['.element__title.title-elem > h1']
+ - price: 1 селекторов -> ['.price-elem__value']
+ - imageLink: 1 селекторов -> ['img[itemprop="image"][src]']
+ - product_id: 1 селекторов -> ['.header-elem__item.header-elem__item_s > span']
  - InStock_trigger: 0 селекторов -> []
- - OutOfStock_trigger: 1 селекторов -> ['p.stock.out-of-stock']
+ - OutOfStock_trigger: 0 селекторов -> []
 [WARN] Для поля InStock_trigger не найден селектор(ы).
-  [SKIP] OutOfStock_trigger on https://makitaclub.ru/products/df488d002/: no expected value or no original selector
+[WARN] Для поля OutOfStock_trigger не найден селектор(ы).
 
 📄 Кеш сохранён в cache.json, всего страниц: 105
-   Добавлено: 2, обновлено: 0
+   Добавлено: 0, обновлено: 1
 
 
 ✅ Итоговые селекторы:
 {
     "name": [
-        "h1.product_title.entry-title"
+        ".element__title.title-elem > h1"
     ],
     "price": [
-        "p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi"
+        ".price-elem__value"
     ],
     "imageLink": [
-        ".woocommerce-product-gallery__image > a[href]"
+        "img[itemprop="image"][src]"
     ],
-    "article": [
-        "span.sku"
+    "product_id": [
+        ".header-elem__item.header-elem__item_s > span"
     ],
     "InStock_trigger": [],
-    "OutOfStock_trigger": [
-        "p.stock.out-of-stock"
-    ]
+    "OutOfStock_trigger": []
 }
 
 
@@ -98,19 +81,13 @@ _______________________
 
 Проверяем селекторы, и генерируем parseCard
 Оба триггера есть
+Они одинаковые, используем InStock
 Обрабатываем поле name
 
-Проверяем селектор h1.product_title.entry-title на странице №1
-##### result_selector = {'result': 'Аккумуляторная безударная 2-х скоростная дрель-шуруповерт Makita DF488D002 (18V, 2 x 1.5Ah, Li-Ion)', 'length_elem': 1}
-    Аккумуляторная безударная 2-х скоростная дрель-шуруповерт Makita DF488D002 (18V, 2 x 1.5Ah, Li-Ion)
-    Аккумуляторная безударная 2-х скоростная дрель-шуруповерт Makita DF488D002 (18V, 2 x 1.5Ah, Li-Ion)
-
-    ✅ Полное совпадение селектора и оригинального значения поля name
-
-Проверяем селектор h1.product_title.entry-title на странице №2
-##### result_selector = {'result': 'Аккумуляторная ударная 2-х скоростная дрель-шуруповерт Makita HP488D002 (18V, 2 x 1,5Ah, Li-Ion)', 'length_elem': 1}
-    Аккумуляторная ударная 2-х скоростная дрель-шуруповерт Makita HP488D002 (18V, 2 x 1,5Ah, Li-Ion)
-    Аккумуляторная ударная 2-х скоростная дрель-шуруповерт Makita HP488D002 (18V, 2 x 1,5Ah, Li-Ion)
+Проверяем селектор .element__title.title-elem > h1 на странице №1
+##### result_selector = {'result': 'Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая', 'length_elem': 1}
+    Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая
+    Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
@@ -119,18 +96,10 @@ _____
 
 Обрабатываем поле price
 
-Проверяем селектор p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi на странице №1
-##### result_selector = {'result': '12 880', 'length_elem': 1}
-    12 880
-    12 880 ₽
-
-    💲 Обрабатываем поле price
-    Разделитель - точка
-
-Проверяем селектор p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi на странице №2
-##### result_selector = {'result': '13 770', 'length_elem': 1}
-    13 770
-    13 770 ₽
+Проверяем селектор .price-elem__value на странице №1
+##### result_selector = {'result': '26 499', 'length_elem': 1}
+    26 499
+    26 499/шт
 
     💲 Обрабатываем поле price
     Разделитель - точка
@@ -140,48 +109,57 @@ _____
 
 Обрабатываем поле imageLink
 
-Проверяем селектор .woocommerce-product-gallery__image > a[href] на странице №1
-##### result_selector = {'result': 'https://makitaclub.ru/wp-content/uploads/DF488DWE_1.jpg', 'length_elem': 5}
-    https://makitaclub.ru/wp-content/uploads/DF488DWE_1.jpg
-    https://makitaclub.ru/wp-content/uploads/DF488DWE_1.jpg
+Проверяем селектор img[itemprop="image"][src] на странице №1
+##### result_selector = {'result': '/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp', 'length_elem': 1}
+    В элементе /upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp отсутствует хост и "http". Добавляем:
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-Проверяем селектор .woocommerce-product-gallery__image > a[href] на странице №2
-##### result_selector = {'result': 'https://makitaclub.ru/wp-content/uploads/HP488DWE.jpg', 'length_elem': 1}
-    https://makitaclub.ru/wp-content/uploads/HP488DWE.jpg
-    https://makitaclub.ru/wp-content/uploads/HP488DWE.jpg
-
-    ✅ Полное совпадение селектора и оригинального значения поля imageLink
-
-max_count_element_of_selectors = 🟡 5
-_____
-
-Нашли больше одного селектора для поля imageLink
-Обрабатываем поле article
-
-Проверяем селектор span.sku на странице №1
-##### result_selector = {'result': 'DF488D002', 'length_elem': 1}
-    DF488D002
-    DF488D002
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
-
-Проверяем селектор span.sku на странице №2
-##### result_selector = {'result': 'HP488D002', 'length_elem': 1}
-    HP488D002
-    HP488D002
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
 
 max_count_element_of_selectors = 🟡 1
 _____
 
+Обрабатываем поле product_id
+
+Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №1
+##### result_selector = {'result': 'Код: 00-01631492', 'length_elem': 1}
+    Код: 00-01631492
+    00-01631492
+
+    🟨 Частичное совпадение
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+🧢 Отправляю запрос к ИИ на исправление строки кода для поля product_id
+Посылаю запрос к YandexGPT:
+
+💫 PROMPT:
+Есть такой код на JS: 
+const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()
+Однако он извлекает "Код: 00-01631492"
+А должен извлекать: "00-01631492"
+
+Измени исходный код, что бы он делал это.
+Обязательные правила:
+— Для безопасности, используй только опциональную цепочку ?. и не используй просто . 
+— Однако можно использовать функции .match .replace и остальные подобные
+— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
+— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную строку или фрагмент кода.
+    
+
+
+💬 AI ANSWER:
+"```
+const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^.*?:\s*/, '');
+```"
+
 Статистика нахождения селекторов:
 🟩: name 
 💲 : price 
-🟩: imageLink  🟡 > 1
-🟩: article 
+🟩: imageLink 
+🟨: product_id  🧢 use ИИ
 
 
 
@@ -193,6 +171,7 @@ _____
 ------------------------------------------------------------------------------
 
 
+🟧 timestamp нет в массиве, данные для parsePage могут быть неактуальными
 Посылаю запрос к YandexGPT:
 
 💫 PROMPT:
@@ -235,46 +214,43 @@ url.searchParams.set('/?page', set.page);
 -----
 
 Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://makitaclub.ru/page/2/?s=2&post_type=product
+Строка на поиск у сайта, на 2ю страницу поиска: https://c-s-k.ru/catalog/?q=%D0%B4%D0%B2%D0%B5%D1%80%D1%8C&s=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&PAGEN_1=2
 
-Значение переменной HOST = https://makitaclub.ru
+Значение переменной HOST = https://c-s-k.ru
 
 Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
 
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/page/${set.page}/?s=2&post_type=product`)
-url.searchParams.set("s", "2")
-url.searchParams.set("post_type", "product")
-url.searchParams.set("page", set.page)
+let url = new URL(`${HOST}/catalog/?`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("s", "Поиск")
+url.searchParams.set("PAGEN_1", set.page)
 ```"
 
-processed_url_product = /products/d-59221/
+processed_url_product = /catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/
 
-Найдено 1 возможных селекторов
-Исходный селектор: div.card.h-100.site-hover.product.type-product.post-84663.status-publish.first.instock.product_cat-shlifovalnaya-lenta-makita-76-h-457-mm.has-post-thumbnail.shipping-taxable.purchasable.product-type-simple > div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
-Части селектора: ['div.card.h-100.site-hover.product.type-product.post-84663.status-publish.first.instock.product_cat-shlifovalnaya-lenta-makita-76-h-457-mm.has-post-thumbnail.shipping-taxable.purchasable.product-type-simple>', 'div.row.g-0>', 'div.col-md-7>', 'div.card-body>', 'a.stretched-link[href]']
-Количество частей: 5
+Найдено 3 возможных селекторов
+Исходный селектор: a.catalog-item__title[href]
+Части селектора: ['a.catalog-item__title[href]']
+Количество частей: 1
 
-Проверяем селектор: div.card.h-100.site-hover.product.type-product.post-84663.status-publish.first.instock.product_cat-shlifovalnaya-lenta-makita-76-h-457-mm.has-post-thumbnail.shipping-taxable.purchasable.product-type-simple > div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
-Найдено элементов: 1
+Проверяем селектор: a.catalog-item__title[href]
+Найдено элементов: 20
+✅ Найден подходящий селектор: a.catalog-item__title[href]
 
-Проверяем селектор: div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
-Найдено элементов: 16
-✅ Найден подходящий селектор: div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
-
-Итоговый product_selector = a.stretched-link[href]
-Количество элементов по итоговому селектору: 16
-len_of_products_on_this_page = 16
-Ссылок по селектору: 16
+Итоговый product_selector = a.catalog-item__title[href]
+Количество элементов по итоговому селектору: 20
+len_of_products_on_this_page = 20
+Ссылок по селектору: 20
 Совпадение ссылок = 1.00 (3/3)
 Извлекаем селектор кол-ва страниц
 
-Найдено 21 возможных селекторов
-pagination_selctor = li:nth-of-type(10) > a.page-numbers
-Проверили, и нашли такой элемент по найденному селектору пагинации: 220
-Имя парсера: JS_Base_makitaclubru
+Найдено 594 возможных селекторов
+pagination_selctor = span.nums > a:nth-of-type(4)
+Проверили, и нашли такой элемент по найденному селектору пагинации: 20
+Имя парсера: JS_Base_cskru
 
 
 
@@ -297,7 +273,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, article, imageLink, timestamp
+    name, stock, link, price, imageLink, product_id, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -306,12 +282,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, article, imageLink, timestamp
+    name, stock, link, price, imageLink, product_id, timestamp
 }
 
-const HOST = "https://makitaclub.ru"
+const HOST = "https://c-s-k.ru"
 
-export class JS_Base_makitaclubru extends JS_Base_Custom {
+export class JS_Base_cskru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -363,29 +339,29 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/page/${set.page}/?s=2&post_type=product`)
-		url.searchParams.set("s", "2")
-		url.searchParams.set("post_type", "product")
-		url.searchParams.set("page", set.page)
+        let url = new URL(`${HOST}/catalog/?`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("s", "Поиск")
+		url.searchParams.set("PAGEN_1", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("li:nth-of-type(10) > a.page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.stretched-link[href]") 
+        let products = $("a.catalog-item__title[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
+            let link = `${HOST}${$(product)?.attr("href")}`
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
@@ -397,16 +373,17 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.product_title.entry-title").text()?.trim()
+        const name = $(".element__title.title-elem > h1").text()?.trim()
 		const stock = "InStock"
 		const link = set.query
-		const price = $("p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi").text()?.trim().formatPrice()
-		const article = $("span.sku").text()?.trim()
-		const imageLink = $(".woocommerce-product-gallery__image > a")?.first()?.attr("href")?.trim() || ""
+		const price = $(".price-elem__value").text()?.trim().formatPrice()
+		const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^.*?:\s*/, '');
+		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, article, imageLink, timestamp
+            name, stock, link, price, imageLink, product_id, timestamp
         }
         items.push(item);
 
@@ -434,5 +411,5 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
 }
 
 // Код сгенерирован APSP v0.1
-// Дата: 16 Дек 2025
+// Дата: 17 Дек 2025
 // © BrandPol

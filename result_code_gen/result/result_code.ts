@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, article, imageLink, timestamp
+    name, stock, link, price, imageLink, product_id, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, article, imageLink, timestamp
+    name, stock, link, price, imageLink, product_id, timestamp
 }
 
-const HOST = "https://makitaclub.ru"
+const HOST = "https://c-s-k.ru"
 
-export class JS_Base_makitaclubru extends JS_Base_Custom {
+export class JS_Base_cskru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,29 +73,29 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/page/${set.page}/?s=2&post_type=product`)
-		url.searchParams.set("s", "2")
-		url.searchParams.set("post_type", "product")
-		url.searchParams.set("page", set.page)
+        let url = new URL(`${HOST}/catalog/?`)
+		url.searchParams.set("q", set.query)
+		url.searchParams.set("s", "Поиск")
+		url.searchParams.set("PAGEN_1", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("li:nth-of-type(10) > a.page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.stretched-link[href]") 
+        let products = $("a.catalog-item__title[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr("href")
+            let link = `${HOST}${$(product)?.attr("href")}`
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
@@ -107,16 +107,17 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.product_title.entry-title").text()?.trim()
+        const name = $(".element__title.title-elem > h1").text()?.trim()
 		const stock = "InStock"
 		const link = set.query
-		const price = $("p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi").text()?.trim().formatPrice()
-		const article = $("span.sku").text()?.trim()
-		const imageLink = $(".woocommerce-product-gallery__image > a")?.first()?.attr("href")?.trim() || ""
+		const price = $(".price-elem__value").text()?.trim().formatPrice()
+		const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^.*?:\s*/, '');
+		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, article, imageLink, timestamp
+            name, stock, link, price, imageLink, product_id, timestamp
         }
         items.push(item);
 
@@ -144,5 +145,5 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
 }
 
 // Код сгенерирован APSP v0.1
-// Дата: 16 Дек 2025
+// Дата: 17 Дек 2025
 // © BrandPol
