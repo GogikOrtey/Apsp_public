@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, imageLink, product_id, timestamp
+    name, stock, link, price, article, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, imageLink, product_id, timestamp
+    name, stock, link, price, article, imageLink, timestamp
 }
 
-const HOST = "https://c-s-k.ru"
+const HOST = "https://som1.ru"
 
-export class JS_Base_cskru extends JS_Base_Custom {
+export class JS_Base_som1ru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,23 +73,23 @@ export class JS_Base_cskru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/`)
+        let url = new URL(`${HOST}/catalog/?`)
 		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "Поиск")
-		url.searchParams.set("PAGEN_1", set.page)
+		url.searchParams.set("s", "")
+		url.searchParams.set("PAGEN_2", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("div.blog-page-navigation > a").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("a.catalog-item__title[href]") 
+        let products = $("div.blp-col.blp-col-pic > a.product-image[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -107,18 +107,17 @@ export class JS_Base_cskru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $(".element__title.title-elem > h1").text()?.trim()
-		const stock = "InStock"
+        const name = $("#addProdName").text()?.trim()
+		const stock = ["В наличии:", "Всего в наличии:"].some(s => $("span > a.avialableLink > span").text()?.includes(s)) ? "InStock" : "OutOfStock"
 		const link = set.query
-		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
-		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
-		const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^.*?\s?(\d+-\d+)/, '$1');
-		let imageLink = $("img[itemprop='image']")?.first()?.attr("src")?.trim()
+		const price = $("#detailAdd2Basket > .element-prices-price").text()?.trim().formatPrice(",")
+		const article = $("#features > .row > ul.col-xs-6.feature-list > li:nth-of-type(1) > .row > .col-xs-6.feature-value")?.first().text()?.trim()
+		let imageLink = $("div")?.attr("data-src")?.trim()?.replace(/\/iblock\/(\w+)(\/.+)$/, `/iblock/$1/476_476_1/$2`)
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, oldprice, imageLink, product_id, timestamp
+            name, stock, link, price, article, imageLink, timestamp
         }
         items.push(item);
 

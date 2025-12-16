@@ -1,45 +1,43 @@
 # Автогенерация из шага 4. Не редактируйте вручную.
-# Сохранено: 2025-12-16 09:40:32
+# Сохранено: 2025-12-16 12:42:15
 import json
 
 data_input_table = json.loads(r'''{
-  "host": "https://c-s-k.ru",
-  "timestamp": 1765860030,
+  "host": "https://som1.ru",
+  "timestamp": 1765870930,
   "fields_str": "",
   "links": {
     "simple": [
       {
-        "link": "https://c-s-k.ru/catalog/osveshchenie/nastenno_potolochnye_svetilniki/241615/",
-        "name": "Светильник светодиодный 80Вт Звездное небо 6500К белый",
-        "price": "1 188/шт",
-        "oldprice": "2 389/шт",
-        "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/d6b/340_340_1/d6d62oucbkd5vvd2d99771umlb1irw8x.webp",
-        "product_id": "00-01620981",
-        "InStock_trigger": "",
+        "link": "https://som1.ru/catalog/sistema_krepezha_joker/soedinitel_2_kh_trub_r_55b_chrome_313074_parallelnyy/",
+        "name": "Соединитель 2-х труб R-55B CHROME 313074, параллельный",
+        "price": "126 ₽/шт.",
+        "imageLink": "https://som1.ru/upload/resize_cache/iblock/69c/476_476_1/6fw1ix8pkpc9sa2v36ky5bs1ryw8s4sd.jpg",
+        "article": "58620",
+        "InStock_trigger": "В наличии:",
         "OutOfStock_trigger": ""
       },
       {
-        "link": "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/182171/",
-        "name": "Дверь металлическая GARDA МУАР Белый ясень 2050х860 левая",
-        "price": "15 999/шт",
-        "oldprice": "22 999/шт",
-        "imageLink": "https://c-s-k.ru/upload/resize_cache/webp/iblock/cee/340_340_1/q6dgubcehndy3snso5039p79w8j3ctx7.webp",
-        "product_id": "00-01610701",
-        "InStock_trigger": "",
+        "link": "https://som1.ru/catalog/aksessuary_dlya_trub/nozhnitsy_d_mpl_trub_16_40_770008/",
+        "name": "Ножницы д/мпл. труб 16-40 /770008",
+        "price": "370 ₽/шт.",
+        "imageLink": "https://som1.ru/upload/iblock/e89/fmubvitc6tpkv2kdei604y5wn1wq5h11.jpg",
+        "article": "15830",
+        "InStock_trigger": "Всего в наличии:",
         "OutOfStock_trigger": ""
       }
     ]
   },
   "search_requests": [
     {
-      "query": "Дверь",
-      "url_search_query_page_2": "https://c-s-k.ru/catalog/?q=%D0%94%D0%B2%D0%B5%D1%80%D1%8C&s=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&PAGEN_1=2",
-      "count_of_page_on_pagination": "20",
+      "query": "труба",
+      "url_search_query_page_2": "https://som1.ru/catalog/?q=%D1%82%D1%80%D1%83%D0%B1%D0%B0&s=&PAGEN_2=2",
+      "count_of_page_on_pagination": "11",
       "total_count_of_results": "0",
       "links_items": [
-        "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/",
-        "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/",
-        "https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/179051/"
+        "https://som1.ru/catalog/provoda_dlya_obogreva_trub/kabel_10seds2_cf_samoreg_nagrev_pishchevoy_10seds2_cf/",
+        "https://som1.ru/catalog/montazh_provodov_kabeley_trub/shina_nulevaya_6kh9mm_8_1_b_izolyatora/",
+        "https://som1.ru/catalog/montazh_provodov_kabeley_trub/shina_nulevaya_na_din_izol_6kh9_8_d_zh_shni/"
       ]
     }
   ]
