@@ -1,4 +1,4 @@
-16.12.2025 12:42:20
+16.12.2025 13:59:35
 
 🚀 Запуск генерации...
 
@@ -22,75 +22,70 @@ field = name, stock, link, price, article, imageLink, timestamp
 
 Обработаем 2 страниц
 
-Найдено 17 возможных селекторов
+Найдено 5 возможных селекторов
 Найден селектор для поля name
 
-Найдено 3 возможных селекторов
+Найдено 6 возможных селекторов
 Найден селектор для поля price
 
-Найдено 1 возможных селекторов
+Найдено 29 возможных селекторов
 Найден селектор для поля imageLink
 
-Найдено 5 возможных селекторов
+Найдено 1 возможных селекторов
 Найден селектор для поля article
-
-Найдено 2 возможных селекторов
-Найден селектор для поля InStock_trigger
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 ⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
 _______________________
 
-Найдено 17 возможных селекторов
+Найдено 4 возможных селекторов
 Найден селектор для поля name
 
-Найдено 3 возможных селекторов
+Найдено 5 возможных селекторов
 Найден селектор для поля price
 
-Найдено 2 возможных селекторов
+Найдено 6 возможных селекторов
 Найден селектор для поля imageLink
 
-Найдено 5 возможных селекторов
+Найдено 1 возможных селекторов
 Найден селектор для поля article
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
 
-Найдено 22 возможных селекторов
-Найден селектор для поля InStock_trigger
-⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+Найдено 2 возможных селекторов
+Найден селектор для поля OutOfStock_trigger
 _______________________
 Используемые поля: ['name', 'price', 'imageLink', 'article', 'InStock_trigger', 'OutOfStock_trigger']
 Кандидаты по полям (в порядке приоритета):
- - name: 1 селекторов -> ['#addProdName']
- - price: 1 селекторов -> ['#detailAdd2Basket > .element-prices-price']
- - imageLink: 2 селекторов -> ['div[data-src]', '.slider > div > img[src]']
- - article: 1 селекторов -> ['#features > .row > ul.col-xs-6.feature-list > li:nth-of-type(1) > .row > .col-xs-6.feature-value']
- - InStock_trigger: 2 селекторов -> ['#addProdQuintity', 'span > a.avialableLink > span']
- - OutOfStock_trigger: 0 селекторов -> []
-[🟧 FAIL] InStock_trigger on https://som1.ru/catalog/aksessuary_dlya_trub/nozhnitsy_d_mpl_trub_16_40_770008/: 
-  искали: 'Всего в наличии:' 
-  нашли:  'В наличии:15 шт' 
-  селектор: ('#addProdQuintity',)
-[WARN] Для поля OutOfStock_trigger не найден селектор(ы).
+ - name: 1 селекторов -> ['h1.product_title.entry-title']
+ - price: 1 селекторов -> ['p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi']
+ - imageLink: 1 селекторов -> ['.woocommerce-product-gallery__image > a[href]']
+ - article: 1 селекторов -> ['span.sku']
+ - InStock_trigger: 0 селекторов -> []
+ - OutOfStock_trigger: 1 селекторов -> ['p.stock.out-of-stock']
+[WARN] Для поля InStock_trigger не найден селектор(ы).
+  [SKIP] OutOfStock_trigger on https://makitaclub.ru/products/df488d002/: no expected value or no original selector
 
-📄 Кеш сохранён в cache.json, всего страниц: 103
+📄 Кеш сохранён в cache.json, всего страниц: 105
    Добавлено: 2, обновлено: 0
 
 
 ✅ Итоговые селекторы:
 {
     "name": [
-        "#addProdName"
+        "h1.product_title.entry-title"
     ],
     "price": [
-        "#detailAdd2Basket > .element-prices-price"
+        "p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi"
     ],
     "imageLink": [
-        "div[data-src]"
+        ".woocommerce-product-gallery__image > a[href]"
     ],
     "article": [
-        "#features > .row > ul.col-xs-6.feature-list > li:nth-of-type(1) > .row > .col-xs-6.feature-value"
+        "span.sku"
     ],
-    "InStock_trigger": [
-        "span > a.avialableLink > span"
-    ],
-    "OutOfStock_trigger": []
+    "InStock_trigger": [],
+    "OutOfStock_trigger": [
+        "p.stock.out-of-stock"
+    ]
 }
 
 
@@ -105,17 +100,17 @@ _______________________
 Оба триггера есть
 Обрабатываем поле name
 
-Проверяем селектор #addProdName на странице №1
-##### result_selector = {'result': 'Соединитель 2-х труб R-55B CHROME 313074, параллельный', 'length_elem': 1}
-    Соединитель 2-х труб R-55B CHROME 313074, параллельный
-    Соединитель 2-х труб R-55B CHROME 313074, параллельный
+Проверяем селектор h1.product_title.entry-title на странице №1
+##### result_selector = {'result': 'Аккумуляторная безударная 2-х скоростная дрель-шуруповерт Makita DF488D002 (18V, 2 x 1.5Ah, Li-Ion)', 'length_elem': 1}
+    Аккумуляторная безударная 2-х скоростная дрель-шуруповерт Makita DF488D002 (18V, 2 x 1.5Ah, Li-Ion)
+    Аккумуляторная безударная 2-х скоростная дрель-шуруповерт Makita DF488D002 (18V, 2 x 1.5Ah, Li-Ion)
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
-Проверяем селектор #addProdName на странице №2
-##### result_selector = {'result': 'Ножницы д/мпл. труб 16-40 /770008', 'length_elem': 1}
-    Ножницы д/мпл. труб 16-40 /770008
-    Ножницы д/мпл. труб 16-40 /770008
+Проверяем селектор h1.product_title.entry-title на странице №2
+##### result_selector = {'result': 'Аккумуляторная ударная 2-х скоростная дрель-шуруповерт Makita HP488D002 (18V, 2 x 1,5Ah, Li-Ion)', 'length_elem': 1}
+    Аккумуляторная ударная 2-х скоростная дрель-шуруповерт Makita HP488D002 (18V, 2 x 1,5Ah, Li-Ion)
+    Аккумуляторная ударная 2-х скоростная дрель-шуруповерт Makita HP488D002 (18V, 2 x 1,5Ah, Li-Ion)
 
     ✅ Полное совпадение селектора и оригинального значения поля name
 
@@ -124,100 +119,69 @@ _____
 
 Обрабатываем поле price
 
-Проверяем селектор #detailAdd2Basket > .element-prices-price на странице №1
-##### result_selector = {'result': '126 ₽/шт.', 'length_elem': 1}
-    126 ₽/шт.
-    126 ₽/шт.
+Проверяем селектор p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi на странице №1
+##### result_selector = {'result': '12 880', 'length_elem': 1}
+    12 880
+    12 880 ₽
 
     💲 Обрабатываем поле price
-    p1 = 126.
-    p2 = 126
-    Разделитель - запятая
+    Разделитель - точка
 
-Проверяем селектор #detailAdd2Basket > .element-prices-price на странице №2
-##### result_selector = {'result': '370 ₽/шт.', 'length_elem': 1}
-    370 ₽/шт.
-    370 ₽/шт.
+Проверяем селектор p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi на странице №2
+##### result_selector = {'result': '13 770', 'length_elem': 1}
+    13 770
+    13 770 ₽
 
     💲 Обрабатываем поле price
-    p1 = 370.
-    p2 = 370
-    Разделитель - запятая
+    Разделитель - точка
 
 max_count_element_of_selectors = 🟡 1
 _____
 
 Обрабатываем поле imageLink
 
-Проверяем селектор div[data-src] на странице №1
-##### result_selector = {'result': '/upload/iblock/69c/6fw1ix8pkpc9sa2v36ky5bs1ryw8s4sd.jpg', 'length_elem': 1}
-    В элементе /upload/iblock/69c/6fw1ix8pkpc9sa2v36ky5bs1ryw8s4sd.jpg отсутствует хост и "http". Добавляем:
-    https://som1.ru/upload/iblock/69c/6fw1ix8pkpc9sa2v36ky5bs1ryw8s4sd.jpg
-    https://som1.ru/upload/resize_cache/iblock/69c/476_476_1/6fw1ix8pkpc9sa2v36ky5bs1ryw8s4sd.jpg
-
-    🟨 Частичное совпадение
-
-Проверяем селектор div[data-src] на странице №2
-##### result_selector = {'result': '/upload/iblock/e89/fmubvitc6tpkv2kdei604y5wn1wq5h11.jpg', 'length_elem': 1}
-    В элементе /upload/iblock/e89/fmubvitc6tpkv2kdei604y5wn1wq5h11.jpg отсутствует хост и "http". Добавляем:
-    https://som1.ru/upload/iblock/e89/fmubvitc6tpkv2kdei604y5wn1wq5h11.jpg
-    https://som1.ru/upload/iblock/e89/fmubvitc6tpkv2kdei604y5wn1wq5h11.jpg
+Проверяем селектор .woocommerce-product-gallery__image > a[href] на странице №1
+##### result_selector = {'result': 'https://makitaclub.ru/wp-content/uploads/DF488DWE_1.jpg', 'length_elem': 5}
+    https://makitaclub.ru/wp-content/uploads/DF488DWE_1.jpg
+    https://makitaclub.ru/wp-content/uploads/DF488DWE_1.jpg
 
     ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+Проверяем селектор .woocommerce-product-gallery__image > a[href] на странице №2
+##### result_selector = {'result': 'https://makitaclub.ru/wp-content/uploads/HP488DWE.jpg', 'length_elem': 1}
+    https://makitaclub.ru/wp-content/uploads/HP488DWE.jpg
+    https://makitaclub.ru/wp-content/uploads/HP488DWE.jpg
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+max_count_element_of_selectors = 🟡 5
+_____
+
+Нашли больше одного селектора для поля imageLink
+Обрабатываем поле article
+
+Проверяем селектор span.sku на странице №1
+##### result_selector = {'result': 'DF488D002', 'length_elem': 1}
+    DF488D002
+    DF488D002
+
+    ✅ Полное совпадение селектора и оригинального значения поля article
+
+Проверяем селектор span.sku на странице №2
+##### result_selector = {'result': 'HP488D002', 'length_elem': 1}
+    HP488D002
+    HP488D002
+
+    ✅ Полное совпадение селектора и оригинального значения поля article
 
 max_count_element_of_selectors = 🟡 1
 _____
 
-🧢 Отправляю запрос к ИИ на исправление строки кода для поля imageLink
-Посылаю запрос к YandexGPT:
-
-💫 PROMPT:
-Есть такой код на JS: 
-                let imageLink = $("div")?.attr("data-src")?.trim()
-		imageLink = imageLink ? HOST + imageLink : ""
-                Однако он извлекает "https://som1.ru/upload/iblock/69c/6fw1ix8pkpc9sa2v36ky5bs1ryw8s4sd.jpg"
-                А должен извлекать: "https://som1.ru/upload/resize_cache/iblock/69c/476_476_1/6fw1ix8pkpc9sa2v36ky5bs1ryw8s4sd.jpg"
-                Переменная HOST = https://som1.ru
-                Измени исходный код, что бы он делал это.
-Обязательные правила:
-— Для безопасности, используй только опциональную цепочку ?. и не используй просто . 
-— Однако можно использовать функции .match .replace и остальные подобные
-— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
-— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную строку или фрагмент кода.
-    
-
-
-💬 AI ANSWER:
-"```
-let imageLink = $("div")?.attr("data-src")?.trim()?.replace(/\/iblock\/(\w+)(\/.+)$/, `/iblock/$1/476_476_1/$2`)
-imageLink = imageLink ? HOST + imageLink : ""
-```"
-
-Обрабатываем поле article
-
-Проверяем селектор #features > .row > ul.col-xs-6.feature-list > li:nth-of-type(1) > .row > .col-xs-6.feature-value на странице №1
-##### result_selector = {'result': '58620', 'length_elem': 2}
-    58620
-    58620
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
-
-Проверяем селектор #features > .row > ul.col-xs-6.feature-list > li:nth-of-type(1) > .row > .col-xs-6.feature-value на странице №2
-##### result_selector = {'result': '15830', 'length_elem': 2}
-    15830
-    15830
-
-    ✅ Полное совпадение селектора и оригинального значения поля article
-
-max_count_element_of_selectors = 🟡 2
-_____
-
-Нашли больше одного селектора для поля article
 Статистика нахождения селекторов:
 🟩: name 
 💲 : price 
-🟩: imageLink  🧢 use ИИ
-🟩: article  🟡 > 1
+🟩: imageLink  🟡 > 1
+🟩: article 
 
 
 
@@ -271,46 +235,46 @@ url.searchParams.set('/?page', set.page);
 -----
 
 Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://som1.ru/catalog/?q=%D1%82%D1%80%D1%83%D0%B1%D0%B0&s=&PAGEN_2=2
+Строка на поиск у сайта, на 2ю страницу поиска: https://makitaclub.ru/page/2/?s=2&post_type=product
 
-Значение переменной HOST = https://som1.ru
+Значение переменной HOST = https://makitaclub.ru
 
 Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
 
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/catalog/?`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("s", "")
-url.searchParams.set("PAGEN_2", set.page)
+let url = new URL(`${HOST}/page/${set.page}/?s=2&post_type=product`)
+url.searchParams.set("s", "2")
+url.searchParams.set("post_type", "product")
+url.searchParams.set("page", set.page)
 ```"
 
-processed_url_product = /catalog/provoda_dlya_obogreva_trub/kabel_10seds2_cf_samoreg_nagrev_pishchevoy_10seds2_cf/
+processed_url_product = /products/d-59221/
 
-Найдено 5 возможных селекторов
-Исходный селектор: #product-blp-1073544 > div.blp-row > div.blp-col.blp-col-pic > a.product-image[href]
-Части селектора: ['#product-blp-1073544>', 'div.blp-row>', 'div.blp-col.blp-col-pic>', 'a.product-image[href]']
-Количество частей: 4
+Найдено 1 возможных селекторов
+Исходный селектор: div.card.h-100.site-hover.product.type-product.post-84663.status-publish.first.instock.product_cat-shlifovalnaya-lenta-makita-76-h-457-mm.has-post-thumbnail.shipping-taxable.purchasable.product-type-simple > div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
+Части селектора: ['div.card.h-100.site-hover.product.type-product.post-84663.status-publish.first.instock.product_cat-shlifovalnaya-lenta-makita-76-h-457-mm.has-post-thumbnail.shipping-taxable.purchasable.product-type-simple>', 'div.row.g-0>', 'div.col-md-7>', 'div.card-body>', 'a.stretched-link[href]']
+Количество частей: 5
 
-Проверяем селектор: #product-blp-1073544 > div.blp-row > div.blp-col.blp-col-pic > a.product-image[href]
+Проверяем селектор: div.card.h-100.site-hover.product.type-product.post-84663.status-publish.first.instock.product_cat-shlifovalnaya-lenta-makita-76-h-457-mm.has-post-thumbnail.shipping-taxable.purchasable.product-type-simple > div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
 Найдено элементов: 1
 
-Проверяем селектор: div.blp-row > div.blp-col.blp-col-pic > a.product-image[href]
-Найдено элементов: 25
-✅ Найден подходящий селектор: div.blp-row > div.blp-col.blp-col-pic > a.product-image[href]
+Проверяем селектор: div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
+Найдено элементов: 16
+✅ Найден подходящий селектор: div.row.g-0 > div.col-md-7 > div.card-body > a.stretched-link[href]
 
-Итоговый product_selector = div.blp-col.blp-col-pic > a.product-image[href]
-Количество элементов по итоговому селектору: 25
-len_of_products_on_this_page = 25
-Ссылок по селектору: 25
+Итоговый product_selector = a.stretched-link[href]
+Количество элементов по итоговому селектору: 16
+len_of_products_on_this_page = 16
+Ссылок по селектору: 16
 Совпадение ссылок = 1.00 (3/3)
 Извлекаем селектор кол-ва страниц
 
-Найдено 324 возможных селекторов
-pagination_selctor = div.blog-page-navigation > a
-Проверили, и нашли такой элемент по найденному селектору пагинации: 1
-Имя парсера: JS_Base_som1ru
+Найдено 21 возможных селекторов
+pagination_selctor = li:nth-of-type(10) > a.page-numbers
+Проверили, и нашли такой элемент по найденному селектору пагинации: 220
+Имя парсера: JS_Base_makitaclubru
 
 
 
@@ -345,9 +309,9 @@ const fields = {
     name, stock, link, price, article, imageLink, timestamp
 }
 
-const HOST = "https://som1.ru"
+const HOST = "https://makitaclub.ru"
 
-export class JS_Base_som1ru extends JS_Base_Custom {
+export class JS_Base_makitaclubru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -399,29 +363,29 @@ export class JS_Base_som1ru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/?`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "")
-		url.searchParams.set("PAGEN_2", set.page)
+        let url = new URL(`${HOST}/page/${set.page}/?s=2&post_type=product`)
+		url.searchParams.set("s", "2")
+		url.searchParams.set("post_type", "product")
+		url.searchParams.set("page", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("div.blog-page-navigation > a").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("li:nth-of-type(10) > a.page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("div.blp-col.blp-col-pic > a.product-image[href]") 
+        let products = $("a.stretched-link[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
+            let link = $(product)?.attr("href")
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         }) 
     }
@@ -433,13 +397,12 @@ export class JS_Base_som1ru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("#addProdName").text()?.trim()
-		const stock = ["В наличии:", "Всего в наличии:"].some(s => $("span > a.avialableLink > span").text()?.includes(s)) ? "InStock" : "OutOfStock"
+        const name = $("h1.product_title.entry-title").text()?.trim()
+		const stock = "InStock"
 		const link = set.query
-		const price = $("#detailAdd2Basket > .element-prices-price").text()?.trim().formatPrice(",")
-		const article = $("#features > .row > ul.col-xs-6.feature-list > li:nth-of-type(1) > .row > .col-xs-6.feature-value")?.first().text()?.trim()
-		let imageLink = $("div")?.attr("data-src")?.trim()?.replace(/\/iblock\/(\w+)(\/.+)$/, `/iblock/$1/476_476_1/$2`)
-		imageLink = imageLink ? HOST + imageLink : ""
+		const price = $("p.special-background.text-center.price > span.woocommerce-Price-amount.amount > bdi").text()?.trim().formatPrice()
+		const article = $("span.sku").text()?.trim()
+		const imageLink = $(".woocommerce-product-gallery__image > a")?.first()?.attr("href")?.trim() || ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
