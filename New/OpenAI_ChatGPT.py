@@ -1,7 +1,20 @@
-from openai import OpenAI
-import os
-from dotenv import load_dotenv
+from pathlib import Path
+import sys
 
+# Чтобы при запуске файла из папки New/ были видны модули из корня проекта (addedFunc.py и др.)
+### Потом убрать, что бы было нормально
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from openai import OpenAI
+
+# Вынесенные отдельно функции
+from addedFunc import *
+# Подключение всех библиотек
+from import_all_libraries import * 
+
+# Заружаем ключ OpenAI и инициализируем клиент
 load_dotenv()
 
 api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_AI_API_KEY")
@@ -14,11 +27,26 @@ client = OpenAI(
     api_key=api_key
 )
 
-# Простой вариант использования API
-response = client.responses.create(
-    model="gpt-4.1-mini",
-    # input="Привет! Объясни, что такое reasoning-агенты простыми словами"
-    input="Какой сейчас год?"
-)
 
-print(response.output_text)
+
+# Простой вариант использования API
+def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-4.1-mini"):
+    if is_print:
+        print(f"\n💫Запрос к ChatGPT, модель {model}\nPROMPT:\n{prompt}\n")
+
+    start = time.time()
+    response = client.responses.create(
+        model=model,
+        input=prompt
+    )
+
+    if is_print:
+        print(f'\n💬 AI ANSWER:\n"{response.output_text}"\n')
+        emit_execution_time(start, emit=print)
+
+    return response.output_text
+
+    # print(response.output_text)
+
+
+result_request = sendMessageToChatGPT_simple(prompt = "Какой сейчас год?", is_print = True)

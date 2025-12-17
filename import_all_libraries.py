@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from lxml import html as lh
 from textwrap import dedent
 from string import Template
+from openai import OpenAI
 from pprint import pprint
 import html as std_html
 from lxml import etree

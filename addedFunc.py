@@ -11,6 +11,23 @@ def print_json(input_json):
     text = text.replace('\\"', '"')
     print(text)
 
+# region timing
+def emit_execution_time(start: float, emit: Callable[[str], None] = print) -> float:
+    """
+    Печатает/эмитит время выполнения в стиле global_code.py (секунды/минуты).
+
+    :param start: timestamp, полученный из time.time()
+    :param emit: функция-эмиттер (например, print или кастомный emit для логов)
+    :return: elapsed (секунды)
+    """
+    elapsed = time.time() - start
+    emit("")
+    if elapsed < 60:
+        emit(f"🕚 Время выполнения: {elapsed:.2f} секунд")
+    else:
+        emit(f"🕚 Время выполнения: {elapsed / 60:.1f} минут")
+    return elapsed
+
 # region get_current_date
 # Возвращает текущую дату в формате "4 дек 2025"
 def get_current_date():

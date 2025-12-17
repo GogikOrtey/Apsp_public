@@ -56,83 +56,83 @@
     "host": "",
     "fields_str": "",
     "links": {
-      "simple": [
-        {
-          "link": "",
-          "name": "",
-          "price": "",
-          "InStock_trigger": "",
-          "OutOfStock_trigger": ""
-        }
-      ]
+        "simple": [
+            {
+                "link": "",
+                "name": "",
+                "price": "",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": ""
+            }
+        ]
     },
     "search_requests": [
-      {
-        "query": "",
-        "url_search_query_page_2": "",
-        "count_of_page_on_pagination": "",
-        "total_count_of_results": "0",
-        "links_items": []
-      }
+        {
+            "query": "",
+            "url_search_query_page_2": "",
+            "count_of_page_on_pagination": "",
+            "total_count_of_results": "0",
+            "links_items": []
+        }
     ]
-  }
+}
 
 
 
 
 
 {
-      "host": "https://gidro-top.ru",
-      "fields_str": "",
-      "links": {
-          "simple": [
-              {
-                  "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
-                  "name": "Aquanet SD-1200A душевая дверь",
-                  "price": "19 850 ₽",
-                  "oldprice": "",
-                  "article": "00209406",
-                  "brand": "Aquanet",
-                  "InStock_trigger": "В наличии",
-                  "OutOfStock_trigger": "",
-                  "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
-              },
-              {
-                  "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
-                  "name": "Aquastone Малибу Ванна из искусственного камня",
-                  "price": "55 000 ₽",
-                  "oldprice": "69 000 ₽",
-                  "article": "MAlibu",
-                  "brand": "Aquastone",
-                  "InStock_trigger": "В наличии",
-                  "OutOfStock_trigger": "",
-                  "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
-              },
-              {
-                  "link": "https://gidro-top.ru/product/aquastone-bali-180/",
-                  "name": "Aquastone Бали 180 Ванна из искусственного камня",
-                  "price": "53 000 ₽",
-                  "oldprice": "",
-                  "article": "Bali180",
-                  "brand": "Aquastone",
-                  "InStock_trigger": "В наличии",
-                  "OutOfStock_trigger": "",
-                  "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
-              }
-          ]
-      },
-      "search_requests": [
-          {
-              "query": "Ванна",
-              "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
-              "count_of_page_on_pagination": "255",
-              "total_count_of_results": "0",
-              "links_items": [
-                  "https://gidro-top.ru/product/triton-nika-180-akrilovaya-vanna-180x80/",
-                  "https://gidro-top.ru/product/vanna-astra-form-nyu-form-170x75-belaya/",
-                  "https://gidro-top.ru/product/aquatek-layma-170/",
-              ]
-          }
+    "host": "https://gidro-top.ru",
+    "fields_str": "",
+    "links": {
+        "simple": [
+            {
+                "link": "https://gidro-top.ru/product/aquanet-sd-1200a-dushevaya-dver/",
+                "name": "Aquanet SD-1200A душевая дверь",
+                "price": "19 850 ₽",
+                "oldprice": "",
+                "article": "00209406",
+                "brand": "Aquanet",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/33/25/102533/images/247749/247749.440.jpg"
+            },
+            {
+                "link": "https://gidro-top.ru/product/aquastone-malibu-vanna-iz-iskusstvennogo-kamnya/",
+                "name": "Aquastone Малибу Ванна из искусственного камня",
+                "price": "55 000 ₽",
+                "oldprice": "69 000 ₽",
+                "article": "MAlibu",
+                "brand": "Aquastone",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/10/89/108910/images/274497/274497.440.jpg"
+            },
+            {
+                "link": "https://gidro-top.ru/product/aquastone-bali-180/",
+                "name": "Aquastone Бали 180 Ванна из искусственного камня",
+                "price": "53 000 ₽",
+                "oldprice": "",
+                "article": "Bali180",
+                "brand": "Aquastone",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": "",
+                "imageLink": "https://gidro-top.ru/wa-data/public/shop/products/01/94/109401/images/352411/352411.440.jpg"
+            }
+        ]
+    },
+    "search_requests": [
+        {
+            "query": "Ванна",
+            "url_search_query_page_2": "https://gidro-top.ru/search/Ванна/?page=2",
+            "count_of_page_on_pagination": "255",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://gidro-top.ru/product/triton-nika-180-akrilovaya-vanna-180x80/",
+                "https://gidro-top.ru/product/vanna-astra-form-nyu-form-170x75-belaya/",
+                "https://gidro-top.ru/product/aquatek-layma-170/",
+            ]
+        }
     ]
 }
 
@@ -141,43 +141,43 @@
     "host": "https://glavsantex.ru",
     "fields_str": "",
     "links": {
-      "simple": [
-        {
-          "link": "https://glavsantex.ru/boyler-drazice-oks-200-ntr/",
-          "name": "Бойлер Drazice ОКС 200 NTR",
-          "price": "83 996 ₽",
-          "article": "110770801",
-          "InStock_trigger": "",
-          "OutOfStock_trigger": "Уточнить у менеджера"
-        },
-        {
-          "link": "https://glavsantex.ru/kran-sharoviy-vv-1-2-bugatti-babochka/",
-          "name": "Кран шаровый ВВ 1/2'' BUGATTI бабочка",
-          "price": "453 ₽",
-          "article": "3020062",
-          "InStock_trigger": "В наличии",
-          "OutOfStock_trigger": ""
-        }
-      ]
+        "simple": [
+            {
+                "link": "https://glavsantex.ru/boyler-drazice-oks-200-ntr/",
+                "name": "Бойлер Drazice ОКС 200 NTR",
+                "price": "83 996 ₽",
+                "article": "110770801",
+                "InStock_trigger": "",
+                "OutOfStock_trigger": "Уточнить у менеджера"
+            },
+            {
+                "link": "https://glavsantex.ru/kran-sharoviy-vv-1-2-bugatti-babochka/",
+                "name": "Кран шаровый ВВ 1/2'' BUGATTI бабочка",
+                "price": "453 ₽",
+                "article": "3020062",
+                "InStock_trigger": "В наличии",
+                "OutOfStock_trigger": ""
+            }
+        ]
     },
     "search_requests": [
-      {
-        "query": "кран",
-        "url_search_query_page_2": "https://glavsantex.ru/search/?page=2&query=кран",
-        "count_of_page_on_pagination": "35",
-        "total_count_of_results": "0",
-        "links_items": [
-          "https://glavsantex.ru/kran-sharovoy-uglovoy-ideal-ng-1-2-itap/",
-          "https://glavsantex.ru/kran-sharovoy-trekhkhodovoy-1-2-itap/",
-          "https://glavsantex.ru/kran-sharovoy-trekhkhodovoy-3-4-itap/"
-        ]
-      }
+        {
+            "query": "кран",
+            "url_search_query_page_2": "https://glavsantex.ru/search/?page=2&query=кран",
+            "count_of_page_on_pagination": "35",
+            "total_count_of_results": "0",
+            "links_items": [
+                "https://glavsantex.ru/kran-sharovoy-uglovoy-ideal-ng-1-2-itap/",
+                "https://glavsantex.ru/kran-sharovoy-trekhkhodovoy-1-2-itap/",
+                "https://glavsantex.ru/kran-sharovoy-trekhkhodovoy-3-4-itap/"
+            ]
+        }
     ]
-  }
+}
 
 {
     "host": "https://glavsantex.ru",
-    "fields_str": "", 
+    "fields_str": "",
     "links": {
         "simple": [
             {
@@ -198,8 +198,7 @@
             },
             {
                 "link": "https://glavsantex.ru/avtomaticheskiy-zaporniy-klapan-dlya-manometra-rem-10-f3-8-kh3-8-watts/",
-                "name": 'Автоматический запорный клапан для манометра REM 10 ф3/8''х3/8" Watts',
-                "price": "431 ₽",
+                "name": 'Автоматический запорный клапан для манометра REM 10 ф3/8''х3/8" Watts',"price": "431 ₽",
                 "article": "10009432",
                 "brand": "Watts",
                 "imageLink": "https://glavsantex.ru/wa-data/public/shop/products/76/37/3776/images/15173/15173.970.jpg"
@@ -220,3 +219,12 @@
         }
     ]
 }
+
+
+
+
+
+Response(id='resp_05c7a03a78de7edd0069429785f2a08196b8ca7731e02c0f30', created_at=1765971845.0, error=None, incomplete_details=None, instructions=None, metadata={}, model='gpt-4.1-mini-2025-04-14', object='response', output=[ResponseOutputMessage(id='msg_05c7a03a78de7edd0069429786aca881969f9ebdcb1a5aa3e7', content=[ResponseOutputText(annotations=[], text='Сейчас 2024 год. Чем могу помочь?', type='output_text', logprobs=[])
+    ], role='assistant', status='completed', type='message')
+], parallel_tool_calls=True, temperature=1.0, tool_choice='auto', tools=[], top_p=1.0, background=False, conversation=None, max_output_tokens=None, max_tool_calls=None, previous_response_id=None, prompt=None, prompt_cache_key=None, prompt_cache_retention=None, reasoning=Reasoning(effort=None, generate_summary=None, summary=None), safety_identifier=None, service_tier='default', status='completed', text=ResponseTextConfig(format=ResponseFormatText(type='text'), verbosity='medium'), top_logprobs=0, truncation='disabled', usage=ResponseUsage(input_tokens=12, input_tokens_details=InputTokensDetails(cached_tokens=0), output_tokens=12, output_tokens_details=OutputTokensDetails(reasoning_tokens=0), total_tokens=24), user=None, billing={'payer': 'developer'
+}, store=True)
