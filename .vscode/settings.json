@@ -1,4 +1,11 @@
 {
+    // Ensure the editor/linters use the project virtual environment (PEP 668 blocks system-wide pip).
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+  
+    // Help Pyright/Pylance resolve imports from the venv.
+    "python.analysis.venvPath": "${workspaceFolder}",
+    "python.analysis.venv": ".venv",
     "cursor.chat.toolbarOnSelection": false,
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "python-envs.pythonProjects": [],
