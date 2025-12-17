@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Example 1{% endblock %}
+{% block title %}Example 2{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -12,34 +12,29 @@
     }
 
     /* Синий и чуть крупнее заголовок у поля, как в других экранах */
-    .example1-label {
+    .example2-label {
         color: #667eea;
         font-size: 18px;
         font-weight: 600;
     }
 
-    /* Кнопка на всю ширину поля */
+    /* Кнопка на всю ширину формы */
     .btn-full {
         width: 100%;
         display: block;
     }
 
-    .form-group {
-        /* height: 350px; */
-        width: 400px;
-    }
-
     /* Фиксируем ширину формы, чтобы кнопка была ровно как инпут */
-    .example1-form {
+    .example2-form {
         width: 400px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<form method="POST" class="example1-form">
+<form method="POST" class="example2-form">
     <div class="form-group">
-        <label for="site_url" class="example1-label">Введите адрес сайта</label>
+        <label for="site_url" class="example2-label">Введите адрес сайта</label>
         <input
             type="text"
             id="site_url"
@@ -48,6 +43,18 @@
             value="{{ site_url or '' }}"
             autocomplete="url"
             inputmode="url"
+        >
+    </div>
+
+    <div class="form-group">
+        <label for="regions" class="example2-label">Введите регионы</label>
+        <input
+            type="text"
+            id="regions"
+            name="regions"
+            placeholder="Москва;Краснодар;Воронеж"
+            value="{{ regions or '' }}"
+            autocomplete="off"
         >
     </div>
 

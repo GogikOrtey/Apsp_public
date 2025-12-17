@@ -645,6 +645,19 @@ def example1():
 
     return render_template('example1.html', site_url=site_url)
 
+@app.route('/example2', methods=['GET', 'POST'])
+def example2():
+    """
+    Простая отдельная форма на /example2 (без шагов и без зависимостей от многошагового флоу).
+    """
+    site_url = ''
+    regions = ''
+    if request.method == 'POST':
+        site_url = sanitize_text(request.form.get('site_url', ''))
+        regions = sanitize_text(request.form.get('regions', ''))
+
+    return render_template('example2.html', site_url=site_url, regions=regions)
+
 @app.route('/content/<path:filename>')
 def content(filename):
     """Обслуживание статических файлов из папки content"""
