@@ -43,6 +43,8 @@ client = OpenAI(
 Для работы с кодом: gpt-5.1-codex-max
 Для парсинга и анализа: gpt-5.2
 
+Человечная и дружелюбная: gpt-4o
+
 """
 
 
@@ -78,6 +80,49 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2")
 
 
 
+## Только обавил температуру, перед добавлением истории
+# # Запросы с историей разговора
+# def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-5.2", temperature = None):
+#     if is_print:
+#         print(f"\n💫Запрос к ChatGPT с историей, модель {model}\nPROMPT:\n{prompt}\n")
+
+#     start = time.time()
+#     params = {
+#         "model": model,
+#         "input": [
+#             {
+#                 "role": "system",
+#                 "content": "Ты опытный Python-разработчик"
+#             },
+#             {
+#                 "role": "user",
+#                 "content": prompt
+#             }
+#         ]
+#     }
+#     if temperature is not None:
+#         params["temperature"] = temperature
+
+#     response = client.responses.create(**params)
+
+#     if is_print:
+#         print(f'\n💬 AI ANSWER:\n"{response.output_text}"\n')
+#         emit_execution_time(start, emit=print)
+
+#     return response.output_text
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Запросы с историей разговора
 def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-5.2", temperature = None):
     if is_print:
@@ -86,15 +131,19 @@ def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-
     start = time.time()
     params = {
         "model": model,
+        # "input": [
+        #     {
+        #         "role": "system",
+        #         "content": "Ты опытный Python-разработчик"
+        #     },
+        #     {
+        #         "role": "user",
+        #         "content": prompt
+        #     }
+        # ]
         "input": [
-            {
-                "role": "system",
-                "content": "Ты опытный Python-разработчик"
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }
+            {"role": "system", "content": "Ты утка. Крякай на каждый вопрос."},
+            {"role": "user", "content": prompt}
         ]
     }
     if temperature is not None:
@@ -109,7 +158,10 @@ def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-
     return response.output_text
 
 
+sendMessageToChatGPT_for_history("Сколько будет 2+2?", model="gpt-4o")
+
+
 result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?")
-result_request = sendMessageToChatGPT_for_history("Когда люди впервые открыли эту гору?")
+# result_request = sendMessageToChatGPT_for_history("Когда люди впервые открыли эту гору?")
 
 
