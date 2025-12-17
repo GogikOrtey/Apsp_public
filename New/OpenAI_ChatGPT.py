@@ -68,19 +68,25 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2")
     # print(response.output_text)
 
 
+# result_request = sendMessageToChatGPT_simple(prompt = "Какой сейчас год?", is_print = True)
+
+
+
+
+
 
 
 
 
 # Запросы с историей разговора
-def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-5.2"):
+def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-5.2", temperature = None):
     if is_print:
         print(f"\n💫Запрос к ChatGPT с историей, модель {model}\nPROMPT:\n{prompt}\n")
 
     start = time.time()
-    response = client.responses.create(
-        model=model,
-        input=[
+    params = {
+        "model": model,
+        "input": [
             {
                 "role": "system",
                 "content": "Ты опытный Python-разработчик"
@@ -90,17 +96,17 @@ def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-
                 "content": prompt
             }
         ]
-    )
+    }
+    if temperature is not None:
+        params["temperature"] = temperature
+
+    response = client.responses.create(**params)
 
     if is_print:
         print(f'\n💬 AI ANSWER:\n"{response.output_text}"\n')
         emit_execution_time(start, emit=print)
 
     return response.output_text
-
-
-
-# result_request = sendMessageToChatGPT_simple(prompt = "Какой сейчас год?", is_print = True)
 
 
 result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?")
