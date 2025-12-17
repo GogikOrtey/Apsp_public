@@ -17,7 +17,8 @@ client = OpenAI(
 # Простой вариант использования API
 response = client.responses.create(
     model="gpt-4.1-mini",
-    input="Привет! Объясни, что такое reasoning-агенты простыми словами"
+    # input="Привет! Объясни, что такое reasoning-агенты простыми словами"
+    input="Какой сейчас год?"
 )
 
 print(response.output_text)

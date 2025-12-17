@@ -31,8 +31,7 @@ def sendMessageToYandexGPT(prompt: str, isSmartModel: bool = False, isPrint: boo
     print("Посылаю запрос к YandexGPT:")
     # global count_request_to_AI
     # count_request_to_AI += 1
-    import_all_libraries.count_request_to_AI += 1
-    
+    import_all_libraries.count_request_to_AI += 1    
 
     if isSmartModel:
         model = "yandexgpt"
