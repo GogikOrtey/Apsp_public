@@ -633,6 +633,18 @@ def reset():
     
     return redirect(url_for('step0'))
 
+@app.route('/example1', methods=['GET', 'POST'])
+def example1():
+    """
+    Простая отдельная форма на /example1 (без шагов и без зависимостей от многошагового флоу).
+    """
+    site_url = ''
+    if request.method == 'POST':
+        # Пока просто принимаем значение; дальнейшую логику "Generate" можно подключить позже.
+        site_url = sanitize_text(request.form.get('site_url', ''))
+
+    return render_template('example1.html', site_url=site_url)
+
 @app.route('/content/<path:filename>')
 def content(filename):
     """Обслуживание статических файлов из папки content"""
