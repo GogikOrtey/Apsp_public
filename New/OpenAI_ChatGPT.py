@@ -20,7 +20,7 @@ load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY") or os.getenv("OPEN_AI_API_KEY")
 if not api_key:
     raise RuntimeError(
-        "OpenAI API key not found. Add OPENAI_API_KEY to your .env file"
+        "OpenAI API key not found. Add OPEN_AI_API_KEY to your .env file"
     )
 
 client = OpenAI(
@@ -29,8 +29,28 @@ client = OpenAI(
 
 
 
+
+# # Получить все доступные модели
+# models = client.models.list()
+
+# for m in models.data:
+#     print(m.id)
+
+"""
+
+Для размышлений и построения плана: o3
+Универсальный агент: gpt-5.2
+Для работы с кодом: gpt-5.1-codex-max
+Для парсинга и анализа: gpt-5.2
+
+"""
+
+
+
+
+
 # Простой вариант использования API
-def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-4.1-mini"):
+def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2"):
     if is_print:
         print(f"\n💫Запрос к ChatGPT, модель {model}\nPROMPT:\n{prompt}\n")
 
@@ -48,20 +68,42 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-4.1-m
     # print(response.output_text)
 
 
+
+
+
+
+# Запросы с историей разговора
+def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-5.2"):
+    if is_print:
+        print(f"\n💫Запрос к ChatGPT с историей, модель {model}\nPROMPT:\n{prompt}\n")
+
+    start = time.time()
+    response = client.responses.create(
+        model=model,
+        input=[
+            {
+                "role": "system",
+                "content": "Ты опытный Python-разработчик"
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ]
+    )
+
+    if is_print:
+        print(f'\n💬 AI ANSWER:\n"{response.output_text}"\n')
+        emit_execution_time(start, emit=print)
+
+    return response.output_text
+
+
+
 # result_request = sendMessageToChatGPT_simple(prompt = "Какой сейчас год?", is_print = True)
 
 
-# # Получить все доступные модели
-# models = client.models.list()
+result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?")
+result_request = sendMessageToChatGPT_for_history("Когда люди впервые открыли эту гору?")
 
-# for m in models.data:
-#     print(m.id)
 
-"""
-
-Для размышлений и построения плана: o3
-Универсальный агент: gpt-5.2
-Для работы с кодом: gpt-5.1-codex-max
-Для парсинга и анализа: gpt-5.2
-
-"""
