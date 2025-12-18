@@ -1,24 +1,307 @@
-12.12.2025 14:43:23
+18.12.2025 17:52:45
+
+🚀 Запуск генерации...
+
+------------------------------------------------------------------------------
+
+                              GLOBAL CODE GEN
+
+------------------------------------------------------------------------------
+
+
+field = name, stock, link, price, oldprice, article, imageLink, timestamp
+
+
+
+------------------------------------------------------------------------------
+
+                             EXTRACTION SELECTOR
+
+------------------------------------------------------------------------------
+
+
+Обработаем 3 страниц
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/ (возраст 3.55 ч.)
+
+Найдено 6 возможных селекторов
+Найден селектор для поля name
+
+Найдено 18 возможных селекторов
+Найден селектор для поля price
+⬜ Пропускаем поле oldprice: Не строка или пустое значение
+
+Найдено 1 возможных селекторов
+
+Найдено 23 возможных селекторов
+Найден селектор для поля article
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+
+Найдено 1 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/ (возраст 0.11 ч.)
+
+Найдено 6 возможных селекторов
+Найден селектор для поля name
+
+Найдено 17 возможных селекторов
+Найден селектор для поля price
+⬜ Пропускаем поле oldprice: Не строка или пустое значение
+
+Найдено 1 возможных селекторов
+
+Найдено 23 возможных селекторов
+Найден селектор для поля article
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+
+Найдено 1 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/ (возраст 0.11 ч.)
+
+Найдено 6 возможных селекторов
+Найден селектор для поля name
+
+
+🟨 Не нашли при exact=True, пробуем частичным совпадением
+🟧 Не удалось найти селектор для поля price даже при exact=False
+
+Найдено 3 возможных селекторов
+Найден селектор для поля oldprice
+
+Найдено 1 возможных селекторов
+
+Найдено 23 возможных селекторов
+Найден селектор для поля article
+⬜ Пропускаем поле InStock_trigger: Не строка или пустое значение
+⬜ Пропускаем поле OutOfStock_trigger: Не строка или пустое значение
+
+Найдено 2 возможных селекторов
+Найден селектор для поля imageLink
+_______________________
+Используемые поля: ['name', 'price', 'oldprice', 'article', 'InStock_trigger', 'OutOfStock_trigger', 'imageLink']
+Кандидаты по полям (в порядке приоритета):
+ - name: 1 селекторов -> ['.element__title.title-elem > h1']
+ - price: 1 селекторов -> ['.price-elem__value']
+ - oldprice: 1 селекторов -> ['.price-elem__value.price-elem__value_old']
+ - article: 1 селекторов -> ['.header-elem__item.header-elem__item_s > span']
+ - InStock_trigger: 0 селекторов -> []
+ - OutOfStock_trigger: 0 селекторов -> []
+ - imageLink: 2 селекторов -> ['img[itemprop="image"][src]', 'a.imgs-elem__item.fancy.imgs-elem__item_first[href]']
+  [SKIP] price on https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/: no expected value or no original selector
+  [SKIP] oldprice on https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/: no expected value or no original selector
+  [SKIP] oldprice on https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/: no expected value or no original selector
+[WARN] Для поля InStock_trigger не найден селектор(ы).
+[WARN] Для поля OutOfStock_trigger не найден селектор(ы).
+
+📄 Кеш сохранён в cache.json, всего страниц: 99
+   Добавлено: 0, обновлено: 3
+
+
+✅ Итоговые селекторы:
+{
+    "name": [
+        ".element__title.title-elem > h1"
+    ],
+    "price": [
+        ".price-elem__value"
+    ],
+    "oldprice": [
+        ".price-elem__value.price-elem__value_old"
+    ],
+    "article": [
+        ".header-elem__item.header-elem__item_s > span"
+    ],
+    "InStock_trigger": [],
+    "OutOfStock_trigger": [],
+    "imageLink": [
+        "img[itemprop="image"][src]"
+    ]
+}
+
+
+------------------------------------------------------------------------------
+
+                                PARSE CARD GEN
+
+------------------------------------------------------------------------------
+
+
+Проверяем селекторы, и генерируем parseCard
+Оба триггера есть
+Они одинаковые, используем InStock
+Обрабатываем поле name
+
+Проверяем селектор .element__title.title-elem > h1 на странице №1
+##### result_selector = {'result': 'Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая', 'length_elem': 1}
+    Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая
+    Дверь металлическая ТОЛСТЯК Букле черный Ясень эмаль графит 2050х960 левая
+
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+Проверяем селектор .element__title.title-elem > h1 на странице №2
+##### result_selector = {'result': 'Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая', 'length_elem': 1}
+    Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая
+    Дверь металлическая YODOORS-16 Velluto Oscure/Velluto Gelato 2050х860 правая
+
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+Проверяем селектор .element__title.title-elem > h1 на странице №3
+##### result_selector = {'result': 'Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая', 'length_elem': 1}
+    Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая
+    Дверь металлическая Стройгост 5 РФ Серебро/Беленый дуб мет/хдф 2050х960 левая
+
+    ✅ Полное совпадение селектора и оригинального значения поля name
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле price
+
+Проверяем селектор .price-elem__value на странице №1
+##### result_selector = {'result': '26 499', 'length_elem': 1}
+    26 499
+    26 499
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+Проверяем селектор .price-elem__value на странице №2
+##### result_selector = {'result': '41 999', 'length_elem': 1}
+    41 999
+    41 999
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+Проверяем селектор .price-elem__value на странице №3
+##### result_selector = {'result': '10 699', 'length_elem': 2}
+    10 699
+    9 490
+
+    💲 Обрабатываем поле price
+    Разделитель - точка
+
+max_count_element_of_selectors = 🟡 2
+_____
+
+Нашли больше одного селектора для поля price
+Обрабатываем поле oldprice
+
+Проверяем селектор .price-elem__value.price-elem__value_old на странице №1
+##### result_selector = {'result': '', 'length_elem': 0}
+    ⬜ Нет результата у селектора  на странице 1 для поля oldprice
+
+Проверяем селектор .price-elem__value.price-elem__value_old на странице №2
+##### result_selector = {'result': '', 'length_elem': 0}
+    ⬜ Нет результата у селектора  на странице 2 для поля oldprice
+
+Проверяем селектор .price-elem__value.price-elem__value_old на странице №3
+##### result_selector = {'result': '13 999', 'length_elem': 1}
+    13 999
+    13 999
+
+    💲 Обрабатываем поле oldprice
+    Разделитель - точка
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Обрабатываем поле article
+
+Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №1
+##### result_selector = {'result': 'Код: 00-01631492', 'length_elem': 1}
+    Код: 00-01631492
+    00-01631492
+
+    🟨 Частичное совпадение
+
+Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №2
+##### result_selector = {'result': 'Код: 00-01616855', 'length_elem': 1}
+    Код: 00-01616855
+    00-01616855
+
+    🟨 Частичное совпадение
+
+Проверяем селектор .header-elem__item.header-elem__item_s > span на странице №3
+##### result_selector = {'result': 'Код: 00-01624852', 'length_elem': 1}
+    Код: 00-01624852
+    00-01624852
+
+    🟨 Частичное совпадение
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+🧢 Отправляю запрос к ИИ на исправление строки кода для поля article
+Посылаю запрос к YandexGPT:
+
+💫 PROMPT:
+Есть такой код на JS: 
+const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()
+Однако он извлекает "Код: 00-01631492"
+А должен извлекать: "00-01631492"
+
+Измени исходный код, что бы он делал это.
+Обязательные правила:
+— Для безопасности, используй только опциональную цепочку ?. и не используй просто . 
+— Однако можно использовать функции .match .replace и остальные подобные
+— Если должен быть доступ к элементу массива — используй только ?.at(i) вместо индексного обращения
+— Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только финальную строку или фрагмент кода.
+    
+
+
+💬 AI ANSWER:
+"```
+const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: (.+)$/, '$1');
+```"
+
+Обрабатываем поле imageLink
+
+Проверяем селектор img[itemprop="image"][src] на странице №1
+##### result_selector = {'result': '/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp', 'length_elem': 1}
+    В элементе /upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp отсутствует хост и "http". Добавляем:
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c65/340_340_1/gsi77beyz93wjvz65gp5ga9fciea3qyb.webp
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+Проверяем селектор img[itemprop="image"][src] на странице №2
+##### result_selector = {'result': '/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp', 'length_elem': 1}
+    В элементе /upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp отсутствует хост и "http". Добавляем:
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/c73/340_340_1/1ws23gu971vgilvqkofhuk09tuhm345j.webp
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+Проверяем селектор img[itemprop="image"][src] на странице №3
+##### result_selector = {'result': '/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp', 'length_elem': 1}
+    В элементе /upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp отсутствует хост и "http". Добавляем:
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp
+    https://c-s-k.ru/upload/resize_cache/webp/iblock/541/bqgofuubyojvxq3eod3vv3b1y6dh5ms0.webp
+
+    ✅ Полное совпадение селектора и оригинального значения поля imageLink
+
+max_count_element_of_selectors = 🟡 1
+_____
+
+Статистика нахождения селекторов:
+🟩: name 
+💲 : price  🟡 > 1
+💲 : oldprice 
+🟨: article  🧢 use ИИ
+🟩: imageLink 
 
 
 
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
-                                        GLOBAL CODE GEN
+                               PARSE PAGE GEN
 
---------------------------------------------------------------------------------------------------
-
-
-field = name, stock, link, price, oldprice, article, brand, imageLink, timestamp
-
-
-
---------------------------------------------------------------------------------------------------
-
-                                         PARSE PAGE GEN
-
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 
 🟧 timestamp нет в массиве, данные для parsePage могут быть неактуальными
@@ -64,85 +347,51 @@ url.searchParams.set('/?page', set.page);
 -----
 
 Текущее задание:
-Строка на поиск у сайта, на 2ю страницу поиска: https://cosmofun.ru/search/index.php?q=%D0%B2%D0%BE%D0%BB%D0%BE%D1%81&s=&PAGEN_3=2
+Строка на поиск у сайта, на 2ю страницу поиска: https://c-s-k.ru/catalog/?q=%D0%B4%D0%B2%D0%B5%D1%80%D1%8C&s=%D0%9F%D0%BE%D0%B8%D1%81%D0%BA&PAGEN_1=2
 
-Значение переменной HOST = https://cosmofun.ru
+Значение переменной HOST = https://c-s-k.ru
 
 Обязательное правило: Никаких комментариев, пояснений, вариантов и текста вокруг в результате выдай только один финальный фрагмент кода - Фрагмент с формированием URL.
 
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/search/index.php`)
+let url = new URL(`${HOST}/catalog/?`)
 url.searchParams.set("q", set.query)
-url.searchParams.set("s", "")
-url.searchParams.set("PAGEN_3", set.page)
+url.searchParams.set("s", "Поиск")
+url.searchParams.set("PAGEN_1", set.page)
 ```"
 
-processed_url_product = /product/balzam_dlya_volos_hc_luxury_repair/
+processed_url_product = /catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/
 
-Найдено 4 возможных селекторов
-🔶 Селектор до дистилляции: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
-🔶 Селектор после дистилляции: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
-Исходный селектор: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
-Части селектора: ['#bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f>', 'div.bxr-element-container>', 'div.bxr-element-image.bxr-img-container>', 'a.bxr-item-image-wrap.js-product[href]']
-Количество частей: 4
+Найдено 38 возможных селекторов
+Исходный селектор: a.catalog-item__title[href]
+Части селектора: ['a.catalog-item__title[href]']
+Количество частей: 1
 
-Проверяем селектор: #bx_1877656419_9775_e0543db0da0d6c005d17ab7bc29d948f > div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
-Найдено элементов: 1
+Проверяем селектор: a.catalog-item__title[href]
+Найдено элементов: 20
+✅ Найден подходящий селектор: a.catalog-item__title[href]
 
-Проверяем селектор: div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
-Найдено элементов: 36
-✅ Найден подходящий селектор: div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
-
-Итоговый product_selector = div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]
-Количество элементов по итоговому селектору: 36
-len_of_products_on_this_page = 36
-Ссылок по селектору: 36
+Итоговый product_selector = a.catalog-item__title[href]
+Количество элементов по итоговому селектору: 20
+len_of_products_on_this_page = 20
+Ссылок по селектору: 20
 Совпадение ссылок = 1.00 (3/3)
 Извлекаем селектор кол-ва страниц
 
-Найдено 166 возможных селекторов
-🔶 Селектор до дистилляции: #bxr-page-content > div.col-lg-12.col-md-12.col-sm-12.col-xs-12 > div.bxr-template-container.bxr-cloud-all.bxr-cloud-padding.bxr-b20 > div.bxr-cloud-all.bxr-cloud-padding > div.search-page > div:nth-of-type(2) > div.navigation > div.navigation-pages > a.bxr-font-color
-🔶 Селектор после дистилляции: div.navigation-pages > a.bxr-font-color
-pagination_selctor = div.navigation-pages > a.bxr-font-color
-Проверили, и нашли такой элемент по найденному селектору пагинации: 1
-async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/index.php`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "")
-		url.searchParams.set("PAGEN_3", set.page)
-
-        const data = await this.makeRequest(url.href)
-        const $ = cheerio.load(data)
-
-        if (set.page === 1) {
-            let totalPages = Math.max(...$("div.navigation-pages > a.bxr-font-color").get().map(item => +$(item).text().trim()).filter(Boolean)) 
-            this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
-                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
-            }
-        }
-        
-        let products = $("div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]") 
-        if (products.length == 0) {
-            this.logger.put(`По запросу ${set.query} ничего не найдено`)
-            throw new NotFoundError()
-        }
-        products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = `${HOST}${$(product)?.attr("href")}`
-            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-        }) 
-    }
-Имя парсера: JS_Base_cosmofunru
+Найдено 381 возможных селекторов
+pagination_selctor = a.search-groups__lnk.search-groups__lnk_h[data-id]
+Проверили, и нашли такой элемент по найденному селектору пагинации: 6020
+Имя парсера: JS_Base_cskru
 
 
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
-                                    FINAL RESULT PARSER CODE
+                           FINAL RESULT PARSER CODE
 
---------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 
 
 
@@ -157,7 +406,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, oldprice, article, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -166,12 +415,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, oldprice, article, brand, imageLink, timestamp
+    name, stock, link, price, oldprice, article, imageLink, timestamp
 }
 
-const HOST = "https://cosmofun.ru"
+const HOST = "https://c-s-k.ru"
 
-export class JS_Base_cosmofunru extends JS_Base_Custom {
+export class JS_Base_cskru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -223,23 +472,23 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/index.php`)
+        let url = new URL(`${HOST}/catalog/?`)
 		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "")
-		url.searchParams.set("PAGEN_3", set.page)
+		url.searchParams.set("s", "Поиск")
+		url.searchParams.set("PAGEN_1", set.page)
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("div.navigation-pages > a.bxr-font-color").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("a.search-groups__lnk.search-groups__lnk_h[data-id]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
         
-        let products = $("div.bxr-element-container > div.bxr-element-image.bxr-img-container > a.bxr-item-image-wrap.js-product[href]") 
+        let products = $("a.catalog-item__title[href]") 
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -251,7 +500,30 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
     }
 
     //#region Парсинг товара
-    
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $(".element__title.title-elem > h1").text()?.trim()
+		const stock = "InStock"
+		const link = set.query
+		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
+		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: (.+)$/, '$1');
+		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
+		imageLink = imageLink ? HOST + imageLink : ""
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, stock, link, price, oldprice, article, imageLink, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
 
     //#region Выполнение запроса
     async makeRequest(url: string) {
@@ -273,15 +545,15 @@ export class JS_Base_cosmofunru extends JS_Base_Custom {
 }
 
 // Код сгенерирован APSP v0.1
-// Дата: 12 Дек 2025
+// Дата: 18 Дек 2025
 // © BrandPol
 
 Сообщения из message_global:
 🟡 [Предупреждение]: timestamp нет в массиве, данные для parsePage могут быть неактуальными
 
-Ссылка на 1й товар: https://cosmofun.ru/product/maska_anti_stress_dlya_volos_i_kozhi_golovy_the_wake_up_circle_1/
+Ссылка на 1й товар: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/
+
+🕚 Время выполнения: 15.84 секунд
+🧢 Кол-во обращений к внешнему ИИ: 0
 
 Итоговый статус генерации: 🟩 Sucsess 🟩
-
-🕚 Время выполнения: 4.73 секунд
-🧢 Кол-во обращений к внешнему ИИ: 1

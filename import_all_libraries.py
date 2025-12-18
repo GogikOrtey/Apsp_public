@@ -28,8 +28,10 @@ import sys
 import re
 import os
 
+
 # Глобальные модули
 from gen_data_input_table import data_input_table # Входные данные
+import module_logging
 from YandexGPT import *
 from global_variable import *
 import global_variable

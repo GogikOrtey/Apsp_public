@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, link, price, imageLink, product_id, timestamp
+    name, stock, link, price, oldprice, article, imageLink, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,7 +16,7 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, link, price, imageLink, product_id, timestamp
+    name, stock, link, price, oldprice, article, imageLink, timestamp
 }
 
 const HOST = "https://c-s-k.ru"
@@ -82,7 +82,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("span.nums > a:nth-of-type(4)").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("a.search-groups__lnk.search-groups__lnk_h[data-id]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
@@ -110,14 +110,15 @@ export class JS_Base_cskru extends JS_Base_Custom {
         const name = $(".element__title.title-elem > h1").text()?.trim()
 		const stock = "InStock"
 		const link = set.query
-		const price = $(".price-elem__value").text()?.trim().formatPrice()
-		const product_id = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^.*?:\s?/, '');
+		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
+		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: (.+)$/, '$1');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, link, price, imageLink, product_id, timestamp
+            name, stock, link, price, oldprice, article, imageLink, timestamp
         }
         items.push(item);
 
