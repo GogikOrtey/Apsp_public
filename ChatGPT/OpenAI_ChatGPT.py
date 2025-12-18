@@ -162,7 +162,10 @@ def _persist_session_history_to_global():
         for chat in fresh_sessions:
             merged[chat["chat_id"]] = chat
 
-        _write_json_file(CHATGPT_HISTORY_GLOBAL_PATH, list(merged.values()))
+        merged_list = list(merged.values())
+        merged_list.sort(key=lambda c: c.get("created_at", 0), reverse=True)  # новые сверху
+
+        _write_json_file(CHATGPT_HISTORY_GLOBAL_PATH, merged_list)
     except Exception as ex:
         print(f"⚠️ Не удалось сохранить глобальную историю ChatGPT: {ex}")
 
@@ -330,7 +333,7 @@ def sendMessageToChatGPT_for_history(
         chat["system_prompt"] = system_prompt
 
     if is_print:
-        print(f"\n💫Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
+        print(f"\n\n💫Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
 
     start = time.time()
     _append_message(chat, "user", prompt)
@@ -349,7 +352,7 @@ def sendMessageToChatGPT_for_history(
     _save_session_history(history)
 
     if is_print:
-        print(f'\n💬 AI ANSWER:\n"{answer_text}"')
+        print(f'💬 AI ANSWER:\n"{answer_text}"')
         emit_execution_time(start, emit=print, print_time_smile=False)
 
     return ChatGPTResult(answer=answer_text, chat_id=chat_id, raw_response=response)
@@ -375,9 +378,9 @@ def sendMessageToChatGPT_for_history(
 # result_request = sendMessageToChatGPT_for_history("В чём обычно измеряют температуру?")
 
 
-# Запрос с историей
-result_request = sendMessageToChatGPT_for_history("Какая температура солнца?")
-sendMessageToChatGPT_for_history("В чём обычно измеряют температуру?", chat_id=result_request.chat_id)
+# # Запрос с историей
+# result_request = sendMessageToChatGPT_for_history("Какая температура солнца?")
+# sendMessageToChatGPT_for_history("В чём обычно измеряют температуру в верхнем слое?", chat_id=result_request.chat_id)
 
 
 
