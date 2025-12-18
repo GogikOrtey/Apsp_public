@@ -12,6 +12,7 @@ from textwrap import dedent
 from string import Template
 from openai import OpenAI
 from pprint import pprint
+from pathlib import Path
 import html as std_html
 from lxml import etree
 import jsbeautifier
@@ -20,6 +21,7 @@ import requests
 import locale
 import json
 import time
+import sys
 import re
 import os
 

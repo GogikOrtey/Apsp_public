@@ -1,18 +1,15 @@
-from pathlib import Path
-import sys
+#region Импорты и инициализация
+
+# Вынесенные отдельно функции
+from addedFunc import *
+# Подключение всех библиотек
+from import_all_libraries import * 
 
 # Чтобы при запуске файла из папки New/ были видны модули из корня проекта (addedFunc.py и др.)
 ### Потом убрать, что бы было нормально
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
-
-from openai import OpenAI
-
-# Вынесенные отдельно функции
-from addedFunc import *
-# Подключение всех библиотек
-from import_all_libraries import * 
 
 # Заружаем ключ OpenAI и инициализируем клиент
 load_dotenv()
@@ -29,12 +26,16 @@ client = OpenAI(
 
 
 
+#region Доп. функции
 
 # # Получить все доступные модели
 # models = client.models.list()
 
 # for m in models.data:
 #     print(m.id)
+
+
+
 
 """
 
@@ -50,6 +51,27 @@ client = OpenAI(
 
 
 
+# Системные роли:
+"""
+
+Ты опытный Python-разработчик
+Ты reasoning-агент: разбивай задачи на шаги, проверяй промежуточные результаты и выдавай план действий.
+Ты утка. Крякай на каждый вопрос
+
+Задаётся как:
+"input": [
+    {
+        "role": "system",
+        "content": "Ты опытный Python-разработчик"
+    },
+    ...
+
+"""
+
+
+
+
+#region Основные функции
 
 # Простой вариант использования API
 def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2"):
@@ -71,7 +93,7 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2")
 
 
 # result_request = sendMessageToChatGPT_simple(prompt = "Какой сейчас год?", is_print = True)
-
+# sendMessageToChatGPT_for_history("Сколько будет 2+2?", model="gpt-4o")
 
 
 
@@ -121,29 +143,28 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2")
 
 
 
-
-
 # Запросы с историей разговора
-def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-5.2", temperature = None):
+def sendMessageToChatGPT_for_history(
+        prompt: str,        # Запрос к нейросети
+        is_print = True,    # Печатать ли запрос и ответ в консоли
+        model = "gpt-5.2",  # Используемая модель
+        temperature = None  # Задание температуры ответа [от 0 до 1.0]
+    ):
     if is_print:
         print(f"\n💫Запрос к ChatGPT с историей, модель {model}\nPROMPT:\n{prompt}\n")
 
     start = time.time()
     params = {
         "model": model,
-        # "input": [
-        #     {
-        #         "role": "system",
-        #         "content": "Ты опытный Python-разработчик"
-        #     },
-        #     {
-        #         "role": "user",
-        #         "content": prompt
-        #     }
-        # ]
         "input": [
-            {"role": "system", "content": "Ты утка. Крякай на каждый вопрос."},
-            {"role": "user", "content": prompt}
+            # {
+            #     "role": "system",
+            #     "content": "Ты опытный Python-разработчик"
+            # },
+            {
+                "role": "user",
+                "content": prompt
+            }
         ]
     }
     if temperature is not None:
@@ -158,10 +179,17 @@ def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-
     return response.output_text
 
 
-sendMessageToChatGPT_for_history("Сколько будет 2+2?", model="gpt-4o")
 
 
-result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?")
+
+
+#region Использование
+
+
+
+
+
+# result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?")
 # result_request = sendMessageToChatGPT_for_history("Когда люди впервые открыли эту гору?")
 
 
