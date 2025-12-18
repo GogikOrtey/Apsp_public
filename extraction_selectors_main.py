@@ -224,6 +224,8 @@ def select_best_selectors(input_data, content_html):
             verbose: bool = True,
         ) -> Dict[str, Any]:
 
+        print(f"🟨🟨🟨 input_data = {input_data}")
+
         # Если fields не передан — определяем автоматически из примеров
         if not fields:
             if not examples:

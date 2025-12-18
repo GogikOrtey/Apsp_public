@@ -73,7 +73,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/?`)
+        let url = new URL(`${HOST}/catalog/`)
 		url.searchParams.set("q", set.query)
 		url.searchParams.set("s", "Поиск")
 		url.searchParams.set("PAGEN_1", set.page)
@@ -82,7 +82,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$("a.search-groups__lnk.search-groups__lnk_h[data-id]").get().map(item => +$(item).text().trim()).filter(Boolean)) 
+            let totalPages = Math.max(...$("span.bx_filter_param_text > span").get().map(item => +$(item).text().trim()).filter(Boolean)) 
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });

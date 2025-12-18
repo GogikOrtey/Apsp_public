@@ -224,7 +224,3 @@
 
 
 
-Response(id='resp_05c7a03a78de7edd0069429785f2a08196b8ca7731e02c0f30', created_at=1765971845.0, error=None, incomplete_details=None, instructions=None, metadata={}, model='gpt-4.1-mini-2025-04-14', object='response', output=[ResponseOutputMessage(id='msg_05c7a03a78de7edd0069429786aca881969f9ebdcb1a5aa3e7', content=[ResponseOutputText(annotations=[], text='Сейчас 2024 год. Чем могу помочь?', type='output_text', logprobs=[])
-    ], role='assistant', status='completed', type='message')
-], parallel_tool_calls=True, temperature=1.0, tool_choice='auto', tools=[], top_p=1.0, background=False, conversation=None, max_output_tokens=None, max_tool_calls=None, previous_response_id=None, prompt=None, prompt_cache_key=None, prompt_cache_retention=None, reasoning=Reasoning(effort=None, generate_summary=None, summary=None), safety_identifier=None, service_tier='default', status='completed', text=ResponseTextConfig(format=ResponseFormatText(type='text'), verbosity='medium'), top_logprobs=0, truncation='disabled', usage=ResponseUsage(input_tokens=12, input_tokens_details=InputTokensDetails(cached_tokens=0), output_tokens=12, output_tokens_details=OutputTokensDetails(reasoning_tokens=0), total_tokens=24), user=None, billing={'payer': 'developer'
-}, store=True)
