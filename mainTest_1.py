@@ -1,5 +1,3 @@
-# from addedFunc import sendMessageToYandexGPT
-from addedFunc import clearAnswerCode
 from YandexGPT import *
 
 # Обозначения переменных (буду сокращать для удобства):

@@ -1,14 +1,10 @@
 ### Основной скрипт запуска агента
 
-# Вынесенные отдельно функции
-from addedFunc import *
-from gen_data_input_table import data_input_table # Входные данные
-from extracting_selector_from_html import * 
-
 # Подключение всех библиотек
 from import_all_libraries import * 
 
-# Подключение модули
+# Вынесенные отдельно функции
+from extracting_selector_from_html import * 
 from global_code import clear_result_outputs, result_parser_code, log_critical_error_to_message_global
 
 

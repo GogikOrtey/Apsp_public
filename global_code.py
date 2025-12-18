@@ -1,12 +1,10 @@
 ### В этом скрипте собираются все фрагменты кода
 
-# Вынесенные отдельно функции
-from addedFunc import *
-from gen_data_input_table import data_input_table # Входные данные
-from extracting_selector_from_html import * 
-
-# Подключение всех библиотек
+# Подключение всех библиотек и функций
 from import_all_libraries import * 
+
+# Вынесенные отдельно функции
+from extracting_selector_from_html import * 
 
 # Подключение модулей генерации
 

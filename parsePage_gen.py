@@ -2,8 +2,7 @@
 from import_all_libraries import * 
 from extracting_selector_from_html import * 
 from gen_data_input_table import data_input_table # Входные данные
-from addedFunc import *
-from YandexGPT import *
+
 
 
 

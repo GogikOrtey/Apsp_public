@@ -1,9 +1,11 @@
-# Подключение всех библиотек
-from import_all_libraries import * 
-from addedFunc import *
-import import_all_libraries
-
 # Универсальная функция: send_message_to_AI_agent(str)
+
+from dotenv import load_dotenv
+import requests
+import json
+import os
+
+import global_variable
 
 def send_message_to_AI_agent(prompt: str, no_hint = False):
 #     end_hint = """
@@ -31,7 +33,7 @@ def sendMessageToYandexGPT(prompt: str, isSmartModel: bool = False, isPrint: boo
     print("Посылаю запрос к YandexGPT:")
     # global count_request_to_AI
     # count_request_to_AI += 1
-    import_all_libraries.count_request_to_AI += 1    
+    global_variable.count_request_to_AI += 1    
 
     if isSmartModel:
         model = "yandexgpt"
