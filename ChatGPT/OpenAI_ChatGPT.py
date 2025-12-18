@@ -316,7 +316,7 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2")
 
 
 # Запросы с историей разговора
-def sendMessageToChatGPT_for_history(
+def send_message_to_ChatGPT(
         prompt: str,                        # Запрос к нейросети
         is_print = True,                    # Печатать ли запрос и ответ в консоли
         model = "gpt-5.2",                  # Используемая модель
@@ -379,18 +379,18 @@ def sendMessageToChatGPT_for_history(
 
 # # Запрос с историей
 # chat_id = init_new_chat()
-# result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?", chat_id=chat_id)
-# result_request = sendMessageToChatGPT_for_history("Когда люди впервые открыли эту гору?", chat_id=chat_id)
+# result_request = send_message_to_ChatGPT("Какая самая высокая гора на земле?", chat_id=chat_id)
+# result_request = send_message_to_ChatGPT("Когда люди впервые открыли эту гору?", chat_id=chat_id)
 
 
 # # Простой запрос, без истории
-# result_request = sendMessageToChatGPT_for_history("Какая температура солнца?")
-# result_request = sendMessageToChatGPT_for_history("В чём обычно измеряют температуру?")
+# result_request = send_message_to_ChatGPT("Какая температура солнца?")
+# result_request = send_message_to_ChatGPT("В чём обычно измеряют температуру?")
 
 
 # # Запрос с историей
-# result_request = sendMessageToChatGPT_for_history("Какая температура солнца?")
-# sendMessageToChatGPT_for_history("В чём обычно измеряют температуру в верхнем слое?", chat_id=result_request.chat_id)
+# result_request = send_message_to_ChatGPT("Какая температура солнца?")
+# send_message_to_ChatGPT("В чём обычно измеряют температуру в верхнем слое?", chat_id=result_request.chat_id)
 
 
 

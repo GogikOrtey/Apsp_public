@@ -23,14 +23,12 @@
 
 {
     "name": ".element__title.title-elem > h1",
-    "price": ".price-elem__value",
+    "price": ".product-data .element-prices-price",
     "imageLink": "img[itemprop="image"][src]",
     "product_id": ".header-elem__item.header-elem__item_s > span"
 }
 
 Не пиши комментариев пояснений, вариантов и текста вокруг в результате выдай только финальный JSON
-
-Ответ JSON выдай в блоке оформления кода (с ```)
 
 
 """
