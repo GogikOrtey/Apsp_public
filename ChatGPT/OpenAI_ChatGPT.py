@@ -39,6 +39,7 @@ _SESSION_HISTORY_INITIALIZED = False
 #region Функции для работы с историей
 
 class ChatGPTResult:
+    # Обёртка над ответом: текст + chat_id + сырой ответ
     def __init__(self, answer: str, chat_id: str, raw_response):
         self.answer = answer
         self.chat_id = chat_id
@@ -52,12 +53,14 @@ class ChatGPTResult:
 
 
 def _write_json_file(path: Path, payload):
+    # Пишем JSON с ensure_ascii=False и отступами
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
 def _read_json_file(path: Path, default):
+    # Читаем JSON, безопасно возвращая default при ошибке/отсутствии файла
     if not path.exists():
         return default
     try:
@@ -68,6 +71,7 @@ def _read_json_file(path: Path, default):
 
 
 def _ensure_session_history():
+    # Гарантируем наличие файла сессии (очищается при старте модуля)
     global _SESSION_HISTORY_INITIALIZED
     if _SESSION_HISTORY_INITIALIZED:
         return
@@ -76,23 +80,28 @@ def _ensure_session_history():
 
 
 def _load_session_history() -> list:
+    # Загружаем историю текущей сессии
     _ensure_session_history()
     return _read_json_file(CHATGPT_HISTORY_PATH, [])
 
 
 def _save_session_history(history: list):
+    # Сохраняем историю текущей сессии
     _write_json_file(CHATGPT_HISTORY_PATH, history)
 
 
 def _generate_chat_id() -> str:
+    # Генерируем короткий chat_id
     return f"{CHAT_ID_PREFIX}{uuid4().hex[:8]}"
 
 
 def _find_chat(history: list, chat_id: str):
+    # Находим чат по идентификатору
     return next((c for c in history if c.get("chat_id") == chat_id), None)
 
 
 def _append_message(chat: dict, role: str, content: str):
+    # Добавляем сообщение в историю чата
     ts = int(time.time())
     chat.setdefault("messages", [])
     chat["messages"].append(
@@ -107,6 +116,7 @@ def _append_message(chat: dict, role: str, content: str):
 
 
 def build_api_messages(chat_messages: list[dict]) -> list[dict]:
+    # Приводим внутренние сообщения к формату OpenAI API
     api_messages = []
     for msg in chat_messages:
         api_messages.append(
@@ -119,6 +129,7 @@ def build_api_messages(chat_messages: list[dict]) -> list[dict]:
 
 
 def _build_api_messages(chat: dict) -> list[dict]:
+    # Берём последние сообщения (хвост) и добавляем системный промпт
     messages = chat.get("messages", [])
     if len(messages) > MAX_MESSAGES_FOR_PROMPT:
         print(f"⚠️ История чата {chat.get('chat_id')} превышает {MAX_MESSAGES_FOR_PROMPT} сообщений. Отправляем только последние.")
@@ -129,6 +140,7 @@ def _build_api_messages(chat: dict) -> list[dict]:
 
 
 def init_new_chat(system_prompt: str | None = None, chat_id: str | None = None) -> str:
+    # Создаём новый чат (или по заданному chat_id) и возвращаем его id
     history = _load_session_history()
     new_chat_id = chat_id or _generate_chat_id()
     chat_record = {
@@ -143,6 +155,7 @@ def init_new_chat(system_prompt: str | None = None, chat_id: str | None = None) 
 
 
 def _persist_session_history_to_global():
+    # Переносим сессионный лог в глобальный, удаляя сессии старше TTL
     try:
         session_history = _load_session_history()
         if not session_history:
@@ -333,7 +346,7 @@ def sendMessageToChatGPT_for_history(
         chat["system_prompt"] = system_prompt
 
     if is_print:
-        print(f"\n\n💫Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
+        print(f"\n💫Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
 
     start = time.time()
     _append_message(chat, "user", prompt)
@@ -354,6 +367,7 @@ def sendMessageToChatGPT_for_history(
     if is_print:
         print(f'💬 AI ANSWER:\n"{answer_text}"')
         emit_execution_time(start, emit=print, print_time_smile=False)
+        print(f"\n\n")
 
     return ChatGPTResult(answer=answer_text, chat_id=chat_id, raw_response=response)
 
@@ -363,8 +377,6 @@ def sendMessageToChatGPT_for_history(
 
 
 #region Использование
-
-
 
 
 # # Запрос с историей
@@ -397,172 +409,3 @@ def sendMessageToChatGPT_for_history(
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-""""
-
-Давай реализуем такую-же штуку как с output.log - там я перехватываю все сообщения которые вывожу в print.
-Здесь давай создадим файл ChatGPT_history.log, в который будет писаться лог отправки и приёма сообщений
-
-И тогда хранить не в памяти, а в этом файле, т.к. там может быть много текста, что бы оперативку не перегружать
-Тогда нам будет проще отлаживать, и настраивать ограничения по кол-ву сообщений в истории и суммаризацию
-
-Значит, при перезапуске программы пускай этот файл очищается, и в него будут добавляться данные при
-отправке запроса, и при получении ответа
-
-Давай хранить данные в формате 
-
-{
-    "chat_ случайный идентификатор, который создаётся для каждого нового чата":
-    [
-        {
-            count_of_message: 1,
-            request_msg: "Привет, мне нужно ...",
-            response_msg: "Хорошо, вот ..."
-            data_time: "18.12.2025 11:15",
-            timestamp: 17__________,
-        }
-    ]
-}
-
-Тогда получается для каждого нового запроса будет создан новый объект chat_...
-А если запрос был с историей, то используется и пишется ответ в тот чат, который мы используем
-
-Например, пускай процедура вызова ChatGPT возвращает текстовый ответ, а также идентификатор чата,
-к которому он привязался, что бы когда мы в следующий раз посылали запрос, то могли предоставить его
-и он бы отправил историю этого чата
-
-Также, я бы очень хотел иметь возможность обращаться к ответу как:
-result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?")
-Что бы текстовый ответ был доступен по result_request.answer
-
-И также сделай функцию инициализации пустого идентификатора чата, что бы например
-в одном скрипте подключил код отправки запросов через ChatGPT, свреху файла создал этот идентификатор,
-положил в переменную, и далее в этом файле отправлял запросы с ним, и все они бы
-выполнялись в одной истории. А если надо, то напримеро просто получаю новый
-
-Также давай хранить глобальный лог всей истории запросов и ответов нейросети. Т.е. после завершения программы будем 
-записывать все сообщения из текущей сессии из ChatGPT_history.log в ChatGPT_history_global.log. 
-Просто тогда в формате 
-
-{
-    {
-        "chat_ случайный идентификатор, который создаётся для каждого нового чата":
-        [
-            {
-            ...
-    },
-    {
-    ...
-
-Но будем удалять сессию, если она старше недели, что бы файл не становился огромным
-
-Также сделай общий counter что бы отправлялось максимум 10 сообщений в истории
-Если в истории больше сообщений - то выводи в лог предупреждение, доделаю это в будущем
-
-
-
-"""
-
-"""
-
-Что подсказала нейросеть:
-
-4️⃣ Предлагаемая API-форма (очень близко к твоему ТЗ)
-🔹 Инициализация чата
-chat_id = init_new_chat()
-
-
-или
-
-chat_id = init_new_chat(system_prompt="Ты опытный Python-разработчик")
-
-🔹 Отправка сообщения
-result = sendMessageToChatGPT_for_history(
-    prompt="Какая самая высокая гора на земле?",
-    chat_id=chat_id
-)
-
-print(result.answer)
-print(result.chat_id)
-
-
-✔ result.answer — ты этого прямо хотел
-✔ chat_id сохраняется
-
-🔹 Новый чат — просто новый id
-chat_id = init_new_chat()
-
-5️⃣ Как выглядит лог (чуть лучше)
-
-Я бы чуть упростил структуру:
-
-{
-  "chat_id": "chat_abc123",
-  "created_at": 1766030100,
-  "system_prompt": "Ты опытный Python-разработчик",
-  "messages": [
-    {
-      "index": 1,
-      "role": "user",
-      "content": "Какая самая высокая гора на земле?",
-      "timestamp": 1766030123
-    },
-    {
-      "index": 2,
-      "role": "assistant",
-      "content": "Самая высокая гора — Эверест",
-      "timestamp": 1766030125
-    }
-  ]
-}
-
-
-Почему лучше:
-
-один массив
-
-легко сериализовать в OpenAI format
-
-не нужно request_msg / response_msg
-
-можно вставлять tool calls позже
-
-
-
-
-
-2️⃣ Перед отправкой — projection / фильтрация
-
-Отдельная функция:
-
-def build_api_messages(chat_messages):
-    api_messages = []
-
-    for msg in chat_messages:
-        api_messages.append({
-            "role": msg["role"],
-            "content": msg["content"]
-        })
-
-    return api_messages
-
-"""
