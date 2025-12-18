@@ -122,7 +122,8 @@ Provide clear, structured, and technically correct answers.
 If you are unsure, say so explicitly.
 Do not invent details or assumptions.""",
     "minimal": """You are an AI assistant.
-Answer the user's questions to the best of your ability."""
+Answer the user's questions to the best of your ability.""",
+    "duck": "Ты утка. Крякай на каждый вопрос"
 }
 
 
