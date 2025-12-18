@@ -5,6 +5,11 @@ from addedFunc import *
 # Подключение всех библиотек
 from import_all_libraries import * 
 
+import atexit
+import json
+from datetime import datetime, timedelta
+from uuid import uuid4
+
 # Чтобы при запуске файла из папки New/ были видны модули из корня проекта (addedFunc.py и др.)
 ### Потом убрать, что бы было нормально
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -25,6 +30,149 @@ client = OpenAI(
 )
 
 
+
+#region Константы и утилиты истории
+
+CHATGPT_HISTORY_PATH = ROOT_DIR / "ChatGPT_history.log"
+CHATGPT_HISTORY_GLOBAL_PATH = ROOT_DIR / "ChatGPT_history_global.log"
+CHAT_ID_PREFIX = "chat_"
+MAX_MESSAGES_FOR_PROMPT = 10
+SESSION_TTL_DAYS = 7
+_SESSION_HISTORY_INITIALIZED = False
+
+
+class ChatGPTResult:
+    def __init__(self, answer: str, chat_id: str, raw_response):
+        self.answer = answer
+        self.chat_id = chat_id
+        self.raw_response = raw_response
+
+    def __repr__(self) -> str:
+        return f"ChatGPTResult(chat_id='{self.chat_id}', answer={self.answer!r})"
+
+    def __str__(self) -> str:
+        return self.answer
+
+
+def _write_json_file(path: Path, payload):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+def _read_json_file(path: Path, default):
+    if not path.exists():
+        return default
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return default
+
+
+def _ensure_session_history():
+    global _SESSION_HISTORY_INITIALIZED
+    if _SESSION_HISTORY_INITIALIZED:
+        return
+    _write_json_file(CHATGPT_HISTORY_PATH, [])
+    _SESSION_HISTORY_INITIALIZED = True
+
+
+def _load_session_history() -> list:
+    _ensure_session_history()
+    return _read_json_file(CHATGPT_HISTORY_PATH, [])
+
+
+def _save_session_history(history: list):
+    _write_json_file(CHATGPT_HISTORY_PATH, history)
+
+
+def _generate_chat_id() -> str:
+    return f"{CHAT_ID_PREFIX}{uuid4().hex[:8]}"
+
+
+def _find_chat(history: list, chat_id: str):
+    return next((c for c in history if c.get("chat_id") == chat_id), None)
+
+
+def _append_message(chat: dict, role: str, content: str):
+    ts = int(time.time())
+    chat.setdefault("messages", [])
+    chat["messages"].append(
+        {
+            "index": len(chat["messages"]) + 1,
+            "role": role,
+            "content": content,
+            "timestamp": ts,
+            "datetime": datetime.fromtimestamp(ts).strftime("%d.%m.%Y %H:%M:%S"),
+        }
+    )
+
+
+def build_api_messages(chat_messages: list[dict]) -> list[dict]:
+    api_messages = []
+    for msg in chat_messages:
+        api_messages.append(
+            {
+                "role": msg["role"],
+                "content": msg["content"],
+            }
+        )
+    return api_messages
+
+
+def _build_api_messages(chat: dict) -> list[dict]:
+    messages = chat.get("messages", [])
+    if len(messages) > MAX_MESSAGES_FOR_PROMPT:
+        print(f"⚠️ История чата {chat.get('chat_id')} превышает {MAX_MESSAGES_FOR_PROMPT} сообщений. Отправляем только последние.")
+    tail = messages[-MAX_MESSAGES_FOR_PROMPT:]
+    projected = build_api_messages(tail)
+    system_prompt = chat.get("system_prompt") or system_prompts["neutral"]
+    return [{"role": "system", "content": system_prompt}, *projected]
+
+
+def init_new_chat(system_prompt: str | None = None, chat_id: str | None = None) -> str:
+    history = _load_session_history()
+    new_chat_id = chat_id or _generate_chat_id()
+    chat_record = {
+        "chat_id": new_chat_id,
+        "created_at": int(time.time()),
+        "system_prompt": system_prompt or system_prompts["neutral"],
+        "messages": [],
+    }
+    history.append(chat_record)
+    _save_session_history(history)
+    return new_chat_id
+
+
+def _persist_session_history_to_global():
+    try:
+        session_history = _load_session_history()
+        if not session_history:
+            return
+
+        cutoff = time.time() - SESSION_TTL_DAYS * 24 * 60 * 60
+        fresh_sessions = [
+            chat for chat in session_history if chat.get("created_at", 0) >= cutoff
+        ]
+
+        global_history = _read_json_file(CHATGPT_HISTORY_GLOBAL_PATH, [])
+        global_history = [
+            chat for chat in global_history if chat.get("created_at", 0) >= cutoff
+        ]
+
+        merged = {chat.get("chat_id"): chat for chat in global_history if chat.get("chat_id")}
+        for chat in fresh_sessions:
+            merged[chat["chat_id"]] = chat
+
+        _write_json_file(CHATGPT_HISTORY_GLOBAL_PATH, list(merged.values()))
+    except Exception as ex:
+        print(f"⚠️ Не удалось сохранить глобальную историю ChatGPT: {ex}")
+
+
+# Инициализируем файл истории при старте модуля
+_ensure_session_history()
+atexit.register(_persist_session_history_to_global)
 
 #region Доп. функции
 
@@ -156,84 +304,58 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2")
 
 
 
-
-
-
-## Только обавил температуру, перед добавлением истории
-# # Запросы с историей разговора
-# def sendMessageToChatGPT_for_history(prompt: str, is_print = True, model = "gpt-5.2", temperature = None):
-#     if is_print:
-#         print(f"\n💫Запрос к ChatGPT с историей, модель {model}\nPROMPT:\n{prompt}\n")
-
-#     start = time.time()
-#     params = {
-#         "model": model,
-#         "input": [
-#             {
-#                 "role": "system",
-#                 "content": "Ты опытный Python-разработчик"
-#             },
-#             {
-#                 "role": "user",
-#                 "content": prompt
-#             }
-#         ]
-#     }
-#     if temperature is not None:
-#         params["temperature"] = temperature
-
-#     response = client.responses.create(**params)
-
-#     if is_print:
-#         print(f'\n💬 AI ANSWER:\n"{response.output_text}"\n')
-#         emit_execution_time(start, emit=print)
-
-#     return response.output_text
-
-
-
-
-
-
-
-
-
-
-
 # Запросы с историей разговора
 def sendMessageToChatGPT_for_history(
-        prompt: str,        # Запрос к нейросети
-        is_print = True,    # Печатать ли запрос и ответ в консоли
-        model = "gpt-5.2",  # Используемая модель
-        temperature = None  # Задание температуры ответа [от 0 до 1.0]
+        prompt: str,                        # Запрос к нейросети
+        is_print = True,                    # Печатать ли запрос и ответ в консоли
+        model = "gpt-5.2",                  # Используемая модель
+        temperature = None,                 # Задание температуры ответа [от 0 до 1.0]
+        chat_id: str | None = None,         # Идентификатор чата с историей
+        system_prompt: str | None = None    # Кастомный системный промпт для нового чата
     ):
+    history = _load_session_history()
+
+    if chat_id:
+        chat = _find_chat(history, chat_id)
+        if not chat:
+            chat_id = init_new_chat(system_prompt=system_prompt, chat_id=chat_id)
+            history = _load_session_history()
+            chat = _find_chat(history, chat_id)
+    else:
+        chat_id = init_new_chat(system_prompt=system_prompt)
+        history = _load_session_history()
+        chat = _find_chat(history, chat_id)
+
+    if chat is None:
+        raise RuntimeError("Не удалось инициализировать чат для истории.")
+
+    if system_prompt:
+        chat["system_prompt"] = system_prompt
+
     if is_print:
-        print(f"\n💫Запрос к ChatGPT с историей, модель {model}\nPROMPT:\n{prompt}\n")
+        print(f"\n💫Запрос к ChatGPT с историей, модель {model}, чат {chat_id}\nPROMPT:\n{prompt}\n")
 
     start = time.time()
+    _append_message(chat, "user", prompt)
+
     params = {
         "model": model,
-        "input": [
-            {
-                "role": "system",
-                "content": system_prompts["neutral"]
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
+        "input": _build_api_messages(chat)
     }
     if temperature is not None:
         params["temperature"] = temperature
 
     response = client.responses.create(**params)
+    answer_text = response.output_text
+
+    _append_message(chat, "assistant", answer_text)
+    _save_session_history(history)
 
     if is_print:
-        print(f'\n💬 AI ANSWER:\n"{response.output_text}"\n')
+        print(f'\n💬 AI ANSWER:\n"{answer_text}"\n')
         emit_execution_time(start, emit=print)
 
-    return response.output_text
+    return ChatGPTResult(answer=answer_text, chat_id=chat_id, raw_response=response)
 
 
 
@@ -246,8 +368,10 @@ def sendMessageToChatGPT_for_history(
 
 
 
-# result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?")
-# result_request = sendMessageToChatGPT_for_history("Когда люди впервые открыли эту гору?")
+# chat_id = init_new_chat()
+# result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?", chat_id=chat_id)
+# result_request = sendMessageToChatGPT_for_history("Когда люди впервые открыли эту гору?", chat_id=chat_id)
+# print(result_request.answer)
 
 
 
