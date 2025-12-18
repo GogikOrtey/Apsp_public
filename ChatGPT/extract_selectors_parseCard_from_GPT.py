@@ -174,7 +174,11 @@ img[itemprop="image"][src] - подходит
 """
 
 
-html_content = "" ####################
+
+
+link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
+html_content = get_html_from_cache(link)
+
 
 
 formation_request = f"""
@@ -194,4 +198,4 @@ END_HTML
 """
 
 
-result_request = send_message_to_ChatGPT(formation_request)
+result_request = send_message_to_ChatGPT(formation_request, temperature = 0.15)
