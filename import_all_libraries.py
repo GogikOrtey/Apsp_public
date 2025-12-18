@@ -14,11 +14,13 @@ from openai import OpenAI
 from pprint import pprint
 from pathlib import Path
 import html as std_html
+from uuid import uuid4
 from lxml import etree
 import jsbeautifier
 import itertools
 import requests
 import locale
+import atexit
 import json
 import time
 import sys

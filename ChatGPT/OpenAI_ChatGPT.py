@@ -1,20 +1,18 @@
 #region Импорты и инициализация
 
+# Чтобы при запуске файла из папки New/ были видны модули из корня проекта (addedFunc.py и др.)
+### Потом убрать, что бы было нормально
+from pathlib import Path
+import sys
+import os
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 # Вынесенные отдельно функции
 from addedFunc import *
 # Подключение всех библиотек
 from import_all_libraries import * 
-
-import atexit
-import json
-from datetime import datetime, timedelta
-from uuid import uuid4
-
-# Чтобы при запуске файла из папки New/ были видны модули из корня проекта (addedFunc.py и др.)
-### Потом убрать, что бы было нормально
-ROOT_DIR = Path(__file__).resolve().parents[1]
-if str(ROOT_DIR) not in sys.path:
-    sys.path.insert(0, str(ROOT_DIR))
 
 # Заружаем ключ OpenAI и инициализируем клиент
 load_dotenv()
@@ -31,8 +29,6 @@ client = OpenAI(
 
 
 
-#region Константы и утилиты истории
-
 CHATGPT_HISTORY_PATH = ROOT_DIR / "ChatGPT_history.log"
 CHATGPT_HISTORY_GLOBAL_PATH = ROOT_DIR / "ChatGPT_history_global.log"
 CHAT_ID_PREFIX = "chat_"
@@ -40,6 +36,7 @@ MAX_MESSAGES_FOR_PROMPT = 10
 SESSION_TTL_DAYS = 7
 _SESSION_HISTORY_INITIALIZED = False
 
+#region Функции для работы с историей
 
 class ChatGPTResult:
     def __init__(self, answer: str, chat_id: str, raw_response):
@@ -333,7 +330,7 @@ def sendMessageToChatGPT_for_history(
         chat["system_prompt"] = system_prompt
 
     if is_print:
-        print(f"\n💫Запрос к ChatGPT с историей, модель {model}, чат {chat_id}\nPROMPT:\n{prompt}\n")
+        print(f"\n💫Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
 
     start = time.time()
     _append_message(chat, "user", prompt)
@@ -352,8 +349,8 @@ def sendMessageToChatGPT_for_history(
     _save_session_history(history)
 
     if is_print:
-        print(f'\n💬 AI ANSWER:\n"{answer_text}"\n')
-        emit_execution_time(start, emit=print)
+        print(f'\n💬 AI ANSWER:\n"{answer_text}"')
+        emit_execution_time(start, emit=print, print_time_smile=False)
 
     return ChatGPTResult(answer=answer_text, chat_id=chat_id, raw_response=response)
 
@@ -367,11 +364,51 @@ def sendMessageToChatGPT_for_history(
 
 
 
-
+# # Запрос с историей
 # chat_id = init_new_chat()
 # result_request = sendMessageToChatGPT_for_history("Какая самая высокая гора на земле?", chat_id=chat_id)
 # result_request = sendMessageToChatGPT_for_history("Когда люди впервые открыли эту гору?", chat_id=chat_id)
-# print(result_request.answer)
+
+
+# # Простой запрос, без истории
+# result_request = sendMessageToChatGPT_for_history("Какая температура солнца?")
+# result_request = sendMessageToChatGPT_for_history("В чём обычно измеряют температуру?")
+
+
+# Запрос с историей
+result_request = sendMessageToChatGPT_for_history("Какая температура солнца?")
+sendMessageToChatGPT_for_history("В чём обычно измеряют температуру?", chat_id=result_request.chat_id)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
