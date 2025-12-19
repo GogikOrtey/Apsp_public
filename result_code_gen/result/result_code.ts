@@ -73,10 +73,10 @@ export class JS_Base_cskru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "Поиск")
-		url.searchParams.set("PAGEN_1", set.page)
+        let url = new URL(`${HOST}/catalog/?`);
+		url.searchParams.set("q", set.query);
+		url.searchParams.set("s", "Поиск");
+		url.searchParams.set("PAGEN_1", set.page);
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
@@ -112,7 +112,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 		const link = set.query
 		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
 		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
-		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: (.+)$/, '$1');
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
@@ -146,5 +146,5 @@ export class JS_Base_cskru extends JS_Base_Custom {
 }
 
 // Код сгенерирован APSP v0.1
-// Дата: 18 Дек 2025
+// Дата: 19 Дек 2025
 // © BrandPol

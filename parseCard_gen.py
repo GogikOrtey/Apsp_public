@@ -364,8 +364,8 @@ def selector_checker_and_parseCard_gen(result_selectors, data_input_table):
 
         if is_clarify_code_selector:
             # Прошу ИИ дополнить строку кода
-            print(f"🧢 Отправляю запрос к ИИ на исправление строки кода для поля {key}")
-            added_inf_from_logger += " 🧢 use ИИ"
+            print(f"💠 Отправляю запрос к ИИ на исправление строки кода для поля {key}")
+            added_inf_from_logger += " 💠 use ИИ"
             add_info = ""
             if key == "imageLink":
                 add_info += f"Переменная HOST = {data_input_table['host']}"

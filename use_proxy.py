@@ -10,8 +10,9 @@ def request_for_proxy(
         url: str,
         *,
         port: int = DEFAULT_PORT,
-        use_random_port: bool = False,
+        use_random_port: bool = True, # По умолчанию порт - рандомный
         proxy_host: str = DEFAULT_PROXY_HOST,
+        headers: dict | None = None,
         timeout: int = 20,
         is_print = True
     ) -> str:
@@ -30,7 +31,7 @@ def request_for_proxy(
     if is_print:
         print(f"🧢 Используем прокси: {proxy}")
 
-    resp = requests.get(url, proxies=proxies, timeout=timeout)
+    resp = requests.get(url, proxies=proxies, headers=headers, timeout=timeout)
     resp.raise_for_status()
     return resp.text
 

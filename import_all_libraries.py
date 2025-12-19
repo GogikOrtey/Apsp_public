@@ -124,13 +124,24 @@ def clearAnswerCode(input_code):
     return input_code
 
 # region get_html
-def get_html(url: str, headers: dict = None, timeout: int = 10, is_clear_html = True) -> str:
+from use_proxy import request_for_proxy
+
+# region get_html
+def get_html(
+        url: str, 
+        headers: dict = None, 
+        timeout: int = 20, 
+        is_clear_html = True, 
+        is_use_proxy: bool = True ############## Всегда использую случайные прокси
+    ) -> str:
+
     """
     Отправляет GET-запрос на указанный URL и возвращает HTML-ответ.
 
     :param url: Ссылка на сайт
     :param headers: Словарь с заголовками (по умолчанию None)
     :param timeout: Время ожидания ответа сервера (секунды)
+    :param is_use_proxy: Выполнять запрос через прокси
     :return: HTML-строка
     """
     if headers is None:
@@ -140,10 +151,22 @@ def get_html(url: str, headers: dict = None, timeout: int = 10, is_clear_html = 
         }
 
     try:
-        response = requests.get(url, headers=headers, timeout=timeout)
-        response.raise_for_status()  # Проверяем статус ответа (200 OK)
-        if is_clear_html == False: return response.text
-        cleared_text = clean_html_preserve_structure(response.text)
+        if is_use_proxy:
+            html = request_for_proxy(
+                url,
+                headers=headers,
+                timeout=timeout,
+                # is_print=False,
+            )
+        else:
+            response = requests.get(url, headers=headers, timeout=timeout)
+            response.raise_for_status()  # Проверяем статус ответа (200 OK)
+            html = response.text
+
+        if is_clear_html == False:
+            return html
+
+        cleared_text = clean_html_preserve_structure(html)
         return cleared_text
     except requests.RequestException as e:
         print(f"Ошибка при запросе к {url}: {e}")

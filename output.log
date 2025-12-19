@@ -1,6 +1,7 @@
-18.12.2025 17:59:17
+19.12.2025 16:49:58
 
 🚀 Запуск генерации...
+🧢 Используем прокси: http://10.0.4.112:1080
 
 ------------------------------------------------------------------------------
 
@@ -21,7 +22,7 @@ field = name, stock, link, price, oldprice, article, imageLink, timestamp
 
 
 Обработаем 3 страниц
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/ (возраст 3.66 ч.)
+🧢 Используем прокси: http://10.0.4.112:1050
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -40,7 +41,7 @@ field = name, stock, link, price, oldprice, article, imageLink, timestamp
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/250662/ (возраст 0.22 ч.)
+🧢 Используем прокси: http://10.0.4.112:1061
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -59,7 +60,7 @@ _______________________
 Найдено 1 возможных селекторов
 Найден селектор для поля imageLink
 _______________________
-📤 Берем страницу из кеша: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253153/ (возраст 0.22 ч.)
+🧢 Используем прокси: http://10.0.4.112:1056
 
 Найдено 6 возможных селекторов
 Найден селектор для поля name
@@ -97,8 +98,9 @@ _______________________
 [WARN] Для поля InStock_trigger не найден селектор(ы).
 [WARN] Для поля OutOfStock_trigger не найден селектор(ы).
 
-📄 Кеш сохранён в cache.json, всего страниц: 99
+📄 Кеш сохранён в cache.json, всего страниц: 88
    Добавлено: 0, обновлено: 3
+   Удалено старых страниц: 11
 
 
 ✅ Итоговые селекторы:
@@ -256,7 +258,7 @@ const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim(
 
 💬 AI ANSWER:
 "```
-const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: (.+)$/, '$1');
+const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
 ```"
 
 Обрабатываем поле imageLink
@@ -357,15 +359,16 @@ url.searchParams.set('/?page', set.page);
 
 💬 AI ANSWER:
 "```
-let url = new URL(`${HOST}/catalog/`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("s", "Поиск")
-url.searchParams.set("PAGEN_1", set.page)
+let url = new URL(`${HOST}/catalog/?`);
+url.searchParams.set("q", set.query);
+url.searchParams.set("s", "Поиск");
+url.searchParams.set("PAGEN_1", set.page);
 ```"
 
+🧢 Используем прокси: http://10.0.4.112:1020
 processed_url_product = /catalog/dveri_okna_i_skobyanye_izdeliya/dveri_mezhkomnatnye/dveri_laminirovannye/131955/
 
-Найдено 40 возможных селекторов
+Найдено 41 возможных селекторов
 Исходный селектор: a.catalog-item__title[href]
 Части селектора: ['a.catalog-item__title[href]']
 Количество частей: 1
@@ -381,7 +384,7 @@ len_of_products_on_this_page = 20
 Совпадение ссылок = 1.00 (3/3)
 Извлекаем селектор кол-ва страниц
 
-Найдено 534 возможных селекторов
+Найдено 513 возможных селекторов
 pagination_selctor = span.bx_filter_param_text > span
 Проверили, и нашли такой элемент по найденному селектору пагинации: 2
 Имя парсера: JS_Base_cskru
@@ -473,10 +476,10 @@ export class JS_Base_cskru extends JS_Base_Custom {
 
     //#region Парсинг поиска
     async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/`)
-		url.searchParams.set("q", set.query)
-		url.searchParams.set("s", "Поиск")
-		url.searchParams.set("PAGEN_1", set.page)
+        let url = new URL(`${HOST}/catalog/?`);
+		url.searchParams.set("q", set.query);
+		url.searchParams.set("s", "Поиск");
+		url.searchParams.set("PAGEN_1", set.page);
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
@@ -512,7 +515,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 		const link = set.query
 		const price = $(".price-elem__value")?.first().text()?.trim().formatPrice()
 		const oldprice = $(".price-elem__value.price-elem__value_old").text()?.trim().formatPrice()
-		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^Code: (.+)$/, '$1');
+		const article = $(".header-elem__item.header-elem__item_s > span").text()?.trim()?.replace(/^\D+/g, '');
 		let imageLink = $("img[itemprop='image']")?.attr("src")?.trim()
 		imageLink = imageLink ? HOST + imageLink : ""
         const timestamp = getTimestamp()
@@ -546,7 +549,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 }
 
 // Код сгенерирован APSP v0.1
-// Дата: 18 Дек 2025
+// Дата: 19 Дек 2025
 // © BrandPol
 
 Сообщения из message_global:
@@ -554,7 +557,7 @@ export class JS_Base_cskru extends JS_Base_Custom {
 
 Ссылка на 1й товар: https://c-s-k.ru/catalog/dveri_okna_i_skobyanye_izdeliya/dveri_vkhodnye/253596/
 
-🕚 Время выполнения: 11.17 секунд
+🕚 Время выполнения: 15.26 секунд
 🧢 Кол-во обращений к внешнему ИИ: 0
 
 Итоговый статус генерации: 🟩 Sucsess 🟩

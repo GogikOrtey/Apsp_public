@@ -467,7 +467,7 @@ def print_and_save_message_global(is_print_status_on_log, start):
         emit(f"🕚 Время выполнения: {elapsed / 60:.1f} минут")
 
     import import_all_libraries
-    emit(f"🧢 Кол-во обращений к внешнему ИИ: {import_all_libraries.count_request_to_AI}")
+    emit(f"💠 Кол-во обращений к внешнему ИИ: {import_all_libraries.count_request_to_AI}")
 
     emit("")
     emit(f"Итоговый статус генерации: {generated_status}")
