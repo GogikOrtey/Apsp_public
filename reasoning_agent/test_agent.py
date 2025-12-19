@@ -113,7 +113,6 @@ SYSTEM_PROMPT = """
 """
 
 
-TARGET_KEYWORD = "презентацию"
 HISTORY_WINDOW = 10  # сколько последних шагов отдаём в LLM
 MAX_STEPS = 20
 
@@ -159,7 +158,6 @@ Memory (свободное key-value хранилище, обновляется 
 - list_files -> возвращает список файлов.
 - read_file(filename) -> статус и содержимое файла.
 - search(text, query) -> поиск подстроки в тексте.
-После успешного read_file оркестратор автоматически ищет слово "{TARGET_KEYWORD}" в прочитанном тексте и кладёт результат в observation.target_search.
 
 Выбери следующее действие из {list(ALLOWED_ACTIONS)}.
 Ответь строго в JSON по контракту system prompt.
@@ -212,17 +210,6 @@ def run_agent():
                 observation = {"status": "error", "error": "filename is required"}
             else:
                 observation = tools.read_file(filename)
-                if observation.get("status") == "ok":
-                    content = observation.get("content", "")
-                    target_search = tools.search(content, TARGET_KEYWORD)
-                    observation["target_search"] = {"query": TARGET_KEYWORD, **target_search}
-                    if target_search.get("found"):
-                        merge_memory(state, {
-                            "found_result": {
-                                "file": filename,
-                                "sentence": content
-                            }
-                        })
 
         elif action == "search":
             text = response.get("args", {}).get("text", "")
