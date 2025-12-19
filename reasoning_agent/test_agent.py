@@ -22,6 +22,13 @@ if str(ROOT_DIR) not in sys.path:
 # Подключение всех библиотек и функций
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+from reasoning_agent.tool_registry import (
+    TOOLS,
+    allowed_actions,
+    render_tools_for_prompt,
+    render_tools_compact_for_prompt,
+    validate_llm_action,
+)
 
 
 
@@ -75,26 +82,17 @@ class Tools:
 
 
 
-# 3. Контракт действий
-ALLOWED_ACTIONS = {
-    "list_files",
-    "read_file",
-    "search",
-    "DONE"
-}
+# 3. Контракт действий (единый источник — reasoning_agent/tool_registry.py)
+ALLOWED_ACTIONS = allowed_actions()
 
 
-# 4. System Prompt
-SYSTEM_PROMPT = """
+# 4. System Prompt (генерируется из реестра инструментов)
+SYSTEM_PROMPT = f"""
 Ты — reasoning-агент. У тебя есть два источника данных:
 - memory: свободный key-value словарь, который ты можешь обновлять через update_memory.
 - history: список прошлых шагов (thought/action/args/observation/update_memory).
 
-Доступные действия:
-- list_files
-- read_file(filename)
-- search(text, query)
-- DONE
+{render_tools_for_prompt(TOOLS)}
 
 Контракт:
 - Отвечай СТРОГО в JSON.
@@ -155,9 +153,7 @@ Memory (свободное key-value хранилище, обновляется 
 {history_json}
 
 Напоминание по инструментам:
-- list_files -> возвращает список файлов.
-- read_file(filename) -> статус и содержимое файла.
-- search(text, query) -> поиск подстроки в тексте.
+{render_tools_compact_for_prompt(TOOLS)}
 
 Выбери следующее действие из {list(ALLOWED_ACTIONS)}.
 Ответь строго в JSON по контракту system prompt.
@@ -191,8 +187,9 @@ def run_agent():
         response = call_llm(state)
         action = response.get("action")
 
-        if action not in ALLOWED_ACTIONS:
-            raise ValueError(f"Unknown action: {action}")
+        ok, err = validate_llm_action(response, TOOLS)
+        if not ok:
+            raise ValueError(f"Invalid LLM response: {err}; payload={response}")
 
         observation = {}
 
@@ -206,10 +203,7 @@ def run_agent():
 
         elif action == "read_file":
             filename = response.get("args", {}).get("filename")
-            if not filename:
-                observation = {"status": "error", "error": "filename is required"}
-            else:
-                observation = tools.read_file(filename)
+            observation = tools.read_file(filename)
 
         elif action == "search":
             text = response.get("args", {}).get("text", "")
