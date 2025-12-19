@@ -35,6 +35,7 @@ import module_logging
 from YandexGPT import *
 from global_variable import *
 import global_variable
+from use_proxy import *
 
 
 
