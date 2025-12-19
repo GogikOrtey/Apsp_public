@@ -1,9 +1,12 @@
 """
+Простой пример reasoning-агента.
 
-Простой пример reasoning-агента
+Цель: найти, в каком файле идёт речь про презентацию.
 
-Здесь ему нужно будет найти, в каком файле идёт речь про презентацию
-
+Ключевые изменения:
+- нет жёсткой структуры state (current_file/checked_files и т.п.)
+- есть свободная память memory, которую агент может обновлять сам
+- в историю history пишем thought/action/args/observation/update_memory
 """
 
 # Чтобы при запуске файла из этой папки были видны модули из корня проекта (addedFunc.py и др.)
@@ -83,67 +86,83 @@ ALLOWED_ACTIONS = {
 
 # 4. System Prompt
 SYSTEM_PROMPT = """
-Ты — reasoning-агент.
+Ты — reasoning-агент. У тебя есть два источника данных:
+- memory: свободный key-value словарь, который ты можешь обновлять через update_memory.
+- history: список прошлых шагов (thought/action/args/observation/update_memory).
 
-Ты можешь использовать ТОЛЬКО следующие действия:
+Доступные действия:
 - list_files
 - read_file(filename)
 - search(text, query)
 - DONE
 
-Правила:
-- Отвечай СТРОГО в JSON
-- Один ответ — одно действие
-- Никакого текста вне JSON
-- Если цель достигнута — верни action = DONE
+Контракт:
+- Отвечай СТРОГО в JSON.
+- Один ответ — одно действие.
+- Никакого текста вне JSON.
+- Если цель достигнута — верни action = DONE и финальный ответ в final_answer.
 
 Формат ответа:
-
 {
   "thought": "...",
   "action": "...",
-  "args": { ... }
+  "args": { ... },
+  "update_memory": { ... },   # что добавить/обновить в memory (опционально)
+  "final_answer": "..."        # только если action == DONE
 }
 """
 
+
+TARGET_KEYWORD = "презентацию"
+HISTORY_WINDOW = 10  # сколько последних шагов отдаём в LLM
+MAX_STEPS = 20
 
 # Задача агента
-user_goal = """
-Найти, в каком файле идёт речь про презентацию
-"""
+user_goal = "Найти, в каком файле идёт речь про презентацию"
 
 
-# 5. Состояние агента
+# 5. Состояние агента: гибкая память и история
 state = {
-    "files": [],
-    "current_file": None,
-    "current_content": None,
-    "checked_files": set(),
-    "found_result": None,
-    "chat_id": None
+    "memory": {},      # свободное key-value хранилище, агент сам решает, что писать
+    "history": [],     # список шагов: thought/action/args/observation/update_memory
+    "chat_id": None,   # id чата для send_message_to_ChatGPT
 }
 
 
-# 6. Вызов LLM
-def call_llm(state):
+# 6. Вспомогательные функции
+def merge_memory(state: dict, updates: dict | None):
+    """Безопасно мёрджим обновления в memory."""
+    if not updates:
+        return
+    state["memory"].update(updates)
+
+
+def call_llm(state: dict):
     """
     Делает шаг агента через ChatGPT.
-    Возвращает dict с полями thought/action/args/final_answer.
+    Возвращает dict с полями thought/action/args/(update_memory)/final_answer.
     """
-    prompt = f"""
-Текущая задача: {user_goal.strip()}
+    recent_history = state["history"][-HISTORY_WINDOW:]
+    memory_json = json.dumps(state["memory"], ensure_ascii=False, indent=2)
+    history_json = json.dumps(recent_history, ensure_ascii=False, indent=2)
 
-Текущее состояние:
-- files: {state["files"]}
-- checked_files: {list(state["checked_files"])}
-- current_file: {state["current_file"]}
-- current_content: {state["current_content"]}
-- found_result: {state["found_result"]}
+    prompt = f"""
+Цель: {user_goal}
+
+Memory (свободное key-value хранилище, обновляется через update_memory):
+{memory_json}
+
+Недавние шаги (последние {HISTORY_WINDOW}):
+{history_json}
+
+Напоминание по инструментам:
+- list_files -> возвращает список файлов.
+- read_file(filename) -> статус и содержимое файла.
+- search(text, query) -> поиск подстроки в тексте.
+После успешного read_file оркестратор автоматически ищет слово "{TARGET_KEYWORD}" в прочитанном тексте и кладёт результат в observation.target_search.
 
 Выбери следующее действие из {list(ALLOWED_ACTIONS)}.
-Строго следуй контракту: JSON без дополнительного текста.
-action обязательно из {list(ALLOWED_ACTIONS)}.
-Если цель достигнута — верни action = DONE и финальный ответ в final_answer.
+Ответь строго в JSON по контракту system prompt.
 """
 
     result = send_message_to_ChatGPT(
@@ -166,49 +185,65 @@ action обязательно из {list(ALLOWED_ACTIONS)}.
         }
 
 
-
 # 7. Оркестратор
 def run_agent():
     tools = Tools(FILES)
-    max_steps = 20
 
-    for step in range(max_steps):
+    for step in range(MAX_STEPS):
         response = call_llm(state)
-
-        action = response["action"]
+        action = response.get("action")
 
         if action not in ALLOWED_ACTIONS:
             raise ValueError(f"Unknown action: {action}")
 
+        observation = {}
+
         if action == "DONE":
             print("\n=== DONE ===")
-            print(response["final_answer"])
+            print(response.get("final_answer"))
             break
 
         if action == "list_files":
-            obs = tools.list_files()
-            state["files"] = obs["files"]
+            observation = tools.list_files()
 
         elif action == "read_file":
-            filename = response["args"]["filename"]
-            obs = tools.read_file(filename)
-            state["checked_files"].add(filename)
+            filename = response.get("args", {}).get("filename")
+            if not filename:
+                observation = {"status": "error", "error": "filename is required"}
+            else:
+                observation = tools.read_file(filename)
+                if observation.get("status") == "ok":
+                    content = observation.get("content", "")
+                    target_search = tools.search(content, TARGET_KEYWORD)
+                    observation["target_search"] = {"query": TARGET_KEYWORD, **target_search}
+                    if target_search.get("found"):
+                        merge_memory(state, {
+                            "found_result": {
+                                "file": filename,
+                                "sentence": content
+                            }
+                        })
 
-            if obs["status"] == "ok":
-                content = obs["content"]
-                state["current_file"] = filename
-                state["current_content"] = content
+        elif action == "search":
+            text = response.get("args", {}).get("text", "")
+            query = response.get("args", {}).get("query", "")
+            observation = tools.search(text, query)
 
-                search_obs = tools.search(content, "презентацию")
-                if search_obs["found"]:
-                    # очень упрощённо — берём всё предложение
-                    state["found_result"] = {
-                        "file": filename,
-                        "sentence": content
-                    }
+        # Обновляем память, если агент прислал update_memory
+        merge_memory(state, response.get("update_memory"))
+
+        # Сохраняем шаг в историю (LLM видит только хвост в prompt)
+        state["history"].append({
+            "thought": response.get("thought"),
+            "action": action,
+            "args": response.get("args", {}),
+            "observation": observation,
+            "update_memory": response.get("update_memory", {})
+        })
 
         print(f"\nAction: {action}")
-        print(f"Observation: {obs}")
+        print(f"Observation: {observation}")
+        print(f"Memory: {state['memory']}")
     else:
         print("\n=== DONE ===")
         print("Достигнут лимит шагов, остановка.")
