@@ -252,13 +252,13 @@ SYSTEM_PROMPT = f"""
 - Если цель достигнута — верни action = DONE и финальный ответ в final_answer.
 
 Формат ответа:
-{
+{{
   "thought": "...",
   "action": "...",
-  "args": { ... },
-  "update_memory": { ... },   # что добавить/обновить в memory (опционально)
+  "args": {{ ... }},
+  "update_memory": {{ ... }},   # что добавить/обновить в memory (опционально)
   "final_answer": "..."        # только если action == DONE
-}
+}}
 """
 
 
