@@ -15,7 +15,6 @@ from pathlib import Path
 import sys
 import os
 import json
-from dataclasses import dataclass
 from typing import Any
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -78,79 +77,64 @@ class Tools:
 
 
 # 3. Реестр инструментов (встроен сюда, т.к. это тестовая реализация)
-@dataclass(frozen=True)
-class ToolArgSpec:
-    name: str
-    type: str  # простой "человекочитаемый" тип (str/int/bool/json)
-    required: bool
-    description: str
-
-
-@dataclass(frozen=True)
-class ToolSpec:
-    name: str
-    description: str
-    args: tuple[ToolArgSpec, ...]
-    returns: str
-    example_args: dict[str, Any] | None = None
-
-
-TOOLS: dict[str, ToolSpec] = {
-    "list_files": ToolSpec(
-        name="list_files",
-        description="Вернуть список доступных файлов в окружении.",
-        args=(),
-        returns='JSON: {"files": ["notes.txt", "..."]}',
-        example_args={},
-    ),
-    "read_file": ToolSpec(
-        name="read_file",
-        description="Прочитать содержимое файла по имени.",
-        args=(
-            ToolArgSpec(
-                name="filename",
-                type="str",
-                required=True,
-                description="Имя файла из списка, полученного через list_files.",
-            ),
-        ),
-        returns='JSON: {"status":"ok","filename":"...","content":"..."} или {"status":"error","error":"..."}',
-        example_args={"filename": "todo.txt"},
-    ),
-    "search": ToolSpec(
-        name="search",
-        description="Найти вхождения подстроки query в тексте text (регистронезависимо).",
-        args=(
-            ToolArgSpec(
-                name="text",
-                type="str",
-                required=True,
-                description="Текст, в котором выполняется поиск (обычно content из read_file).",
-            ),
-            ToolArgSpec(
-                name="query",
-                type="str",
-                required=True,
-                description="Подстрока для поиска.",
-            ),
-        ),
-        returns='JSON: {"found": true/false, "positions": [0, 15, ...]}',
-        example_args={"text": "<content from read_file>", "query": "презентац"},
-    ),
-    "DONE": ToolSpec(
-        name="DONE",
-        description="Завершить работу и вернуть финальный ответ.",
-        args=(
-            ToolArgSpec(
-                name="final_answer",
-                type="str",
-                required=True,
-                description="Финальный ответ пользователю.",
-            ),
-        ),
-        returns='(завершение): args.final_answer будет выведен как итоговый ответ',
-        example_args={"final_answer": "Про презентацию говорится в файле todo.txt."},
-    ),
+# Формат специально сделан JSON-friendly: это обычный dict/list, который можно
+# напрямую отдавать в prompt или сериализовать через json.dumps(...).
+TOOLS: dict[str, dict[str, Any]] = {
+    "list_files": {
+        "name": "list_files",
+        "description": "Вернуть список доступных файлов в окружении.",
+        "args": [],
+        "returns": 'JSON: {"files": ["notes.txt", "..."]}',
+        "example_args": {},
+    },
+    "read_file": {
+        "name": "read_file",
+        "description": "Прочитать содержимое файла по имени.",
+        "args": [
+            {
+                "name": "filename",
+                "type": "str",  # простой "человекочитаемый" тип (str/int/bool/json)
+                "required": True,
+                "description": "Имя файла из списка, полученного через list_files.",
+            },
+        ],
+        "returns": 'JSON: {"status":"ok","filename":"...","content":"..."} или {"status":"error","error":"..."}',
+        "example_args": {"filename": "todo.txt"},
+    },
+    "search": {
+        "name": "search",
+        "description": "Найти вхождения подстроки query в тексте text (регистронезависимо).",
+        "args": [
+            {
+                "name": "text",
+                "type": "str",
+                "required": True,
+                "description": "Текст, в котором выполняется поиск (обычно content из read_file).",
+            },
+            {
+                "name": "query",
+                "type": "str",
+                "required": True,
+                "description": "Подстрока для поиска.",
+            },
+        ],
+        "returns": 'JSON: {"found": true/false, "positions": [0, 15, ...]}',
+        "example_args": {"text": "<content from read_file>", "query": "презентац"},
+    },
+    "DONE": {
+        "name": "DONE",
+        "description": "Завершить работу и вернуть финальный ответ.",
+        "args": [
+            {
+                "name": "final_answer",
+                "type": "str",
+                "required": True,
+                "description": "Финальный ответ пользователю.",
+            },
+        ],
+        "returns": "(завершение): args.final_answer будет выведен как итоговый ответ",
+        "example_args": {"final_answer": "Про презентацию говорится в файле todo.txt."},
+    },
 }
 
 
@@ -158,7 +142,7 @@ def allowed_actions() -> set[str]:
     return set(TOOLS.keys())
 
 
-def render_tools_for_prompt(tools: dict[str, ToolSpec] | None = None) -> str:
+def render_tools_for_prompt(tools: dict[str, dict[str, Any]] | None = None) -> str:
     """
     Человекочитаемое описание инструментов для system prompt.
     Держим в одном месте, чтобы prompt и валидация не расходились.
@@ -167,36 +151,38 @@ def render_tools_for_prompt(tools: dict[str, ToolSpec] | None = None) -> str:
     lines: list[str] = []
     lines.append("Доступные действия (tools):")
     for name, spec in tools.items():
-        lines.append(f"- {name}: {spec.description}")
-        if spec.args:
+        lines.append(f"- {name}: {spec.get('description')}")
+        args = spec.get("args") or []
+        if args:
             lines.append("  args:")
-            for a in spec.args:
-                req = "обязательный" if a.required else "опциональный"
-                lines.append(f"  - {a.name} ({a.type}, {req}): {a.description}")
+            for a in args:
+                req = "обязательный" if a.get("required") else "опциональный"
+                lines.append(f"  - {a.get('name')} ({a.get('type')}, {req}): {a.get('description')}")
         else:
             lines.append("  args: (нет)")
-        lines.append(f"  returns: {spec.returns}")
-        if spec.example_args is not None:
-            lines.append(f"  example args: {spec.example_args}")
+        lines.append(f"  returns: {spec.get('returns')}")
+        if spec.get("example_args", None) is not None:
+            lines.append(f"  example args: {spec.get('example_args')}")
     return "\n".join(lines)
 
 
-def render_tools_compact_for_prompt(tools: dict[str, ToolSpec] | None = None) -> str:
+def render_tools_compact_for_prompt(tools: dict[str, dict[str, Any]] | None = None) -> str:
     """Компактная версия для вставки в user prompt на каждом шаге."""
     tools = tools or TOOLS
     lines: list[str] = []
     for name, spec in tools.items():
-        if spec.args:
-            sig = ", ".join(a.name for a in spec.args)
-            lines.append(f"- {name}({sig}): {spec.description}")
+        args = spec.get("args") or []
+        if args:
+            sig = ", ".join((a or {}).get("name", "?") for a in args)
+            lines.append(f"- {name}({sig}): {spec.get('description')}")
         else:
-            lines.append(f"- {name}: {spec.description}")
+            lines.append(f"- {name}: {spec.get('description')}")
     return "\n".join(lines)
 
 
 def validate_llm_action(
     payload: dict[str, Any],
-    tools: dict[str, ToolSpec] | None = None,
+    tools: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[bool, str]:
     """
     Минимальная структурная валидация ответа LLM под наш контракт.
@@ -225,17 +211,23 @@ def validate_llm_action(
         return True, ""
 
     spec = tools[action]
-    required_args = [a.name for a in spec.args if a.required]
+    spec_args = spec.get("args") or []
+    required_args = [(a or {}).get("name") for a in spec_args if (a or {}).get("required")]
+    required_args = [n for n in required_args if isinstance(n, str) and n]
     missing = [name for name in required_args if name not in args]
     if missing:
         return False, f"Missing required args for action '{action}': {missing}"
 
     # Лёгкая проверка типов для str (чтобы ловить совсем неверные форматы)
-    for a in spec.args:
-        if a.name not in args:
+    for a in spec_args:
+        arg_name = (a or {}).get("name")
+        arg_type = (a or {}).get("type")
+        if not isinstance(arg_name, str) or not arg_name:
             continue
-        if a.type == "str" and not isinstance(args[a.name], str):
-            return False, f"Arg '{a.name}' must be str."
+        if arg_name not in args:
+            continue
+        if arg_type == "str" and not isinstance(args[arg_name], str):
+            return False, f"Arg '{arg_name}' must be str."
 
     return True, ""
 
