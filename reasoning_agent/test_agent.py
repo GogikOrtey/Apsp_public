@@ -140,9 +140,16 @@ TOOLS: dict[str, ToolSpec] = {
     "DONE": ToolSpec(
         name="DONE",
         description="Завершить работу и вернуть финальный ответ.",
-        args=(),
-        returns='JSON: {"final_answer":"..."}',
-        example_args={},
+        args=(
+            ToolArgSpec(
+                name="final_answer",
+                type="str",
+                required=True,
+                description="Финальный ответ пользователю.",
+            ),
+        ),
+        returns='(завершение): args.final_answer будет выведен как итоговый ответ',
+        example_args={"final_answer": "Про презентацию говорится в файле todo.txt."},
     ),
 }
 
@@ -204,18 +211,18 @@ def validate_llm_action(
     if action not in tools:
         return False, f"Unknown action: {action}. Allowed: {sorted(tools.keys())}"
 
-    # DONE: требуем final_answer
-    if action == "DONE":
-        fa = payload.get("final_answer")
-        if not isinstance(fa, str) or not fa.strip():
-            return False, "For action DONE, field 'final_answer' must be a non-empty string."
-        return True, ""
-
     args = payload.get("args", {})
     if args is None:
         args = {}
     if not isinstance(args, dict):
         return False, "Field 'args' must be an object/dict."
+
+    # DONE: требуем args.final_answer
+    if action == "DONE":
+        fa = args.get("final_answer")
+        if not isinstance(fa, str) or not fa.strip():
+            return False, "For action DONE, arg 'final_answer' must be a non-empty string."
+        return True, ""
 
     spec = tools[action]
     required_args = [a.name for a in spec.args if a.required]
@@ -249,7 +256,7 @@ SYSTEM_PROMPT = f"""
 - Отвечай СТРОГО в JSON.
 - Один ответ — одно действие.
 - Никакого текста вне JSON.
-- Если цель достигнута — верни action = DONE и финальный ответ в final_answer.
+- Если цель достигнута — верни action = DONE и финальный ответ в args.final_answer.
 
 Формат ответа:
 {{
@@ -257,7 +264,6 @@ SYSTEM_PROMPT = f"""
   "action": "...",
   "args": {{ ... }},
   "update_memory": {{ ... }},   # что добавить/обновить в memory (опционально)
-  "final_answer": "..."        # только если action == DONE
 }}
 """
 
@@ -288,7 +294,8 @@ def merge_memory(state: dict, updates: dict | None):
 def call_llm(state: dict):
     """
     Делает шаг агента через ChatGPT.
-    Возвращает dict с полями thought/action/args/(update_memory)/final_answer.
+    Возвращает dict с полями thought/action/args/(update_memory).
+    Для action == DONE финальный ответ должен быть в args.final_answer.
     """
     recent_history = state["history"][-HISTORY_WINDOW:]
     memory_json = json.dumps(state["memory"], ensure_ascii=False, indent=2)
@@ -321,12 +328,23 @@ Memory (свободное key-value хранилище, обновляется 
     state["chat_id"] = result.chat_id
 
     try:
-        return json.loads(result.answer)
+        payload = json.loads(result.answer)
+        # Нормализация под новый контракт: final_answer должен быть аргументом DONE.
+        if isinstance(payload, dict) and payload.get("action") == "DONE":
+            args = payload.get("args")
+            if args is None or not isinstance(args, dict):
+                args = {}
+                payload["args"] = args
+            if "final_answer" not in args and isinstance(payload.get("final_answer"), str):
+                args["final_answer"] = payload["final_answer"]
+        return payload
     except Exception as ex:
         # Фолбэк, чтобы не зациклиться при ошибке парсинга
         return {
             "action": "DONE",
-            "final_answer": f"LLM parse error: {ex}; raw={result.answer}"
+            "args": {
+                "final_answer": f"LLM parse error: {ex}; raw={result.answer}"
+            },
         }
 
 
@@ -346,7 +364,7 @@ def run_agent():
 
         if action == "DONE":
             print("\n=== DONE ===")
-            print(response.get("final_answer"))
+            print((response.get("args") or {}).get("final_answer"))
             break
 
         if action == "list_files":
