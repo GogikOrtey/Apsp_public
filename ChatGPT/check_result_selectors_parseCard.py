@@ -84,6 +84,7 @@
 
 {
     [
+        "link": https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/
         "name": "Настенный газовый котел ECA GERDA 28 HM NG",
         "price": "55 500 ₽",
         "oldprice": "61 050 ₽",
@@ -104,9 +105,29 @@
 Если какое-то поле выглядит скорее неправильно, то мы возвращаем ответ:
 
 {
-    "status": "incorrect_fields_found",
-    bad_field: [
-        article
+    "status": "INCORRECT_FIELDS_FOUND",
+    "field_summary": [
+        {
+            "field": "article",
+            "severity": "HIGH",
+            "issue_codes": ["LOW_DISTINCT_RATIO", "DUPLICATE_ACROSS_ITEMS"],
+            "bad_links": [
+                "https://site.ru/p/1",
+                "https://site.ru/p/2"
+            ],
+            "examples": [
+                { "link": "https://site.ru/p/1", "value": "445856" },
+                { "link": "https://site.ru/p/2", "value": "445856" }
+            ]
+        }
+    ],
+    "item_issues": [
+        {
+            "link": "https://site.ru/p/7",
+            "issues": [
+                { "field": "price", "severity": "MEDIUM", "issue_codes": ["NO_DIGITS"] }
+            ]
+        }
     ]
 }
 
@@ -115,7 +136,9 @@
     "status": "ALL_OK"
 }
 
-При 
+Инструкции по формированию ответа:
+
+
 
 
 
