@@ -245,9 +245,11 @@ SYSTEM_PROMPT = f"""
 {render_tools_for_prompt(TOOLS)}
 
 Контракт:
-- Отвечай СТРОГО в JSON.
-- Один ответ — одно действие.
-- Никакого текста вне JSON.
+- Отвечай СТРОГО в JSON: один top-level JSON-объект.
+- РОВНО одно действие за ответ (один шаг).
+- Никакого текста вне JSON, никаких markdown-блоков, никаких пояснений.
+- НЕ ПИШИ результаты/наблюдения инструментов (например {{"files":[...]}} или {{"status":"ok",...}}) — их возвращает система, не ты.
+- НЕ ПИШИ несколько JSON подряд. Если хочешь сделать несколько шагов — выбери только следующий шаг.
 - Если цель достигнута — верни action = DONE и финальный ответ в args.final_answer.
 
 Формат ответа:
@@ -256,6 +258,18 @@ SYSTEM_PROMPT = f"""
   "action": "...",
   "args": {{ ... }},
   "update_memory": {{ ... }},   # что добавить/обновить в memory (опционально)
+}}
+
+Невалидно (запрещено):
+- два JSON подряд: {{...}}{{...}}
+- JSON + "наблюдение инструмента": {{...}}{{"files":[...]}}
+- любой текст вне JSON
+
+Валидно (ровно один объект):
+{{
+    "thought":"...",
+    "action":"list_files",
+    "args":{{}}
 }}
 """
 
@@ -281,6 +295,47 @@ def merge_memory(state: dict, updates: dict | None):
     if not updates:
         return
     state["memory"].update(updates)
+
+
+def parse_llm_json_action(answer_text: str) -> dict[str, Any]:
+    """
+    По контракту LLM должен вернуть один JSON-объект.
+    На практике иногда возвращается несколько JSON подряд (например: {...}{...}{...}),
+    из-за чего json.loads падает с ошибкой `Extra data`.
+
+    Здесь мы извлекаем первый top-level JSON-объект, содержащий поле 'action'.
+    """
+    s = (answer_text or "").strip()
+
+    # Если модель завернула JSON в code fence, попробуем вытащить содержимое между ```
+    if "```" in s:
+        parts = s.split("```")
+        if len(parts) >= 3:
+            s = max(parts[1::2], key=len).strip()
+
+    # Быстрый путь: валидный одиночный JSON
+    try:
+        payload = json.loads(s)
+        if isinstance(payload, dict) and isinstance(payload.get("action"), str):
+            return payload
+    except Exception:
+        pass
+
+    decoder = json.JSONDecoder()
+    idx = 0
+    while idx < len(s):
+        start = s.find("{", idx)
+        if start == -1:
+            break
+        try:
+            obj, end = decoder.raw_decode(s, start)
+            if isinstance(obj, dict) and isinstance(obj.get("action"), str):
+                return obj
+            idx = end
+        except Exception:
+            idx = start + 1
+
+    raise ValueError("Could not parse a valid JSON action payload from LLM output.")
 
 
 def call_llm(state: dict):
@@ -320,7 +375,7 @@ Memory (свободное key-value хранилище, обновляется 
     # state["chat_id"] = result.chat_id
 
     try:
-        payload = json.loads(result.answer)
+        payload = parse_llm_json_action(result.answer)
         # Нормализация под новый контракт: final_answer должен быть аргументом DONE.
         if isinstance(payload, dict) and payload.get("action") == "DONE":
             args = payload.get("args")

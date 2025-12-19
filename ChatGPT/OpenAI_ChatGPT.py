@@ -324,6 +324,34 @@ def send_message_to_ChatGPT(
         chat_id: str | None = None,         # Идентификатор чата с историей
         system_prompt: str | None = None    # Кастомный системный промпт для нового чата
     ):
+    # Если chat_id не передан — работаем БЕЗ истории:
+    # не читаем/не пишем ChatGPT_history.log и не подмешиваем старые сообщения.
+    if not chat_id:
+        if is_print:
+            print(f"\n💫 Запрос к ChatGPT без истории, модель {model}. PROMPT:\n{prompt}\n")
+
+        start = time.time()
+        params = {
+            "model": model,
+            "input": [
+                {"role": "system", "content": system_prompt or system_prompts["neutral"]},
+                {"role": "user", "content": prompt},
+            ],
+        }
+        if temperature is not None:
+            params["temperature"] = temperature
+
+        response = client.responses.create(**params)
+        answer_text = response.output_text
+
+        if is_print:
+            print(f'💬 AI ANSWER:\n"{answer_text}"')
+            emit_execution_time(start, emit=print, print_time_smile=False)
+            print(f"\n\n")
+
+        # chat_id пустой, т.к. историю мы не вели
+        return ChatGPTResult(answer=answer_text, chat_id="", raw_response=response)
+
     history = _load_session_history()
 
     if chat_id:
@@ -332,10 +360,6 @@ def send_message_to_ChatGPT(
             chat_id = init_new_chat(system_prompt=system_prompt, chat_id=chat_id)
             history = _load_session_history()
             chat = _find_chat(history, chat_id)
-    else:
-        chat_id = init_new_chat(system_prompt=system_prompt)
-        history = _load_session_history()
-        chat = _find_chat(history, chat_id)
 
     if chat is None:
         raise RuntimeError("Не удалось инициализировать чат для истории.")
