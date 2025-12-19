@@ -119,7 +119,8 @@ state = {
     "current_file": None,
     "current_content": None,
     "checked_files": set(),
-    "found_result": None
+    "found_result": None,
+    "chat_id": None
 }
 
 
@@ -150,8 +151,10 @@ action обязательно из {list(ALLOWED_ACTIONS)}.
         is_print=True,
         model="gpt-5.2",
         temperature=0.1,
-        system_prompt=SYSTEM_PROMPT
+        system_prompt=SYSTEM_PROMPT,
+        chat_id=state["chat_id"]
     )
+    state["chat_id"] = result.chat_id
 
     try:
         return json.loads(result.answer)
