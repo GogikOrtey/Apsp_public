@@ -1,5 +1,40 @@
 [
   {
+    "chat_id": "chat_a6495c02",
+    "created_at": 1766175437,
+    "system_prompt": "You are a helpful, accurate, and concise AI assistant.\nFollow the user's instructions carefully.\nIf something is unclear or missing, ask for clarification.\nDo not make up facts.",
+    "messages": [
+      {
+        "index": 1,
+        "role": "user",
+        "content": "Какая самая высокая гора на земле?",
+        "timestamp": 1766175437,
+        "datetime": "20.12.2025 01:17:17"
+      },
+      {
+        "index": 2,
+        "role": "assistant",
+        "content": "Самая высокая гора на Земле по высоте над уровнем моря — **Эверест (Джомолунгма)**: **8 848,86 м**.\n\nЕсли считать «самую высокую» по высоте от основания до вершины, то это **Мауна-Кеа** (Гавайи): около **10 200 м** от океанского дна, хотя над уровнем моря её вершина — **4 207 м**.",
+        "timestamp": 1766175442,
+        "datetime": "20.12.2025 01:17:22"
+      },
+      {
+        "index": 3,
+        "role": "user",
+        "content": "Когда люди впервые открыли эту гору?",
+        "timestamp": 1766175442,
+        "datetime": "20.12.2025 01:17:22"
+      },
+      {
+        "index": 4,
+        "role": "assistant",
+        "content": "Зависит от того, какую «самую высокую» вы имели в виду:\n\n- **Эверест (Джомолунгма)**: для местных народов Гималаев гора была известна с древности. Для европейской науки её «открыли» и идентифицировали как высочайшую вершину в ходе **Британской тригонометрической съёмки Индии**: в **1852** вычислили, что это самая высокая вершина, а в **1856** результат официально объявили и закрепили название **«Эверест»**.  \n- **Мауна-Кеа**: была известна коренным гавайцам задолго до прихода европейцев; европейцы начали описывать Гавайи с **1778 года** (экспедиция Джеймса Кука).\n\nУточните, вы спрашиваете про **Эверест** или про **Мауна‑Кеа**?",
+        "timestamp": 1766175447,
+        "datetime": "20.12.2025 01:17:27"
+      }
+    ]
+  },
+  {
     "chat_id": "chat_0240c236",
     "created_at": 1766060162,
     "system_prompt": "You are a helpful, accurate, and concise AI assistant.\nFollow the user's instructions carefully.\nIf something is unclear or missing, ask for clarification.\nDo not make up facts.",

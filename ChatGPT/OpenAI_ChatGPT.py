@@ -344,7 +344,7 @@ def send_message_to_ChatGPT(
         chat["system_prompt"] = system_prompt
 
     if is_print:
-        print(f"\n💫Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
+        print(f"\n💫 Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
 
     start = time.time()
     _append_message(chat, "user", prompt)
