@@ -180,3 +180,6 @@ def run_agent():
 
         print(f"\nAction: {action}")
         print(f"Observation: {obs}")
+
+
+run_agent()
