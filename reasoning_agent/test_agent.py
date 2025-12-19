@@ -271,7 +271,7 @@ user_goal = "Найти, в каком файле идёт речь про пр�
 state = {
     "memory": {},      # свободное key-value хранилище, агент сам решает, что писать
     "history": [],     # список шагов: thought/action/args/observation/update_memory
-    "chat_id": None,   # id чата для send_message_to_ChatGPT
+    # "chat_id": None,   # id чата для send_message_to_ChatGPT
 }
 
 
@@ -315,9 +315,9 @@ Memory (свободное key-value хранилище, обновляется 
         model="gpt-5.2",
         temperature=0.1,
         system_prompt=SYSTEM_PROMPT,
-        chat_id=state["chat_id"]
+        # chat_id=state["chat_id"]
     )
-    state["chat_id"] = result.chat_id
+    # state["chat_id"] = result.chat_id
 
     try:
         payload = json.loads(result.answer)
