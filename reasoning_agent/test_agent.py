@@ -11,12 +11,14 @@
 from pathlib import Path
 import sys
 import os
+import json
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 # Подключение всех библиотек и функций
-from import_all_libraries import * 
+from import_all_libraries import *
+from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 
 
@@ -83,10 +85,6 @@ ALLOWED_ACTIONS = {
 SYSTEM_PROMPT = """
 Ты — reasoning-агент.
 
-Твоя задача:
-Найти, в каком файле содержится слово "презентацию",
-и вернуть название файла и предложение, в котором оно встречается.
-
 Ты можешь использовать ТОЛЬКО следующие действия:
 - list_files
 - read_file(filename)
@@ -125,42 +123,54 @@ state = {
 }
 
 
-# 6. Заглушка LLM
-def mock_llm(state):
-    if not state["files"]:
-        return {
-            "thought": "Нужно получить список файлов",
-            "action": "list_files",
-            "args": {}
-        }
+# 6. Вызов LLM
+def call_llm(state):
+    """
+    Делает шаг агента через ChatGPT.
+    Возвращает dict с полями thought/action/args/final_answer.
+    """
+    prompt = f"""
+Текущая задача: {user_goal.strip()}
 
-    for filename in state["files"]:
-        if filename not in state["checked_files"]:
-            return {
-                "thought": f"Прочитаю файл {filename}",
-                "action": "read_file",
-                "args": {"filename": filename}
-            }
+Текущее состояние:
+- files: {state["files"]}
+- checked_files: {list(state["checked_files"])}
+- current_file: {state["current_file"]}
+- current_content: {state["current_content"]}
+- found_result: {state["found_result"]}
 
-    if state["found_result"]:
+Выбери следующее действие из {list(ALLOWED_ACTIONS)}.
+Строго следуй контракту: JSON без дополнительного текста.
+action обязательно из {list(ALLOWED_ACTIONS)}.
+Если цель достигнута — верни action = DONE и финальный ответ в final_answer.
+"""
+
+    result = send_message_to_ChatGPT(
+        prompt=prompt,
+        is_print=True,
+        model="gpt-5.2",
+        temperature=0.1,
+        system_prompt=SYSTEM_PROMPT
+    )
+
+    try:
+        return json.loads(result.answer)
+    except Exception as ex:
+        # Фолбэк, чтобы не зациклиться при ошибке парсинга
         return {
             "action": "DONE",
-            "final_answer": state["found_result"]
+            "final_answer": f"LLM parse error: {ex}; raw={result.answer}"
         }
-
-    return {
-        "action": "DONE",
-        "final_answer": "Слово не найдено"
-    }
 
 
 
 # 7. Оркестратор
 def run_agent():
     tools = Tools(FILES)
+    max_steps = 20
 
-    while True:
-        response = mock_llm(state)
+    for step in range(max_steps):
+        response = call_llm(state)
 
         action = response["action"]
 
@@ -196,6 +206,9 @@ def run_agent():
 
         print(f"\nAction: {action}")
         print(f"Observation: {obs}")
+    else:
+        print("\n=== DONE ===")
+        print("Достигнут лимит шагов, остановка.")
 
 
 run_agent()
