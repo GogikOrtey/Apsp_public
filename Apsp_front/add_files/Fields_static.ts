@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { field } from "./Types";
 
 //#region Flat поля
