@@ -327,9 +327,6 @@ def send_message_to_ChatGPT(
     # Если chat_id не передан — работаем БЕЗ истории:
     # не читаем/не пишем ChatGPT_history.log и не подмешиваем старые сообщения.
     if not chat_id:
-        if is_print:
-            print(f"\n💫 Запрос к ChatGPT без истории, модель {model}. PROMPT:\n{prompt}\n")
-
         start = time.time()
         params = {
             "model": model,
@@ -343,6 +340,9 @@ def send_message_to_ChatGPT(
 
         response = client.responses.create(**params)
         answer_text = response.output_text
+
+        if is_print:
+            print(f"\n💫 Запрос к ChatGPT без истории, модель {model}. PROMPT:\n{prompt}\n")
 
         if is_print:
             print(f'💬 AI ANSWER:\n"{answer_text}"')
@@ -367,9 +367,6 @@ def send_message_to_ChatGPT(
     if system_prompt:
         chat["system_prompt"] = system_prompt
 
-    if is_print:
-        print(f"\n💫 Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
-
     start = time.time()
     _append_message(chat, "user", prompt)
 
@@ -385,6 +382,9 @@ def send_message_to_ChatGPT(
 
     _append_message(chat, "assistant", answer_text)
     _save_session_history(history)
+
+    if is_print:
+        print(f"\n💫 Запрос к ChatGPT с историей, модель {model}, чат {chat_id}. PROMPT:\n{prompt}\n")
 
     if is_print:
         print(f'💬 AI ANSWER:\n"{answer_text}"')
