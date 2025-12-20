@@ -22,14 +22,34 @@ FILES = {
 
 # region Реализация инструментов
 
-def list_files:
-    # Должна возвращать список всех ключей из FILES
+# region Реализация инструментов
+
+def list_files():
+    """Возвращает список всех файлов в окружении"""
+    return list(FILES.keys())
+
 
 def read_file(filename):
-    # Должна возвращать содержание filename
-    # Также статус: status - ok или error
+    """Читает содержимое файла по имени. Возвращает словарь с содержимым и статусом"""
+    if filename in FILES:
+        return {"status": "ok", "content": FILES[filename]}
+    else:
+        return {"status": "error", "content": None}
+
 
 def search_in_file(filename, substr):
-    # Ищет вхождения подстроки в файле
-    # Возвращает кол-во найденных совпадений, и индекс первого совпадения
-    # Также ошибку, если filename передан неверно 
+    """
+    Ищет вхождения подстроки в тексте файла.
+    Возвращает словарь:
+      - count: количество найденных совпадений
+      - first_index: индекс первого совпадения (или None, если не найдено)
+      - status: ok/error
+    """
+    if filename not in FILES:
+        return {"status": "error", "count": 0, "first_index": None}
+    
+    text = FILES[filename]
+    count = text.count(substr)
+    first_index = text.find(substr) if count > 0 else None
+    
+    return {"status": "ok", "count": count, "first_index": first_index}
