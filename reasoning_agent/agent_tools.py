@@ -1,5 +1,6 @@
 # Здесь будут описания инструментов для агента
 
+import json
 
 """
 
@@ -24,7 +25,7 @@ FILES = {
 
 
 
-# region Описание для каждогго инструмента
+# region Декоратор анннотаций
 
 TOOLS = {} # Описания будут собираться в этот словарь
 
@@ -49,11 +50,16 @@ def tool(name, description, args=None, returns=None, example_args=None):
     name="list_files",
     description="Возвращает список всех файлов в окружении",
     args=[],
-    returns='JSON: {"files": ["notes.txt", "todo.txt", ...]}',
+    # ВАЖНО: лучше хранить `returns` как структуру (dict/list), а не как JSON-строку внутри строки.
+    # Тогда при json.dumps() не будет экранирования кавычек вида \"...\".
+    returns={
+        "files": ["notes.txt", "todo.txt", "..."]
+    },
     example_args={}
 )
 def list_files():
-    return list(FILES.keys())
+    # JSON-friendly ответ, чтобы совпадало с аннотацией returns
+    return {"files": list(FILES.keys())}
 
 
 @tool(
@@ -67,7 +73,10 @@ def list_files():
                 "description": "Имя файла"
             }
         ],
-    returns='JSON: {"status":"ok","content":"..."} или {"status":"error","content":None}',
+    returns=[
+        {"status": "ok", "content": "..."},
+        {"status": "error", "content": None}
+    ],
     example_args={"filename": "todo.txt"}
 )
 def read_file(filename):
@@ -94,7 +103,11 @@ def read_file(filename):
             "description": "Подстрока для поиска"
         }
     ],
-    returns='JSON: {"status":"ok/error", "count":int, "first_index":int or None}',
+    returns={
+        "status": "ok|error",
+        "count": "int",
+        "first_index": "int|null"
+    },
     example_args={"filename": "todo.txt", "substr": "презентац"}
 )
 def search_in_file(filename, substr):
@@ -106,3 +119,33 @@ def search_in_file(filename, substr):
     first_index = text.find(substr) if count > 0 else None
     
     return {"status": "ok", "count": count, "first_index": first_index}
+
+
+
+
+
+
+# region Возврат аннотаций
+def get_tools_annotations(as_json: bool = True):
+    """
+    Возвращает аннотации всех инструментов (без самих функций).
+
+    as_json=True  -> вернуть красивую JSON-строку (удобно печатать/логировать)
+    as_json=False -> вернуть Python-dict (удобно смотреть в дебаггере без экранирования)
+    """
+    annotations = {}
+    for name, data in TOOLS.items():
+        annotations[name] = {
+            "name": data["name"],
+            "description": data["description"],
+            "args": data["args"],
+            "returns": data["returns"],
+            "example_args": data["example_args"]
+        }
+    
+    if not as_json:
+        return annotations
+    return json.dumps(annotations, ensure_ascii=False, indent=4) # в текстовом виде
+
+
+

@@ -31,8 +31,12 @@ MAX_STEPS = 20 # Максимальное количество шагов аге
 
 
 
+# region Собираю аннотации инструментов
+tools_annotation = get_tools_annotations()
+print(tools_annotation)
 
-# Собираю аннотации инструментов
+
+
 
 #region Системный промпт
 
