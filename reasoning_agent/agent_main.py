@@ -73,28 +73,31 @@ def build_step_prompt(task: str, history: list[dict[str, Any]], tools_json: str)
 
 
 #region Орекстратор
+
+# Принимает название инструмента, находит функцию соответствующую ему
+# в agent_tools.py и вызывает её, с переданными аргументами
 def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
-    """
-    Выполняет инструмент по имени. Возвращает словарь с результатом или ошибкой.
-    """
     tool = TOOLS.get(tool_name)
     if not tool:
         return {"status": "error", "error": f"Неизвестный инструмент: {tool_name}"}
     try:
-        return tool["func"](**(tool_args or {}))
+        # Вызывает функцию из agent_tools.py с заданными аргументами
+        return tool["func"](**(tool_args or {})) 
     except Exception as ex:
         return {"status": "error", "error": str(ex)}
 
 
+# Оркестратор - запускает цикл агентных шагов
 def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
-    """
-    Запускает цикл агентных шагов
-    """
     history: list[dict[str, Any]] = []
 
     for step in range(1, max_steps + 1):
-        prompt = build_step_prompt(task, history[-HISTORY_WINDOW:], tools_annotation)
         print(f"\n———————————   Шаг {step}   ———————————")
+
+        # 1. Формируем запрос для текущего шага
+        prompt = build_step_prompt(task, history[-HISTORY_WINDOW:], tools_annotation)
+
+        # 2. Отправляем его в ChatGPT и получаем ответ
         result = send_message_to_ChatGPT(
             prompt=prompt,
             system_prompt=SYSTEM_PROMPT,
@@ -103,6 +106,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             is_print=True
         )
 
+        # 3. Валидируем ответ
         step_reply = parse_step_response(result.answer)
         history.append({"role": "assistant", "content": step_reply})
 
