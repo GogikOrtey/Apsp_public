@@ -94,7 +94,7 @@ TOOLS: dict[str, dict[str, Any]] = {
         "args": [
             {
                 "name": "filename",
-                "type": "str",  # простой "человекочитаемый" тип (str/int/bool/json)
+                "type": "str", 
                 "required": True,
                 "description": "Имя файла из списка, полученного через list_files.",
             },
