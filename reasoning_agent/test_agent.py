@@ -28,7 +28,7 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 
 
-# 1. Мир (Environment)
+# region 1. Мир (Environment)
 FILES = {
     "notes.txt": "Встреча в пятницу. Купить хлеб. Проверить отчёт.",
     "todo.txt": "Срочно: отправить письмо Алексею. Подготовить презентацию.",
@@ -37,7 +37,7 @@ FILES = {
 
 
 
-# 2. Инструменты (Tool Layer)
+# region 2. Инструменты (Tool Layer)
 class Tools:
     def __init__(self, files: dict):
         self.files = files
@@ -76,7 +76,8 @@ class Tools:
 
 
 
-# 3. Реестр инструментов (встроен сюда, т.к. это тестовая реализация)
+# region 3. Реестр инструментов 
+# (встроен сюда, т.к. это тестовая реализация)
 # Формат специально сделан JSON-friendly: это обычный dict/list, который можно
 # напрямую отдавать в prompt или сериализовать через json.dumps(...).
 TOOLS: dict[str, dict[str, Any]] = {
@@ -232,11 +233,11 @@ def validate_llm_action(
     return True, ""
 
 
-# 4. Контракт действий
+# region 4. Контракт действий
 ALLOWED_ACTIONS = allowed_actions()
 
 
-# 5. System Prompt (генерируется из реестра инструментов)
+# region 5. System Prompt (генерируется из реестра инструментов)
 SYSTEM_PROMPT = f"""
 Ты — reasoning-агент. У тебя есть два источника данных:
 - memory: свободный key-value словарь, который ты можешь обновлять через update_memory.
@@ -274,6 +275,7 @@ SYSTEM_PROMPT = f"""
 """
 
 
+# region 6. Параметры
 HISTORY_WINDOW = 10  # сколько последних шагов отдаём в LLM
 MAX_STEPS = 20
 
@@ -395,7 +397,7 @@ Memory (свободное key-value хранилище, обновляется 
         }
 
 
-# 7. Оркестратор
+# region 7. Оркестратор
 def run_agent():
     tools = Tools(FILES)
 
