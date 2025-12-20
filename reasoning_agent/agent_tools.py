@@ -25,6 +25,8 @@ FILES = {
 
 
 
+
+
 # region Декоратор анннотаций
 
 TOOLS = {} # Описания будут собираться в этот словарь
@@ -42,6 +44,42 @@ def tool(name, description, args=None, returns=None, example_args=None):
         }
         return func
     return decorator
+
+
+
+
+
+
+
+
+
+# region Возврат аннотаций
+def get_tools_annotations(as_json: bool = True):
+    """
+    Возвращает аннотации всех инструментов (без самих функций).
+
+    as_json=True  -> вернуть красивую JSON-строку (удобно печатать/логировать)
+    as_json=False -> вернуть Python-dict (удобно смотреть в дебаггере без экранирования)
+    """
+    annotations = {}
+    for name, data in TOOLS.items():
+        annotations[name] = {
+            "name": data["name"],
+            "description": data["description"],
+            "args": data["args"],
+            "returns": data["returns"],
+            "example_args": data["example_args"]
+        }
+    
+    if not as_json:
+        return annotations # В виде JSON
+    return json.dumps(annotations, ensure_ascii=False, indent=4) # В текстовом виде
+
+
+
+
+
+
 
 
 # region Реализация инструментов с аннотациями
@@ -125,27 +163,6 @@ def search_in_file(filename, substr):
 
 
 
-# region Возврат аннотаций
-def get_tools_annotations(as_json: bool = True):
-    """
-    Возвращает аннотации всех инструментов (без самих функций).
-
-    as_json=True  -> вернуть красивую JSON-строку (удобно печатать/логировать)
-    as_json=False -> вернуть Python-dict (удобно смотреть в дебаггере без экранирования)
-    """
-    annotations = {}
-    for name, data in TOOLS.items():
-        annotations[name] = {
-            "name": data["name"],
-            "description": data["description"],
-            "args": data["args"],
-            "returns": data["returns"],
-            "example_args": data["example_args"]
-        }
-    
-    if not as_json:
-        return annotations
-    return json.dumps(annotations, ensure_ascii=False, indent=4) # в текстовом виде
 
 
 

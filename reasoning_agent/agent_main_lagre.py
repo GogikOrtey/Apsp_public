@@ -40,7 +40,9 @@ print(tools_annotation)
 
 #region Системный промпт
 SYSTEM_PROMPT = """
-
+Ты reasoning-агент. Действуй по шагам: ставь гипотезы, используй инструменты,
+фиксируй наблюдения, делай выводы. Если задача решена — возвращай итоговый ответ.
+Формат ответа каждого шага — JSON.
 """
 
 #region Формирование запроса шага
@@ -68,9 +70,25 @@ def build_step_prompt(task: str, history: list[dict[str, Any]], tools_json: str)
 """
 
 #region Контракт ответа шага
+def parse_step_response(raw_text: str) -> dict[str, Any]:
+    """
+    Пробует распарсить ответ модели как JSON.
+    Если не получилось, возвращает комментарий-заглушку.
+    """
+    try:
+        return json.loads(raw_text)
+    except Exception:
+        return {
+            "type": "commentary",
+            "message": f"Не смог распарсить JSON: {raw_text}"
+        }
 
 #region Обработчик хранения памяти
-
+def save_memory(history: list[dict[str, Any]]):
+    """
+    Заглушка для сохранения истории/памяти.
+    """
+    pass
 
 #region Орекстратор
 def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
@@ -88,19 +106,19 @@ def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
 
 def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
     """
-    Запускает цикл агентных шагов
+    Запускает цикл агентных шагов.
     """
     history: list[dict[str, Any]] = []
 
     for step in range(1, max_steps + 1):
         prompt = build_step_prompt(task, history[-HISTORY_WINDOW:], tools_annotation)
-        print(f"\n———————————   Шаг {step}   ———————————")
+        print(f"\n===== Шаг {step} =====")
         result = send_message_to_ChatGPT(
             prompt=prompt,
             system_prompt=SYSTEM_PROMPT,
-            chat_id=None,  # без истории на стороне модели, храним сами
-            model="gpt-5.2",
-            is_print=True
+            chat_id=None,  # без истории на стороне модели; храним сами
+            model="gpt-5.1-codex-max",
+            is_print=False
         )
 
         step_reply = parse_step_response(result.answer)
