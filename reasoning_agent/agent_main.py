@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 import os
 import json
+import traceback
 from typing import Any
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -182,7 +183,11 @@ def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
         # Вызывает функцию из agent_tools.py с заданными аргументами
         return tool["func"](**(tool_args or {})) 
     except Exception as ex:
-        return {"status": "error", "error": str(ex)}
+        return {
+            "status": "error",
+            "error": str(ex),
+            "traceback": traceback.format_exc()
+        }
 
 
 # Оркестратор - запускает цикл агентных шагов
