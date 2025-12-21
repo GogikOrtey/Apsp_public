@@ -171,6 +171,21 @@ long_term_memory = []
 steps_future_value = ""
 
 
+# region Вспомогательные обработчики
+
+# Если есть development_feedback, выводит его и дописывает в development_feedback.log
+def log_development_feedback(feedback):
+    if not feedback:
+        return
+
+    m = "🟨"
+    print(f"\n{m}{m}{m}{feedback}\n{m}{m}{m}")
+
+    log_path = Path(__file__).resolve().parent / "development_feedback.log"
+    with open(log_path, "a", encoding="utf-8") as log_file:
+        log_file.write(json.dumps(feedback, ensure_ascii=False) + "\n")
+
+
 # region Орекстратор
 
 # Принимает название инструмента, находит функцию соответствующую ему
@@ -258,7 +273,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             
             memory_updates - добавляет переданные строки в массив long_term_memory
 
-            development_feedback - надо что бы он выводился в консоль с пометкой 🟨🟨🟨 до и после сообщения.
+             - надо что бы он выводился в консоль с пометкой 🟨🟨🟨 до и после сообщения.
             И также что бы он добавлял его в файл development_feedback.log
 
 
@@ -278,11 +293,11 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         """
 
 
+        log_development_feedback(step_reply.get("development_feedback"))
 
 
 
-
-
+        
 
         # 4. Сохраняем ответ модели
         history.append({"role": "assistant", "content": step_reply})
