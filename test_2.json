@@ -1,6 +1,6 @@
 {
     "list_files": {
-        "name": "list_files",
+        "name": "list_files", 
         "description": "Возвращает список всех файлов в окружении",
         "args": [],
         "returns": "JSON: {"files": [
