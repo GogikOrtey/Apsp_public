@@ -192,8 +192,6 @@ def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
 
 # Оркестратор - запускает цикл агентных шагов
 def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
-    
-
     for step in range(1, max_steps + 1):
         print(f"\n———————————   Шаг {step}   ———————————")
 
@@ -257,7 +255,9 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             На каждом шаге выполняется action с переданными args
 
             steps_future - одновляется на каждом шаге, и передаётся в запросе шага
+            
             memory_updates - добавляет переданные строки в массив long_term_memory
+
             development_feedback - надо что бы он выводился в консоль с пометкой 🟨🟨🟨 до и после сообщения.
             И также что бы он добавлял его в файл development_feedback.log
 
@@ -284,7 +284,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
 
 
-        # 4. Сохраняем 
+        # 4. Сохраняем ответ модели
         history.append({"role": "assistant", "content": step_reply})
 
         
@@ -306,7 +306,6 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         history.append({"role": "tool", "name": tool_name, "result": tool_result})
 
     print("⚠️ Достигнут лимит шагов без финального ответа.")
-    # save_memory(history)
     return "Лимит шагов исчерпан без решения."
 
 
