@@ -182,7 +182,6 @@ def build_last_step_state_block(history) -> str:
 СОСТОЯНИЕ ПОСЛЕДНЕГО ШАГА:
 
 {block_json}
-————————————————————————————————————
 
 """
 
