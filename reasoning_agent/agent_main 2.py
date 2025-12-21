@@ -33,7 +33,11 @@ from reasoning_agent.agent_tools import *
 * Спросить у GPT, всё ли верно в логе, и хорошо ли читается. Или может стоит улучшить
     * Хорошо ли понятна задача ему например
 * Добавить сюда оставшиеся задачи с листочка
-* Реализовать краткий лог, который будет выводиться в консоль. А полный - будет писаться сразу в файл, не выводясь в консоль
+* Добавить создание плана, следование ему, и методы взаимодействия с ним
+    * На умной модели o3
+    * Задача - будет всегда, а план - может быть а может и не быть
+    * В любом случае, на первом шаге модель составляет глобальный план, ориентируясь на задачу, и если ей бы передан такой план в неформальном виде - то формализует и использует его
+* 
 
 
 """
@@ -338,6 +342,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         )
 
         chat_print(result)
+        print(result)
 
         # 3. Валидируем ответ
         step_reply = parse_step_response(result.answer, prompt, INVALID_JSON_RETRIES)
@@ -389,11 +394,8 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         """
 
 
-
-
         # 4. Сохраняем ответ модели
         add_history_entry({"role": "assistant", "content": step_reply})
-
 
 
         # 5. Обработчик дополнительных действий
@@ -441,11 +443,14 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         print(tool_log)
         chat_print(tool_log)
 
+        # print()
+        # chat_print()
+
         # Запись результатов инструмента в историю
         add_history_entry({"role": "tool", "name": tool_name, "result": tool_result})
 
     print("⚠️ Достигнут лимит шагов без финального ответа.")
-    return "Лимит шагов исчерпан без решения."
+    return "Лимит шагов исчерпан без решения"
 
 
 
@@ -559,5 +564,5 @@ def log_development_feedback(feedback):
 
 
 
-# if __name__ == "__main__":
-#     orchestrate()
+if __name__ == "__main__":
+    orchestrate()
