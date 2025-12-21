@@ -128,7 +128,6 @@ def build_step_prompt(task, history, tools_json: str) -> str:
             return ""
 
         str_description = f"""
-
 История ограничена {HISTORY_WINDOW} шагами.
 Следующий элемент истории будет удалён:
 
