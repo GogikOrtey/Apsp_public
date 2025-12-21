@@ -10,7 +10,7 @@ import json
 import copy
 import traceback
 from typing import Any
-from reasoning_agent.chat_terminal import init_chat_channel, chat_print
+from chat_terminal import init_chat_channel, chat_print
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))

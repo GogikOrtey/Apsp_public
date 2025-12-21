@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -8,6 +9,7 @@ from typing import Iterable
 
 CHAT_LOG_PATH: Path | None = None
 _terminal_launched = False
+_terminal_pid_file = Path(__file__).resolve().parent / "chat_terminal.pid"
 
 
 def init_chat_channel(log_path: str | Path | None = None, launch_terminal: bool = True) -> Path:
@@ -49,10 +51,50 @@ def _launch_chat_terminal(log_path: Path) -> None:
     if _terminal_launched:
         return
 
-    viewer_script = Path(__file__).resolve().parent / "chat_viewer.py"
-    cmd = f'start "" "{sys.executable}" -u "{viewer_script}" "{log_path}"'
-    # shell=True is required for `start` on Windows cmd.
-    subprocess.Popen(cmd, shell=True)
-    _terminal_launched = True
+    _terminate_previous_terminal()
 
+    viewer_script = Path(__file__).resolve().parent / "chat_viewer.py"
+    creationflags = subprocess.CREATE_NEW_CONSOLE if os.name == "nt" else 0
+    proc = subprocess.Popen(
+        [sys.executable, "-u", str(viewer_script), str(log_path)],
+        creationflags=creationflags,
+    )
+    _terminal_launched = True
+    try:
+        _terminal_pid_file.write_text(str(proc.pid), encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _terminate_previous_terminal() -> None:
+    """
+    Closes the previously launched chat viewer if it is still running.
+    Ensures we keep only one extra console per run.
+    """
+    if not _terminal_pid_file.exists():
+        return
+
+    try:
+        pid_text = _terminal_pid_file.read_text(encoding="utf-8").strip()
+        pid = int(pid_text)
+    except Exception:
+        _terminal_pid_file.unlink(missing_ok=True)
+        return
+
+    # Try graceful termination; fall back to taskkill on Windows.
+    try:
+        os.kill(pid, signal.SIGTERM)
+    except Exception:
+        if os.name == "nt":
+            try:
+                subprocess.run(
+                    ["taskkill", "/PID", str(pid), "/T", "/F"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    check=False,
+                )
+            except Exception:
+                pass
+    finally:
+        _terminal_pid_file.unlink(missing_ok=True)
 
