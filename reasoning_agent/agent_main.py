@@ -190,25 +190,7 @@ def log_development_feedback(feedback):
 
 
 # region Орекстратор
-
-# Принимает название инструмента, находит функцию соответствующую ему
-# в agent_tools.py и вызывает её, с переданными аргументами
-def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
-    tool = TOOLS.get(tool_name)
-    if not tool:
-        return {"status": "error", "error": f"Неизвестный инструмент: {tool_name}"}
-    try:
-        # Вызывает функцию из agent_tools.py с заданными аргументами
-        return tool["func"](**(tool_args or {})) 
-    except Exception as ex:
-        return {
-            "status": "error",
-            "error": str(ex),
-            "traceback": traceback.format_exc()
-        }
-
-
-# Оркестратор - запускает цикл агентных шагов
+# Запускает цикл агентных шагов
 def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
     global steps_future_value, long_term_memory
     for step in range(1, max_steps + 1):
@@ -256,13 +238,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
                 ]
             }
 
-        """
-
-
-
-        """
-
-            Правила обработки этих объектов, пришадших с ответом модели:
+            Правила обработки этих объектов, пришедших с ответом модели:
 
             target, action, args, reasoning - обязательные поля, должны быть в каждом ответе
             также они все полностью сохраняются в историю шагов, в одном объекте текущего шага
@@ -276,6 +252,8 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             steps_future - одновляется на каждом шаге, и передаётся в запросе шага
             
             memory_updates - добавляет переданные строки в массив long_term_memory
+
+            development_feedback - модель может сказать мне как разработчику, что ей не хватает какого-то функционала (без прерывания выполнения задачи)
 
 
 
@@ -292,6 +270,16 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
 
         """
+
+
+
+
+
+
+        # 4. Сохраняем ответ модели
+        history.append({"role": "assistant", "content": step_reply})
+
+        # 5. Обработчик дополнительных действий
 
         new_steps_future = step_reply.get("steps_future")
         if new_steps_future is not None:
@@ -310,8 +298,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
         
 
-        # 4. Сохраняем ответ модели
-        history.append({"role": "assistant", "content": step_reply})
+
 
         
 
@@ -333,6 +320,26 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
     print("⚠️ Достигнут лимит шагов без финального ответа.")
     return "Лимит шагов исчерпан без решения."
+
+
+
+
+# Принимает название инструмента, находит функцию соответствующую ему
+# в agent_tools.py и вызывает её, с переданными аргументами
+def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
+    tool = TOOLS.get(tool_name)
+    if not tool:
+        return {"status": "error", "error": f"Неизвестный инструмент: {tool_name}"}
+    try:
+        # Вызывает функцию из agent_tools.py с заданными аргументами
+        return tool["func"](**(tool_args or {})) 
+    except Exception as ex:
+        return {
+            "status": "error",
+            "error": str(ex),
+            "traceback": traceback.format_exc()
+        }
+
 
 
 if __name__ == "__main__":
