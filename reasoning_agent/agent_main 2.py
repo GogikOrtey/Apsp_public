@@ -341,11 +341,27 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             is_print=True
         )
 
-        chat_print(result)
-        print(result)
-
         # 3. Валидируем ответ
         step_reply = parse_step_response(result.answer, prompt, INVALID_JSON_RETRIES)
+
+        # Краткий вывод ответа модели
+        args_text = "—"
+        model_args = step_reply.get("args")
+        if model_args:
+            try:
+                args_text = json.dumps(model_args, ensure_ascii=False)
+            except TypeError:
+                args_text = str(model_args)
+
+        model_summary = (
+            f"🟢 Рассуждения модели: {step_reply.get('reasoning') or '—'}\n"
+            f"🔵 Действие, которое агент собирается выполнить: {step_reply.get('target') or '—'}\n"
+            f"🟡 Вызывает инструмент: {step_reply.get('action') or '—'}\n"
+            f"{f"   🟨 С аргументами: {args_text}" if args_text != "—" else ""}"
+            f"\n"
+        )
+        chat_print(model_summary)
+        print(model_summary)
 
         """
             На текущем шаге получаем ответ модели вида:
@@ -439,12 +455,18 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
         # 6.2 Вызов инструмента
         tool_result = run_tool(tool_name, tool_args)
-        tool_log = f"🛠️ {tool_name}({tool_args}) -> {tool_result}"
+        tool_log = f"🛠️  {tool_name}({tool_args})"
         print(tool_log)
         chat_print(tool_log)
 
-        # print()
-        # chat_print()
+        try:
+            tool_result_text = json.dumps(tool_result, ensure_ascii=False)
+        except TypeError:
+            tool_result_text = str(tool_result)
+
+        tool_result_log = f"Инструмент вернул результат: {tool_result_text}"
+        print(tool_result_log)
+        chat_print(tool_result_log)
 
         # Запись результатов инструмента в историю
         add_history_entry({"role": "tool", "name": tool_name, "result": tool_result})
