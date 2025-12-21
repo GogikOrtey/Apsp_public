@@ -533,7 +533,7 @@ def parse_step_response(raw_text: str, prompt: str, max_retries: int = INVALID_J
     while attempt <= max_retries:
         try:
             return json.loads(raw_text)
-        except Exception:
+        except Exception as e:
             attempt += 1
             print("Произошла ошибка при парсинге ответа модели как JSON")
             if attempt > max_retries:
@@ -542,9 +542,17 @@ def parse_step_response(raw_text: str, prompt: str, max_retries: int = INVALID_J
 
             retry_prompt = f"""{prompt}
 
-Предыдущий твой ответ был невалидным JSON.
-Повтори этот шаг и верни строго валидный JSON по указанному формату без пояснений вне JSON."""
+Твой предыдущий ответ был невалидным JSON. 
+--- ТЕКСТ ТВОЕГО ОТВЕТА ---
 
+{raw_text}
+
+--- ОШИБКА ПАРСИНГА ---
+
+{str(e)}
+
+Пожалуйста, исправь ошибку и верни только валидный JSON. Убедись, что все поля на месте и кавычки экранированы правильно.
+"""
             retry_result = send_message_to_ChatGPT(
                 prompt=retry_prompt,
                 system_prompt=SYSTEM_PROMPT,
