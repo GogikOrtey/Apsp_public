@@ -1,6 +1,8 @@
 # Здесь будут описания инструментов для агента
 
 import json
+import copy
+from typing import Any
 
 """
 
@@ -22,8 +24,38 @@ FILES = {
     "archive.txt": "Старые заметки за 2022 год."
 }
 
+# Пример схемы результата (ее можно переопределить при запуске агента)
+result_format = {
+    "file_name": "",
+    "file_content": ""
+}
+
+# Текущая схема и текущий результат, который агент постепенно заполняет.
+# Инициализация делается через init_result(...) (см. ниже).
+RESULT_SCHEMA: dict[str, Any] = copy.deepcopy(result_format)
+RESULT: dict[str, Any] = copy.deepcopy(result_format)
 
 
+def init_result(schema: dict[str, Any] | None = None) -> dict[str, Any]:
+    """
+    Инициализирует (или переинициализирует) схему результата и сам результат.
+    """
+    global RESULT_SCHEMA, RESULT
+    if schema is None:
+        schema = result_format
+    RESULT_SCHEMA = copy.deepcopy(schema)
+    RESULT = copy.deepcopy(schema)
+    return {"status": "ok", "result_schema": RESULT_SCHEMA, "result": RESULT}
+
+
+def get_result() -> dict[str, Any]:
+    """Возвращает текущий объект результата (для оркестратора/промпта)."""
+    return RESULT
+
+
+def get_result_schema() -> dict[str, Any]:
+    """Возвращает текущую схему результата (для оркестратора/промпта)."""
+    return RESULT_SCHEMA
 
 
 
@@ -158,6 +190,60 @@ def search_in_file(filename, substr):
     
     return {"status": "ok", "count": count, "first_index": first_index}
 
+
+@tool(
+    name="update_result",
+    description=(
+        "Обновляет поле в объекте результата (result). "
+        "Используй это, чтобы постепенно собрать финальный ответ по заданной схеме."
+    ),
+    args=[
+        {
+            "name": "field",
+            "type": "str",
+            "required": True,
+            "description": "Имя поля в result. Поддерживается путь через точку, напр. 'user.name'."
+        },
+        {
+            "name": "value",
+            "type": "any",
+            "required": True,
+            "description": "Значение, которое нужно записать в указанное поле (должно быть JSON-совместимым)."
+        }
+    ],
+    returns={
+        "status": "ok|error",
+        "result": "{...}",
+        "error": "str|null"
+    },
+    example_args={"field": "file_name", "value": "todo.txt"}
+)
+def update_result(field: str, value: Any):
+    global RESULT, RESULT_SCHEMA
+
+    if not isinstance(field, str) or not field.strip():
+        return {"status": "error", "result": RESULT, "error": "field должен быть непустой строкой"}
+
+    path = [p for p in field.strip().split(".") if p]
+    if not path:
+        return {"status": "error", "result": RESULT, "error": "Некорректный путь поля"}
+
+    # Минимальная валидация: первый сегмент должен существовать в схеме (если схема dict)
+    if isinstance(RESULT_SCHEMA, dict) and path[0] not in RESULT_SCHEMA:
+        return {
+            "status": "error",
+            "result": RESULT,
+            "error": f"Поле '{path[0]}' отсутствует в result_schema"
+        }
+
+    node = RESULT
+    for key in path[:-1]:
+        if key not in node or not isinstance(node.get(key), dict):
+            node[key] = {}
+        node = node[key]
+
+    node[path[-1]] = value
+    return {"status": "ok", "result": RESULT, "error": None}
 
 
 

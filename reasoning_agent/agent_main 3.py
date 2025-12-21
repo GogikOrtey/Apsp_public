@@ -36,8 +36,6 @@ from reasoning_agent.agent_tools import *
     * Задача - будет всегда, а план - может быть а может и не быть
     * В любом случае, на первом шаге модель составляет глобальный план, ориентируясь на задачу, и если ей бы передан такой план в неформальном виде - то формализует и использует его
 
-    * Это сделать в отдельном файле
-
 * Также мне нужно будет постепенно собирать результат - добавлять нужные значения в его поля
     * Добавить объект результата, что бы модель дополняла его, и когда он полностью заполнен нужными значениями - то возвращала DONE
 
@@ -45,6 +43,8 @@ from reasoning_agent.agent_tools import *
         "file_name": "",
         "file_content": ""
     }
+
+    Универсальная: Когда получишь итоговый результат, помести его в поле result, при помощи update_result
 
 """
 
@@ -59,6 +59,10 @@ from reasoning_agent.agent_tools import *
 main_task = """
 Найти, в каком файле идёт речь про презентацию, и вернуть текст который в этом файле написан
 """
+
+# Схема результата для этой задачи (можно переопределить при запуске orchestrate(...))
+# По умолчанию берём пример из agent_tools.py
+main_result_format = copy.deepcopy(result_format)
 
 HISTORY_WINDOW = 10         # сколько последних шагов отдаём в LLM
 MAX_STEPS = 20              # Максимальное количество шагов агента для решения задачи
@@ -147,6 +151,11 @@ SYSTEM_PROMPT = """
 ФОРМАТ ОТВЕТА:
 - ты ВСЕГДА отвечаешь строго валидным JSON
 - без пояснений, без markdown, без текста вне JSON
+
+РЕЗУЛЬТАТ (result):
+- Тебе будет дан result_schema (формат результата) и текущий result
+- Заполняй result ПОШАГОВО через инструмент update_result(field, value)
+- Когда result заполнен достаточно, чтобы выполнить задачу — используй action="DONE"
 
 """
 
@@ -243,8 +252,19 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 """
         return str_description
 
-    # Собираю историю опследнего шага - цели и результата инстурмента
+    # Собираю историю последнего шага - цели и результата инстурмента
     last_step_state_block = build_last_step_state_block(history)
+
+    # Схема результата и текущий результат (агент заполняет его через update_result)
+    try:
+        result_schema_text = json.dumps(get_result_schema(), ensure_ascii=False, indent=2)
+    except TypeError:
+        result_schema_text = str(get_result_schema())
+
+    try:
+        current_result_text = json.dumps(get_result(), ensure_ascii=False, indent=2)
+    except TypeError:
+        current_result_text = str(get_result())
 
     return f"""
 ТЕКУЩАЯ ЗАДАЧА:
@@ -252,6 +272,12 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
 ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
 {tools_json}
+
+ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):
+{result_schema_text}
+
+ТЕКУЩИЙ РЕЗУЛЬТАТ (result):
+{current_result_text}
 {last_step_state_block}
 ————————————————————————————————————
 {first_deleted_element_put()}
@@ -310,7 +336,8 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 - steps_future, memory_updates, development_feedback — ОПЦИОНАЛЬНЫ
 - если поле не нужно — НЕ передавай его
 - для завершения задачи используй action="DONE"
-- финальный ответ помести в args.final_answer
+- чтобы собрать финальный ответ, заполняй result через action="update_result"
+- action="DONE" используй только когда result заполнен и содержит итог в нужном формате
 """
 
 
@@ -326,8 +353,12 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
 # region Орекстратор
 # Запускает цикл агентных шагов
-def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
+def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS, result_schema: dict[str, Any] | None = None) -> str:
     global steps_future_value, long_term_memory
+
+    # Инициализируем объект результата для текущего запуска
+    init_result(result_schema or main_result_format)
+
     for step in range(1, max_steps + 1):
 
         ############################################## Тут стоит задержка, для удобства отладки
@@ -446,18 +477,20 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
         # 6.1 Обработка завершения работы агента
         if tool_name == "DONE":
-            if isinstance(tool_args, dict):
-                completion_text = tool_args.get("final_answer") or ""
-            elif isinstance(tool_args, str):
-                completion_text = tool_args
-            else:
-                completion_text = str(tool_args)
+            completion_text = ""
 
-            # Фолбэк на случай пустого текста, чтобы не потерять ответ
+            # # 1) Backward-compatible режим: старое поле final_answer
+            # if isinstance(tool_args, dict) and isinstance(tool_args.get("final_answer"), str) and tool_args.get("final_answer"):
+            #     completion_text = tool_args["final_answer"]
+
+            # 2) Новый режим: возвращаем накопленный result
             if not completion_text:
-                completion_text = json.dumps(tool_args, ensure_ascii=False)
+                try:
+                    completion_text = json.dumps(get_result(), ensure_ascii=False, indent=2)
+                except TypeError:
+                    completion_text = str(get_result())
 
-            done_result = {"status": "done", "message": completion_text}
+            done_result = {"status": "done", "result": get_result(), "message": completion_text}
             add_history_entry({"role": "tool", "name": "DONE", "result": done_result})
             print(f"✅ Агент завершил задачу: {completion_text}")
             return completion_text
