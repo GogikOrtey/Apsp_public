@@ -10,6 +10,7 @@ import json
 import copy
 import traceback
 from typing import Any
+from reasoning_agent.chat_terminal import init_chat_channel, chat_print
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -63,6 +64,9 @@ tools_annotation = get_tools_annotations()
 # region Обработчик хранения истории
 history = [] # Хранилище всей истории шагов
 count_of_step_on_history = 0 # Текущий номер шага в истории шагов
+
+# Запускаю второй терминал для кастомного чата
+CHAT_LOG_PATH = init_chat_channel()
 
 # Добавляет запись в историю с автоинкрементом порядкового номера
 def add_history_entry(entry: dict[str, Any]) -> None:
@@ -137,6 +141,7 @@ SYSTEM_PROMPT = """
 """
 
 print(f"SYSTEM_PROMPT = {SYSTEM_PROMPT}")
+chat_print(f"SYSTEM_PROMPT = {SYSTEM_PROMPT}")
 
 
 
@@ -316,7 +321,9 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
     global steps_future_value, long_term_memory
     for step in range(1, max_steps + 1):
-        print(f"\n———————————   Шаг {step}   ———————————")
+        step_banner = f"\n———————————   Шаг {step}   ———————————"
+        print(step_banner)
+        chat_print(step_banner)
 
         # 1. Формируем запрос для текущего шага
         prompt = build_step_prompt(task, history, tools_annotation)
@@ -330,7 +337,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             is_print=True
         )
 
-        #print(result)
+        chat_print(result)
 
         # 3. Валидируем ответ
         step_reply = parse_step_response(result.answer, prompt, INVALID_JSON_RETRIES)
@@ -430,7 +437,9 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
         # 6.2 Вызов инструмента
         tool_result = run_tool(tool_name, tool_args)
-        print(f"🛠️ {tool_name}({tool_args}) -> {tool_result}")
+        tool_log = f"🛠️ {tool_name}({tool_args}) -> {tool_result}"
+        print(tool_log)
+        chat_print(tool_log)
 
         # Запись результатов инструмента в историю
         add_history_entry({"role": "tool", "name": tool_name, "result": tool_result})
@@ -550,5 +559,5 @@ def log_development_feedback(feedback):
 
 
 
-if __name__ == "__main__":
-    orchestrate()
+# if __name__ == "__main__":
+#     orchestrate()
