@@ -531,15 +531,23 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 def parse_step_response(raw_text: str, prompt: str, max_retries: int = INVALID_JSON_RETRIES) -> dict[str, Any]:
     attempt = 0
     while attempt <= max_retries:
+        # 1. Сначала пробуем "мягкую" очистку от Markdown, не беспокоя модель
+        clean_text = raw_text.strip()
+        if "```" in clean_text:
+            # Извлекаем содержимое между ```json и ``` или просто ```
+            import re
+            match = re.search(r"```(?:json)?\s*(.*?)\s*```", clean_text, re.DOTALL)
+            if match:
+                clean_text = match.group(1)
+        
         try:
-            return json.loads(raw_text)
+            return json.loads(clean_text)
         except Exception as e:
             attempt += 1
-            print("Произошла ошибка при парсинге ответа модели как JSON")
             if attempt > max_retries:
-                # После исчерпания попыток пробрасываем ошибку, чтобы не скрывать проблему
                 raise
 
+            # 2. Если не помогло — просим модель исправиться, показывая старый текст
             retry_prompt = f"""{prompt}
 
 Твой предыдущий ответ был невалидным JSON. 

@@ -525,20 +525,36 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 def parse_step_response(raw_text: str, prompt: str, max_retries: int = INVALID_JSON_RETRIES) -> dict[str, Any]:
     attempt = 0
     while attempt <= max_retries:
+        # 1. Сначала пробуем "мягкую" очистку от Markdown, не беспокоя модель
+        clean_text = raw_text.strip()
+        if "```" in clean_text:
+            # Извлекаем содержимое между ```json и ``` или просто ```
+            import re
+            match = re.search(r"```(?:json)?\s*(.*?)\s*```", clean_text, re.DOTALL)
+            if match:
+                clean_text = match.group(1)
+        
         try:
-            return json.loads(raw_text)
-        except Exception:
+            return json.loads(clean_text)
+        except Exception as e:
             attempt += 1
-            print("Произошла ошибка при парсинге ответа модели как JSON")
             if attempt > max_retries:
-                # После исчерпания попыток пробрасываем ошибку, чтобы не скрывать проблему
                 raise
 
+            # 2. Если не помогло — просим модель исправиться, показывая старый текст
             retry_prompt = f"""{prompt}
 
-Предыдущий твой ответ был невалидным JSON.
-Повтори этот шаг и верни строго валидный JSON по указанному формату без пояснений вне JSON."""
+Твой предыдущий ответ был невалидным JSON. 
+--- ТЕКСТ ТВОЕГО ОТВЕТА ---
 
+{raw_text}
+
+--- ОШИБКА ПАРСИНГА ---
+
+{str(e)}
+
+Пожалуйста, исправь ошибку и верни только валидный JSON. Убедись, что все поля на месте и кавычки экранированы правильно.
+"""
             retry_result = send_message_to_ChatGPT(
                 prompt=retry_prompt,
                 system_prompt=SYSTEM_PROMPT,
@@ -547,6 +563,7 @@ def parse_step_response(raw_text: str, prompt: str, max_retries: int = INVALID_J
                 is_print=True
             )
             raw_text = retry_result.answer
+
 
 
 
