@@ -356,11 +356,19 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             except TypeError:
                 args_text = str(model_args)
 
+        # model_summary = (
+        #     f"🟢 Рассуждения модели: {step_reply.get('reasoning') or '—'}\n"
+        #     f"🔵 Действие, которое агент собирается выполнить: {step_reply.get('target') or '—'}\n"
+        #     f"🟡 Вызывает инструмент: {step_reply.get('action') or '—'}\n"
+        #     f"{'   🟨 С аргументами: ' + args_text if args_text != '—' else ''}"
+        #     f"\n"
+        # )
+        
         model_summary = (
-            f"🟢 Рассуждения модели: {step_reply.get('reasoning') or '—'}\n"
-            f"🔵 Действие, которое агент собирается выполнить: {step_reply.get('target') or '—'}\n"
-            f"🟡 Вызывает инструмент: {step_reply.get('action') or '—'}\n"
-            f"{'   🟨 С аргументами: ' + args_text if args_text != '—' else ''}"
+            f"🟢 reasoning: {step_reply.get('reasoning') or '—'}\n"     # Рассуждения модели
+            f"🔵 target: {step_reply.get('target') or '—'}\n"    # Действие, которое агент собирается выполнить
+            f"🟡 action: {step_reply.get('action') or '—'}\n"           # Вызывает инструмент
+            f"{'   🔶 args: ' + args_text if args_text != '—' else ''}" # С аргументами
             f"\n"
         )
         chat_print(model_summary)
