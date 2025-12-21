@@ -51,13 +51,66 @@ from reasoning_agent.agent_tools import *
 
 
 
+"""
+
+Невалидный ответ модели: - потом пофиксить промпт что бы она такого не выдавала
+
+💬 AI ANSWER:
+"{"target":"Найти файл, где упоминается презентация, через поиск подстроки по кандидату","action":"search_in_file","args":{"filename":"notes.txt","substr":"презентац"},"reasoning":"Начну с notes.txt как вероятного места для заметок о презентации; поиск по корню 'презентац' поймает разные формы слова.","steps_future":["Если в notes.txt не найдено, повторить поиск 'презентац' в todo.txt и archive.txt","Определив файл с упоминанием, прочитать его целиком","Записать file_name и file_content в result через update_result","Завершить (DONE)"]}{"target":"Проверить, есть ли упоминание презентации в notes.txt","action":"search_in_file","args":{"filename":"notes.txt","substr":"презентац"},"reasoning":"Нужно определить файл, где говорится про презентацию. Поиск по корню слова в notes.txt — быстрый способ подтвердить/исключить этот файл.","steps_future":["Если не найдено в notes.txt, выполнить search_in_file для todo.txt и archive.txt","Когда файл найден, прочитать его через read_file","Заполнить result.file_name и result.file_content через update_result","DONE"]}{"target":"Проверить, есть ли упоминание презентации в notes.txt","action":"search_in_file","args":{"filename":"notes.txt","substr":"презентац"},"reasoning":"Чтобы найти нужный файл, сначала ищу подстроку 'презентац' в notes.txt; это отловит 'презентация/презентации/презентацию' и т.п.","steps_future":["Если count=0, искать 'презентац' в todo.txt","Если всё ещё 0, искать 'презентац' в archive.txt","Прочитать файл, где найдено, через read_file","Записать имя и содержимое в result через update_result и завершить"]}{"target":"Проверить, есть ли упоминание презентации в notes.txt","action":"search_in_file","args":{"filename":"notes.txt","substr":"презентац"},"reasoning":"Нужно определить файл, где говорится о презентации. Начинаю с notes.txt и ищу корень 'презентац' для всех форм слова.","steps_future":["Если в notes.txt нет вхождений, выполнить поиск по 'презентац' в todo.txt","Если нет и там — выполнить поиск по 'презентац' в archive.txt","Прочитать файл с найденным вхождением через read_file","Обновить result (file_name, file_content) и выполнить DONE"]}{
+  "target": "Проверить, есть ли упоминание презентации в notes.txt",
+  "action": "search_in_file",
+  "args": {
+    "filename": "notes.txt",
+    "substr": "презентац"
+  },
+  "reasoning": "Чтобы определить нужный файл, сначала ищу в notes.txt подстроку 'презентац', которая покрывает разные формы слова «презентация».",
+  "steps_future": [
+    "Если в notes.txt нет вхождений, выполнить поиск по 'презентац' в todo.txt",
+    "Если нет и там — выполнить поиск по 'презентац' в archive.txt",
+    "Прочитать файл, где найдено, через read_file",
+    "Записать file_name и file_content в result через update_result и завершить (DONE)"
+  ]
+}"
+
+"""
+
+
+
+
+
+
+
+"""
+И вот это я бы поправил, сделал бы вместо "" - тип значения, в данном случае - это str
+
+ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):
+{
+  "file_name": "",
+  "file_content": ""
+}
+
+ТЕКУЩИЙ РЕЗУЛЬТАТ (result):
+{
+  "file_name": "todo.txt",
+  "file_content": "Срочно: отправить письмо Алексею. Подготовить презентацию."
+}
+
+"""
+
+
+
+
+
+
+
 
 
 
 # region Переменная для хранения задачи
 
 main_task = """
-Найти, в каком файле идёт речь про презентацию, и вернуть текст который в этом файле написан
+Найти, в каком файле идёт речь про презентацию, и вернуть текст который в этом файле написан.
+Название файла поместить в file_name, его содержание - в file_content
 """
 
 # Схема результата для этой задачи (можно переопределить при запуске orchestrate(...))
@@ -237,7 +290,7 @@ def build_step_prompt(task, history, tools_json: str) -> str:
         window_slice = history[-HISTORY_WINDOW:]
         about_to_drop = window_slice[:2]
 
-        drop_block = "\n---\n".join(
+        drop_block = ",\n".join(
             json.dumps(item, ensure_ascii=False, indent=2) for item in about_to_drop
         )
 

@@ -243,7 +243,7 @@ def update_result(field: str, value: Any):
         node = node[key]
 
     node[path[-1]] = value
-    return {"status": "ok", "result": RESULT, "error": None}
+    return {"status": "ok", "result": RESULT}
 
 
 
