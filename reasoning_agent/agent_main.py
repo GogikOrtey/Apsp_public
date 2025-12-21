@@ -30,6 +30,12 @@ main_task = """
 HISTORY_WINDOW = 10  # сколько последних шагов отдаём в LLM
 MAX_STEPS = 20 # Максимальное количество шагов агента для решения задачи
 
+long_term_memory = []  # Долговременная память, в которую агент может записать данные, при помощи memory_updates
+steps_future_value = "" # Описание следующих шагов, которые наметила себе модель
+
+
+
+
 
 
 # region Собираю аннотации инструментов
@@ -172,26 +178,10 @@ def parse_step_response(raw_text: str) -> dict[str, Any]:
         """
 
 
-# region Дополнительные переменные
-
-# Долговременная память, в которую агент может записать данные, при помощи memory_updates
-long_term_memory = [] 
-steps_future_value = ""
 
 
-# region Вспомогательные обработчики
 
-# Если есть development_feedback, выводит его и дописывает в development_feedback.log
-def log_development_feedback(feedback):
-    if not feedback:
-        return
 
-    m = "🟨"
-    print(f"\n{m}{m}{m}{feedback}\n{m}{m}{m}")
-
-    log_path = Path(__file__).resolve().parent / "development_feedback.log"
-    with open(log_path, "a", encoding="utf-8") as log_file:
-        log_file.write(json.dumps(feedback, ensure_ascii=False) + "\n")
 
 
 # region Орекстратор
@@ -334,6 +324,9 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
 
 
+
+# region Вспомогательные обработчики
+
 # Принимает название инструмента, находит функцию соответствующую ему
 # в agent_tools.py и вызывает её, с переданными аргументами
 def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
@@ -349,6 +342,20 @@ def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
             "error": str(ex),
             "traceback": traceback.format_exc()
         }
+
+# Если есть development_feedback, выводит его и дописывает в development_feedback.log
+def log_development_feedback(feedback):
+    if not feedback:
+        return
+
+    m = "🟨"
+    print(f"\n{m}{m}{m}{feedback}\n{m}{m}{m}")
+
+    log_path = Path(__file__).resolve().parent / "development_feedback.log"
+    with open(log_path, "a", encoding="utf-8") as log_file:
+        log_file.write(json.dumps(feedback, ensure_ascii=False) + "\n")
+
+
 
 
 
