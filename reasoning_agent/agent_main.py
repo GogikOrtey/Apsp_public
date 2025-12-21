@@ -35,12 +35,24 @@ steps_future_value = "" # Описание следующих шагов, кот
 
 
 
-
-
-
 # region Собираю аннотации инструментов
 tools_annotation = get_tools_annotations()
 print(tools_annotation)
+
+
+
+# region Обработчик хранения истории
+history = [] # Хранилище всей истории шагов
+count_of_step_on_history = 0 # Текущий номер шага в истории шагов
+
+# Добавляет запись в историю с автоинкрементом порядкового номера
+def add_history_entry(entry: dict[str, Any]) -> None:
+    global count_of_step_on_history
+    count_of_step_on_history += 1
+    history.append({"step": count_of_step_on_history, **entry})
+
+
+
 
 
 
@@ -53,29 +65,35 @@ SYSTEM_PROMPT = """
 
 """
 
+
+
+
+
+
 #region Формирование запроса шага
 
 # Собирает промпт для очередного шага
-def build_step_prompt(task, history, tools_json: str) -> str:
-    history_text = json.dumps(history, ensure_ascii=False, indent=2)
+def build_step_prompt(task, history, tools_json: str, ) -> str:
+    global steps_future_value, long_term_memory
+
+    # Обрезаем историю - берём последние HISTORY_WINDOW записей истории (сейчас это 10)
+    history_for_prompt = list(history[-HISTORY_WINDOW:]) or []
+    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=2)
+
     # Если план пустой, явно передаём "[]", чтобы модель понимала отсутствие плана
     steps_future_for_prompt = steps_future_value or []
     steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False)
 
-
+    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=2)
 
 
 
     """
-
-        Комментарии к сбору запроса на каждый шаг:
 
         first_deleted_element_history - это элемент истории, который будет удалён при следующем шаге.
         Здесь нужно написать модели, что ей необходимо сохранить что-то в долговременную память с этого шага, если она считает это важным, и если это потребуется для дальнейшей работы
 
     """
-
-
 
 
     return f"""
@@ -102,7 +120,7 @@ memory содержит информацию, которую ты ранее с�
 Если ты получаешь новую информацию, которая может понадобиться позже, сохрани её через memory_updates.
 Текущая память:
 
-memory = {long_term_memory} //////// убедиться, что она будет вставляться в корректном читаемом формате
+memory = {long_term_memory_value} 
 
 steps_future — это твой текущий план следующих действий, основанный на известном контексте.
 На каждом шаге:
@@ -134,28 +152,6 @@ steps_future — это твой текущий план следующих де
 
 
 
-
-
-
-
-
-
-
-# region Обработчик хранения истории
-history = [] # Хранилище всей истории шагов
-count_of_step_on_history = 0 # Текущий номер шага в истории шагов
-
-# Добавляет запись в историю с автоинкрементом порядкового номера
-def add_history_entry(entry: dict[str, Any]) -> None:
-    global count_of_step_on_history
-    count_of_step_on_history += 1
-    history.append({"step": count_of_step_on_history, **entry})
-
-
-
-
-
-
 # region Орекстратор
 # Запускает цикл агентных шагов
 def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
@@ -164,7 +160,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         print(f"\n———————————   Шаг {step}   ———————————")
 
         # 1. Формируем запрос для текущего шага
-        prompt = build_step_prompt(task, history[-HISTORY_WINDOW:], tools_annotation)
+        prompt = build_step_prompt(task, history, tools_annotation)
 
         # 2. Отправляем его в ChatGPT и получаем ответ
         result = send_message_to_ChatGPT(
@@ -221,16 +217,6 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             memory_updates - добавляет переданные строки в массив long_term_memory
 
             development_feedback - модель может сказать мне как разработчику, что ей не хватает какого-то функционала (без прерывания выполнения задачи)
-
-
-
-            Нужно сделать:
-
-            История запросов к модели и результатов выполнения инструментов хранится в глобальной history, и передаётся агенту, обрезаясь до HISTORY_WINDOW (в текущем случае 10 последних сообщений)
-
-
-
-
 
         """
 
