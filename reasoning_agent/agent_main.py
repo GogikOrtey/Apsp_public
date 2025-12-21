@@ -33,7 +33,7 @@ MAX_STEPS = 20 # Максимальное количество шагов аге
 long_term_memory = []  # Долговременная память, в которую агент может записать данные, при помощи memory_updates
 steps_future_value = "" # Описание следующих шагов, которые наметила себе модель
 
-
+# ////////////////////////////////////////// development_feedback добавить
 
 # region Собираю аннотации инструментов
 tools_annotation = get_tools_annotations()
@@ -59,9 +59,42 @@ def add_history_entry(entry: dict[str, Any]) -> None:
 
 #region Системный промпт
 
-# /////////////////////////////////////// Не написан - надо написать
-
 SYSTEM_PROMPT = """
+Ты — reasoning-агент, который решает задачи пошагово, используя доступные инструменты.
+
+ОБЩИЕ ПРАВИЛА:
+- Ты выполняешь задачу итеративно, шаг за шагом
+- На каждом шаге ты выбираешь ОДНО действие (action)
+- Если задача решена — используй action="DONE"
+- Ты не выдумываешь результаты инструментов — они приходят извне
+- Ты не повторяешь уже выполненные действия без причины
+
+ПАМЯТЬ (memory):
+- memory содержит информацию, которую ты ранее сохранил
+- memory передаётся тебе полностью на каждом шаге
+- memory не ограничена HISTORY_WINDOW
+- если информация может понадобиться позже — сохрани её через memory_updates
+
+ПЛАН (steps_future):
+- steps_future — это текущая гипотеза плана, а не обязательство
+- используй её как ориентир
+- на каждом шаге переписывай steps_future полностью
+- если контекст неясен — оставь только один ближайший шаг
+- если план стал неактуален — замени его полностью
+
+ИСТОРИЯ:
+- история содержит последние шаги твоих действий и наблюдений
+- история может быть усечена, старые шаги могут исчезать
+- если информация из текущего шага может понадобиться позже — сохрани её в memory
+
+ИНСТРУМЕНТЫ:
+- используй только инструменты из списка доступных
+- передавай корректные аргументы
+- не используй инструмент, если результат уже известен
+
+ФОРМАТ ОТВЕТА:
+- ты ВСЕГДА отвечаешь строго валидным JSON
+- без пояснений, без markdown, без текста вне JSON
 
 """
 
@@ -70,7 +103,113 @@ SYSTEM_PROMPT = """
 
 
 
+
 #region Формирование запроса шага
+def build_step_prompt(task, history, tools_json: str) -> str:
+    global steps_future_value, long_term_memory
+
+    history_for_prompt = list(history[-HISTORY_WINDOW:]) or []
+    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=2)
+
+    # Элемент, который будет удалён на следующем шаге
+    if len(history) > HISTORY_WINDOW:
+        first_deleted_element_history = json.dumps(
+            history[-HISTORY_WINDOW - 1],
+            ensure_ascii=False,
+            indent=2
+        )
+    else:
+        first_deleted_element_history = "null"
+
+    steps_future_for_prompt = steps_future_value or []
+    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=2)
+
+    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=2)
+
+    return f"""
+ТЕКУЩАЯ ЗАДАЧА:
+{task}
+
+ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
+{tools_json}
+
+ВАЖНО О КОНТЕКСТЕ:
+История ограничена {HISTORY_WINDOW} шагами.
+Следующий элемент истории будет удалён:
+
+{first_deleted_element_history}
+
+Если в этом шаге есть информация, которая может понадобиться позже — 
+сохрани её сейчас в memory_updates.
+
+====================================
+
+ИСТОРИЯ ПОСЛЕДНИХ ШАГОВ:
+{history_text}
+
+====================================
+
+ДОЛГОВРЕМЕННАЯ ПАМЯТЬ (memory):
+{long_term_memory_value}
+
+====================================
+
+ТЕКУЩИЙ ПЛАН (steps_future):
+{steps_future_text}
+
+====================================
+
+ТВОЯ ЗАДАЧА НА ЭТОМ ШАГЕ:
+- Проанализировать задачу, историю, память и план
+- Определить следующую цель шага (target)
+- Выбрать ОДИН инструмент (action)
+- Подготовить аргументы (args)
+- При необходимости:
+  - обновить steps_future
+  - сохранить данные в memory_updates
+  - оставить development_feedback
+
+====================================
+
+ФОРМАТ ОТВЕТА (СТРОГО JSON):
+
+{{
+    "target": "краткое описание цели текущего шага",
+    "action": "ИМЯ_ИНСТРУМЕНТА | DONE",
+    "args": {{ ... }},
+
+    "reasoning": "твои рассуждения",
+
+    "steps_future": [
+        "шаг 1",
+        "шаг 2"
+    ],
+
+    "memory_updates": [
+        "строка памяти 1",
+        "строка памяти 2"
+    ],
+
+    "development_feedback": [
+        {{
+            "type": "tool_gap | improvement | other",
+            "description": "что можно улучшить"
+        }}
+    ]
+}}
+
+ПРАВИЛА:
+- target, action, args, reasoning — ОБЯЗАТЕЛЬНЫ
+- steps_future, memory_updates, development_feedback — ОПЦИОНАЛЬНЫ
+- если поле не нужно — НЕ передавай его
+- для завершения задачи используй action="DONE"
+- финальный ответ помести в args.final_answer
+"""
+
+
+
+
+
 
 # Собирает промпт для очередного шага
 def build_step_prompt(task, history, tools_json: str, ) -> str:
