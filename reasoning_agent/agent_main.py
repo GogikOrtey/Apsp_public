@@ -141,43 +141,15 @@ steps_future — это твой текущий план следующих де
 
 
 
-
-
-
-
-
-
-
-
 # region Обработчик хранения истории
 history = [] # Хранилище всей истории шагов
 count_of_step_on_history = 0 # Текущий номер шага в истории шагов
 
-
-
-
-
-
-
-
-# region Валидатор ответа 
-# Парсит ответ модели с текущего шага, как JSON
-def parse_step_response(raw_text: str) -> dict[str, Any]:
-    """
-    Пробует распарсить ответ модели как JSON.
-    Если не получилось, возвращает комментарий-заглушку.
-    """
-    try:
-        return json.loads(raw_text)
-    except Exception:
-        print("Произошла ошибка при парсинге ответа модели как JSON")      
-        raise
-
-        """
-        Позже тут прописать логику, что если JSON невалидный - то мы просто повторяем ему текущйи шаг. Возможно добавляя подсказку, что "Предыдущий твой ответ - был невалидным JSON, постарайся в этот раз недопустить такого"
-        """
-
-
+# Добавляет запись в историю с автоинкрементом порядкового номера
+def add_history_entry(entry: dict[str, Any]) -> None:
+    global count_of_step_on_history
+    count_of_step_on_history += 1
+    history.append({"step": count_of_step_on_history, **entry})
 
 
 
@@ -256,7 +228,6 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
             История запросов к модели и результатов выполнения инструментов хранится в глобальной history, и передаётся агенту, обрезаясь до HISTORY_WINDOW (в текущем случае 10 последних сообщений)
 
-            Также нужно будет добавять к каждому сообщению в истории - его порядковый номер
 
 
 
@@ -268,7 +239,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
         # 4. Сохраняем ответ модели
         ########################## Потом ещё подумать над форматом истории, посмотреть какой будет красивее
-        history.append({"role": "assistant", "content": step_reply})
+        add_history_entry({"role": "assistant", "content": step_reply})
 
 
 
@@ -307,7 +278,7 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
                 completion_text = json.dumps(tool_args, ensure_ascii=False)
 
             done_result = {"status": "done", "message": completion_text}
-            history.append({"role": "tool", "name": "DONE", "result": done_result})
+            add_history_entry({"role": "tool", "name": "DONE", "result": done_result})
             print(f"✅ Агент завершил задачу: {completion_text}")
             return completion_text
 
@@ -316,10 +287,32 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         print(f"🛠️ {tool_name}({tool_args}) -> {tool_result}")
 
         # Запись результатов инструмента в историю
-        history.append({"role": "tool", "name": tool_name, "result": tool_result})
+        add_history_entry({"role": "tool", "name": tool_name, "result": tool_result})
 
     print("⚠️ Достигнут лимит шагов без финального ответа.")
     return "Лимит шагов исчерпан без решения."
+
+
+
+
+
+# region Валидатор ответа 
+# Парсит ответ модели с текущего шага, как JSON
+def parse_step_response(raw_text: str) -> dict[str, Any]:
+    """
+    Пробует распарсить ответ модели как JSON.
+    Если не получилось, возвращает комментарий-заглушку.
+    """
+    try:
+        return json.loads(raw_text)
+    except Exception:
+        print("Произошла ошибка при парсинге ответа модели как JSON")      
+        raise
+
+        """
+        Позже тут прописать логику, что если JSON невалидный - то мы просто повторяем ему текущйи шаг. Возможно добавляя подсказку, что "Предыдущий твой ответ - был невалидным JSON, постарайся в этот раз недопустить такого"
+        """
+        ############################################
 
 
 
