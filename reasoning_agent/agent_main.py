@@ -282,6 +282,8 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         # 4. Сохраняем 
         history.append({"role": "assistant", "content": step_reply})
 
+        
+
         # action_type = step_reply.get("type")
         # if action_type == "finish":
         #     message = step_reply.get("message", "")
@@ -290,8 +292,8 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
         #     return message
 
         # Выполнение действия 
-        tool_name = step_reply.get("tool_name")
-        tool_args = step_reply.get("tool_args") or {}
+        tool_name = step_reply.get("action")
+        tool_args = step_reply.get("args") or {}
         tool_result = run_tool(tool_name, tool_args)
         print(f"🛠️ {tool_name}({tool_args}) -> {tool_result}")
 
