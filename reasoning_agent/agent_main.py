@@ -108,23 +108,36 @@ SYSTEM_PROMPT = """
 def build_step_prompt(task, history, tools_json: str) -> str:
     global steps_future_value, long_term_memory
 
+    # История шагов
     history_for_prompt = list(history[-HISTORY_WINDOW:]) or []
     history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=2)
 
-    # Элемент, который будет удалён на следующем шаге
-    if len(history) > HISTORY_WINDOW:
-        first_deleted_element_history = json.dumps(
-            history[-HISTORY_WINDOW - 1],
-            ensure_ascii=False,
-            indent=2
-        )
-    else:
-        first_deleted_element_history = "null"
-
+    # Шаги на будущее
     steps_future_for_prompt = steps_future_value or []
     steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=2)
 
+    # Долговременная память
     long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=2)
+
+    # Элемент, который будет удалён на следующем шаге
+    def first_deleted_element_put():        
+        if len(history) > HISTORY_WINDOW:
+            first_deleted_element_history = json.dumps(
+                history[-HISTORY_WINDOW - 1], ensure_ascii=False, indent=2)
+        else:
+            return ""
+
+        str_description = f"""
+
+История ограничена {HISTORY_WINDOW} шагами.
+Следующий элемент истории будет удалён:
+
+{first_deleted_element_history}
+
+Если в этом шаге есть информация, которая может понадобиться позже — сохрани её сейчас в memory_updates
+
+"""
+        return str_description
 
     return f"""
 ТЕКУЩАЯ ЗАДАЧА:
@@ -133,17 +146,8 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
 {tools_json}
 
-ВАЖНО О КОНТЕКСТЕ:
-История ограничена {HISTORY_WINDOW} шагами.
-Следующий элемент истории будет удалён:
-
-{first_deleted_element_history}
-
-Если в этом шаге есть информация, которая может понадобиться позже — 
-сохрани её сейчас в memory_updates.
-
 ====================================
-
+{first_deleted_element_put()}
 ИСТОРИЯ ПОСЛЕДНИХ ШАГОВ:
 {history_text}
 
