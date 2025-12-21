@@ -9,6 +9,7 @@ import os
 import json
 import copy
 import traceback
+import time
 from typing import Any
 from chat_terminal import init_chat_channel, chat_print
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -326,6 +327,10 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
     global steps_future_value, long_term_memory
     for step in range(1, max_steps + 1):
 
+        ############################################## Тут стоит задержка, для удобства отладки
+        if step > 1:
+            time.sleep(10)
+
         # 1. Формируем запрос для текущего шага
         prompt = build_step_prompt(task, history, tools_annotation)
 
@@ -510,9 +515,6 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 }
 
 """
-
-
-
 
 
 
