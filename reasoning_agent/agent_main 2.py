@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 import os
 import json
+import copy
 import traceback
 from typing import Any
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -156,7 +157,22 @@ def build_step_prompt(task, history, tools_json: str) -> str:
     global steps_future_value, long_term_memory
 
     # История шагов
-    history_for_prompt = list(history[-HISTORY_WINDOW:]) or []
+    # Копируем элементы, чтобы не трогать оригинальную history
+    history_for_prompt = []
+    for entry in history[-HISTORY_WINDOW:] or []:
+        entry_copy = copy.deepcopy(entry)
+
+        # Для ответов модели оставляем только target/action/args/reasoning
+        if entry_copy.get("role") == "assistant":
+            content = entry_copy.get("content") or {}
+            entry_copy["content"] = {
+                key: content.get(key)
+                for key in ("target", "action", "args", "reasoning")
+                if key in content
+            }
+
+        history_for_prompt.append(entry_copy)
+
     history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=2)
 
     # Шаги на будущее
