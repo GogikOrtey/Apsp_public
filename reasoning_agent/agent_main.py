@@ -52,6 +52,9 @@ SYSTEM_PROMPT = """
 # Собирает промпт для очередного шага
 def build_step_prompt(task, history, tools_json: str) -> str:
     history_text = json.dumps(history, ensure_ascii=False, indent=2)
+    # Если план пустой, явно передаём "[]", чтобы модель понимала отсутствие плана
+    steps_future_for_prompt = steps_future_value or []
+    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False)
 
 
 
@@ -103,7 +106,7 @@ steps_future — это твой текущий план следующих де
 * Если план стал неактуален — замени его полностью
 
 Текущий steps_future:
-{steps_future_value} ///////// Обработать ситуацию, когда он пуст
+{steps_future_text}
 
 
 
@@ -207,6 +210,7 @@ def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
 
 # Оркестратор - запускает цикл агентных шагов
 def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
+    global steps_future_value, long_term_memory
     for step in range(1, max_steps + 1):
         print(f"\n———————————   Шаг {step}   ———————————")
 
@@ -273,9 +277,6 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             
             memory_updates - добавляет переданные строки в массив long_term_memory
 
-             - надо что бы он выводился в консоль с пометкой 🟨🟨🟨 до и после сообщения.
-            И также что бы он добавлял его в файл development_feedback.log
-
 
 
             Нужно сделать:
@@ -292,7 +293,17 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
         """
 
+        new_steps_future = step_reply.get("steps_future")
+        if new_steps_future is not None:
+            # Обновляем глобальный план даже если он пустой (модель могла очистить его)
+            steps_future_value = new_steps_future
 
+        memory_updates = step_reply.get("memory_updates") or []
+        if memory_updates:
+            # Дополняем долговременную память новыми фактами от модели
+            long_term_memory.extend(memory_updates)
+
+        # Если есть development_feedback, выводит его и дописывает в лог
         log_development_feedback(step_reply.get("development_feedback"))
 
 
