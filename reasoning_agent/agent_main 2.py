@@ -31,7 +31,8 @@ from reasoning_agent.agent_tools import *
 
 * Спросить у GPT, всё ли верно в логе, и хорошо ли читается. Или может стоит улучшить
     * Хорошо ли понятна задача ему например
-* В валидаторе ответа от модели прописать логику, что если JSON невалидный - то мы просто повторяем ему текущйи шаг. Возможно добавляя подсказку, что "Предыдущий твой ответ - был невалидным JSON, постарайся в этот раз недопустить такого"
+* Добавить сюда оставшиеся задачи с листочка
+* Реализовать краткий лог, который будет выводиться в консоль. А полный - будет писаться сразу в файл, не выводясь в консоль
 
 
 """
@@ -48,16 +49,16 @@ main_task = """
 Найти, в каком файле идёт речь про презентацию, и вернуть текст который в этом файле написан
 """
 
-HISTORY_WINDOW = 10  # сколько последних шагов отдаём в LLM
-MAX_STEPS = 20 # Максимальное количество шагов агента для решения задачи
+HISTORY_WINDOW = 10         # сколько последних шагов отдаём в LLM
+MAX_STEPS = 20              # Максимальное количество шагов агента для решения задачи
+INVALID_JSON_RETRIES = 1    # Повторяем запрос шага при невалидном JSON ответа
 
-long_term_memory = []  # Долговременная память, в которую агент может записать данные, при помощи memory_updates
-steps_future_value = "" # Описание следующих шагов, которые наметила себе модель
+long_term_memory = []       # Долговременная память, в которую агент может записать данные, при помощи memory_updates
+steps_future_value = ""     # Описание следующих шагов, которые наметила себе модель
 
 # region Собираю аннотации инструментов
 tools_annotation = get_tools_annotations()
-print(tools_annotation)
-
+# print(tools_annotation)
 
 # region Обработчик хранения истории
 history = [] # Хранилище всей истории шагов
@@ -329,8 +330,10 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             is_print=True
         )
 
+        #print(result)
+
         # 3. Валидируем ответ
-        step_reply = parse_step_response(result.answer)
+        step_reply = parse_step_response(result.answer, prompt, INVALID_JSON_RETRIES)
 
         """
             На текущем шаге получаем ответ модели вида:
@@ -481,22 +484,33 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
 
 # region Валидатор ответа 
-# Парсит ответ модели с текущего шага, как JSON
-def parse_step_response(raw_text: str) -> dict[str, Any]:
-    """
-    Пробует распарсить ответ модели как JSON.
-    Если не получилось, возвращает комментарий-заглушку.
-    """
-    try:
-        return json.loads(raw_text)
-    except Exception:
-        print("Произошла ошибка при парсинге ответа модели как JSON")      
-        raise
+# Парсит ответ модели с текущего шага, как JSON.
+# Если JSON невалидный — повторно спрашивает модель тот же шаг с подсказкой.
+def parse_step_response(raw_text: str, prompt: str, max_retries: int = INVALID_JSON_RETRIES) -> dict[str, Any]:
+    attempt = 0
+    while attempt <= max_retries:
+        try:
+            return json.loads(raw_text)
+        except Exception:
+            attempt += 1
+            print("Произошла ошибка при парсинге ответа модели как JSON")
+            if attempt > max_retries:
+                # После исчерпания попыток пробрасываем ошибку, чтобы не скрывать проблему
+                raise
 
-        """
-        Позже тут прописать логику, что если JSON невалидный - то мы просто повторяем ему текущйи шаг. Возможно добавляя подсказку, что "Предыдущий твой ответ - был невалидным JSON, постарайся в этот раз недопустить такого"
-        """
-        ############################################
+            retry_prompt = f"""{prompt}
+
+Предыдущий твой ответ был невалидным JSON.
+Повтори этот шаг и верни строго валидный JSON по указанному формату без пояснений вне JSON."""
+
+            retry_result = send_message_to_ChatGPT(
+                prompt=retry_prompt,
+                system_prompt=SYSTEM_PROMPT,
+                chat_id=None,
+                model="gpt-5.2",
+                is_print=True
+            )
+            raw_text = retry_result.answer
 
 
 
