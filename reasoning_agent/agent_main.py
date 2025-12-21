@@ -89,9 +89,9 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
 memory содержит информацию, которую ты ранее сохранил и счёл важной для будущих шагов.
 Эта память:
-* Передаётся тебе на каждом шаге полностью
-* Не теряется из-за ограничения истории
-* Может использоваться при планировании, выборе инструментов и reasoning
+- Передаётся тебе на каждом шаге полностью
+- Не теряется из-за ограничения истории
+- Может использоваться при планировании, выборе инструментов и reasoning
 
 Если ты получаешь новую информацию, которая может понадобиться позже, сохрани её через memory_updates.
 Текущая память:
@@ -100,16 +100,21 @@ memory = {long_term_memory} //////// убедиться, что она буде�
 
 steps_future — это твой текущий план следующих действий, основанный на известном контексте.
 На каждом шаге:
-* Используй steps_future как ориентир, а не как обязательство
-* Переписывай steps_future полностью, с учётом выполненных шагов, новых знаний и изменений в контексте
-* Если контекст неясен — оставь только один ближайший шаг
-* Если план стал неактуален — замени его полностью
+- Используй steps_future как ориентир, а не как обязательство
+- Переписывай steps_future полностью, с учётом выполненных шагов, новых знаний и изменений в контексте
+- Если контекст неясен — оставь только один ближайший шаг
+- Если план стал неактуален — замени его полностью
 
 Текущий steps_future:
 {steps_future_text}
 
+Формат ответа (строго валидный JSON, без лишнего текста):
+...
 
-
+Правила формирования ответа:
+...
+- Для завершения задачи ставь action="DONE" и клади итоговый текст в args.final_answer.
+...
 
 //////// Прописать чёткий формат ответа, и контракт с правилами формирования этого ответа
 //// Структуру я прописал для себя ниже - надо формализовать, и добавить сюда, в запрос
@@ -264,9 +269,6 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
             Также нужно будет добавять к каждому сообщению в истории - его порядковый номер
 
 
-            Нужно добавить функцию завершения цикла - например, что бы агент вызывал функцию с именем DONE, и в аргумнтах текстом прописывал, что было успешно сделано, в рамках всей задачи
-
-
 
 
         """
@@ -274,10 +276,11 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
 
 
-
-
         # 4. Сохраняем ответ модели
+        ########################## Потом ещё подумать над форматом истории, посмотреть какой будет красивее
         history.append({"role": "assistant", "content": step_reply})
+
+
 
         # 5. Обработчик дополнительных действий
 
@@ -296,22 +299,29 @@ def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS) -> str:
 
 
 
-        
-
-
-
-        
-
-        # action_type = step_reply.get("type")
-        # if action_type == "finish":
-        #     message = step_reply.get("message", "")
-        #     print(f"✅ Завершено: {message}")
-        #     save_memory(history)
-        #     return message
-
-        # Выполнение действия 
+        # 6. Выполнение действия 
         tool_name = step_reply.get("action")
         tool_args = step_reply.get("args") or {}
+
+        # 6.1 Обработка завершения работы агента
+        if tool_name == "DONE":
+            if isinstance(tool_args, dict):
+                completion_text = tool_args.get("final_answer") or ""
+            elif isinstance(tool_args, str):
+                completion_text = tool_args
+            else:
+                completion_text = str(tool_args)
+
+            # Фолбэк на случай пустого текста, чтобы не потерять ответ
+            if not completion_text:
+                completion_text = json.dumps(tool_args, ensure_ascii=False)
+
+            done_result = {"status": "done", "message": completion_text}
+            history.append({"role": "tool", "name": "DONE", "result": done_result})
+            print(f"✅ Агент завершил задачу: {completion_text}")
+            return completion_text
+
+        # 6.2 Вызов инструмента
         tool_result = run_tool(tool_name, tool_args)
         print(f"🛠️ {tool_name}({tool_args}) -> {tool_result}")
 
