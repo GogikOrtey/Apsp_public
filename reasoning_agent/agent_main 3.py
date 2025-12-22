@@ -323,11 +323,11 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
 
     return f"""
-ТЕКУЩАЯ ЗАДАЧА:
-{task}
-
 ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
 {tools_json}
+
+ТЕКУЩАЯ ЗАДАЧА:
+{task}
 
 ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):
 {result_schema_text}
