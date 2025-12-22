@@ -4,6 +4,9 @@ import json
 import copy
 from typing import Any
 
+# Импортируем LLM-клиент для генерации и формализации плана
+from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+
 """
 
 Начальные инструменты:
@@ -290,6 +293,248 @@ def update_result(field: str, value: Any):
 
 
 # region Создание плана
+MAIN_PLAN_SCHEMA: dict[str, Any] = {
+    "status": {
+        "type": "string",
+        "enum": ["not_started", "in_progress", "completed"],
+        "description": "Текущее состояние выполнения плана в целом"
+    },
+    "current_step": {
+        "type": "integer",
+        "description": "Индекс текущего шага (0 означает, что работа по шагам ещё не начата)"
+    },
+    "steps": {
+        "type": "array",
+        "description": "Список шагов плана",
+        "items": {
+            "type": "object",
+            "properties": {
+                "step_id": {
+                    "type": "integer",
+                    "description": "Номер шага в плане (1..N)"
+                },
+                "goal": {
+                    "type": "string",
+                    "description": "Цель шага, единственная инструкция для reasoning-агента"
+                },
+                "fills": {
+                    "type": "array",
+                    "description": "Список полей результата (result), которые должны быть заполнены на этом шаге",
+                    "items": {"type": "string"}
+                },
+                "status": {
+                    "type": "string",
+                    "enum": ["pending", "in_progress", "done"],
+                    "description": "Состояние шага (управляется кодом, не моделью)"
+                }
+            },
+            "required": ["step_id", "goal", "fills", "status"]
+        }
+    }
+}
+
+# Базовый шаблон плана (без шагов), чтобы удобно инициализировать пустой объект
+MAIN_PLAN_TEMPLATE: dict[str, Any] = {
+    "status": "not_started",
+    "current_step": 0,
+    "steps": []
+}
 
 
+# Системные промпты для генерации/формализации плана
+PLANNER_SYSTEM_PROMPT = """
+Ты — модуль планирования задач.
 
+Твоя задача — извлечь глобальный пошаговый план решения
+ТОЛЬКО на основе текста задачи.
+
+Ты НЕ решаешь задачу.
+Ты НЕ анализируешь входные данные.
+Ты НЕ выполняешь шаги.
+
+Ты только:
+- выделяешь логические шаги
+- описываешь, что должен сделать агент
+- возвращаешь результат СТРОГО в формате JSON
+
+Если задача подразумевает несколько независимых подзадач —
+каждая должна быть отдельным шагом.
+"""
+
+PLAN_FORMALIZER_SYSTEM_PROMPT = """
+Ты — модуль формализации плана.
+
+Твоя задача — преобразовать неформально описанный план
+в строго формальный JSON-объект.
+
+Ты не изменяешь смысл шагов.
+Ты не добавляешь новых шагов.
+Ты не удаляешь существующие шаги.
+
+Если шаги не пронумерованы — пронумеруй их.
+"""
+
+
+def _strip_json(text: str) -> str:
+    """
+    Пытается аккуратно извлечь JSON-строку из ответа модели:
+    - убирает тройные кавычки ```json ... ```
+    - если парсинг не удался, пытается найти самый первый '{' и последний '}'
+    """
+    if not isinstance(text, str):
+        return ""
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`")
+        cleaned = cleaned.replace("json\n", "").replace("json\r\n", "")
+    # Вторая попытка — взять подстроку между первым { и последним }
+    try:
+        json.loads(cleaned)
+        return cleaned
+    except Exception:
+        pass
+    if "{" in cleaned and "}" in cleaned:
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        candidate = cleaned[start : end + 1]
+        return candidate
+    return cleaned
+
+
+def _parse_plan_response(answer_text: str) -> dict[str, Any] | None:
+    """
+    Превращает строку из LLM в Python-объект.
+    Ожидается структура { "steps": [ {step_id, goal, fills} ] }.
+    """
+    try:
+        cleaned = _strip_json(answer_text)
+        return json.loads(cleaned)
+    except Exception:
+        return None
+
+
+def _normalize_to_main_plan(raw_plan: dict[str, Any]) -> dict[str, Any]:
+    """
+    Нормализует ответ модели в структуру main_plan c полями status/current_step.
+    Если модель вернула список шагов без статусов — статусы выставляются в pending.
+    """
+    plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
+
+    steps_src = raw_plan.get("steps") if isinstance(raw_plan, dict) else None
+    if isinstance(steps_src, list):
+        normalized_steps = []
+        for item in steps_src:
+            if not isinstance(item, dict):
+                continue
+            step_id = item.get("step_id")
+            goal = item.get("goal") or ""
+            fills = item.get("fills") if isinstance(item.get("fills"), list) else []
+            if step_id is None or goal == "":
+                continue
+            normalized_steps.append(
+                {
+                    "step_id": step_id,
+                    "goal": goal,
+                    "fills": fills,
+                    "status": "pending"
+                }
+            )
+        plan["steps"] = normalized_steps
+    return plan
+
+
+def create_main_plan_from_task(task_text: str, model: str = "o3-mini", temperature: float | None = None) -> dict[str, Any]:
+    """
+    Создаёт формальный main_plan из текста задачи.
+    Возвращает словарь вида {"status": "ok|error", "plan": {...}, "error": "..."}.
+    """
+    if not isinstance(task_text, str) or not task_text.strip():
+        return {"status": "error", "plan": None, "error": "task_text должен быть непустой строкой"}
+
+    user_prompt = f"""Текст задачи:
+
+{task_text.strip()}
+
+Верни глобальный план в формате:
+
+{{
+  "steps": [
+    {{
+      "step_id": number,
+      "goal": string,
+      "fills": array of strings
+    }}
+  ]
+}}
+
+Никакого текста вне JSON."""
+
+    llm_result = send_message_to_ChatGPT(
+        prompt=user_prompt,
+        system_prompt=PLANNER_SYSTEM_PROMPT,
+        model=model,
+        temperature=temperature,
+        is_print=False
+    )
+
+    raw_plan = _parse_plan_response(llm_result.answer)
+    if raw_plan is None:
+        return {
+            "status": "error",
+            "plan": None,
+            "error": "Не удалось распарсить JSON из ответа модели",
+            "raw_answer": llm_result.answer
+        }
+
+    plan = _normalize_to_main_plan(raw_plan)
+    return {"status": "ok", "plan": plan, "raw_answer": llm_result.answer}
+
+
+def formalize_main_plan(informal_plan_text: str, model: str = "o3-mini", temperature: float | None = None) -> dict[str, Any]:
+    """
+    Преобразует неформально описанный план в формальный main_plan.
+    Возвращает словарь вида {"status": "ok|error", "plan": {...}, "error": "..."}.
+    """
+    if not isinstance(informal_plan_text, str) or not informal_plan_text.strip():
+        return {"status": "error", "plan": None, "error": "informal_plan_text должен быть непустой строкой"}
+
+    user_prompt = f"""Неформальный план:
+
+{informal_plan_text.strip()}
+
+Верни формализованный план в формате:
+
+{{
+  "steps": [
+    {{
+      "step_id": number,
+      "goal": string,
+      "fills": array of strings
+    }}
+  ]
+}}
+
+Только JSON."""
+
+    llm_result = send_message_to_ChatGPT(
+        prompt=user_prompt,
+        system_prompt=PLAN_FORMALIZER_SYSTEM_PROMPT,
+        model=model,
+        temperature=temperature,
+        is_print=False
+    )
+
+    raw_plan = _parse_plan_response(llm_result.answer)
+    if raw_plan is None:
+        return {
+            "status": "error",
+            "plan": None,
+            "error": "Не удалось распарсить JSON из ответа модели",
+            "raw_answer": llm_result.answer
+        }
+
+    plan = _normalize_to_main_plan(raw_plan)
+    return {"status": "ok", "plan": plan, "raw_answer": llm_result.answer}
+
+
+#
