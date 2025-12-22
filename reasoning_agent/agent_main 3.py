@@ -265,7 +265,12 @@ def build_step_prompt(task, history, tools_json: str) -> str:
     # История шагов
     # Копируем элементы, чтобы не трогать оригинальную history
     history_for_prompt = []
-    for entry in history[-HISTORY_WINDOW:] or []:
+    history_slice = history[-HISTORY_WINDOW:] or []
+    # Если показываем элементы, которые скоро выпадут, не дублируем их в истории
+    if len(history) >= HISTORY_WINDOW:
+        history_slice = history_slice[2:]
+
+    for entry in history_slice:
         entry_copy = copy.deepcopy(entry)
 
         # Для ответов модели оставляем только target/action/args/reasoning
@@ -281,12 +286,14 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
     history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=4)
 
+
     # Шаги на будущее
     steps_future_for_prompt = steps_future_value or []
     steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=4)
 
     # Долговременная память
     long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=4)
+
 
     # Элементы, которые будут удалены на следующем шаге
     def first_deleted_element_put():
@@ -325,6 +332,8 @@ def build_step_prompt(task, history, tools_json: str) -> str:
         current_result_text = json.dumps(get_result(), ensure_ascii=False, indent=4)
     except TypeError:
         current_result_text = str(get_result())
+
+
 
     return f"""
 ТЕКУЩАЯ ЗАДАЧА:
