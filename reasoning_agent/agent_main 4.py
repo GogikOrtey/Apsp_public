@@ -174,6 +174,7 @@ SYSTEM_PROMPT = """
 - Даже если шаги очевидны — верни только один следующий шаг
 - Любой текст вне одного JSON-объекта считается ошибкой
 - Если задача решена (все фазы плана завершены) — используй action="DONE"
+- Если в ходе рассуждений ты понимаешь, что цель текущей фазы или всей задачи недостижима (нет данных, логическое противоречие и т.п.) — не выдумывай результат. Заполни доступные поля описанием проблемы и используй action="FAILED", указав причину в args.reason
 - Ты не выдумываешь результаты инструментов — они приходят извне
 - Ты не повторяешь уже выполненные действия без причины
 
@@ -235,6 +236,7 @@ SYSTEM_PROMPT = """
 - Заполняй result ПОШАГОВО через инструмент update_result(field, value)
 - Текущая фаза считается завершенной, когда заполнены все поля, указанные в её "fills"
 - Используй action="DONE" только когда все фазы Глобального Плана выполнены и result полон
+- Используй action="FAILED" только когда ты не можешь продвинуться из-за недостижимости цели; в args обязательно передай reason (строку)
 
 МЕНТАЛЬНАЯ МОДЕЛЬ:
 - 1. Определи текущую активную ФАЗУ в Глобальном Плане и её цель (goal).
@@ -494,7 +496,7 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 
 {{
     "target": "краткое описание цели текущего шага",
-    "action": "ИМЯ_ИНСТРУМЕНТА | DONE",
+    "action": "ИМЯ_ИНСТРУМЕНТА | DONE | FAILED",
     "args": {{ ... }},
     "reasoning": "твои рассуждения",
     "steps_future": [
@@ -519,6 +521,7 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 - если поле не нужно — НЕ передавай его
 - в ответе верни только один JSON объект, соответствующий следующему шагу
 - для завершения задачи используй action="DONE"
+- если задача/фаза недостижима — используй action="FAILED" и передай причину в args.reason (строка)
 - чтобы собрать финальный ответ, заполняй result через action="update_result"
 - action="DONE" используй только когда result заполнен и содержит итог в нужном формате
 """
@@ -778,6 +781,36 @@ def orchestrate(
             add_history_entry({"role": "tool", "name": "DONE", "result": done_result})
             print(f"✅ Агент завершил задачу: {completion_text}")
             return completion_text
+
+        # 6.1b Обработка провала (недостижимость цели)
+        if tool_name == "FAILED":
+            reason = None
+            if isinstance(tool_args, dict):
+                reason = tool_args.get("reason")
+            if not isinstance(reason, str) or not reason.strip():
+                reason = "Причина не указана (ожидалось args.reason: string)"
+
+            try:
+                result_text = json.dumps(get_result(), ensure_ascii=False, indent=4)
+            except TypeError:
+                result_text = str(get_result())
+
+            failed_payload = {
+                "status": "failed",
+                "reason": reason,
+                "result": get_result(),
+                "message": f"FAILED: {reason}"
+            }
+            add_history_entry({"role": "tool", "name": "FAILED", "result": failed_payload})
+
+            final_text = ""
+            try:
+                final_text = json.dumps(failed_payload, ensure_ascii=False, indent=4)
+            except TypeError:
+                final_text = str(failed_payload)
+
+            print(f"❌ Агент завершил задачу с ошибкой/недостижимостью: {reason}\nТекущий result:\n{result_text}")
+            return final_text
 
         # 6.2 Вызов инструмента
         tool_result = run_tool(tool_name, tool_args)
