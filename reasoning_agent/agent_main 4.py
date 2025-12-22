@@ -89,13 +89,15 @@ main_task = """
 _main_plan_resp = create_main_plan_from_task(main_task, get_result_schema())
 # create_main_plan_from_task возвращает объект-обёртку {"status": "...", "plan": {...}, ...}
 # В рантайме reasoning-агенту нужен именно нормализованный main_plan (status/current_step/steps).
-if isinstance(_main_plan_resp, dict) and _main_plan_resp.get("status") == "ok" and isinstance(_main_plan_resp.get("plan"), dict):
-    main_plan = _main_plan_resp["plan"]
-else:
-    try:
-        main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
-    except Exception:
-        main_plan = {"status": "not_started", "current_step": 0, "steps": []}
+main_plan = None
+if isinstance(_main_plan_resp, dict) and _main_plan_resp.get("status") == "ok":
+    plan_value = _main_plan_resp.get("plan")
+    if isinstance(plan_value, dict):
+        main_plan = plan_value
+
+if not isinstance(main_plan, dict):
+    # Фоллбэк на безопасный пустой план
+    main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
 
 
 
@@ -134,7 +136,7 @@ main_result_template = {
 }
 
 
-HISTORY_WINDOW = 20         # сколько последних шагов отдаём в LLM
+HISTORY_WINDOW = 14         # сколько последних шагов отдаём в LLM
 MAX_STEPS = 30              # Максимальное количество шагов агента для решения задачи
 INVALID_JSON_RETRIES = 1    # Повторяем запрос шага при невалидном JSON ответа
 
@@ -290,8 +292,12 @@ def format_main_plan_for_prompt(main_plan: dict[str, Any]) -> str:
     lines: list[str] = []
     current_idx = main_plan.get("current_step", 0)
 
-    lines.append(f"СТАТУС ПЛАНА: {main_plan.get('status', 'unknown')}")
-    lines.append("ШАГИ ПЛАНА (ФАЗЫ):")
+    # Общий статус плана - скорее отладочная информация.
+    # Чтобы не засорять промпт, показываем его только для не-обычных состояний.
+    plan_status = main_plan.get("status", "unknown")
+    if plan_status in ("completed", "not_started", "unknown"):
+        lines.append(f"СТАТУС ПЛАНА: {plan_status}")
+    lines.append("ШАГИ ПЛАНА (фазы):")
 
     steps = main_plan.get("steps", [])
     if not isinstance(steps, list):

@@ -21,17 +21,9 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 # region Схема main_plan
 
-# Схема описывает форму плана, возвращаемого моделью
+# Схема описывает "сырой" план, который возвращает модель (до нормализации кодом).
+# В runtime reasoning-агент использует нормализованный main_plan (см. MAIN_PLAN_TEMPLATE и _normalize_to_main_plan).
 MAIN_PLAN_SCHEMA: dict[str, Any] = {
-    "status": {
-        "type": "string",
-        "enum": ["not_started", "in_progress", "completed"],
-        "description": "Текущее состояние выполнения плана в целом"
-    },
-    "current_step": {
-        "type": "integer",
-        "description": "Индекс текущего шага (0 означает, что работа по шагам ещё не начата)"
-    },
     "steps": {
         "type": "array",
         "description": "Список шагов плана",
@@ -50,14 +42,9 @@ MAIN_PLAN_SCHEMA: dict[str, Any] = {
                     "type": "array",
                     "description": "Список полей результата (result), которые должны быть заполнены на этом шаге",
                     "items": {"type": "string"}
-                },
-                "status": {
-                    "type": "string",
-                    "enum": ["pending", "in_progress", "done"],
-                    "description": "Состояние шага (управляется кодом, не моделью)"
                 }
             },
-            "required": ["step_id", "goal", "fills", "status"]
+            "required": ["step_id", "goal", "fills"]
         }
     }
 }
