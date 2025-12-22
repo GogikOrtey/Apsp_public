@@ -22,6 +22,7 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 # Подключаю инструменты
 from reasoning_agent.agent_tools import *
+from reasoning_agent.plan_tools import *
 
 
 
@@ -36,7 +37,7 @@ from reasoning_agent.agent_tools import *
 Локальные задачи:
 
 * Добавить создание плана, следование ему, и методы взаимодействия с ним
-    * При старте ашента, перед первым шагом - он создаёт план, в формальном виде
+    * При старте агента, перед первым шагом - он создаёт план, в формальном виде
     * Этот план добавляется всегда в промпт шага
     * Надо прописать инструкции, что бы
         * Агент следовал плану
@@ -83,6 +84,14 @@ main_task = """
 """
 
 # Неформального плана - нет
+
+# Создаю план задачи в формальном виде
+main_plan = create_main_plan_from_task(main_task, get_result_schema())
+
+
+
+
+
 
 # # Схема результата и шаблон для этой задачи (можно переопределить при запуске orchestrate(...))
 # # По умолчанию берём примеры из agent_tools.py
@@ -725,7 +734,7 @@ def log_development_feedback(feedback):
 
 if __name__ == "__main__":
     orchestrate()
-    
+
     # try:
     #     import global_variable
     #     print(
