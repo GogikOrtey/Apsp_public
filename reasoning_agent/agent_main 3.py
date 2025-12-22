@@ -42,17 +42,7 @@ from reasoning_agent.agent_tools import *
 
 
 
-Добавить pip install tiktoken в reuarments
 
-Добавить рассчёт стоимости
-
-Ввод (input)	$1.75 / 1M токенов
-Кэшированный ввод	$0.175 / 1M токенов
-Вывод (output)	$14.00 / 1M токенов
-
-Добавить рассчёт кешированного ввода
-
-Примерный рассчёт - 4 рубля за решение этой задачи, без учёта кешированных токенов
 
 
 
@@ -95,6 +85,27 @@ main_task = """
 # main_result_schema = copy.deepcopy(DEFAULT_RESULT_SCHEMA)
 # main_result_template = copy.deepcopy(DEFAULT_RESULT_TEMPLATE)
 
+# # Схема результата
+# main_result_schema = {
+#     "file_name": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Имя файла"
+#     },
+#     "file_content": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Содержимое файла"
+#     }
+# }
+
+# # Шаблон результата, который агент заполняет в процессе работы
+# main_result_template = {
+#     "file_name": None,
+#     "file_content": None
+# }
+
+
 # Схема результата
 main_result_schema = {
     "file_name": {
@@ -106,15 +117,20 @@ main_result_schema = {
         "type": "string",
         "required": True,
         "description": "Содержимое файла"
+    },
+    "meeting_time": {
+        "type": "string",
+        "required": True,
+        "description": "Время проведения собрания"
     }
 }
 
 # Шаблон результата, который агент заполняет в процессе работы
 main_result_template = {
     "file_name": None,
-    "file_content": None
+    "file_content": None,
+    "meeting_time": None
 }
-
 
 
 HISTORY_WINDOW = 20         # сколько последних шагов отдаём в LLM
