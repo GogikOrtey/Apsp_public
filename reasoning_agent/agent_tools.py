@@ -394,11 +394,15 @@ PLAN_FORMALIZER_SYSTEM_PROMPT = """
 Твоя задача — преобразовать неформально описанный план
 в строго формальный JSON-объект.
 
-Ты не изменяешь смысл шагов.
-Ты не добавляешь новых шагов.
-Ты не удаляешь существующие шаги.
-
-Если шаги не пронумерованы — пронумеруй их.
+Правила:
+- Не изменяй смысл шагов.
+- Не добавляй новых шагов.
+- Не удаляй существующие шаги.
+- Если шаги не пронумерованы — пронумеруй их.
+- Используй result_schema, чтобы определить, какие поля результата должен заполнять каждый шаг.
+- Заполняй только поля, которые логически соответствуют цели шага.
+- Шаги должны быть минимальными и необходимыми для заполнения result_schema.
+- Не описывай технические действия.
 """
 
 
@@ -556,11 +560,15 @@ def formalize_main_plan(informal_plan_text) -> dict[str, Any]:
     if not isinstance(informal_plan_text, str) or not informal_plan_text.strip():
         return {"status": "error", "plan": None, "error": "informal_plan_text должен быть непустой строкой"}
 
-    user_prompt = f"""Неформальный план:
+    user_prompt = f"""Возьми неформальный план:
 
+"
 {informal_plan_text.strip()}
+"
 
-Верни формализованный план в формате:
+—————————————————————————————————
+
+Верни формализованный план в формате JSON:
 
 {{
   "steps": [
@@ -608,19 +616,17 @@ def formalize_main_plan(informal_plan_text) -> dict[str, Any]:
     return {"status": "ok", "plan": plan, "raw_answer": llm_result.answer}
 
 
-# Пример: построить план из текста задачи
-example_task_text = """
-Найти, в каком файле говорится про презентацию, и в какое время можно
-собрать на собрании необходимых человек. Название файла поместить в file_name,
-его содержание - в file_content, а наилучшее время для проведения собрания - в meeting_time
-"""
-plan_from_task = create_main_plan_from_task(example_task_text)
-# print("plan_from_task:", json.dumps(plan_from_task, ensure_ascii=False, indent=4))
-
-# # Пример: формализовать неформальный план
-# example_informal_plan = """
-# 1. Найти файл, в котором говорится про презентацию
-# 2. Узнать, в какое время можно собрать на собрании необходимых человек
+# # Пример: построить план из текста задачи
+# example_task_text = """
+# Найти, в каком файле говорится про презентацию, и в какое время можно
+# собрать на собрании необходимых человек. Название файла поместить в file_name,
+# его содержание - в file_content, а наилучшее время для проведения собрания - в meeting_time
 # """
-# plan_from_informal = formalize_main_plan(example_informal_plan)
-# print("plan_from_informal:", json.dumps(plan_from_informal, ensure_ascii=False, indent=4))
+# plan_from_task = create_main_plan_from_task(example_task_text)
+
+# Пример: формализовать неформальный план
+example_informal_plan = """
+1. Найти файл, в котором говорится про презентацию
+2. Узнать, в какое время можно собрать на собрании необходимых человек
+"""
+plan_from_informal = formalize_main_plan(example_informal_plan)
