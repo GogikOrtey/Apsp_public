@@ -672,16 +672,16 @@ def orchestrate(
     # Инициализируем объект результата для текущего запуска
     init_result(result_schema or main_result_schema, result_template or main_result_template)
 
+    # Синхронизируем прогресс плана с уже предзаполненным result (например, из result_template)
+    try:
+        update_main_plan_progress(main_plan)
+    except Exception:
+        pass
+
     for step in range(1, max_steps + 1):
         step_banner = f"\n———————————   Шаг {step}   ———————————\n"
         print(step_banner)
         chat_print(step_banner)
-
-        # 0. Пробуем продвинуть план на основании уже заполненного result (если это возможно)
-        try:
-            update_main_plan_progress(main_plan)
-        except Exception:
-            pass
 
         # 1. Формируем запрос для текущего шага
         prompt = build_step_prompt(task, history, tools_annotation, main_plan)
@@ -778,7 +778,7 @@ def orchestrate(
         """
 
 
-        # 4. Сохраняем ответ модели
+        # 4. Сохраняем ответ модели в history
         add_history_entry({"role": "assistant", "content": step_reply})
 
 
