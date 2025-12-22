@@ -79,36 +79,6 @@ from reasoning_agent.agent_tools import *
 
 
 
-"""
-ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):
-{
-  "file_name": {
-    "type": "string",
-    "required": true,
-    "description": "Имя файла"
-  },
-  "file_content": {
-    "type": "string",
-    "required": true,
-    "description": "Содержимое файла"
-  }
-}
-
-ТЕКУЩИЙ РЕЗУЛЬТАТ (result):
-{
-  "file_name": null,
-  "file_content": null
-}
-
-"""
-
-
-
-
-
-
-
-
 
 
 # region Переменная для хранения задачи
@@ -118,10 +88,32 @@ main_task = """
 Название файла поместить в file_name, его содержание - в file_content
 """
 
-# Схема результата и шаблон для этой задачи (можно переопределить при запуске orchestrate(...))
-# По умолчанию берём примеры из agent_tools.py
-main_result_schema = copy.deepcopy(DEFAULT_RESULT_SCHEMA)
-main_result_template = copy.deepcopy(DEFAULT_RESULT_TEMPLATE)
+# # Схема результата и шаблон для этой задачи (можно переопределить при запуске orchestrate(...))
+# # По умолчанию берём примеры из agent_tools.py
+# main_result_schema = copy.deepcopy(DEFAULT_RESULT_SCHEMA)
+# main_result_template = copy.deepcopy(DEFAULT_RESULT_TEMPLATE)
+
+# Схема результата
+main_result_schema = {
+    "file_name": {
+        "type": "string",
+        "required": True,
+        "description": "Имя файла"
+    },
+    "file_content": {
+        "type": "string",
+        "required": True,
+        "description": "Содержимое файла"
+    }
+}
+
+# Шаблон результата, который агент заполняет в процессе работы
+main_result_template = {
+    "file_name": None,
+    "file_content": None
+}
+
+
 
 HISTORY_WINDOW = 10         # сколько последних шагов отдаём в LLM
 MAX_STEPS = 20              # Максимальное количество шагов агента для решения задачи
@@ -257,7 +249,7 @@ def build_last_step_state_block(history) -> str:
         "result": last_tool.get("result"),
     }
 
-    block_json = json.dumps(block, ensure_ascii=False, indent=2)
+    block_json = json.dumps(block, ensure_ascii=False, indent=4)
 
     return f"""
 ————————————————————————————————————
@@ -287,14 +279,14 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
         history_for_prompt.append(entry_copy)
 
-    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=2)
+    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=4)
 
     # Шаги на будущее
     steps_future_for_prompt = steps_future_value or []
-    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=2)
+    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=4)
 
     # Долговременная память
-    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=2)
+    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=4)
 
     # Элементы, которые будут удалены на следующем шаге
     def first_deleted_element_put():
@@ -306,7 +298,7 @@ def build_step_prompt(task, history, tools_json: str) -> str:
         about_to_drop = window_slice[:2]
 
         drop_block = ",\n".join(
-            json.dumps(item, ensure_ascii=False, indent=2) for item in about_to_drop
+            json.dumps(item, ensure_ascii=False, indent=4) for item in about_to_drop
         )
 
         str_description = f"""
@@ -325,12 +317,12 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
     # Схема результата и текущий результат (агент заполняет его через update_result)
     try:
-        result_schema_text = json.dumps(get_result_schema(), ensure_ascii=False, indent=2)
+        result_schema_text = json.dumps(get_result_schema(), ensure_ascii=False, indent=4)
     except TypeError:
         result_schema_text = str(get_result_schema())
 
     try:
-        current_result_text = json.dumps(get_result(), ensure_ascii=False, indent=2)
+        current_result_text = json.dumps(get_result(), ensure_ascii=False, indent=4)
     except TypeError:
         current_result_text = str(get_result())
 
@@ -505,6 +497,7 @@ def orchestrate(
                 ]
             }
 
+
             Правила обработки этих объектов, пришедших с ответом модели:
 
             target, action, args, reasoning - обязательные поля, должны быть в каждом ответе
@@ -521,6 +514,11 @@ def orchestrate(
             memory_updates - добавляет переданные строки в массив long_term_memory
 
             development_feedback - модель может сказать мне как разработчику, что ей не хватает какого-то функционала (без прерывания выполнения задачи)
+
+
+            Результат пошагово записывается в result, при помощи вызова инструмента update_result
+            Перед началом работы надо задать верную схему результата (result_schema) и шаблон результата, который будет заполнять модель, и который будет передаваться ей в каждом запросе шага, в фрагменте 
+            Текущий результат (result)
 
         """
 
@@ -561,7 +559,7 @@ def orchestrate(
             # 2) Новый режим: возвращаем накопленный result
             if not completion_text:
                 try:
-                    completion_text = json.dumps(get_result(), ensure_ascii=False, indent=2)
+                    completion_text = json.dumps(get_result(), ensure_ascii=False, indent=4)
                 except TypeError:
                     completion_text = str(get_result())
 

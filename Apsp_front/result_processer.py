@@ -110,7 +110,7 @@ def process_results(examples_data, search_requests_data, selected_fields=None):
     print('ОБРАБОТКА РЕЗУЛЬТАТОВ (data_input_table)')
     print('=' * 30)
     print('\nИтоговый JSON (data_input_table):')
-    print(json.dumps(data_input_table, ensure_ascii=False, indent=2, sort_keys=False))
+    print(json.dumps(data_input_table, ensure_ascii=False, indent=4, sort_keys=False))
     print('\n' + '=' * 30 + '\n')
     
     return data_input_table

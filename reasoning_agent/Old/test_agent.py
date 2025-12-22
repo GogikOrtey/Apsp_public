@@ -349,8 +349,8 @@ def call_llm(state: dict):
     Для action == DONE финальный ответ должен быть в args.final_answer.
     """
     recent_history = state["history"][-HISTORY_WINDOW:]
-    memory_json = json.dumps(state["memory"], ensure_ascii=False, indent=2)
-    history_json = json.dumps(recent_history, ensure_ascii=False, indent=2)
+    memory_json = json.dumps(state["memory"], ensure_ascii=False, indent=4)
+    history_json = json.dumps(recent_history, ensure_ascii=False, indent=4)
 
     prompt = f"""
 Цель: {user_goal}

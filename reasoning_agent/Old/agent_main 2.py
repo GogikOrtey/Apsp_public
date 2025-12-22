@@ -174,7 +174,7 @@ def build_last_step_state_block(history) -> str:
         "result": last_tool.get("result"),
     }
 
-    block_json = json.dumps(block, ensure_ascii=False, indent=2)
+    block_json = json.dumps(block, ensure_ascii=False, indent=4)
 
     return f"""
 ————————————————————————————————————
@@ -204,14 +204,14 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
         history_for_prompt.append(entry_copy)
 
-    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=2)
+    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=4)
 
     # Шаги на будущее
     steps_future_for_prompt = steps_future_value or []
-    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=2)
+    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=4)
 
     # Долговременная память
-    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=2)
+    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=4)
 
     # Элементы, которые будут удалены на следующем шаге
     def first_deleted_element_put():
@@ -223,7 +223,7 @@ def build_step_prompt(task, history, tools_json: str) -> str:
         about_to_drop = window_slice[:2]
 
         drop_block = "\n---\n".join(
-            json.dumps(item, ensure_ascii=False, indent=2) for item in about_to_drop
+            json.dumps(item, ensure_ascii=False, indent=4) for item in about_to_drop
         )
 
         str_description = f"""

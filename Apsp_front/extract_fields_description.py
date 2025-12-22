@@ -126,7 +126,7 @@ def extract_fields_description(file_path='add_files/Fields_static.ts', json_path
     }
     
     with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(cache_data, f, ensure_ascii=False, indent=2, sort_keys=False)
+        json.dump(cache_data, f, ensure_ascii=False, indent=4, sort_keys=False)
     
     print(f"Результат сохранен в {json_path} (новый хеш)")
     

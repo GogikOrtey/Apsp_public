@@ -73,7 +73,7 @@ def save_to_json(data):
     
     # Сохраняем обратно в файл
     with open(JSON_FILE, 'w', encoding='utf-8') as f:
-        json.dump(submissions, f, ensure_ascii=False, indent=2, sort_keys=False)
+        json.dump(submissions, f, ensure_ascii=False, indent=4, sort_keys=False)
 
 
 def sanitize_text(value):
@@ -172,7 +172,7 @@ def write_data_input_table_file(result_json):
     try:
         # Нормализуем структуру (убираем OrderedDict) и сериализуем в JSON
         normalized = json.loads(json.dumps(result_json, ensure_ascii=False, sort_keys=False))
-        json_content = json.dumps(normalized, ensure_ascii=False, indent=2, sort_keys=False)
+        json_content = json.dumps(normalized, ensure_ascii=False, indent=4, sort_keys=False)
         safe_json_content = json_content.replace("'''", "\\'\\'\\'")
 
         file_body = (
@@ -354,7 +354,7 @@ def step2():
         
         # Выводим результат в консоль
         print('\n=== Результаты заполнения полей (шаг 2) ===')
-        print(json.dumps(result_json, ensure_ascii=False, indent=2, sort_keys=False))
+        print(json.dumps(result_json, ensure_ascii=False, indent=4, sort_keys=False))
         print('=' * 30 + '\n')
         
         # Сохраняем данные примеров в сессию
@@ -412,7 +412,7 @@ def step3():
         
         # Выводим результат в консоль
         print('\n=== Результаты заполнения полей (шаг 3) ===')
-        print(json.dumps(result_json, ensure_ascii=False, indent=2, sort_keys=False))
+        print(json.dumps(result_json, ensure_ascii=False, indent=4, sort_keys=False))
         print('=' * 30 + '\n')
         
         # Сохраняем данные в сессию
@@ -491,7 +491,7 @@ def step4():
                 
                 # Выводим отредактированный JSON в консоль сервера
                 print('\n=== Отредактированный JSON (шаг 4) ===')
-                print(json.dumps(edited_json, ensure_ascii=False, indent=2, sort_keys=False))
+                print(json.dumps(edited_json, ensure_ascii=False, indent=4, sort_keys=False))
                 print('=' * 30 + '\n')
             except json.JSONDecodeError:
                 # Если JSON невалидный (хотя валидация должна была пройти на клиенте),
@@ -526,7 +526,7 @@ def step4():
     
     # Сериализуем JSON в строку с сохранением порядка ключей (sort_keys=False по умолчанию)
     # и передаем строку в шаблон, чтобы избежать сортировки ключей фильтром tojson
-    result_json_str = json.dumps(result_json, ensure_ascii=False, indent=2, sort_keys=False)
+    result_json_str = json.dumps(result_json, ensure_ascii=False, indent=4, sort_keys=False)
     
     return render_template('step4.html', result_json_str=result_json_str)
 
@@ -627,7 +627,7 @@ def reset():
                 shutil.copy2(JSON_FILE, backup_file)
                 # Очищаем файл (создаем пустой массив)
                 with open(JSON_FILE, 'w', encoding='utf-8') as f:
-                    json.dump([], f, ensure_ascii=False, indent=2)
+                    json.dump([], f, ensure_ascii=False, indent=4)
             except Exception as e:
                 print(f'Ошибка при создании резервной копии: {e}')
     

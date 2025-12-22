@@ -54,7 +54,7 @@ def _write_json_file(path: Path, payload):
     # Пишем JSON с ensure_ascii=False и отступами
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
+        json.dump(payload, f, ensure_ascii=False, indent=4)
 
 
 def _read_json_file(path: Path, default):

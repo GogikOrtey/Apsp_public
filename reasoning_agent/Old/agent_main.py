@@ -137,20 +137,20 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
     # История шагов
     history_for_prompt = list(history[-HISTORY_WINDOW:]) or []
-    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=2)
+    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=4)
 
     # Шаги на будущее
     steps_future_for_prompt = steps_future_value or []
-    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=2)
+    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=4)
 
     # Долговременная память
-    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=2)
+    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=4)
 
     # Элемент, который будет удалён на следующем шаге
     def first_deleted_element_put():        
         if len(history) > HISTORY_WINDOW:
             first_deleted_element_history = json.dumps(
-                history[-HISTORY_WINDOW - 1], ensure_ascii=False, indent=2)
+                history[-HISTORY_WINDOW - 1], ensure_ascii=False, indent=4)
         else:
             return ""
 

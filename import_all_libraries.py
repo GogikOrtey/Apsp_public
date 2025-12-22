@@ -579,7 +579,7 @@ def save_content_html_to_cache(content_html, cache_file="cache.json"):
 
     # Сохраняем в файл
     with open(cache_file, "w", encoding="utf-8") as f:
-        json.dump(updated_cache, f, ensure_ascii=False, indent=2)
+        json.dump(updated_cache, f, ensure_ascii=False, indent=4)
 
     print(f"\n📄 Кеш сохранён в {cache_file}, всего страниц: {len(updated_cache['simple'])}")
     print(f"   Добавлено: {added_count}, обновлено: {updated_count}")
