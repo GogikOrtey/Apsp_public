@@ -24,27 +24,48 @@ FILES = {
     "archive.txt": "Старые заметки за 2022 год."
 }
 
+
+### Тут надо будет потом реализовать функцию, которая принимает результат, и разбивает его на схему и шаблон
+### А также добавить простую дефолтную схему, с одним результатом
+
+
 # Пример схемы результата (ее можно переопределить при запуске агента)
-result_format = {
-    "file_name": "",
-    "file_content": ""
+DEFAULT_RESULT_SCHEMA = {
+    "file_name": {
+        "type": "string",
+        "required": True,
+        "description": "Имя файла"
+    },
+    "file_content": {
+        "type": "string",
+        "required": True,
+        "description": "Содержимое файла"
+    }
+}
+
+# Базовый шаблон результата, который агент заполняет в процессе работы
+DEFAULT_RESULT_TEMPLATE = {
+    "file_name": None,
+    "file_content": None
 }
 
 # Текущая схема и текущий результат, который агент постепенно заполняет.
 # Инициализация делается через init_result(...) (см. ниже).
-RESULT_SCHEMA: dict[str, Any] = copy.deepcopy(result_format)
-RESULT: dict[str, Any] = copy.deepcopy(result_format)
+RESULT_SCHEMA: dict[str, Any] = copy.deepcopy(DEFAULT_RESULT_SCHEMA)
+RESULT: dict[str, Any] = copy.deepcopy(DEFAULT_RESULT_TEMPLATE)
 
 
-def init_result(schema: dict[str, Any] | None = None) -> dict[str, Any]:
+def init_result(schema: dict[str, Any] | None = None, template: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Инициализирует (или переинициализирует) схему результата и сам результат.
     """
     global RESULT_SCHEMA, RESULT
     if schema is None:
-        schema = result_format
+        schema = DEFAULT_RESULT_SCHEMA
+    if template is None:
+        template = DEFAULT_RESULT_TEMPLATE
     RESULT_SCHEMA = copy.deepcopy(schema)
-    RESULT = copy.deepcopy(schema)
+    RESULT = copy.deepcopy(template)
     return {"status": "ok", "result_schema": RESULT_SCHEMA, "result": RESULT}
 
 
@@ -191,6 +212,8 @@ def search_in_file(filename, substr):
     return {"status": "ok", "count": count, "first_index": first_index}
 
 
+
+# region update_result
 @tool(
     name="update_result",
     description=(
@@ -202,13 +225,13 @@ def search_in_file(filename, substr):
             "name": "field",
             "type": "str",
             "required": True,
-            "description": "Имя поля в result. Поддерживается путь через точку, напр. 'user.name'."
+            "description": "Имя поля в result"
         },
         {
             "name": "value",
             "type": "any",
             "required": True,
-            "description": "Значение, которое нужно записать в указанное поле (должно быть JSON-совместимым)."
+            "description": "Значение, которое нужно записать в указанное поле"
         }
     ],
     returns={

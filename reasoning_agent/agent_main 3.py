@@ -80,18 +80,24 @@ from reasoning_agent.agent_tools import *
 
 
 """
-И вот это я бы поправил, сделал бы вместо "" - тип значения, в данном случае - это str
-
 ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):
 {
-  "file_name": "",
-  "file_content": ""
+  "file_name": {
+    "type": "string",
+    "required": true,
+    "description": "Имя файла"
+  },
+  "file_content": {
+    "type": "string",
+    "required": true,
+    "description": "Содержимое файла"
+  }
 }
 
 ТЕКУЩИЙ РЕЗУЛЬТАТ (result):
 {
-  "file_name": "todo.txt",
-  "file_content": "Срочно: отправить письмо Алексею. Подготовить презентацию."
+  "file_name": null,
+  "file_content": null
 }
 
 """
@@ -112,9 +118,10 @@ main_task = """
 Название файла поместить в file_name, его содержание - в file_content
 """
 
-# Схема результата для этой задачи (можно переопределить при запуске orchestrate(...))
-# По умолчанию берём пример из agent_tools.py
-main_result_format = copy.deepcopy(result_format)
+# Схема результата и шаблон для этой задачи (можно переопределить при запуске orchestrate(...))
+# По умолчанию берём примеры из agent_tools.py
+main_result_schema = copy.deepcopy(DEFAULT_RESULT_SCHEMA)
+main_result_template = copy.deepcopy(DEFAULT_RESULT_TEMPLATE)
 
 HISTORY_WINDOW = 10         # сколько последних шагов отдаём в LLM
 MAX_STEPS = 20              # Максимальное количество шагов агента для решения задачи
@@ -415,11 +422,16 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
 # region Орекстратор
 # Запускает цикл агентных шагов
-def orchestrate(task: str = main_task, max_steps: int = MAX_STEPS, result_schema: dict[str, Any] | None = None) -> str:
+def orchestrate(
+    task: str = main_task,
+    max_steps: int = MAX_STEPS,
+    result_schema: dict[str, Any] | None = None,
+    result_template: dict[str, Any] | None = None
+) -> str:
     global steps_future_value, long_term_memory
 
     # Инициализируем объект результата для текущего запуска
-    init_result(result_schema or main_result_format)
+    init_result(result_schema or main_result_schema, result_template or main_result_template)
 
     for step in range(1, max_steps + 1):
         step_banner = f"\n———————————   Шаг {step}   ———————————\n"
