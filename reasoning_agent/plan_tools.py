@@ -6,14 +6,18 @@ from agent_tools import *
 
 from pathlib import Path
 import sys
-import json
-import copy
 from typing import Any
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+
+
+# Здесь реализован функционал для генерации плана действий в формальном виде,
+# из текста задачи, либо из неформального представления плана
+# Использует get_result_schema(), который возвращает схему результата задачи, из agent_tools.py
+
 
 # region Схема main_plan
 
@@ -367,10 +371,10 @@ def get_result_schema_for_planner(schema: dict) -> dict:
 # """
 # plan_from_task = create_main_plan_from_task(example_task_text, get_result_schema())
 
-# Генерация плана из неформального описания плана
-example_informal_plan = """
-1. Найти файл, в котором говорится про презентацию
-2. Узнать, в какое время можно собрать на собрании необходимых человек
-"""
-plan_from_informal = formalize_main_plan(example_informal_plan, get_result_schema())
+# # Генерация плана из неформального описания плана
+# example_informal_plan = """
+# 1. Найти файл, в котором говорится про презентацию
+# 2. Узнать, в какое время можно собрать на собрании необходимых человек
+# """
+# plan_from_informal = formalize_main_plan(example_informal_plan, get_result_schema())
 
