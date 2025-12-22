@@ -347,7 +347,7 @@ def send_message_to_ChatGPT(
         if is_print:
             print(f'💬 AI ANSWER:\n"{answer_text}"')
             emit_execution_time(start, emit=print, print_time_smile=False)
-            print(f"\n\n")
+            print(f"\n")
 
         # chat_id пустой, т.к. историю мы не вели
         return ChatGPTResult(answer=answer_text, chat_id="", raw_response=response)
