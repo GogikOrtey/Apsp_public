@@ -36,8 +36,6 @@ from reasoning_agent.plan_tools import *
 
 Локальные задачи:
 
-- Задать план, и запустить с ним (что бы не генерить)
-    - в main_plan
 
 
 
@@ -97,22 +95,47 @@ main_task = """
 Найти, в каком файле говорится про презентацию, и в какое время можно собрать на собрании необходимых человек. Название файла поместить в file_name, его содержание - в file_content, а наилучшее время для проведения собрания - в meeting_time
 """
 
-# Неформального плана - нет
-
 # Создаю план задачи в формальном виде
-_main_plan_resp = create_main_plan_from_task(main_task, get_result_schema())
-# create_main_plan_from_task возвращает объект-обёртку {"status": "...", "plan": {...}, ...}
-# В рантайме reasoning-агенту нужен именно нормализованный main_plan (status/current_step/steps).
 main_plan = None
-if isinstance(_main_plan_resp, dict) and _main_plan_resp.get("status") == "ok":
-    plan_value = _main_plan_resp.get("plan")
-    if isinstance(plan_value, dict):
-        main_plan = plan_value
 
-if not isinstance(main_plan, dict):
-    # Фоллбэк на безопасный пустой план
-    main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
+# Явно задаю план в формальной форме
+# Это можно закомментировать, и план сгенерируется из задачи main_task
+main_plan = {
+    "status": "not_started",
+    "current_step": 0,
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Определить, в каком файле упоминается презентация, и извлечь из него имя и полное содержание.",
+            "fills": [
+                "file_name",
+                "file_content"
+            ],
+            "status": "pending"
+        },
+        {
+            "step_id": 2,
+            "goal": "Определить наилучшее время, когда на собрании можно собрать всех необходимых людей.",
+            "fills": [
+                "meeting_time"
+            ],
+            "status": "pending"
+        }
+    ]
+}
 
+if not main_plan:
+    # Создаю план задачи в формальном виде
+    _main_plan_resp = create_main_plan_from_task(main_task, get_result_schema())
+
+    if isinstance(_main_plan_resp, dict) and _main_plan_resp.get("status") == "ok":
+        plan_value = _main_plan_resp.get("plan")
+        if isinstance(plan_value, dict):
+            main_plan = plan_value
+
+    if not isinstance(main_plan, dict):
+        # Фоллбэк на безопасный пустой план
+        main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
 
 
 

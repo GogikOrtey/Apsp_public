@@ -1,41 +1,23 @@
 {
-    "target": "Прочитать содержимое файла todo.txt, так как в нём найдено упоминание презентации",
-    "action": "read_file",
-    "args": {
-        "filename": "todo.txt"
-    },
-    "reasoning": "Поиск показал 1 вхождение 'презентац' в todo.txt, значит нужный файл найден; теперь нужно прочитать его полный текст, чтобы вернуть содержимое в результате.",
-    "steps_future": [
-        "Записать file_name='todo.txt' и file_content (полный текст файла) через update_result",
-        "Завершить задачу (DONE)"
+    "status": "not_started",
+    "current_step": 0,
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Определить, в каком файле упоминается презентация, и извлечь из него имя и полное содержание.",
+            "fills": [
+                "file_name",
+                "file_content"
+            ],
+            "status": "pending"
+        },
+        {
+            "step_id": 2,
+            "goal": "Определить наилучшее время, когда на собрании можно собрать всех необходимых людей.",
+            "fills": [
+                "meeting_time"
+            ],
+            "status": "pending"
+        }
     ]
-}{
-    "target": "Сохранить имя файла todo.txt в поле file_name результата",
-    "action": "update_result",
-    "args": {
-        "field": "file_name",
-        "value": "todo.txt"
-    },
-    "reasoning": "Имя файла с упоминанием презентации установлено; далее нужно записать содержимое файла в file_content.",
-    "steps_future": [
-        "Записать file_content (полный текст todo.txt) через update_result",
-        "Завершить задачу (DONE)"
-    ]
-}{
-    "target": "Сохранить содержимое файла todo.txt в поле file_content результата",
-    "action": "update_result",
-    "args": {
-        "field": "file_content",
-        "value": "{\"status\":\"ok\",\"content\":\"...\"}"
-    },
-    "reasoning": "Нужно записать содержание файла в результат. (Примечание: здесь должен быть фактический текст, полученный из read_file.)",
-    "steps_future": [
-        "Завершить задачу (DONE)"
-    ]
-}{
-    "target": "Завершить задачу: файл и его содержимое записаны в result",
-    "action": "DONE",
-    "args": {},
-    "reasoning": "Поля file_name и file_content заполнены, можно завершать.",
-    "steps_future": []
 }
