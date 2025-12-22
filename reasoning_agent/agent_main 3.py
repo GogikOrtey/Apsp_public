@@ -124,7 +124,6 @@ steps_future_value = ""     # Описание следующих шагов, к
 
 # region Собираю аннотации инструментов
 tools_annotation = get_tools_annotations()
-# print(tools_annotation)
 
 # region Обработчик хранения истории
 history = [] # Хранилище всей истории шагов
