@@ -311,11 +311,6 @@ def format_main_plan_for_prompt(main_plan: dict[str, Any]) -> str:
         if isinstance(step, dict) and step.get("status") == "done":
             marker = "ЗАВЕРШЕНО"
 
-        # # Маркер текущего шага
-        # marker = "🟢 АКТИВНАЯ ФАЗА" if idx == current_idx else "⚪"
-        # if isinstance(step, dict) and step.get("status") == "done":
-        #     marker = "✅ ЗАВЕРШЕНО"
-
         if not isinstance(step, dict):
             step_desc = f"{marker} [Фаза {idx + 1}] (некорректный шаг)"
             lines.append(step_desc)
@@ -738,6 +733,8 @@ def orchestrate(
             Перед началом работы надо задать верную схему результата (result_schema) и шаблон результата, который будет заполнять модель, и который будет передаваться ей в каждом запросе шага, в фрагменте 
             Текущий результат (result)
 
+            Оркестратор сам двигает план по фазам, т.к. сам проверяет их выполнение при каждом шаге, и в методе format_main_plan_for_prompt он сам проставляет какая фаза активна на текущий момент
+
         """
 
 
@@ -782,7 +779,7 @@ def orchestrate(
             print(f"✅ Агент завершил задачу: {completion_text}")
             return completion_text
 
-        # 6.1b Обработка провала (недостижимость цели)
+        # 6.2 Обработка провала (недостижимость цели)
         if tool_name == "FAILED":
             reason = None
             if isinstance(tool_args, dict):
@@ -812,7 +809,7 @@ def orchestrate(
             print(f"❌ Агент завершил задачу с ошибкой/недостижимостью: {reason}\nТекущий result:\n{result_text}")
             return final_text
 
-        # 6.2 Вызов инструмента
+        # 6.3 Вызов инструмента
         tool_result = run_tool(tool_name, tool_args)
         tool_log = f"🛠️  {tool_name}({tool_args})"
         print(tool_log)
