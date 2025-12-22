@@ -42,6 +42,20 @@ from reasoning_agent.agent_tools import *
 
 
 
+Добавить pip install tiktoken в reuarments
+
+Добавить рассчёт стоимости
+
+Ввод (input)	$1.75 / 1M токенов
+Кэшированный ввод	$0.175 / 1M токенов
+Вывод (output)	$14.00 / 1M токенов
+
+Добавить рассчёт кешированного ввода
+
+Примерный рассчёт - 4 рубля за решение этой задачи, без учёта кешированных токенов
+
+
+
 
 
 Глобальные задачи:
@@ -712,3 +726,11 @@ def log_development_feedback(feedback):
 
 if __name__ == "__main__":
     orchestrate()
+    try:
+        import global_variable  # гарантируем свежие значения из модуля
+        print(
+            f"🔢 Использовано токенов — input: {global_variable.total_input_tokens}, "
+            f"output: {global_variable.total_output_tokens}"
+        )
+    except Exception as ex:
+        print(f"Не удалось вывести статистику токенов: {ex}")

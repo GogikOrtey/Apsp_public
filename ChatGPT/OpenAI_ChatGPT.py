@@ -5,6 +5,7 @@
 from pathlib import Path
 import sys
 import os
+import importlib
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -48,6 +49,34 @@ class ChatGPTResult:
 
     def __str__(self) -> str:
         return self.answer
+
+
+def _count_tokens_for_messages(messages: list[dict], answer_text: str, model: str) -> tuple[int, int]:
+    """
+    Подсчитывает количество токенов для входных сообщений и ответа модели.
+    Используем максимально простой подход — считаем токены по конкатенации контента всех сообщений.
+    """
+    try:
+        tiktoken = importlib.import_module("tiktoken")
+    except ImportError:
+        raise ImportError("tiktoken не установлен")
+
+    try:
+        enc = tiktoken.encoding_for_model(model)
+    except Exception:
+        # Фоллбэк, если модель не найдена
+        enc = tiktoken.get_encoding("cl100k_base")
+
+    input_text = "\n".join(
+        str(m.get("content", ""))
+        for m in messages
+        if isinstance(m, dict) and m.get("content") is not None
+    )
+    output_text = answer_text or ""
+
+    input_tokens = len(enc.encode(input_text))
+    output_tokens = len(enc.encode(output_text))
+    return input_tokens, output_tokens
 
 
 def _write_json_file(path: Path, payload):
@@ -341,6 +370,14 @@ def send_message_to_ChatGPT(
         response = client.responses.create(**params)
         answer_text = response.output_text
 
+        # Подсчёт токенов для входа/выхода
+        try:
+            input_tokens, output_tokens = _count_tokens_for_messages(params["input"], answer_text, model)
+            global_variable.total_input_tokens += input_tokens
+            global_variable.total_output_tokens += output_tokens
+        except Exception as ex:
+            print(f"⚠️ Не удалось посчитать токены: {ex}")
+
         if is_print:
             print(f"\n💫 Запрос к ChatGPT без истории, модель {model}. PROMPT:\n{prompt}\n")
 
@@ -379,6 +416,14 @@ def send_message_to_ChatGPT(
 
     response = client.responses.create(**params)
     answer_text = response.output_text
+
+    # Подсчёт токенов для входа/выхода
+    try:
+        input_tokens, output_tokens = _count_tokens_for_messages(params["input"], answer_text, model)
+        global_variable.total_input_tokens += input_tokens
+        global_variable.total_output_tokens += output_tokens
+    except Exception as ex:
+        print(f"⚠️ Не удалось посчитать токены: {ex}")
 
     _append_message(chat, "assistant", answer_text)
     _save_session_history(history)
