@@ -86,7 +86,16 @@ main_task = """
 # Неформального плана - нет
 
 # Создаю план задачи в формальном виде
-main_plan = create_main_plan_from_task(main_task, get_result_schema())
+_main_plan_resp = create_main_plan_from_task(main_task, get_result_schema())
+# create_main_plan_from_task возвращает объект-обёртку {"status": "...", "plan": {...}, ...}
+# В рантайме reasoning-агенту нужен именно нормализованный main_plan (status/current_step/steps).
+if isinstance(_main_plan_resp, dict) and _main_plan_resp.get("status") == "ok" and isinstance(_main_plan_resp.get("plan"), dict):
+    main_plan = _main_plan_resp["plan"]
+else:
+    try:
+        main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
+    except Exception:
+        main_plan = {"status": "not_started", "current_step": 0, "steps": []}
 
 
 
@@ -268,7 +277,44 @@ def build_last_step_state_block(history) -> str:
 """
 
 
-def build_step_prompt(task, history, tools_json: str) -> str:
+# Вспомогательная функция для красивого отображения плана в промпте
+def format_main_plan_for_prompt(main_plan: dict[str, Any]) -> str:
+    if not main_plan or "steps" not in main_plan:
+        return "Глобальный план не задан."
+
+    lines: list[str] = []
+    current_idx = main_plan.get("current_step", 0)
+
+    lines.append(f"СТАТУС ПЛАНА: {main_plan.get('status', 'unknown')}")
+    lines.append("ШАГИ ПЛАНА (ФАЗЫ):")
+
+    steps = main_plan.get("steps", [])
+    if not isinstance(steps, list):
+        return "Глобальный план задан в некорректном формате."
+
+    for idx, step in enumerate(steps):
+        # Маркер текущего шага
+        marker = "🟢 АКТИВНАЯ ФАЗА" if idx == current_idx else "⚪"
+        if isinstance(step, dict) and step.get("status") == "done":
+            marker = "✅ ЗАВЕРШЕНО"
+
+        if not isinstance(step, dict):
+            step_desc = f"{marker} [Фаза {idx + 1}] (некорректный шаг)"
+            lines.append(step_desc)
+            continue
+
+        step_desc = (
+            f"{marker} [Фаза {step.get('step_id', idx + 1)}]\n"
+            f"   Цель (Goal): {step.get('goal', '')}\n"
+            f"   Требует заполнить (Fills): {step.get('fills', [])}\n"
+            f"   Статус: {step.get('status', 'unknown')}"
+        )
+        lines.append(step_desc)
+
+    return "\n".join(lines)
+
+
+def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any]) -> str:
     global steps_future_value, long_term_memory
 
     # История шагов
@@ -344,11 +390,37 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
 
 
+    # --- НОВАЯ ЧАСТЬ: Формирование текста плана ---
+    main_plan_text = format_main_plan_for_prompt(main_plan)
+
+    # Получаем цель текущей фазы для явного акцента
+    current_idx = main_plan.get("current_step", 0) if isinstance(main_plan, dict) else 0
+    steps_list = main_plan.get("steps", []) if isinstance(main_plan, dict) else []
+    current_phase_goal = "Цель не определена"
+    current_phase_fills = []
+
+    if isinstance(steps_list, list) and 0 <= current_idx < len(steps_list) and isinstance(steps_list[current_idx], dict):
+        current_phase_goal = steps_list[current_idx].get("goal") or current_phase_goal
+        current_phase_fills = steps_list[current_idx].get("fills") or []
+
     return f"""
+ГЛОБАЛЬНЫЙ ПЛАН ЗАДАЧИ (MAIN PLAN):
+{main_plan_text}
+
+————————————————————————————————————
+
+ТВОЙ ФОКУС ПРЯМО СЕЙЧАС (ТЕКУЩАЯ ФАЗА):
+Цель фазы: {current_phase_goal}
+Необходимо заполнить поля в result: {current_phase_fills}
+
+ТАКТИЧЕСКИЙ ПЛАН (steps_future) должен вести к завершению этой фазы.
+
+————————————————————————————————————
+
 ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
 {tools_json}
 
-ТЕКУЩАЯ ЗАДАЧА:
+ТЕКУЩАЯ ЗАДАЧА (Общее описание):
 {task}
 
 ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):
@@ -369,13 +441,14 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 
 ————————————————————————————————————
 
-ТЕКУЩИЙ ПЛАН (steps_future):
+ТЕКУЩИЙ ТАКТИЧЕСКИЙ ПЛАН (steps_future):
 {steps_future_text}
 
 ————————————————————————————————————
 
 ТВОЯ ЗАДАЧА НА ЭТОМ ШАГЕ:
 - Проанализировать задачу, историю, память и план
+- Проверить, какие поля (fills) еще пустые в result, для этой фазы
 - Определить следующую цель шага (target)
 - Выбрать ОДИН инструмент (action)
 - Подготовить аргументы (args)
@@ -383,8 +456,6 @@ def build_step_prompt(task, history, tools_json: str) -> str:
   - обновить steps_future
   - сохранить данные в memory_updates
   - оставить development_feedback
-
-————————————————————————————————————
 
 ФОРМАТ ОТВЕТА (СТРОГО JSON):
 
@@ -420,6 +491,93 @@ def build_step_prompt(task, history, tools_json: str) -> str:
 """
 
 
+# region Main Plan progress helpers
+def _is_result_field_filled(value: Any) -> bool:
+    """
+    Эвристика заполненности поля результата:
+    - None -> не заполнено
+    - str -> непустая после strip
+    - остальное -> считаем заполненным (включая 0/False, т.к. это валидные значения)
+    """
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return bool(value.strip())
+    return True
+
+
+def update_main_plan_progress(main_plan: dict[str, Any]) -> dict[str, Any]:
+    """
+    Автоматически продвигает main_plan по фазам:
+    - текущая фаза выполнена, когда все её fills заполнены в result
+    - оркестратор двигает current_step и статусы шагов
+
+    Важно: main_plan мутируется in-place, но также возвращается для удобства.
+    """
+    if not isinstance(main_plan, dict):
+        return main_plan
+
+    steps = main_plan.get("steps")
+    if not isinstance(steps, list) or not steps:
+        return main_plan
+
+    if main_plan.get("status") in (None, "", "unknown", "not_started"):
+        main_plan["status"] = "in_progress"
+
+    current_idx = main_plan.get("current_step", 0)
+    if not isinstance(current_idx, int) or current_idx < 0:
+        current_idx = 0
+        main_plan["current_step"] = 0
+
+    # Если вышли за границы — план выполнен
+    if current_idx >= len(steps):
+        main_plan["status"] = "completed"
+        return main_plan
+
+    # Выставляем статус текущего шага как in_progress, если ещё pending
+    if isinstance(steps[current_idx], dict) and steps[current_idx].get("status") == "pending":
+        steps[current_idx]["status"] = "in_progress"
+
+    step = steps[current_idx] if isinstance(steps[current_idx], dict) else {}
+    fills = step.get("fills") if isinstance(step.get("fills"), list) else []
+    if not fills:
+        # По правилам планировщика fills не должны быть пустыми
+        return main_plan
+
+    result_obj = get_result()
+
+    def _get_by_path(obj: Any, path: str) -> Any:
+        node = obj
+        for part in [p for p in str(path).split(".") if p]:
+            if not isinstance(node, dict) or part not in node:
+                return None
+            node = node.get(part)
+        return node
+
+    for f in fills:
+        val = _get_by_path(result_obj, f)
+        if not _is_result_field_filled(val):
+            return main_plan
+
+    # Закрываем текущую фазу
+    steps[current_idx]["status"] = "done"
+    next_idx = current_idx + 1
+
+    # Переходим к следующей фазе или закрываем план
+    if next_idx < len(steps):
+        main_plan["current_step"] = next_idx
+        if isinstance(steps[next_idx], dict) and steps[next_idx].get("status") == "pending":
+            steps[next_idx]["status"] = "in_progress"
+        main_plan["status"] = "in_progress"
+    else:
+        main_plan["current_step"] = next_idx
+        main_plan["status"] = "completed"
+
+    return main_plan
+
+# endregion
+
+
 
 
 
@@ -448,8 +606,14 @@ def orchestrate(
         print(step_banner)
         chat_print(step_banner)
 
+        # 0. Пробуем продвинуть план на основании уже заполненного result (если это возможно)
+        try:
+            update_main_plan_progress(main_plan)
+        except Exception:
+            pass
+
         # 1. Формируем запрос для текущего шага
-        prompt = build_step_prompt(task, history, tools_annotation)
+        prompt = build_step_prompt(task, history, tools_annotation, main_plan)
 
         # 2. Отправляем его в ChatGPT и получаем ответ
         result = send_message_to_ChatGPT(
@@ -603,6 +767,12 @@ def orchestrate(
 
         # Запись результатов инструмента в историю
         add_history_entry({"role": "tool", "name": tool_name, "result": tool_result})
+
+        # После каждого действия пробуем продвинуть план (особенно важно после update_result)
+        try:
+            update_main_plan_progress(main_plan)
+        except Exception:
+            pass
 
     print("⚠️ Достигнут лимит шагов без финального ответа.")
     return "Лимит шагов исчерпан без решения"
