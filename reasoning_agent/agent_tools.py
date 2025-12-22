@@ -4,6 +4,15 @@ import json
 import copy
 from typing import Any
 
+from pathlib import Path
+import sys
+import json
+import copy
+from typing import Any
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 # Импортируем LLM-клиент для генерации и формализации плана
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
@@ -443,7 +452,7 @@ def _normalize_to_main_plan(raw_plan: dict[str, Any]) -> dict[str, Any]:
     return plan
 
 
-def create_main_plan_from_task(task_text: str, model: str = "o3-mini", temperature: float | None = None) -> dict[str, Any]:
+def create_main_plan_from_task(task_text) -> dict[str, Any]:
     """
     Создаёт формальный main_plan из текста задачи.
     Возвращает словарь вида {"status": "ok|error", "plan": {...}, "error": "..."}.
@@ -472,9 +481,7 @@ def create_main_plan_from_task(task_text: str, model: str = "o3-mini", temperatu
     llm_result = send_message_to_ChatGPT(
         prompt=user_prompt,
         system_prompt=PLANNER_SYSTEM_PROMPT,
-        model=model,
-        temperature=temperature,
-        is_print=False
+        is_print=True
     )
 
     raw_plan = _parse_plan_response(llm_result.answer)
@@ -490,7 +497,7 @@ def create_main_plan_from_task(task_text: str, model: str = "o3-mini", temperatu
     return {"status": "ok", "plan": plan, "raw_answer": llm_result.answer}
 
 
-def formalize_main_plan(informal_plan_text: str, model: str = "o3-mini", temperature: float | None = None) -> dict[str, Any]:
+def formalize_main_plan(informal_plan_text) -> dict[str, Any]:
     """
     Преобразует неформально описанный план в формальный main_plan.
     Возвращает словарь вида {"status": "ok|error", "plan": {...}, "error": "..."}.
@@ -519,9 +526,7 @@ def formalize_main_plan(informal_plan_text: str, model: str = "o3-mini", tempera
     llm_result = send_message_to_ChatGPT(
         prompt=user_prompt,
         system_prompt=PLAN_FORMALIZER_SYSTEM_PROMPT,
-        model=model,
-        temperature=temperature,
-        is_print=False
+        is_print=True
     )
 
     raw_plan = _parse_plan_response(llm_result.answer)
@@ -537,4 +542,19 @@ def formalize_main_plan(informal_plan_text: str, model: str = "o3-mini", tempera
     return {"status": "ok", "plan": plan, "raw_answer": llm_result.answer}
 
 
-#
+# Пример: построить план из текста задачи
+example_task_text = """
+Найти, в каком файле говорится про презентацию, и в какое время можно
+собрать на собрании необходимых человек. Название файла поместить в file_name,
+его содержание - в file_content, а наилучшее время для проведения собрания - в meeting_time
+"""
+plan_from_task = create_main_plan_from_task(example_task_text)
+print("plan_from_task:", json.dumps(plan_from_task, ensure_ascii=False, indent=4))
+
+# # Пример: формализовать неформальный план
+# example_informal_plan = """
+# 1. Найти файл, в котором говорится про презентацию
+# 2. Узнать, в какое время можно собрать на собрании необходимых человек
+# """
+# plan_from_informal = formalize_main_plan(example_informal_plan)
+# print("plan_from_informal:", json.dumps(plan_from_informal, ensure_ascii=False, indent=4))
