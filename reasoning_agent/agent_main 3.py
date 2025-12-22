@@ -115,7 +115,7 @@ main_result_template = {
 
 
 
-HISTORY_WINDOW = 10         # сколько последних шагов отдаём в LLM
+HISTORY_WINDOW = 20         # сколько последних шагов отдаём в LLM
 MAX_STEPS = 20              # Максимальное количество шагов агента для решения задачи
 INVALID_JSON_RETRIES = 1    # Повторяем запрос шага при невалидном JSON ответа
 
