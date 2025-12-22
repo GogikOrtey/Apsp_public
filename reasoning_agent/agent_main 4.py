@@ -680,9 +680,9 @@ def orchestrate(
         print(model_summary)
 
 
-        # Перед каждым следующим шагом ждем подтверждения пользователем
-        input(f"\n-----> Нажмите Enter чтобы продолжить")
-        print("")
+        # # Перед каждым следующим шагом ждем подтверждения пользователем
+        # input(f"\n-----> Нажмите Enter чтобы продолжить")
+        # print("")
 
 
         """
@@ -766,10 +766,6 @@ def orchestrate(
         # 6.1 Обработка завершения работы агента
         if tool_name == "DONE":
             completion_text = ""
-
-            # # 1) Backward-compatible режим: старое поле final_answer
-            # if isinstance(tool_args, dict) and isinstance(tool_args.get("final_answer"), str) and tool_args.get("final_answer"):
-            #     completion_text = tool_args["final_answer"]
 
             # 2) Новый режим: возвращаем накопленный result
             if not completion_text:
