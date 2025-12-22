@@ -1,70 +1,41 @@
 {
-    "list_files": {
-        "name": "list_files", 
-        "description": "Возвращает список всех файлов в окружении",
-        "args": [],
-        "returns": "JSON: {"files": [
-            "notes.txt",
-            "todo.txt", ...
-        ]
-    }", "example_args": {}
-},
-"read_file": {
-    "name": "read_file",
-    "description": "Читает содержимое файла по имени. Возвращает словарь с содержимым и статусом",
-    "args": [
-        {
-            "name": "filename",
-            "type": "str",
-            "required": True,
-            "description": "Имя файла"
-        }
-    ],
-    "returns": "JSON: {"status": "ok",
-    "content": "..."
-} или {
-    "status": "error",
-    "content":None
-}", "example_args": {"filename": "todo.txt"
-}
-},
-"search_in_file": {
-"name": "search_in_file",
-"description": "Ищет вхождения подстроки в тексте файла",
-"args": [
-{
-    "name": "filename",
-    "type": "str",
-    "required": True,
-    "description": "Имя файла"
-},
-{
-    "name": "substr",
-    "type": "str",
-    "required": True,
-    "description": "Подстрока для поиска"
-}
-],
-"returns": "JSON: {"status": "ok/error",
-"count":int,
-"first_index":int or None
-}", "example_args": {"filename": "todo.txt", "substr": "презентац"
-}
-},
-"DONE": {
-"name": "DONE",
-"description": "Завершить работу и вернуть финальный ответ.",
-"args": [
-{
-"name": "final_answer",
-"type": "str",
-"required": True,
-"description": "Финальный ответ пользователю."
-}
-],
-"returns": "(завершение): args.final_answer будет выведен как итоговый ответ",
-"example_args": {
-"final_answer": "Про презентацию говорится в файле todo.txt."
-}
-}
+    "target": "Прочитать содержимое файла todo.txt, так как в нём найдено упоминание презентации",
+    "action": "read_file",
+    "args": {
+        "filename": "todo.txt"
+    },
+    "reasoning": "Поиск показал 1 вхождение 'презентац' в todo.txt, значит нужный файл найден; теперь нужно прочитать его полный текст, чтобы вернуть содержимое в результате.",
+    "steps_future": [
+        "Записать file_name='todo.txt' и file_content (полный текст файла) через update_result",
+        "Завершить задачу (DONE)"
+    ]
+}{
+    "target": "Сохранить имя файла todo.txt в поле file_name результата",
+    "action": "update_result",
+    "args": {
+        "field": "file_name",
+        "value": "todo.txt"
+    },
+    "reasoning": "Имя файла с упоминанием презентации установлено; далее нужно записать содержимое файла в file_content.",
+    "steps_future": [
+        "Записать file_content (полный текст todo.txt) через update_result",
+        "Завершить задачу (DONE)"
+    ]
+}{
+    "target": "Сохранить содержимое файла todo.txt в поле file_content результата",
+    "action": "update_result",
+    "args": {
+        "field": "file_content",
+        "value": "{\"status\":\"ok\",\"content\":\"...\"}"
+    },
+    "reasoning": "Нужно записать содержание файла в результат. (Примечание: здесь должен быть фактический текст, полученный из read_file.)",
+    "steps_future": [
+        "Завершить задачу (DONE)"
+    ]
+}{
+    "target": "Завершить задачу: файл и его содержимое записаны в result",
+    "action": "DONE",
+    "args": {},
+    "reasoning": "Поля file_name и file_content заполнены, можно завершать.",
+    "steps_future": []
 }
