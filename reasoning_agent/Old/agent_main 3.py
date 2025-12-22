@@ -133,7 +133,7 @@ main_result_template = {
 
 
 HISTORY_WINDOW = 20         # сколько последних шагов отдаём в LLM
-MAX_STEPS = 20              # Максимальное количество шагов агента для решения задачи
+MAX_STEPS = 30              # Максимальное количество шагов агента для решения задачи
 INVALID_JSON_RETRIES = 1    # Повторяем запрос шага при невалидном JSON ответа
 
 long_term_memory = []       # Долговременная память, в которую агент может записать данные, при помощи memory_updates
@@ -742,7 +742,7 @@ def log_development_feedback(feedback):
 if __name__ == "__main__":
     orchestrate()
     try:
-        import global_variable  # гарантируем свежие значения из модуля
+        import global_variable
         print(
             f"🔢 Использовано токенов — input: {global_variable.total_input_tokens}, "
             f"output: {global_variable.total_output_tokens}"

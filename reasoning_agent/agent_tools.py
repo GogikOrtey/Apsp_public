@@ -53,6 +53,28 @@ FILES = {
 ### А также добавить простую дефолтную схему, с одним результатом
 
 
+# # Старая схема результата
+# main_result_schema = {
+#     "file_name": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Имя файла"
+#     },
+#     "file_content": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Содержимое файла"
+#     }
+# }
+
+# # Старый шаблон результата, который агент заполняет в процессе работы
+# main_result_template = {
+#     "file_name": None,
+#     "file_content": None
+# }
+
+
+
 # Пример схемы результата (ее можно переопределить при запуске агента)
 DEFAULT_RESULT_SCHEMA = {
     "file_name": {
