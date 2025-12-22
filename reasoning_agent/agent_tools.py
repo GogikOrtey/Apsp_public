@@ -478,6 +478,7 @@ def create_main_plan_from_task(task_text) -> dict[str, Any]:
 
 Никакого текста вне JSON."""
 
+    print(PLANNER_SYSTEM_PROMPT)
     llm_result = send_message_to_ChatGPT(
         prompt=user_prompt,
         system_prompt=PLANNER_SYSTEM_PROMPT,
@@ -523,6 +524,7 @@ def formalize_main_plan(informal_plan_text) -> dict[str, Any]:
 
 Только JSON."""
 
+    print(PLAN_FORMALIZER_SYSTEM_PROMPT)
     llm_result = send_message_to_ChatGPT(
         prompt=user_prompt,
         system_prompt=PLAN_FORMALIZER_SYSTEM_PROMPT,
@@ -549,7 +551,7 @@ example_task_text = """
 его содержание - в file_content, а наилучшее время для проведения собрания - в meeting_time
 """
 plan_from_task = create_main_plan_from_task(example_task_text)
-print("plan_from_task:", json.dumps(plan_from_task, ensure_ascii=False, indent=4))
+# print("plan_from_task:", json.dumps(plan_from_task, ensure_ascii=False, indent=4))
 
 # # Пример: формализовать неформальный план
 # example_informal_plan = """
