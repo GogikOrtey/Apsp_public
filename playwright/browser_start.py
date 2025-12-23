@@ -92,7 +92,7 @@ def fetch_page_html(
         html: html открытой страницы
     """
 
-    headless = False    
+    headless = False # Запускаю с видимым окном
     pw, browser, page = launch_browser(headless=headless)
 
     try:        
@@ -102,6 +102,7 @@ def fetch_page_html(
 
         print("Работа fetch_page_html завершена ✅")
 
+        # Не закрываю окно браузера после выполнения задачи, пока не получу ввод в консоли
         if keep_open and not headless:
             input("Нажмите Enter, чтобы закрыть браузер...")
 
