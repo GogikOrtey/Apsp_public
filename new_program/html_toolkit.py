@@ -110,8 +110,12 @@ def clean_html_universal(html_content: str) -> str:
             else:
                 tag.attrs[attr] = val
 
-        # Удаляем пустые атрибуты, которые только занимают место
-        tag.attrs = {k: v for k, v in tag.attrs.items() if v} ###################### 
+        # Удаляем пустые атрибуты (только те, которые реально пустые: "", [], None)
+        # Мы оставляем 0, False и другие значения, которые могут быть важны
+        tag.attrs = {
+            k: v for k, v in tag.attrs.items() 
+            if v is not None and (not hasattr(v, '__len__') or len(v) > 0)
+        }
 
     # 5. Умное обрезание длинного текста (Truncate)
     # Проходимся по всем текстовым узлам
