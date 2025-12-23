@@ -35,7 +35,7 @@ def clean_html_universal(html_content: str) -> str:
         comment.extract()
 
     # 3. Обработка SVG
-    # Оставляем сам тег SVG (чтобы было видно, что тут иконка), но чистим "кишки"
+    # Оставляем сам тег SVG (чтобы было видно, что тут иконка), но чистим внутренности
     for svg in soup.find_all('svg'):
         # Сохраняем атрибуты, но удаляем вложенные path, circle и т.д.
         svg.clear() 
@@ -46,19 +46,11 @@ def clean_html_universal(html_content: str) -> str:
     for tag in soup.find_all(True):
         attrs_to_modify = {}
         for attr, value in tag.attrs.items():
-            # А. Удаляем JS-события (onclick, onmouseover...)
-            if attr.lower().startswith('on'):
-                attrs_to_modify[attr] = None # Пометить на удаление
-                continue
-
-            # Б. Проверка на Base64 (картинки, зашитые в код)
+            # Проверка на Base64 (картинки, зашитые в код)
             # Если значение атрибута - строка и начинается с data:image
             if isinstance(value, str) and value.startswith('data:'):
                 if len(value) > 50: # Если это не коротенький пиксель
                     attrs_to_modify[attr] = "<--BASE64_DATA_TRUNCATED-->"
-            
-            # В. (Опционально) Можно обрезать супер-длинные ссылки, если они не data:
-            # Но лучше оставить, вдруг это важная ссылка на товар
 
         # Применяем изменения атрибутов
         for attr, val in attrs_to_modify.items():
