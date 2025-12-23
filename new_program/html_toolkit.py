@@ -67,6 +67,8 @@ def clean_html_universal(html_content: str) -> str:
     Удаляет скрипты и стили, но сохраняет структуру, мета-теги и контент.
     Длинные тексты и Base64-изображения обрезаются.
     """
+    print(f"\nСжимаем страницу\n")
+
     if not html_content:
         return ""
 
@@ -126,4 +128,14 @@ def clean_html_universal(html_content: str) -> str:
 
     # 6. Финальная сборка
     # separator='\n' добавляет переносы строк, чтобы HTML не слипся в кашу
-    return soup.prettify()
+    cleaned_html = soup.prettify()
+
+    original_len = len(html_content)
+    cleaned_len = len(cleaned_html)
+    compression_percent = round((1 - cleaned_len / original_len) * 100, 2) if original_len else 0
+
+    print(f"Исходное количество символов: {original_len}")
+    print(f"После сжатия: {cleaned_len}")
+    print(f"Страница сжалась на {compression_percent}%\n")
+
+    return cleaned_html

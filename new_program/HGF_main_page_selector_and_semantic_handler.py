@@ -106,10 +106,13 @@ MAIN_PROMPT = """
 # # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
 # link = "https://makitaclub.ru/products/d-77780/"
 # url = normalize_url(link)
+
 link = "https://makitaclub.ru"
 html_content = get_html_from_cache(link)
 html_content_final = clean_html_universal(html_content)
-save_page_html(html_content_final)
+
+save_page_html(html_content, filename = "page_html.html")
+save_page_html(html_content_final, filename = "page_html_zip.html")
 
 
 
