@@ -50,7 +50,9 @@ def normalize_url(url: str) -> str:
     if domain.startswith("www."):
         domain = domain[4:]
 
-    return f"https://{domain}"
+    result =  f"https://{domain}"
+    print("Нормализовали ссылку, получилось:", result)
+    return result
 
 
 

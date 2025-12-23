@@ -14,16 +14,32 @@ import traceback
 import time
 from typing import Any
 
-from new_program.html_toolkit import *
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
+
+from new_program.html_toolkit import *
 
 # Подключение всех библиотек и функций
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 
+
+# region Доп. функции
+
+def save_page_html(html: str, filename: str = "page_html.html") -> str:
+    """
+    Сохраняет HTML в файл рядом со скриптом и возвращает путь к файлу.
+    
+    Args:
+        html: html-содержимое страницы
+    """
+    print("Сохраняем html страницы в файл", filename)
+    output_path = Path(__file__).resolve().parent / filename
+    output_path.write_text(html, encoding="utf-8")
+    return str(output_path)
 
 # region Пропмты
 
@@ -86,29 +102,37 @@ MAIN_PROMPT = """
 
 
 
-link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
-html_content = get_html_from_cache(link)
-html_content_final = clean_html_universal(html_content)
 
-
-request_from_LLM = f"""
-Инструкции:
-{MAIN_PROMPT}
-
-HTML ниже является входными данными
-
-BEGIN_HTML
-{html_content_final}
-END_HTML
-
-Напоминаю задачу:
-Верни ТОЛЬКО валидный JSON строго в указанном формате.
-
-"""
+# link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
+link = "https://makitaclub.ru/products/d-77780/"
+url = normalize_url(link) ############ Потом убрать это
+html_content = get_html_from_cache(url)
+save_page_html(html_content)
+# html_content_final = clean_html_universal(html_content)
 
 
 
-result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.15, system_prompt = SYSTEM_PROMPT)
+
+
+# # region Финальная инструкция
+# request_from_LLM = f"""
+# Инструкции:
+# {MAIN_PROMPT}
+
+# HTML ниже является входными данными
+
+# BEGIN_HTML
+# {html_content_final}
+# END_HTML
+
+# Напоминаю задачу:
+# Верни ТОЛЬКО валидный JSON строго в указанном формате.
+
+# """
+
+
+
+# result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.15, system_prompt = SYSTEM_PROMPT)
 
 
 

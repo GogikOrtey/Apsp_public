@@ -132,7 +132,8 @@ def get_html(
         headers: dict = None, 
         timeout: int = 20, 
         is_clear_html = True, 
-        is_use_proxy: bool = True ############## Всегда использую случайные прокси
+        # is_use_proxy: bool = True ############## Всегда использую случайные прокси
+        is_use_proxy: bool = False
     ) -> str:
 
     """
