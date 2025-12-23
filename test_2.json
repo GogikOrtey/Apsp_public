@@ -1,23 +1,71 @@
-{
-    "status": "not_started",
-    "current_step": 0,
-    "steps": [
-        {
-            "step_id": 1,
-            "goal": "Определить, в каком файле упоминается презентация, и извлечь из него имя и полное содержание.",
-            "fills": [
-                "file_name",
-                "file_content"
-            ],
-            "status": "pending"
-        },
-        {
-            "step_id": 2,
-            "goal": "Определить наилучшее время, когда на собрании можно собрать всех необходимых людей.",
-            "fills": [
-                "meeting_time"
-            ],
-            "status": "pending"
-        }
-    ]
-}
+[
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Страница успешно обработана",
+        "semantics": [
+            "инструмент",
+            "дрель",
+            "шуруповерт",
+            "перфоратор",
+            "болгарка",
+            "пила",
+            "лобзик",
+            "шлифмашина",
+            "пылесос",
+            "аккумулятор"
+        ],
+        "search_input_selectors": [
+            "#woocommerce-product-search-field-0",
+            "form.woocommerce-product-search input[name=\"s\"]",
+            "form.woocommerce-product-search input[type=\"search\"]",
+            ".site-search form.woocommerce-product-search input.search-field",
+            "input.search-field[name=\"s\"]"
+        ],
+        "search_button_selectors": [
+            "form.woocommerce-product-search button[type=\"submit\"]",
+            ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+            "form.woocommerce-product-search button",
+            ".woocommerce-product-search button[type=\"submit\"]",
+            ".widget_product_search form button[type=\"submit\"]"
+        ]
+    },
+
+
+
+
+
+
+    
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Страница успешно обработана",
+        "semantics": [
+            "котел",
+            "насос",
+            "радиатор",
+            "водонагреватель",
+            "колонка",
+            "счетчик",
+            "труба",
+            "фитинг",
+            "дымоход",
+            "арматура"
+        ],
+        "search_input_selectors": [
+            "form.c-input-search input[name=\"query\"]",
+            "form[action=\"/search/\"] input[name=\"query\"]",
+            "input.c-input-search__input[name=\"query\"]",
+            "div.c-header-bottom-bar__container-search input[name=\"query\"]",
+            "div.c-microdata form[itemtype=\"http://schema.org/SearchAction\"] input[name=\"query\"]"
+        ],
+        "search_button_selectors": [
+            "form.c-input-search button.c-input-search__button",
+            "form[action=\"/search/\"] button.c-input-search__button",
+            "button.c-input-search__button.c-button",
+            "div.c-header-bottom-bar__container-search button.c-input-search__button",
+            "form.c-input-search button[type=\"submit\"]"
+        ]
+    }
+]

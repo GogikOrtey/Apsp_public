@@ -27,6 +27,64 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 
 
+
+
+"""
+    Запускает ИИ процедуру, которая:
+
+    - Находит и вытаскивает селектор поля ввода запроса на поиск
+        - И доп. 4 запасных селектора
+    - Селектор кнопки запуска поиска
+    - Собирает семантику сайта - это набор слов (по одному слову, а не по фразе), которые будутсоответствовать тематике сайта (это будет сайт-онлайн магазин, такой как продажа инструментов,керамики, сантехники, косметики и прочих подобных категорий) - которые при поиске по этому сайту дадутнаибольшее количество результатов
+        - 10 запросов, которые дадут максимальное количество результатов. Запрос - только одно слово.
+        - Возможно 1м запросом стоит использовать название товара, который явно указан на сайте, и точно будет в поисковой выдаче, но тут хз, можно будет всё звернуть в цикл проверки агента, что если нет результатов или страница невалидная, то просто пробуем следующий запрос из массива семантики
+    - Также нужно поле результата анализа страницы. Это будет ok если страница выглядит корректно, и falled(или какой-то более красноречивый статус), говорящий о том, что страницу не получилось открыть илиобработать. Причиной этому может быть, если на странице замечена нестандартная структура, а 
+        - куратор
+        - капча
+        - сообщение об ограничении доступа
+        - либо пустая страница/страницабез данных/явно страница-заглушка
+        т.е. если один из этих признаков есть, или не получается найти семантику/селекторы, тогда возвращаем статус неудачи
+
+
+    Структура:
+    {
+        "status": str, # "ok" или "error"  
+        "error_type": str | None, # "captcha", "access_denied", "empty_page", "unknown_structure"    
+        "analysis_message": "Page parsed successfully", # Сообщение что генерация успешна, либо сюда нужно будет записать причину, почему вернуло статус error
+        "semantics": List[str],            # Список из 10 ключевых слов (по одному слову) для поиска
+        "search_input_selectors": List[str],  # Список из 5 селекторов для поля ввода, отсортированных от лучшего к худшему
+        "search_button_selectors": List[str]  # Список из 5 селекторов для кнопки поиска, от лучшего к худшему
+    }
+
+
+    Пример:
+    {
+        "status": "ok", # или "error"  
+        "error_type": null, # "captcha", "access_denied", "empty_page", "unknown_structure"    
+        "analysis_message": "Page parsed successfully",
+        "semantics": [
+            "дрель", "шуруповерт", "перфоратор", "лобзик", "сверло", "молоток", "шлифмашина", "рулетка", "уровень", "отвертка"
+        ],
+        "search_input_selectors": [
+            "input#search-input",
+            "input[name='q']",
+            "header input[type='text']",
+            ".search-form__input",
+            "form.search input"
+        ],
+        "search_button_selectors": [
+            "button[type='submit']",
+            "#search-submit",
+            ".search-form__button",
+            "header .search-icon",
+            "span.search-btn"
+        ]
+    }
+
+"""
+
+
+
 # region Доп. функции
 
 def save_page_html(html: str, filename: str = "page_html.html") -> str:
@@ -100,50 +158,27 @@ MAIN_PROMPT = """
 
 
 
+# region Внешняя функция
 
+def HGF_main_page_selector_and_semantic_handler(input_html):
+    request_from_LLM = f"""
+    Инструкции:
+    {MAIN_PROMPT}
 
+    HTML ниже является входными данными
 
-# # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
-# link = "https://makitaclub.ru/products/d-77780/"
-# url = normalize_url(link)
+    BEGIN_HTML
+    {input_html}
+    END_HTML
 
-link = "https://makitaclub.ru"
-html_content = get_html_from_cache(link)
-html_content_zip = clean_html_universal(html_content)
+    Напоминаю задачу:
+    Верни ТОЛЬКО валидный JSON строго в указанном формате.
 
-# save_page_html(html_content, filename = "page_html.html")
-# save_page_html(html_content_zip, filename = "page_html_zip.html")
+    """
 
+    result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.1, system_prompt = SYSTEM_PROMPT)
 
-
-
-
-
-
-
-
-
-
-
-# # region Финальная инструкция
-# request_from_LLM = f"""
-# Инструкции:
-# {MAIN_PROMPT}
-
-# HTML ниже является входными данными
-
-# BEGIN_HTML
-# {html_content_final}
-# END_HTML
-
-# Напоминаю задачу:
-# Верни ТОЛЬКО валидный JSON строго в указанном формате.
-
-# """
-
-
-
-# result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.15, system_prompt = SYSTEM_PROMPT)
+    return result_request
 
 
 

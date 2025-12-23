@@ -18,6 +18,8 @@ import traceback
 import time
 from typing import Any
 
+from HGF_main_page_selector_and_semantic_handler import *
+
 from new_program.html_toolkit import *
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -26,6 +28,8 @@ if str(ROOT_DIR) not in sys.path:
 # Подключение всех библиотек и функций
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+
+
 
 """
 
@@ -40,15 +44,12 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 """
 
 Текущие задачи:
-- Реализовать функцию очистки html от лишнего мусора
 - Написать запрос для LLM, который вернёт нам семантику и селекторы поля поиска на главной странице сайта
     - Запустить, протестировать
-- Написать промпт для LLM который извлекает нужные данные на 7 шаге алгоритма, со страницы поисковой выдачи
+- Написать промпт для LLM который извлекает нужные данные на 7 шаге алгоритма, со страницы поисковой выдачи:
     - Товара
     - Пагинации
     - Поля поиска
-- Собрать 15-20 примеров сайтов, на которых буду тестировать
-    - Потом, на стадии теста не большем количестве сайтов протестирую
 
 - Доработать код в get_html_frame
 
@@ -68,10 +69,107 @@ makita-snab.ru
 https://line-tools.ru/
 makita-online.ru
 
+Доп. ссылки прописаны внизу этого файла
+
+"""
 
 
 
 
+
+
+
+
+
+def main_processer(input_url):
+    print("Запускаем основной процесс")
+
+    # 1. Чистим входящий url - до host, что бы получить ссылку на главную страницы
+    url = normalize_url(input_url)
+
+    # 2. Запускаем браузер и переходми на эту страницу
+        # Дожидаемя полной загрузки страницы, но с таймаутом в 20 секунд
+    
+    # 3. HGF_main_page_selector_and_semantic_handler
+
+    ### Тут возможно стоит брать html контент из playwright
+    ######## И не понятно, надо ли проверять, отличается ли контент в браузере от контента по прямому запросу, без него
+    html_content = get_html_from_cache(url)
+    html_content_zip = clean_html_universal(html_content)
+
+    # save_page_html(html_content, filename = "page_html.html")
+    # save_page_html(html_content_zip, filename = "page_html_zip.html")
+
+    HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+    print(f"\nHGF_result:\n")
+    print(HGF_result)
+
+    """
+    Пример результата в HGF_result:
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Страница успешно обработана",
+        "semantics": ["инструмент", "дрель", "шуруповерт", "перфоратор", "болгарка", "пила", "лобзик", "шлифмашина", "пылесос", "аккумулятор"],
+        "search_input_selectors": [
+            "#woocommerce-product-search-field-0",
+            ...
+        ],
+        "search_button_selectors": [
+            "form.woocommerce-product-search button[type=\"submit\"]",
+            ...
+        ]
+    }
+    """
+
+
+
+# link = "https://makitaclub.ru"
+link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
+main_processer(link)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
 Старые простые:
 (смотрел по простоте реализации)
 
@@ -109,135 +207,8 @@ https://edrinks.bg
 https://dom-septik24.ru 
 https://makita-line.ru
 
-Обработать ситуации:
-- Киррилические домены
-- Все что прописаны у меня в примерах
-- + проверить что если при переходе на страницу сразу идёт редирект, логика автогенератора не ломается
-    - https://makita-line.ru
+Обработать другие расписанные ситуации
 
 """
-
-
-
-
-
-
-
-
-
-def main_processer(input_url):
-    print("Запускаем основной процесс")
-
-    # 1. Чистим входящий url - до host, что бы получить ссылку на главную страницы
-    url = normalize_url(input_url)
-
-    # 2. Запускаем браузер и переходми на эту страницу
-        # Дожидаемя полной загрузки страницы, но с таймаутом в 20 секунд
-    
-    # 3. 
-
-
-    """
-        Запускает ИИ процедуру, которая:
-
-        - Находит и вытаскивает селектор поля ввода запроса на поиск
-            - И доп. 4 запасных селектора
-        - Селектор кнопки запуска поиска
-        - Собирает семантику сайта - это набор слов (по одному слову, а не по фразе), которые будут соответствовать тематике сайта (это будет сайт-онлайн магазин, такой как продажа инструментов, керамики, сантехники, косметики и прочих подобных категорий) - которые при поиске по этому сайту дадут наибольшее количество результатов
-            - 10 запросов, которые дадут максимальное количество результатов. Запрос - только одно слово.
-            - Возможно 1м запросом стоит использовать название товара, который явно указан на сайте, и точно будет в поисковой выдаче, но тут хз, можно будет всё звернуть в цикл проверки агента, что если нет результатов или страница невалидная, то просто пробуем следующий запрос из массива семантики
-        - Также нужно поле результата анализа страницы. Это будет ok если страница выглядит корректно, и falled (или какой-то более красноречивый статус), говорящий о том, что страницу не получилось открыть или обработать. Причиной этому может быть, если на странице замечена нестандартная структура, а 
-            - куратор
-            - капча
-            - сообщение об ограничении доступа
-            - либо пустая страница/страницабез данных/явно страница-заглушка
-            т.е. если один из этих признаков есть, или не получается найти семантику/селекторы, тогда возвращаем статус неудачи
-
-
-        Структура:
-        {
-            "status": str, # "ok" или "error"  
-            "error_type": str | None, # "captcha", "access_denied", "empty_page", "unknown_structure"    
-            "analysis_message": "Page parsed successfully", # Сообщение что генерация успешна, либо сюда нужно будет записать причину, почему вернуло статус error
-            "semantics": List[str],            # Список из 10 ключевых слов (по одному слову) для поиска
-            "search_input_selectors": List[str],  # Список из 5 селекторов для поля ввода, отсортированных от лучшего к худшему
-            "search_button_selectors": List[str]  # Список из 5 селекторов для кнопки поиска, от лучшего к худшему
-        }
-
-
-        Пример:
-        {
-            "status": "ok", # или "error"  
-            "error_type": null, # "captcha", "access_denied", "empty_page", "unknown_structure"    
-            "analysis_message": "Page parsed successfully",
-            "semantics": [
-                "дрель", "шуруповерт", "перфоратор", "лобзик", "сверло", "молоток", "шлифмашина", "рулетка", "уровень", "отвертка"
-            ],
-            "search_input_selectors": [
-                "input#search-input",
-                "input[name='q']",
-                "header input[type='text']",
-                ".search-form__input",
-                "form.search input"
-            ],
-            "search_button_selectors": [
-                "button[type='submit']",
-                "#search-submit",
-                ".search-form__button",
-                "header .search-icon",
-                "span.search-btn"
-            ]
-        }
-
-
-
-    """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
