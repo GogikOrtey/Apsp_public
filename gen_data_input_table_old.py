@@ -985,6 +985,8 @@ https://gresstore.ru         *
 https://elevel.ru
 https://cleansan.ru
 
+https://csk-rus.ru // нет пагинации
+
 С вариациями товара по объёму:
 https://cosmofun.ru
 

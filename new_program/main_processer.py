@@ -6,6 +6,27 @@
 И в результате он должен будет сгенерировать код парсера этого сайта, и сохранить в result_code.ts
 """
 
+# region Импорты
+# Чтобы при запуске файла из этой папки были видны модули из корня проекта (addedFunc.py и др.)
+### Потом убрать, что бы было нормально
+from pathlib import Path
+import sys
+import os
+import json
+import copy
+import traceback
+import time
+from typing import Any
+
+from new_program.html_toolkit import *
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+# Подключение всех библиотек и функций
+from import_all_libraries import *
+from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+
 """
 
 Задачи на будущее:
@@ -22,6 +43,77 @@
 - Реализовать функцию очистки html от лишнего мусора
 - Написать запрос для LLM, который вернёт нам семантику и селекторы поля поиска на главной странице сайта
     - Запустить, протестировать
+- Написать промпт для LLM который извлекает нужные данные на 7 шаге алгоритма, со страницы поисковой выдачи
+    - Товара
+    - Пагинации
+    - Поля поиска
+- Собрать 15-20 примеров сайтов, на которых буду тестировать
+    - Потом, на стадии теста не большем количестве сайтов протестирую
+
+
+
+
+
+
+Сайты, на которых тестирую:
+
+
+Макитовские:
+https://makitaclub.ru
+https://makita-land.ru/
+makitatrading.ru
+systemarf.ru
+makita-snab.ru
+
+https://line-tools.ru/
+makita-online.ru
+
+
+
+
+
+Старые простые:
+(смотрел по простоте реализации)
+
+https://domo-terra.ru
+https://domplitok.ru
+https://dvkeramik.ru
+https://e-dz.ru
+https://electron.bg
+https://www.electrovek.ru
+https://www.elemor.ru
+https://ceraboom.ru
+https://ceramama.ru
+https://ceramicmall.ru
+https://ceramictilecenter.ru
+https://ceram-stroy.ru
+https://www.ceramtrade.ru
+https://championtool.ru
+https://www.chipdip.ru        
+https://comfort-klimat.ru    
+https://cosmofun.ru          
+https://c-s-k.ru             
+https://galen.bg           
+https://galleryceramics.ru 
+https://gazovik-omsk.ru    
+https://gaz-shop78.ru      
+https://gidro-top.ru       
+https://glavsantex.ru      
+https://goodzone23.ru      
+https://gra-nit.ru         
+https://gresstore.ru       
+https://gastehmarket.ru
+https://daewoo-power.ru
+https://chiedocover.ru
+https://edrinks.bg
+https://dom-septik24.ru 
+https://makita-line.ru
+
+Обработать ситуации:
+- Киррилические домены
+- Все что прописаны у меня в примерах
+- + проверить что если при переходе на страницу сразу идёт редирект, логика автогенератора не ломается
+    - https://makita-line.ru
 
 """
 
