@@ -32,13 +32,12 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 """
 
 Текущие задачи:
-- Написать промпт для LLM который извлекает нужные данные на 7 шаге алгоритма, со страницы поисковой выдачи:
+- Написать для TNF промпт для LLM который извлекает нужные данные на 7 шаге алгоритма, со страницы поисковой выдачи:
     - Товара
     - Пагинации
     - Поля поиска
 
-Назвём его TNF
-    - Протестировать TNF
+- Протестировать TNF
 
 - Доработать код в get_html_frame
 - Реализовать все инструменты, которые описал gemini
@@ -87,8 +86,8 @@ def main_processer(input_url):
     html_content = get_html_from_cache(url)
     html_content_zip = clean_html_universal(html_content)
 
-    save_page_html(html_content, filename = "page_html.html")
-    save_page_html(html_content_zip, filename = "page_html_zip.html")
+    # save_page_html(html_content, filename = "page_html.html")
+    # save_page_html(html_content_zip, filename = "page_html_zip.html")
 
     HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
     print(f"\nHGF_result:\n")
@@ -138,7 +137,8 @@ def main_processer(input_url):
 
 
 # link = "https://makitaclub.ru"
-link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
+# link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
+link = "https://makitatrading.ru"
 main_processer(link)
 
 
