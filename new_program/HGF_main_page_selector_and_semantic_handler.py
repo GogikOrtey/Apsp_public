@@ -109,10 +109,17 @@ MAIN_PROMPT = """
 
 link = "https://makitaclub.ru"
 html_content = get_html_from_cache(link)
-html_content_final = clean_html_universal(html_content)
+html_content_zip = clean_html_universal(html_content)
 
-save_page_html(html_content, filename = "page_html.html")
-save_page_html(html_content_final, filename = "page_html_zip.html")
+# save_page_html(html_content, filename = "page_html.html")
+# save_page_html(html_content_zip, filename = "page_html_zip.html")
+
+
+
+
+
+
+
 
 
 

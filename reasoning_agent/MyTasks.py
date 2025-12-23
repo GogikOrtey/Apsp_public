@@ -24,4 +24,28 @@
 
     Примерный рассчёт - 4 рубля за решение этой задачи, без учёта кешированных токенов
 
+
+# Считаем кол-во токенов
+import importlib
+tiktoken = importlib.import_module("tiktoken")
+try:
+    enc = tiktoken.encoding_for_model("gpt-5.2")
+except KeyError:
+    # Fallback for models unknown to the current tiktoken version
+    enc = tiktoken.get_encoding("cl100k_base")
+count_tokens = len(enc.encode(html_content_zip))
+print("count_tokens =", count_tokens)
+
+# Рассчитываем стоимость ввода:
+def calc_cost(tokens: int, price_per_m: float) -> float:
+    return tokens * price_per_m / 1_000_000
+
+INPUT_PRICE_PER_M = 1.75
+input_cost = calc_cost(count_tokens, INPUT_PRICE_PER_M)
+
+print(f"Стоимость input: ${input_cost:.6f}")
+# Получается порядка 7-12 рублей за обработку 1 html страницы полностью 
+
+
+
 """
