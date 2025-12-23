@@ -1,4 +1,4 @@
-24.12.2025 04:00:35
+24.12.2025 04:12:04
 
 Запускаем основной процесс
 Нормализовали ссылку, получилось: https://kotel-nasos.ru
@@ -9,6 +9,8 @@
 После сжатия: 286969
 Страница сжалась на -29.67%
 
+Сохраняем html страницы в файл page_html.html
+Сохраняем html страницы в файл page_html_zip.html
 
 💫 Запрос к ChatGPT без истории, модель gpt-5.2. PROMPT:
 
@@ -5948,20 +5950,20 @@
   "search_input_selectors": [
     "form.c-input-search input[name=\"query\"]",
     "form[action=\"/search/\"] input[name=\"query\"]",
+    "div.c-header-bottom-bar__container-search input.c-input-search__input",
     "input.c-input-search__input[name=\"query\"]",
-    "div.c-header-bottom-bar__container-search input[name=\"query\"]",
-    "div.c-microdata form[itemtype=\"http://schema.org/SearchAction\"] input[name=\"query\"]"
+    "input[name=\"query\"][placeholder]"
   ],
   "search_button_selectors": [
     "form.c-input-search button.c-input-search__button",
     "form[action=\"/search/\"] button.c-input-search__button",
-    "button.c-input-search__button.c-button",
     "div.c-header-bottom-bar__container-search button.c-input-search__button",
+    "button.c-input-search__button.c-button",
     "form.c-input-search button[type=\"submit\"]"
   ]
 }"
 
-Время выполнения: 7.53 секунд
+Время выполнения: 6.82 секунд
 
 
 
@@ -5986,15 +5988,15 @@ HGF_result:
   "search_input_selectors": [
     "form.c-input-search input[name=\"query\"]",
     "form[action=\"/search/\"] input[name=\"query\"]",
+    "div.c-header-bottom-bar__container-search input.c-input-search__input",
     "input.c-input-search__input[name=\"query\"]",
-    "div.c-header-bottom-bar__container-search input[name=\"query\"]",
-    "div.c-microdata form[itemtype=\"http://schema.org/SearchAction\"] input[name=\"query\"]"
+    "input[name=\"query\"][placeholder]"
   ],
   "search_button_selectors": [
     "form.c-input-search button.c-input-search__button",
     "form[action=\"/search/\"] button.c-input-search__button",
-    "button.c-input-search__button.c-button",
     "div.c-header-bottom-bar__container-search button.c-input-search__button",
+    "button.c-input-search__button.c-button",
     "form.c-input-search button[type=\"submit\"]"
   ]
 }

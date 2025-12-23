@@ -29,45 +29,35 @@ if str(ROOT_DIR) not in sys.path:
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
-
-
-"""
-
-Задачи на будущее:
-
-- В очень редких случаях пагинации на странице нет вообще - сайт выдаёт все результаты на одной странице. Но тогда на больших запросах будет много результатов (можно будет проверить, если количество результатов плавает на больших запросах, и везде > 100, то скорее всего пагинации нет) - пока что следует поставить заглушку на этот случай, в будущем доработать
-  - Иногда вместо пагинации есть бесконечная автоподгрузка, через запросы - пока что следует поставить заглушку на этот случай, в будущем доработать
-  - Иногда, очень редко, нет ни кнопки последней страницы, ни указания количества результатов. Тогда нужно будет реализовывать динамическую пагинацию - пока что следует поставить заглушку на этот случай, в будущем доработать
-
-"""
-
 """
 
 Текущие задачи:
-- Написать запрос для LLM, который вернёт нам семантику и селекторы поля поиска на главной странице сайта
-    - Запустить, протестировать
 - Написать промпт для LLM который извлекает нужные данные на 7 шаге алгоритма, со страницы поисковой выдачи:
     - Товара
     - Пагинации
     - Поля поиска
 
+Назвём его TNF
+    - Протестировать TNF
+
 - Доработать код в get_html_frame
+- Реализовать все инструменты, которые описал gemini
+
 
 
 
 
 Сайты, на которых тестирую:
 
-
-Макитовские:
 https://makitaclub.ru
-https://makita-land.ru/
-makitatrading.ru
-systemarf.ru
-makita-snab.ru
+https://makita-land.ru
+https://kotel-nasos.ru
 
-https://line-tools.ru/
-makita-online.ru
+https://makitatrading.ru
+https://systemarf.ru
+https://makita-snab.ru
+https://line-tools.ru
+https://makita-online.ru
 
 Доп. ссылки прописаны внизу этого файла
 
@@ -97,8 +87,8 @@ def main_processer(input_url):
     html_content = get_html_from_cache(url)
     html_content_zip = clean_html_universal(html_content)
 
-    # save_page_html(html_content, filename = "page_html.html")
-    # save_page_html(html_content_zip, filename = "page_html_zip.html")
+    save_page_html(html_content, filename = "page_html.html")
+    save_page_html(html_content_zip, filename = "page_html_zip.html")
 
     HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
     print(f"\nHGF_result:\n")
@@ -124,6 +114,29 @@ def main_processer(input_url):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # link = "https://makitaclub.ru"
 link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
 main_processer(link)
@@ -144,6 +157,19 @@ main_processer(link)
 
 
 
+# region Доп. функции
+
+def save_page_html(html: str, filename: str = "page_html.html") -> str:
+    """
+    Сохраняет HTML в файл рядом со скриптом и возвращает путь к файлу.
+    
+    Args:
+        html: html-содержимое страницы
+    """
+    print("Сохраняем html страницы в файл", filename)
+    output_path = Path(__file__).resolve().parent / filename
+    output_path.write_text(html, encoding="utf-8")
+    return str(output_path)
 
 
 
@@ -167,6 +193,24 @@ main_processer(link)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+"""
+Задачи на будущее:
+
+- В очень редких случаях пагинации на странице нет вообще - сайт выдаёт все результаты на одной странице. Но тогда на больших запросах будет много результатов (можно будет проверить, если количество результатов плавает на больших запросах, и везде > 100, то скорее всего пагинации нет) - пока что следует поставить заглушку на этот случай, в будущем доработать
+  - Иногда вместо пагинации есть бесконечная автоподгрузка, через запросы - пока что следует поставить заглушку на этот случай, в будущем доработать
+  - Иногда, очень редко, нет ни кнопки последней страницы, ни указания количества результатов. Тогда нужно будет реализовывать динамическую пагинацию - пока что следует поставить заглушку на этот случай, в будущем доработать
+"""
 
 
 """
