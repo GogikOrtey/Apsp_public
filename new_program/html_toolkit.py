@@ -110,6 +110,9 @@ def clean_html_universal(html_content: str) -> str:
             else:
                 tag.attrs[attr] = val
 
+        # Удаляем пустые атрибуты, которые только занимают место
+        tag.attrs = {k: v for k, v in tag.attrs.items() if v} ###################### 
+
     # 5. Умное обрезание длинного текста (Truncate)
     # Проходимся по всем текстовым узлам
     for text_node in soup.find_all(text=True):
@@ -127,9 +130,14 @@ def clean_html_universal(html_content: str) -> str:
             text_node.replace_with(new_text)
 
     # 6. Финальная сборка
-    # separator='\n' добавляет переносы строк, чтобы HTML не слипся в кашу
-    cleaned_html = soup.prettify()
+    # cleaned_html = soup.prettify() # Формирует красивый html код, но нам нужен именно сжатый
 
+    # Сборка компактным методом
+    content = str(soup)
+    # Удаляем лишние пустые строки, которые могли остаться после decompose()
+    cleaned_html = "\n".join([line.strip() for line in content.splitlines() if line.strip()])
+
+    # Вычисление и вывод статистики
     original_len = len(html_content)
     cleaned_len = len(cleaned_html)
     compression_percent = round((1 - cleaned_len / original_len) * 100, 2) if original_len else 0
