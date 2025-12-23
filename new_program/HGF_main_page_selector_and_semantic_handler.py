@@ -15,6 +15,8 @@ import copy
 import traceback
 import time
 from typing import Any
+
+from new_program.html_toolkit import *
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -88,6 +90,7 @@ MAIN_PROMPT = """
 
 link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
 html_content = get_html_from_cache(link)
+html_content_final = clean_html_universal(html_content)
 
 
 request_from_LLM = f"""
@@ -97,7 +100,7 @@ request_from_LLM = f"""
 HTML ниже является входными данными
 
 BEGIN_HTML
-{html_content}
+{html_content_final}
 END_HTML
 
 Напоминаю задачу:

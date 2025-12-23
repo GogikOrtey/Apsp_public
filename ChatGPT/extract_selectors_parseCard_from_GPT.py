@@ -211,5 +211,6 @@ END_HTML
 
 
 ################################ system prompt не задан!
+################################ Добавить очистку через clean_html_universal
 
 result_request = send_message_to_ChatGPT(formation_request, temperature = 0.15)
