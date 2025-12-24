@@ -33,11 +33,16 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 Текущие задачи:
 
-- Доработать код в get_html_frame, и вынести его в html_toolkit
-- Реализовать все инструменты, которые описал gemini
+- Реализовать все инструменты для работы с Playwright:
+    - Которые описал gemini
+    - Доработать код в get_html_frame, и вынести его в html_toolkit
     - Реализовать инструмент, который возвращает html между двумя найденными вхождениями одинаковых селекторов
     и возможно как-то собирает полный элемент между ними. Возвращает с доп. информацией
+        - Да, это прям надо сделать автоматически, для валидации селектора товара
     - Может быть необходимо добавить чистку от ``` в ответах от HGF и TNF
+    - Посмотреть все запросы в браузере, их параметры и часть ответа
+        - Надо будет опять же чистить их от мусора
+    - Найти подстроку в запросах
 - Добавить функционал local_storage в агента
 - Выписать, что бы он смог сделать всё что нужно на 2й фазе
 
@@ -110,6 +115,46 @@ def main_processer(input_url):
             ...
         ]
     }
+    """
+
+    # 4. Включается агент, он валидирует поле поиска и переходит на страницу результатов
+
+    # 5. Когда попал на страницу результатов - отправляет её в TNF_extract_data_from_search_page
+
+    """
+    Получает набор параметров вида:
+
+    {
+        "status": "ok" | "error",
+        "error_type": string | null,
+        "analysis_message": string,
+        
+        "search_input_selectors": [string, string, string],
+        "search_button_selectors": [string, string, string] | null,
+        "total_results_count_selectors": [string, string, string] | null,
+        
+        "product_link_selectors": [string, string, string],
+        
+        "pagination_container_selectors": [string, string, string] | null,
+        "pagination_page2_selectors": [string, string, string] | null,
+        "pagination_last_page_selectors": [string, string, string] | null,
+        
+        "last_page_number_displayed": boolean | null
+    }
+    """
+
+    # 6. Активируется агент, и ему нужно:
+
+    """
+
+    - Валидирует селектор товара
+        Прописать по каким признакам. Например:
+        - Кол-во на странице
+        - То что выделяется объект, в котором есть название, цена, кнопка "В корзину" или подобнае, изображение товара, и возможно описание
+    - Записывает селектор товара в результаты
+    - Запоминает URL
+    - Находит кнопку 
+
     """
 
 

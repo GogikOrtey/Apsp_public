@@ -463,8 +463,108 @@ def send_message_to_ChatGPT(
 
 
 
+my_prompt = """
+Привет. Я сейчас пишу реализацию reasoning-агента, который собирает селекторы и другую необходимую информацию со страниц, для того что бы составить код парсера для сайта. Сейчас я прописываю шаг, на котором он стартует со страниц результатов поисковой выдачи сайта. С этой страницы ему нужно собрать информацию:
+- Селектор товара
+- Где получить максимальное количество страниц выдачи (число)
+    - Чаще всего у нас в коде используется ссылка на общий блок пагинации, и там функция выделяет элемент с максимальным числом
+    - Также здесь агенту будет дан селектор на элемент перехода на последнюю страницу
+    - Ну и ему будет дан селектор, указывающий на текстовое описание, в котором указано сколько товаров в выдаче по этому запросу, если такое текстовое описание отображается на сайте
+        - В таком случае мы в коде обычно чистим регуляркой эту строку, извлекаем кол-во товаров на этой странице, и пишем код, что total_pages = current_count / count_items_of_this_page с округлением вверх
+- И также ему нужно будет собрать запрос на любую станицу выдачи и любой поисковый запрос, например:
+
+let url = new URL(`${HOST}/catalogsearch/result/index/`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("p", set.page)
+
+Т.е. ещё раз - реализация агента у меня уже есть, и на этом шаге у него будут данные с селекторами, и открытая страница в playwright, и набор инструментов, позволяющих выполнять необходимые действия на странице.
+
+Пример структуры данных, которую ему дадут:
 
 
+ОПИСАНИЕ ПОЛЕЙ:
+Ещё раз описание, в какое поле результата нужно положить какое значение.
+
+Поля статуса:
+- status: Общий результат анализа страницы: "ok" если селекторы успешно извлечены, либо "error" если страница не может быть обработана.
+- error_type: Тип ошибки, если status = "error" (captcha, access_denied, empty_page, unknown_structure и т.п.). Если ошибок нет — null.
+- analysis_message: Краткое текстовое описание результата: либо подтверждение успешной обработки, либо причина ошибки.
+
+Поля селекторов интерфейса поиска:
+- search_input_selectors: Селекторы поля ввода, в которое пользователь вводит поисковый запрос.
+- search_button_selectors: Селекторы кнопки, которая запускает поиск (если она существует).
+- total_results_count_selectors: Селекторы элемента, который отображает общее количество найденных товаров по текущему запросу.
+
+Поля селекторов товаров:
+- product_link_selectors: Селекторы ссылок на карточки товаров в основной выдаче.
+
+Поля селекторов пагинации:
+- pagination_container_selectors: Селекторы контейнера блока пагинации.
+- pagination_page2_selectors: Селекторы элемента, ведущего на вторую страницу результатов.
+- pagination_last_page_selectors: Селекторы элемента, ведущего на последнюю страницу выдачи.
+- last_page_number_displayed:
+    - true, если номер последней страницы виден в тексте кнопки,  
+    - false — если номер определяется только из ссылки внутри этого элемента,  
+    - null — если последнюю страницу определить невозможно.
+
+———————————————————————————————
+
+Пример данных, которые другая модель уже соберёт для него: 
+
+{
+  "status": "ok",
+  "error_type": null,
+  "analysis_message": "Страница результатов поиска WooCommerce: селекторы поля поиска, кнопки, счетчика результатов, ссылок товаров и пагинации успешно извлечены.",
+  "search_input_selectors": [
+    "form.woocommerce-product-search input#woocommerce-product-search-field-0",
+    "form.woocommerce-product-search input.search-field[type='search'][name='s']",
+    ".site-search form[role='search'] input.search-field"
+  ],
+  "search_button_selectors": [
+    "form.woocommerce-product-search button[type='submit']",
+    ".site-search form[role='search'] button[type='submit']",
+    ".woocommerce-product-search button"
+  ],
+  "total_results_count_selectors": [
+    "p.woocommerce-result-count",
+    ".storefront-sorting > p.woocommerce-result-count",
+    "main#main p.woocommerce-result-count"
+  ],
+  "product_link_selectors": [
+    ".products .product-card a.stretched-link[href]",
+    ".products.row .col.product-card a.stretched-link[href]",
+    "div.products a.stretched-link[href]"
+  ],
+  "pagination_container_selectors": [
+    "nav.woocommerce-pagination",
+    ".storefront-sorting nav.woocommerce-pagination",
+    "ul.page-numbers"
+  ],
+  "pagination_page2_selectors": [
+    "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
+    "nav.woocommerce-pagination a.page-numbers[href*='page/2'][href*='post_type=product']",
+    "ul.page-numbers a.page-numbers[href*='/page/2/']"
+  ],
+  "pagination_last_page_selectors": [
+    "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+    "nav.woocommerce-pagination ul.page-numbers a.page-numbers[href*='/page/9/']",
+    "ul.page-numbers li:nth-last-child(2) > a.page-numbers"
+  ],
+  "last_page_number_displayed": true
+}
+
+
+Тогда подумай и напиши мне его путь - т.е. что он должен будет сделать и в каком порядке, что проверить, и т.д., а также что и вкаком формате вернуть
+"""
+
+
+result_request = send_message_to_ChatGPT(
+        prompt = my_prompt,                        
+        is_print = True,                    
+        # model = "o3-pro",                  
+        model = "gpt-4o",                  
+        temperature = 0.85                
+    )
 
 
 

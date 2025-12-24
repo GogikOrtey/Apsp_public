@@ -250,18 +250,14 @@ MAIN_PROMPT = """
 {
     "status": "ok" | "error",
     "error_type": string | null,
-    "analysis_message": string,
-    
+    "analysis_message": string,    
     "search_input_selectors": [string, string, string],
     "search_button_selectors": [string, string, string] | null,
-    "total_results_count_selectors": [string, string, string] | null,
-    
-    "product_link_selectors": [string, string, string],
-    
+    "total_results_count_selectors": [string, string, string] | null,    
+    "product_link_selectors": [string, string, string],    
     "pagination_container_selectors": [string, string, string] | null,
     "pagination_page2_selectors": [string, string, string] | null,
-    "pagination_last_page_selectors": [string, string, string] | null,
-    
+    "pagination_last_page_selectors": [string, string, string] | null,    
     "last_page_number_displayed": boolean | null
 }
 
