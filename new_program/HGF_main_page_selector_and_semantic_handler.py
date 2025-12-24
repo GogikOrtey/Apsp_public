@@ -186,7 +186,16 @@ def HGF_main_page_selector_and_semantic_handler(input_html):
 
 
 
+# Для тестов:
 
+url = "https://www.krason.ru/"
+
+html_content = get_html_from_cache(url)
+html_content_zip = clean_html_universal(html_content)
+
+HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+print(f"\nHGF_result:\n")
+print(HGF_result)
 
 
 

@@ -303,10 +303,14 @@ def TNF_extract_data_from_search_page(input_html):
 # Для тестов:
 
 # url = "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"
-url = "https://makitaclub.ru/page/1/?s=шуруповерт&post_type=product"
+# url = "https://makitaclub.ru/page/1/?s=шуруповерт&post_type=product"
+url = "https://www.krason.ru/search"
 
 html_content = get_html_from_cache(url)
 html_content_zip = clean_html_universal(html_content)
+
+save_page_html(html_content, filename = "page_html.html")
+save_page_html(html_content_zip, filename = "page_html_zip.html")
 
 HGF_result = TNF_extract_data_from_search_page(html_content_zip)
 print(f"\nTNF_result:\n")
