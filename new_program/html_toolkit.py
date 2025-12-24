@@ -151,3 +151,41 @@ def clean_html_universal(html_content: str) -> str:
     print(f"Страница сжалась на {compression_percent}%\n")
 
     return cleaned_html
+
+
+
+
+# region Max pagination
+"""
+Оригинал на JS:
+
+    let totalPages = Math.max(...$(".module-pagination__wrapper > a").get().map(item => +$(item).text().trim()).filter(Boolean))
+
+Полная версия на питоне:
+
+    from bs4 import BeautifulSoup
+
+    # Допустим, html_content — это содержимое вашей страницы
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # 1. Находим все ссылки 'a' внутри контейнера
+    links = soup.select(".module-pagination__wrapper > a")
+
+    # 2. Извлекаем текст, очищаем его, переводим в числа и фильтруем (убираем ошибки и пустые значения)
+    page_numbers = []
+    for item in links:
+        text = item.get_text(strip=True)
+        if text.isdigit(): # Аналог .filter(Boolean) и проверки на число
+            page_numbers.append(int(text))
+
+    # 3. Находим максимум (с проверкой на пустой список, чтобы не было ошибки)
+    total_pages = max(page_numbers) if page_numbers else 0
+
+    print(total_pages)
+
+Компактная версия на питоне:
+
+    total_pages = max([int(a.text.strip()) for a in soup.select(".module-pagination__wrapper > a") if a.text.strip().isdigit()] or [0])
+
+
+"""
