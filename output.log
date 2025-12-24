@@ -1,4 +1,4 @@
-25.12.2025 01:01:24
+25.12.2025 01:16:22
 
 
 Сжимаем страницу
@@ -131,11 +131,13 @@
         2. Кнопка перехода на вторую страницу (Page 2 Link):
             - Селектор элемента, ведущего строго на 2 страницу результатов.
             - Критерий: Текст элемента равен "2", либо атрибут ссылки указывает на вторую страницу (например, page=2).
+            - Для этого элемента ты можешь указать в селекторе номер страницы, или текст который соддержится на кнопке.
             Три селектора этого элемента помести в поле pagination_page2_selectors. Если элемент отсутствует, установи null.
         3. Кнопка последней страницы:
             - Найди элемент, ведущий на финальную страницу выдачи.
             - Приоритет №1 (Текстовый номер): Элемент, внутри которого явно написан номер последней страницы (например, "20", "45", "100").
             - Приоритет №2 (Ссылка с номером): Если видимого номера нет (например, кнопка со стрелкой «>» или текстом «В конец»), но в её атрибуте href содержится номер страницы (например, page=20), используй её.
+                - Важно: Не подставляй конкретный номер страницы в селектор для этого элемента. Селектор должен просто указывать на элемент.
                 - Поле last_page_number_displayed (boolean): Укажи true, если порядковый номер страницы визуально отображен в тексте элемента, и false, если номер извлекается только из ссылки внутри этого элемента. Если последнюю страницу определить невозможно, то укажи значение null.
             Три селектора этого элемента помести в поле pagination_last_page_selectors, или null.
         4. Обработка исключений:
@@ -239,26 +241,26 @@
 "{
   "status": "ok",
   "error_type": null,
-  "analysis_message": "Страница поиска доступна, капча/блокировки не обнаружены. Найдены поле поиска, кнопка поиска, счетчик результатов, ссылки на товары и пагинация.",
+  "analysis_message": "Страница поиска доступна, капча/блокировки и сообщения об отсутствии результатов не обнаружены. Найдены селекторы поиска, счетчика результатов, ссылок товаров и пагинации.",
   "search_input_selectors": [
     "form.c-input-search input[name=\"query\"]",
-    ".c-header-bottom-bar__container-search input.c-input-search__input[name=\"query\"]",
+    ".c-header-bottom-bar__container-search .c-input-search__input[name=\"query\"]",
     "input.c-input-search__input[name=\"query\"]"
   ],
   "search_button_selectors": [
     "form.c-input-search button.c-input-search__button",
-    ".c-header-bottom-bar__container-search button.c-input-search__button",
+    ".c-header-bottom-bar__container-search .c-input-search__button",
     "button.c-input-search__button"
   ],
   "total_results_count_selectors": [
-    ".c-search-page .c-block__header > h1.c-header",
+    ".c-search-page .c-block__header > h1.c-header_h1",
     ".c-search-page h1.c-header_h1",
     "h1.c-header_h1"
   ],
   "product_link_selectors": [
-    ".c-search-page .c-products__list a.c-product-thumb__name[href]",
-    ".c-products-thumbs a.c-product-thumb__name[href]",
-    "a.c-product-thumb__name[href]"
+    ".c-search-page__products .c-products__list .c-product-thumb__name[href]",
+    ".c-products-thumbs .c-product-thumb__main > a.c-product-thumb__name[href]",
+    ".c-products__content a.c-product-thumb__name[href]"
   ],
   "pagination_container_selectors": [
     ".c-products__pagination .c-pagination",
@@ -268,17 +270,17 @@
   "pagination_page2_selectors": [
     ".c-products__pagination .c-pagination a.c-pagination-item[href*=\"page=2\"]",
     ".c-pagination a.c-pagination-item[href*=\"page=2\"]",
-    "a.c-pagination-item[href*=\"page=2\"]"
+    ".c-pagination__item > a.c-pagination-item[href*=\"page=2\"]"
   ],
   "pagination_last_page_selectors": [
-    ".c-products[data-pages_count] .c-products__pagination .c-pagination a.c-pagination-item[href*=\"page=115\"]",
-    ".c-products__pagination .c-pagination a.c-pagination-item[href*=\"page=115\"]",
-    ".c-pagination a.c-pagination-item[href*=\"page=115\"]"
+    ".c-products__pagination .c-pagination__item:last-child:not(:has(a))",
+    ".c-products__pagination .c-pagination__item:nth-last-child(2) > a.c-pagination-item",
+    ".c-pagination__item:nth-last-child(2) > a.c-pagination-item"
   ],
   "last_page_number_displayed": true
 }"
 
-Время выполнения: 16.76 секунд
+Время выполнения: 9.87 секунд
 
 
 
@@ -287,26 +289,26 @@ TNF_result:
 {
   "status": "ok",
   "error_type": null,
-  "analysis_message": "Страница поиска доступна, капча/блокировки не обнаружены. Найдены поле поиска, кнопка поиска, счетчик результатов, ссылки на товары и пагинация.",
+  "analysis_message": "Страница поиска доступна, капча/блокировки и сообщения об отсутствии результатов не обнаружены. Найдены селекторы поиска, счетчика результатов, ссылок товаров и пагинации.",
   "search_input_selectors": [
     "form.c-input-search input[name=\"query\"]",
-    ".c-header-bottom-bar__container-search input.c-input-search__input[name=\"query\"]",
+    ".c-header-bottom-bar__container-search .c-input-search__input[name=\"query\"]",
     "input.c-input-search__input[name=\"query\"]"
   ],
   "search_button_selectors": [
     "form.c-input-search button.c-input-search__button",
-    ".c-header-bottom-bar__container-search button.c-input-search__button",
+    ".c-header-bottom-bar__container-search .c-input-search__button",
     "button.c-input-search__button"
   ],
   "total_results_count_selectors": [
-    ".c-search-page .c-block__header > h1.c-header",
+    ".c-search-page .c-block__header > h1.c-header_h1",
     ".c-search-page h1.c-header_h1",
     "h1.c-header_h1"
   ],
   "product_link_selectors": [
-    ".c-search-page .c-products__list a.c-product-thumb__name[href]",
-    ".c-products-thumbs a.c-product-thumb__name[href]",
-    "a.c-product-thumb__name[href]"
+    ".c-search-page__products .c-products__list .c-product-thumb__name[href]",
+    ".c-products-thumbs .c-product-thumb__main > a.c-product-thumb__name[href]",
+    ".c-products__content a.c-product-thumb__name[href]"
   ],
   "pagination_container_selectors": [
     ".c-products__pagination .c-pagination",
@@ -316,12 +318,12 @@ TNF_result:
   "pagination_page2_selectors": [
     ".c-products__pagination .c-pagination a.c-pagination-item[href*=\"page=2\"]",
     ".c-pagination a.c-pagination-item[href*=\"page=2\"]",
-    "a.c-pagination-item[href*=\"page=2\"]"
+    ".c-pagination__item > a.c-pagination-item[href*=\"page=2\"]"
   ],
   "pagination_last_page_selectors": [
-    ".c-products[data-pages_count] .c-products__pagination .c-pagination a.c-pagination-item[href*=\"page=115\"]",
-    ".c-products__pagination .c-pagination a.c-pagination-item[href*=\"page=115\"]",
-    ".c-pagination a.c-pagination-item[href*=\"page=115\"]"
+    ".c-products__pagination .c-pagination__item:last-child:not(:has(a))",
+    ".c-products__pagination .c-pagination__item:nth-last-child(2) > a.c-pagination-item",
+    ".c-pagination__item:nth-last-child(2) > a.c-pagination-item"
   ],
   "last_page_number_displayed": true
 }
