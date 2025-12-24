@@ -302,7 +302,8 @@ def TNF_extract_data_from_search_page(input_html):
 
 # Для тестов:
 
-url = "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"
+# url = "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"
+url = "https://makitaclub.ru/page/1/?s=шуруповерт&post_type=product"
 
 html_content = get_html_from_cache(url)
 html_content_zip = clean_html_universal(html_content)
