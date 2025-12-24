@@ -213,4 +213,8 @@ END_HTML
 ################################ system prompt не задан!
 ################################ Добавить очистку через clean_html_universal
 
+"""
+Избегай использования случайно сгенерированных классов (хешей), типичных для styled-components или CSS modules (например, .css-1a2b3c), если есть более читаемые альтернативы.
+"""
+
 result_request = send_message_to_ChatGPT(formation_request, temperature = 0.15)
