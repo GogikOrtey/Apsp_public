@@ -298,19 +298,37 @@ chat_print(f"SYSTEM_PROMPT = {SYSTEM_PROMPT}")
 
 
 
-"""
+
+""" 
+
+————————————————————————————————————
+Контекст браузера (Playwright)
+
+Текущая открытая страница: https://makitaclub.ru/search/?s=makita
+HTTP status: 200
+
+DOM summary:
+- total elements: 4831
+- links: 212
+- inputs: 3
+- buttons: 17
+
+После какого последнего действия произошли изменения на странице:
+- type: navigation | dom_update | none
+- trigger: press_enter()
+- delta_text: 18%
+
+History actions since load on this page:
+1. focus(".search-input")
+2. human_like_input("makita")
+3. press_enter()
+4. wait_for_navigation_or_content()
+... 
 
 ————————————————————————————————————
 
-Контекст браузера Playwright:
-status: work
-Открытая страница: https://makitaclub.ru/
-С момента загрузки страницы произведено _ действий
-
-————————————————————————————————————
 
 """
-
 
 
 
@@ -500,7 +518,7 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 Необходимо заполнить поля в result: {current_phase_fills}
 
 ТАКТИЧЕСКИЙ ПЛАН (steps_future) должен вести к завершению этой фазы
-
+#
 ————————————————————————————————————
 
 ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):

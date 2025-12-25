@@ -29,6 +29,8 @@ if str(ROOT_DIR) not in sys.path:
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
+# region Задачи
+
 """
 
 Текущие задачи:
