@@ -117,9 +117,9 @@ def main_processer(input_url):
     html_content = get_shared_page().content()
     html_content_zip = clean_html_universal(html_content)
 
-    # Сохранения страниц - может пригодится для отладки
-    save_page_html(html_content, filename = "page_html.html")
-    save_page_html(html_content_zip, filename = "page_html_zip.html")
+    # # Сохранения страниц - может пригодится для отладки
+    # save_page_html(html_content, filename = "page_html.html")
+    # save_page_html(html_content_zip, filename = "page_html_zip.html")
 
     # region Шаг 1 - HGF
 
