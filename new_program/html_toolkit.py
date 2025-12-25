@@ -17,7 +17,7 @@ import time
 from typing import Any
 from urllib.parse import urlparse
 
-from __future__ import annotations
+# from __future__ import annotations
 
 import re
 from copy import deepcopy
@@ -331,14 +331,14 @@ def get_html_frame(
     max_text_node_chars: int = 200,
 ) -> str:
     """
-    Build a compact, informative HTML snapshot ("html_frame") around the first element
-    matching a CSS selector.
+    Создаёт компактный и информативный HTML-снимок («html_frame») вокруг первого элемента
+    соответствующего CSS-селектору.
 
-    - Picks a container ancestor by size heuristics (not fixed levels).
-    - Keeps path container->target + a few siblings around target.
-    - Adds <!--TARGET_START--> and <!--TARGET_END--> markers.
-    - Sanitizes tags/attrs and collapses whitespace.
-    - Truncates to max_frame_chars.
+    - Выбирает предка-контейнера по эвристическому методу определения размера (без фиксированных уровней).
+    - Сохраняет путь контейнер -> цель + несколько соседних элементов вокруг цели.
+    - Добавляет маркеры <!--TARGET_START--> и <!--TARGET_END-->.
+    - Очищает теги/атрибуты и удаляет пробелы.
+    - Ограничивается значением max_frame_chars.
     """
     try:
         import lxml.html
@@ -530,6 +530,11 @@ def get_html_frame(
         except Exception:
             target_clone = None
 
+    # Keep full subtree of target (otherwise inner price nodes get removed)
+    if target_clone is not None:
+        for el in target_clone.iter():
+            keep_nodes.add(el)
+
     # Prune: remove any element not in keep_nodes (post-order)
     for el in list(clone.iterdescendants())[::-1]:
         if el not in keep_nodes:
@@ -622,11 +627,27 @@ def get_html_frame(
     return out
 
 
+# region Доп. функции
+
+def save_page_html(html: str, filename: str = "page_html.html") -> str:
+    """
+    Сохраняет HTML в файл рядом со скриптом и возвращает путь к файлу.
+    
+    Args:
+        html: html-содержимое страницы
+    """
+    print("Сохраняем html страницы в файл", filename)
+    output_path = Path(__file__).resolve().parent / filename
+    output_path.write_text(html, encoding="utf-8")
+    return str(output_path)
+
 
 # Проверка
 url = "https://makitaclub.ru/products/df488d002/"
 html_content = get_html_from_cache(url)
+save_page_html(html_content, filename = "page_html.html")
+
 # selector = "#main .product_title.entry-title"
 selector = ".col-sm-6 .woocommerce-Price-amount.amount"
-result_get_html_frame = get_html_frame(selector, html_content)
+result_get_html_frame = get_html_frame(html_content, selector)
 print(f"result_get_html_frame:\n", result_get_html_frame)
