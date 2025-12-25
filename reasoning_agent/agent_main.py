@@ -144,8 +144,7 @@ if False and not main_plan:
 
 
 
-# HISTORY_WINDOW = 12         # = 6 шагов - это сколько последних шагов отдаём в модель, в history
-HISTORY_WINDOW = 20         # = 6 шагов - это сколько последних шагов отдаём в модель, в history
+HISTORY_WINDOW = 12         # = 6 шагов - это сколько последних шагов отдаём в модель, в history
 MAX_STEPS = 30              # Максимальное количество шагов агента для решения задачи
 INVALID_JSON_RETRIES = 1    # Повторяем запрос шага при невалидном JSON ответа
 
@@ -825,9 +824,11 @@ def orchestrate(
     max_steps: int = MAX_STEPS,
     result_schema: dict[str, Any] | None = None,
     result_template: dict[str, Any] | None = None,
-    plan: dict[str, Any] | None = None
+    plan: dict[str, Any] | None = None,
+    step_by_step_running = True # Если = True то после каждого шага агента он ожидает нажатия Enter в консоли
 ) -> str:
     global steps_future_value, long_term_memory, main_plan, tools_annotation
+    start = time.time()
 
     # Обновляем аннотации инструментов перед запуском, чтобы подхватить
     # все модули с @tool, которые могли быть импортированы до вызова orchestrate.
@@ -909,9 +910,10 @@ def orchestrate(
         print(model_summary)
 
 
-        # Перед каждым следующим шагом ждем подтверждения пользователем
-        input(f"\n-----> Нажмите Enter чтобы продолжить")
-        print("")
+        if step_by_step_running:
+            # Перед каждым следующим шагом ждем подтверждения пользователем
+            input(f"\n-----> Нажмите Enter чтобы продолжить")
+            print("")
 
 
         """
@@ -1008,6 +1010,7 @@ def orchestrate(
             done_result = {"status": "done", "result": get_result(), "message": completion_text}
             add_history_entry({"role": "tool", "name": "DONE", "result": done_result})
             print(f"✅ Агент завершил задачу: {completion_text}")
+            emit_execution_time(start, emit=print, print_time_smile=True)
             return completion_text
 
         # 6.2 Обработка провала (недостижимость цели)
@@ -1038,6 +1041,7 @@ def orchestrate(
                 final_text = str(failed_payload)
 
             print(f"❌ Агент завершил задачу с ошибкой/недостижимостью: {reason}\nТекущий result:\n{result_text}")
+            emit_execution_time(start, emit=print, print_time_smile=True)
             return final_text
 
         # 6.3 Вызов инструмента
@@ -1065,6 +1069,7 @@ def orchestrate(
             pass
 
     print("⚠️ Достигнут лимит шагов без финального ответа.")
+    emit_execution_time(start, emit=print, print_time_smile=True)
     return "Лимит шагов исчерпан без решения"
 
 

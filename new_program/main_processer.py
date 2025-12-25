@@ -18,9 +18,6 @@ import traceback
 import time
 from typing import Any
 
-from HGF_main_page_selector_and_semantic_handler import *
-
-from new_program.html_toolkit import *
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -28,6 +25,10 @@ if str(ROOT_DIR) not in sys.path:
 # Подключение всех библиотек и функций
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+
+from new_program.html_toolkit import *
+from new_program.HGF_main_page_selector_and_semantic_handler import *
+from new_program.use_agent_for_step_2_gen_parsePage import *
 
 # region Задачи
 
@@ -93,6 +94,137 @@ https://makita-online.ru
 
 
 def main_processer(input_url):
+    # 0. Чистим URL, запускам браузер и переходим на него
+
+    # Чистим входящий url - до host, что бы получить ссылку на главную страницы
+    url = normalize_url(input_url)
+
+    html_content = get_html_from_cache(url)
+    html_content_zip = clean_html_universal(html_content)
+
+    # # Сохранения страниц - может приголится для отладки
+    # save_page_html(html_content, filename = "page_html.html")
+    # save_page_html(html_content_zip, filename = "page_html_zip.html")
+
+    # region Шаг 1 - HGF
+
+    # HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+    # print(f"\nHGF_result:\n")
+    # print(HGF_result)
+
+    # Временно используем готовый результат HGF для сайта makitaclub.ru
+
+    HGF_result = {
+        "status": "ok",
+        "error_type": null,  # pyright: ignore[reportUndefinedVariable]
+        "analysis_message": "Страница успешно обработана",
+        "semantics": [
+            "инструмент",
+            "дрель",
+            "шуруповерт",
+            "перфоратор",
+            "болгарка",
+            "пила",
+            "шлифмашина",
+            "пылесос",
+            "аккумулятор",
+            "оснастка"
+        ],
+        "search_input_selectors": [
+            "#woocommerce-product-search-field-0",   
+            "form.woocommerce-product-search input.search-field",
+            ".site-search form.woocommerce-product-search input[type=\"search\"]",
+            "input.search-field[name=\"s\"]",        
+            "form[role=\"search\"] input[type=\"search\"]"
+        ],
+        "search_button_selectors": [
+            "form.woocommerce-product-search button[type=\"submit\"]",
+            ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+            "form[role=\"search\"] button[type=\"submit\"]",
+            ".woocommerce-product-search button[type=\"submit\"]",
+            ".site-search button[type=\"submit\"]"   
+        ]
+    }
+
+    # Проверяем статус
+    if HGF_result.get("status") != "ok":
+        raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{HGF_result}")
+
+    # Удаляем первые 3 поля
+    keys_to_remove = list(HGF_result.keys())[:3]
+    for key in keys_to_remove:
+        del HGF_result[key]
+
+    # region Шаг 2 - Агент 
+
+    result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
+    print("result_agent_answer_from_2_step:")
+    print(result_agent_answer_from_2_step)
+
+
+    """ 
+    Ответ агента:
+
+    """
+    
+
+
+link = "https://makitaclub.ru"
+# link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
+# link = "https://makitatrading.ru"
+main_processer(link)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def main_processer_old(input_url):
     print("Запускаем основной процесс")
 
     # 1. Чистим входящий url - до host, что бы получить ссылку на главную страницы
@@ -507,11 +639,6 @@ def main_processer(input_url):
 
 
 
-
-link = "https://makitaclub.ru"
-# link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
-# link = "https://makitatrading.ru"
-main_processer(link)
 
 
 

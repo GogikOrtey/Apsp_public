@@ -1,6 +1,7 @@
 """
-Тут тестирую запуск агента, не из его основного файла
-А также с использованием инструментов Playwright
+2й шаг генерации parsePage - в котором агент на главной странице сайта, находит по полученному селектору поле ввода поискового запроса и кнопку запуска поиска. Далее фокусируется на поле ввода, вводит туда первый запрос из семантики, и ждёт редиректа на страницу результатов поисковой выдачи
+
+Возвращает использованные селекторы и ссылку на 2ю страницу
 """
 
 # region Импорты
@@ -28,25 +29,42 @@ from new_program.html_toolkit import *  # регистрирует инстру�
 
 
 
+
+
+
+
+""" 
+План который сгенериили при 1й попытке:
+
+{
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Определить рабочий селектор поля ввода поиска и зафиксировать выбранный поисковый запрос из semantics, который будет введён в поле.",
+            "fills": [
+                "used_seletor_search_input",
+                "used_search_request"
+            ]
+        },
+        {
+            "step_id": 2,
+            "goal": "Определить рабочий селектор кнопки запуска поиска (если потребуется как fallback) и зафиксировать его как используемый для запуска поиска.",
+            "fills": [
+                "used_seletor_search_button"
+            ]
+        },
+        {
+            "step_id": 3,
+            "goal": "Добиться перехода на страницу результатов поиска и зафиксировать URL страницы, на которую выполнен переход.",
+            "fills": [
+                "second_html"
+            ]
+        }
+    ]
+}
 """
 
 
-
-"""
-
-
-
-
-
-
-
-# main_task = """ 
-# Тебе нужно сделать:
-
-# Перейти на страницу https://makitaclub.ru
-# И положить в поля результата номер кода ответа от перехода на эту страницу (в поле url_open_code), а также кол-во вхождений слова "makita" на странице, результат положи в поле count_includes_string
-
-# """
 
 
 main_task = """ 
@@ -78,106 +96,7 @@ main_task = """
 
 Входные данные:
 
-{
-    "semantics": [
-        "инструмент",
-        "дрель",
-        "шуруповерт",
-        "перфоратор",
-        "болгарка",
-        "пила",
-        "шлифмашина",
-        "пылесос",
-        "аккумулятор",
-        "оснастка"
-    ],
-    "search_input_selectors": [
-        "#woocommerce-product-search-field-0",   
-        "form.woocommerce-product-search input.search-field",
-        ".site-search form.woocommerce-product-search input[type=\"search\"]",
-        "input.search-field[name=\"s\"]",        
-        "form[role=\"search\"] input[type=\"search\"]"
-    ],
-    "search_button_selectors": [
-        "form.woocommerce-product-search button[type=\"submit\"]",
-        ".site-search form.woocommerce-product-search button[type=\"submit\"]",
-        "form[role=\"search\"] button[type=\"submit\"]",
-        ".woocommerce-product-search button[type=\"submit\"]",
-        ".site-search button[type=\"submit\"]"   
-    ]
-}
-
 """
-
-
-
-
-
-
-
-
-
-# # main_task = """
-# # Найти, в каком файле говорится про презентацию
-# # Название файла поместить в file_name, его содержание - в file_content
-# # """
-
-
-# # main_plan = {
-# #     "status": "not_started",
-# #     "current_step": 0,
-# #     "steps": [
-# #         {
-# #             "step_id": 1,
-# #             "goal": "Определить, в каком файле упоминается презентация, и извлечь из него имя и полное содержание.",
-# #             "fills": [
-# #                 "file_name",
-# #                 "file_content"
-# #             ],
-# #             "status": "pending"
-# #         }
-# #     ]
-# # }
-
-# # # Схема результата
-# # main_result_schema = {
-# #     "file_name": {
-# #         "type": "string",
-# #         "required": True,
-# #         "description": "Имя файла"
-# #     },
-# #     "file_content": {
-# #         "type": "string",
-# #         "required": True,
-# #         "description": "Содержимое файла"
-# #     }
-# # }
-
-# # # Шаблон результата, который агент заполняет в процессе работы
-# # main_result_template = {
-# #     "file_name": None,
-# #     "file_content": None
-# # }
-
-# # Схема результата
-# main_result_schema = {
-#     "url_open_code": {
-#         "type": "string",
-#         "required": True,
-#         "description": "Номер кода ответа от перехода на эту страницу"
-#     },
-#     "count_includes_string": {
-#         "type": "string",
-#         "required": True,
-#         "description": "Кол-во вхождений слова \"makita\" на странице"
-#     }
-# }
-
-# # Шаблон результата, который агент заполняет в процессе работы
-# main_result_template = {
-#     "url_open_code": None,
-#     "count_includes_string": None
-# }
 
 
 
@@ -214,24 +133,29 @@ main_result_template = {
 }
 
 
-# Запускаю браузер с видимым окном
-launch_browser(headless = False)
+def use_agent_for_step_2_gen_parsePage(input_data):
+    # Приводим input_data к строке
+    if isinstance(input_data, str):
+        input_data_str = input_data
+    else:
+        try:
+            input_data_str = json.dumps(input_data, ensure_ascii=False, indent=4, default=str)
+        except Exception:
+            input_data_str = str(input_data)
 
-###### Она будет открываться до агента, для 1го инструмента
-goto_url( 
-    url = "https://makitaclub.ru/",
-    wait_until = "load",
-    timeout = 30_000
-)
+    task = main_task + input_data_str
 
-resulr_answer = orchestrate(
-    task = main_task,
-    max_steps = 40,
-    result_schema = main_result_schema,
-    result_template = main_result_template,
-    # plan = main_plan
-) 
+    resulr_answer = orchestrate(
+        task = task,
+        max_steps = 40,
+        result_schema = main_result_schema,
+        result_template = main_result_template,
+        # plan = main_plan
+    ) 
 
-result_task = get_result()
-print("result_task:")
-print(result_task)
+    result_task = get_result()
+    return result_task
+
+
+# print("result_task:")
+# print(result_task)
