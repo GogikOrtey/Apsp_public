@@ -1,10 +1,5 @@
 """
 Набор инструментов для агента, для взаимодействия внутри Playwright.
-
-Реализованы базовые операции:
-    - page_restart() — перезагрузка текущей страницы.
-    - goto_url() — переход на переданный URL.
-    - check_url_status() — получение HTTP-кода ответа по URL без навигации.
 """
 
 from __future__ import annotations
@@ -46,9 +41,6 @@ from reasoning_agent.agent_tools import tool
 
 
 
-
-
-
 """
     Понадобятся такие функции инструменты:
     
@@ -79,6 +71,23 @@ from reasoning_agent.agent_tools import tool
 
 
 
+"""
+
+find_elements: Ищет элементы по селектору. Возвращает их количество и до max_results элементов
+    с текстом и inner_html.
+search_in_page_html: Ищет подстроку в HTML страницы. Возвращает до max_results сниппетов ±context символов.
+wait_for_navigation_or_content: Ждёт смену URL или изменение текстового контента более чем на change_threshold.
+press_key: Нажимает переданную клавишу через page.keyboard.press.
+press_enter: Эмулирует нажатие клавиши Enter на текущей странице
+human_like_input: Очищает поле и вводит текст посимвольно через press_sequentially
+smart_focus: Цикл Click -> Wait(1s) -> Click с обработкой перехвата клика (Escape + повтор)
+validate_interactivity: Быстрая проверка селектора: isEditable, isVisible, isEnabled
+check_url_status: Проверяет, какой HTTP-код вернёт запрос по URL (без навигации)
+goto_url: Открывает указанную страницу по URL и возвращает код ответа
+page_restart: Перезагружает текущую страницу и возвращает код ответа
+
+
+"""
 
 
 
@@ -790,36 +799,41 @@ def find_elements(
         return {"status": "error", "count": 0, "elements": None, "error": str(exc)}
 
 
-if __name__ == "__main__":
-    # Небольшой пример использования
 
-    pw, browser, page = launch_browser(headless = False)
-    try:
-        print("Проверяем статус без навигации:", check_url_status(page, "https://makitaclub.ru/"))
-        print("Навигируемся на страницу:", goto_url(page, "https://makitaclub.ru/"))
 
-        time.sleep(5)
-        print("Ищем 'makita' в html:", search_in_page_html(page, "makita"))
-        time.sleep(5)
-        print("Ищем ссылки на странице:", find_elements(page, "a", max_results=3))
 
-        time.sleep(5)
-        print("Smart focus для первого input:", smart_focus(page, "#woocommerce-product-search-field-0"))
 
-        time.sleep(5)
-        print("Проверяем интерактивность body:", validate_interactivity(page, "#woocommerce-product-search-field-0"))
+
+# if __name__ == "__main__":
+#     # Небольшой пример использования
+
+#     pw, browser, page = launch_browser(headless = False)
+#     try:
+#         print("Проверяем статус без навигации:", check_url_status(page, "https://makitaclub.ru/"))
+#         print("Навигируемся на страницу:", goto_url(page, "https://makitaclub.ru/"))
+
+#         time.sleep(5)
+#         print("Ищем 'makita' в html:", search_in_page_html(page, "makita"))
+#         time.sleep(5)
+#         print("Ищем ссылки на странице:", find_elements(page, "a", max_results=3))
+
+#         time.sleep(5)
+#         print("Smart focus для первого input:", smart_focus(page, "#woocommerce-product-search-field-0"))
+
+#         time.sleep(5)
+#         print("Проверяем интерактивность body:", validate_interactivity(page, "#woocommerce-product-search-field-0"))
         
-        time.sleep(5)
-        print("Human-like input:", human_like_input(page, "#woocommerce-product-search-field-0", "инструмент", delay_ms=80))
-        time.sleep(5)
+#         time.sleep(5)
+#         print("Human-like input:", human_like_input(page, "#woocommerce-product-search-field-0", "инструмент", delay_ms=80))
+#         time.sleep(5)
 
-        # Нажать Enter
-        old_url = page.url
-        print("Нажимаем Enter:", press_enter(page))
-        # print("Нажимаем Tab через универсальную функцию:", press_key(page, "Tab"))
+#         # Нажать Enter
+#         old_url = page.url
+#         print("Нажимаем Enter:", press_enter(page))
+#         # print("Нажимаем Tab через универсальную функцию:", press_key(page, "Tab"))
 
-        print("Ожидаем изменение URL или контента:", wait_for_navigation_or_content(page, old_url, timeout=5000))
-        # print("Перезагружаем страницу:", page_restart(page))
-        time.sleep(5)
-    finally:
-        close_browser(pw, browser)
+#         print("Ожидаем изменение URL или контента:", wait_for_navigation_or_content(page, old_url, timeout=5000))
+#         # print("Перезагружаем страницу:", page_restart(page))
+#         time.sleep(5)
+#     finally:
+#         close_browser(pw, browser)
