@@ -1,7 +1,2 @@
-25.12.2025 09:17:03
+25.12.2025 09:28:45
 
-
-Запустили get_html_frame с селектором: #main .product_title.entry-title
-
-Результат get_html_frame:
- <!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 166 NODES--><div><!--TRIMMED_BEFORE 1 NODES--><div id="primary" class="content-area"><!--TRIMMED_BEFORE 1 NODES--><main id="main" class="site-main" role="main"><div class="woocommerce-notices-wrapper"></div><!--TARGET_START--><h1 class="product_title entry-title">Аккумуляторная безударная 2-х скоростная дрель-шуруповерт Makita DF488D002 (18V, 2 x 1.5Ah, Li-Ion)</h1><!--TARGET_END--><div id="product-79061" class="product type-product post-79061 status-publish first instock product_cat-akkumulyatornye-dreli-shurupoverty-g-series product_tag-guarantee has-post-thumbnail purchasable product-type-simple">&lt;!--TRIMMED_BEFORE 8 AFTER 0 NODES--&gt;</div></main><!--TRIMMED_AFTER 1 NODES--></div><!--TRIMMED_AFTER 3 NODES--></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 1336 NODES-->
