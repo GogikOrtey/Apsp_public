@@ -3,6 +3,7 @@
 """
 
 from bs4 import BeautifulSoup, Comment, NavigableString
+from collections import defaultdict
 
 # region Импорты
 # Чтобы при запуске файла из этой папки были видны модули из корня проекта (addedFunc.py и др.)
@@ -324,23 +325,30 @@ def get_html_frame(
     html: str,
     selector: str,
     *,
-    max_frame_chars: int = 3000,
-    max_container_text_chars: int = 1000,
-    max_container_html_chars: int = 5000,
-    sibling_elems: int = 2,
-    max_text_node_chars: int = 200,
-    ancestor_levels: int = 3,
+    max_frame_chars: int = 3000,           # Максимальная длина всего итогового html-фрейма (после всех сокращений)
+    max_container_text_chars: int = 1000,  # Максимальная длина текста контейнера при выборе подходящего родителя
+    max_container_html_chars: int = 5000,  # Максимальная длина HTML-кода контейнера при выборе родителя
+    sibling_elems: int = 2,                # Количество соседних элементов на том же уровне, которые нужно сохранить рядом с target
+    max_text_node_chars: int = 200,        # Максимальная длина текста внутри узла (длинный текст будет обрезан)
+    ancestor_levels: int = 3,              # Количество уровней предков target, которые нужно сохранить для контекста
 ) -> str:
     """
-    Создаёт компактный и информативный HTML-снимок («html_frame») вокруг первого элемента
-    соответствующего CSS-селектору.
-
-    - Выбирает предка-контейнера по эвристическому методу определения размера (без фиксированных уровней).
-    - Сохраняет путь контейнер -> цель + несколько соседних элементов вокруг цели.
-    - Добавляет маркеры <!--TARGET_START--> и <!--TARGET_END-->.
-    - Очищает теги/атрибуты и удаляет пробелы.
-    - Ограничивается значением max_frame_chars.
+    Создаёт компактный и информативный HTML-фрейм вокруг первого элемента, найденного по CSS-селектору.
+    
+    Параметры:
+    - html: исходный HTML-документ.
+    - selector: CSS-селектор для выбора target-элемента.
+    - max_frame_chars: максимальная длина итогового HTML-фрейма.
+    - max_container_text_chars: лимит текста при выборе контейнера-родителя.
+    - max_container_html_chars: лимит HTML-кода при выборе контейнера.
+    - sibling_elems: количество соседних элементов target на одном уровне, которые нужно сохранить.
+    - max_text_node_chars: максимальная длина текстового содержимого в узле (обрезка длинных текстов).
+    - ancestor_levels: сколько уровней предков target сохранить для контекста.
+    
+    Возвращает:
+    - HTML-фрейм с пометками <!--TARGET_START-->, <!--TARGET_END--> и комментариями о вырезанных узлах.
     """
+
 
     print(f"\nЗапустили get_html_frame с селектором:", selector)
 
@@ -572,20 +580,32 @@ def get_html_frame(
             keep_nodes.add(el)
 
     # Prune: remove any element not in keep_nodes (post-order) and count removals
-    trimmed_inside_container = 0
+    trim_map = defaultdict(int)  # parent_node -> count
     for el in list(clone.iterdescendants())[::-1]:
         if el not in keep_nodes:
             parent = el.getparent()
             if parent is not None:
+                trim_map[parent] += 1
                 parent.remove(el)
-                trimmed_inside_container += 1
+
+    trimmed_inside_container = sum(trim_map.values())
 
     if trimmed_outside_container > 0 or trimmed_inside_container > 0:
         from lxml import etree
         if trimmed_outside_container > 0:
-            clone.insert(0, etree.Comment(f"TRIMMED_OUTSIDE_CONTAINER: {trimmed_outside_container}"))
-        if trimmed_inside_container > 0:
-            clone.insert(0, etree.Comment(f"TRIMMED_INSIDE_CONTAINER: {trimmed_inside_container}"))
+            clone.insert(0, etree.Comment(f"TRIMMED_OUTSIDE_CONTAINER: {trimmed_outside_container} NODES"))
+            clone.append(etree.Comment(f"TRIMMED_OUTSIDE_CONTAINER: {trimmed_outside_container} NODES"))
+
+        # Локальные маркеры вокруг каждого родителя, у которого были вырезанные узлы
+        for parent, count in trim_map.items():
+            try:
+                if count > 0 and parent.getparent() is not None:
+                    gp = parent.getparent()
+                    idx = gp.index(parent)
+                    gp.insert(idx, etree.Comment(f"TRIMMED {count} NODES"))
+                    gp.insert(idx + 2, etree.Comment(f"TRIMMED {count} NODES"))
+            except Exception:
+                pass
 
     # Sanitize: remove disallowed tags just in case
     DISALLOWED_TAGS = {"script", "style", "noscript", "svg"}
