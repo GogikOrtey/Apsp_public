@@ -63,6 +63,7 @@ from new_program.use_agent_for_step_2_gen_parsePage import *
 
 
 
+Для тестов использовать gpt-5-mini
 
 
 
@@ -97,14 +98,28 @@ def main_processer(input_url):
     # 0. Чистим URL, запускам браузер и переходим на него
 
     # Чистим входящий url - до host, что бы получить ссылку на главную страницы
-    url = normalize_url(input_url)
+    url_input = normalize_url(input_url)
 
-    html_content = get_html_from_cache(url)
+    # Запускаю браузер с видимым окном
+    launch_browser(headless = False)
+
+    goto_url( 
+        url = url_input,
+        wait_until = "load",
+        timeout = 30_000
+    )
+    
+    ############# Что делаеть если браузер вдруг внезапно закроется посреди выполнения алгоритма?
+    ############# Что делаеть если не дождёмся загрузки страницы в таймаут?
+
+    # html_content = get_html_from_cache(url_input)
+
+    html_content = get_shared_page().content()
     html_content_zip = clean_html_universal(html_content)
 
-    # # Сохранения страниц - может приголится для отладки
-    # save_page_html(html_content, filename = "page_html.html")
-    # save_page_html(html_content_zip, filename = "page_html_zip.html")
+    # Сохранения страниц - может пригодится для отладки
+    save_page_html(html_content, filename = "page_html.html")
+    save_page_html(html_content_zip, filename = "page_html_zip.html")
 
     # region Шаг 1 - HGF
 
@@ -113,10 +128,9 @@ def main_processer(input_url):
     # print(HGF_result)
 
     # Временно используем готовый результат HGF для сайта makitaclub.ru
-
-    HGF_result = {
+    HGF_result = r"""{
         "status": "ok",
-        "error_type": null,  # pyright: ignore[reportUndefinedVariable]
+        "error_type": null,
         "analysis_message": "Страница успешно обработана",
         "semantics": [
             "инструмент",
@@ -144,7 +158,12 @@ def main_processer(input_url):
             ".woocommerce-product-search button[type=\"submit\"]",
             ".site-search button[type=\"submit\"]"   
         ]
-    }
+    }"""
+
+    # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
+    HGF_result = json.loads(HGF_result)
+
+    ############# Что делаеть при ошибке парсинга, когда HGF вернула невалидный ответ?
 
     # Проверяем статус
     if HGF_result.get("status") != "ok":

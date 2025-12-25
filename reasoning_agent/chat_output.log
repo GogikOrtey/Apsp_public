@@ -98,8 +98,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 1   ———————————
 
-🟢 reasoning: Текущая фаза требует выбрать рабочий селектор поля ввода. Начинаю с первого селектора из search_input_selectors и проверяю, находится ли он на странице через find_elements.
-🔵 target: Проверить первый селектор поля поиска на наличие элемента на странице
+🟢 reasoning: В текущей фазе нужно определить рабочий селектор поля ввода. Начинаю с первого селектора из search_input_selectors и проверяю наличие элементов на странице через find_elements.
+🔵 target: Проверить первый кандидат-селектор поля поиска на странице и убедиться, что элемент существует
 🟡 action: find_elements
    🔶 args: {"selector": "#woocommerce-product-search-field-0", "only_count": false, "max_results": 5}
 
@@ -108,18 +108,18 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 2   ———————————
 
-🟢 reasoning: Селектор #woocommerce-product-search-field-0 найден на странице (count=1). Чтобы завершить фазу 1 и корректно зафиксировать используемый селектор поля ввода, нужно убедиться по окружающему HTML, что это поле поискового запроса (type=search/text, name=s и т.п.).
-🔵 target: Получить HTML-фрейм вокруг найденного поля поиска и подтвердить, что это именно search input
+🟢 reasoning: Элемент по первому селектору найден (count=1). Чтобы подтвердить, что это именно поле ввода поиска, нужно посмотреть окружающий HTML-контекст (форма поиска, атрибуты type=search, name=s и т.п.). После подтверждения сможем фокусироваться и вводить запрос, затем зафиксировать used_seletor_search_input и used_search_request в result.
+🔵 target: Получить HTML-фрейм вокруг найденного поля #woocommerce-product-search-field-0 и убедиться, что это поле поиска
 🟡 action: get_html_frame_on_current_page
-   🔶 args: {"selector": "#woocommerce-product-search-field-0", "max_frame_chars": 2000, "sibling_elems": 2, "ancestor_levels": 4}
+   🔶 args: {"selector": "#woocommerce-product-search-field-0", "max_frame_chars": 2500, "sibling_elems": 2, "ancestor_levels": 6}
 
-🛠️  get_html_frame_on_current_page({'selector': '#woocommerce-product-search-field-0', 'max_frame_chars': 2000, 'sibling_elems': 2, 'ancestor_levels': 4})
-Инструмент вернул результат: "<!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 163 NODES--><div class=\"container align-items-center container d-flex justify-content-between\"><!--TRIMMED_BEFORE 3 NODES--><div class=\"site-search\"><div class=\"widget woocommerce widget_product_search\"><form role=\"search\" class=\"woocommerce-product-search\"><label class=\"screen-reader-text\">Искать:</label><!--TARGET_START--><input id=\"woocommerce-product-search-field-0\" class=\"search-field\"><!--TARGET_END--><button>Найти</button><input></form></div></div></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 1110 NODES-->"
+🛠️  get_html_frame_on_current_page({'selector': '#woocommerce-product-search-field-0', 'max_frame_chars': 2500, 'sibling_elems': 2, 'ancestor_levels': 6})
+Инструмент вернул результат: "<!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 163 NODES--><header id=\"masthead\" class=\"container-fluid site-header\" role=\"banner\"><!--TRIMMED_BEFORE 1 NODES--><div class=\"storefront-primary-navigation\"><div class=\"container align-items-center container d-flex justify-content-between\"><!--TRIMMED_BEFORE 3 NODES--><div class=\"site-search\"><div class=\"widget woocommerce widget_product_search\"><form role=\"search\" class=\"woocommerce-product-search\"><label class=\"screen-reader-text\">Искать:</label><!--TARGET_START--><input id=\"woocommerce-product-search-field-0\" class=\"search-field\"><!--TARGET_END--><button>Найти</button><input></form></div></div></div></div></header><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 1110 NODES-->"
 
 ———————————   Шаг 3   ———————————
 
-🟢 reasoning: По html_frame видно, что input с id woocommerce-product-search-field-0 находится внутри form role="search" с классом woocommerce-product-search рядом с label "Искать:" и кнопкой "Найти", значит это поле поиска. Записываю этот селектор как рабочий для фазы 1.
-🔵 target: Зафиксировать выбранный рабочий селектор поля ввода поиска в result
+🟢 reasoning: По find_elements селектор #woocommerce-product-search-field-0 дал ровно 1 элемент, а HTML-фрейм показывает, что он расположен внутри формы woocommerce-product-search (role=search) рядом с кнопкой «Найти», значит это корректное поле ввода поиска. Можно фиксировать используемый селектор в result.
+🔵 target: Зафиксировать рабочий селектор поля поиска в result
 🟡 action: update_result
    🔶 args: {"field": "used_seletor_search_input", "value": "#woocommerce-product-search-field-0"}
 
@@ -128,98 +128,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 4   ———————————
 
-🟢 reasoning: В фазе 1 нужно заполнить used_seletor_search_input и used_search_request. Селектор поля поиска уже зафиксирован, осталось выбрать и записать запрос. По инструкции берём первый элемент из semantics.
-🔵 target: Зафиксировать выбранный поисковый запрос из semantics для текущей фазы
+🟢 reasoning: Для завершения Фазы 1 нужно заполнить used_search_request. По инструкции выбираем первый запрос из массива semantics — «инструмент» — и фиксируем его в result. Дальше в этой фазе останется сфокусироваться на поле и ввести этот запрос.
+🔵 target: Зафиксировать выбранный поисковый запрос (первый из semantics) в result
 🟡 action: update_result
    🔶 args: {"field": "used_search_request", "value": "инструмент"}
-
-🛠️  update_result({'field': 'used_search_request', 'value': 'инструмент'})
-Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#woocommerce-product-search-field-0", "used_seletor_search_button": null, "used_search_request": "инструмент", "second_html": null}}
-
-———————————   Шаг 5   ———————————
-
-🟢 reasoning: В активной фазе 2 нужно определить рабочий селектор кнопки поиска и записать used_seletor_search_button. Начинаю с первого селектора из search_button_selectors и проверяю, находится ли элемент на текущей странице.
-🔵 target: Проверить первый селектор кнопки запуска поиска на наличие элемента на странице, чтобы выбрать рабочий fallback-селектор
-🟡 action: find_elements
-   🔶 args: {"selector": "form.woocommerce-product-search button[type=\"submit\"]", "only_count": false, "max_results": 5}
-
-🛠️  find_elements({'selector': 'form.woocommerce-product-search button[type="submit"]', 'only_count': False, 'max_results': 5})
-Инструмент вернул результат: {"status": "ok", "count": 1, "elements": [{"index": 0, "text": "Найти", "html": "Найти"}], "error": null}
-
-———————————   Шаг 6   ———————————
-
-🟢 reasoning: Селектор кнопки из списка search_button_selectors найден на странице (find_elements вернул count=1 и текст кнопки «Найти»), значит его можно фиксировать как рабочий для запуска поиска при необходимости.
-🔵 target: Зафиксировать найденный рабочий селектор кнопки запуска поиска как fallback
-🟡 action: update_result
-   🔶 args: {"field": "used_seletor_search_button", "value": "form.woocommerce-product-search button[type=\"submit\"]"}
-
-🛠️  update_result({'field': 'used_seletor_search_button', 'value': 'form.woocommerce-product-search button[type="submit"]'})
-Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#woocommerce-product-search-field-0", "used_seletor_search_button": "form.woocommerce-product-search button[type=\"submit\"]", "used_search_request": "инструмент", "second_html": null}}
-
-———————————   Шаг 7   ———————————
-
-🟢 reasoning: Фаза 3 требует добиться перехода на страницу результатов. Первым шагом нужно корректно сфокусироваться на уже найденном и зафиксированном поле поиска, чтобы затем ввести запрос и отправить его Enter.
-🔵 target: Сфокусироваться на поле ввода поиска, чтобы затем ввести запрос и запустить поиск
-🟡 action: smart_focus
-   🔶 args: {"selector": "#woocommerce-product-search-field-0", "timeout": 1000}
-
-🛠️  smart_focus({'selector': '#woocommerce-product-search-field-0', 'timeout': 1000})
-Инструмент вернул результат: {"status": "ok", "selector": "#woocommerce-product-search-field-0", "attempts": 1, "error": null}
-
-———————————   Шаг 8   ———————————
-
-🟢 reasoning: Для перехода на страницу результатов нужно сначала ввести зафиксированный запрос в уже сфокусированное поле поиска, после чего отправить его Enter и дождаться навигации/изменения контента.
-🔵 target: Ввести поисковый запрос «инструмент» в поле поиска
-🟡 action: human_like_input
-   🔶 args: {"selector": "#woocommerce-product-search-field-0", "text": "инструмент", "delay_ms": 80}
-
-🛠️  human_like_input({'selector': '#woocommerce-product-search-field-0', 'text': 'инструмент', 'delay_ms': 80})
-Инструмент вернул результат: {"status": "ok", "selector": "#woocommerce-product-search-field-0", "text_len": 10, "error": null}
-
-———————————   Шаг 9   ———————————
-
-🟢 reasoning: По плану фазы 3 после ввода запроса нужно зафиксировать исходный URL, чтобы затем корректно отследить редирект/изменение контента после нажатия Enter и ожидания навигации.
-🔵 target: Сохранить текущий URL страницы перед отправкой поискового запроса
-🟡 action: get_current_url
-
-
-🛠️  get_current_url({})
-Инструмент вернул результат: {"status": "ok", "url": "https://makitaclub.ru/", "error": null}
-
-———————————   Шаг 10   ———————————
-
-🟢 reasoning: По алгоритму фазы 3 после ввода запроса и фиксации исходного URL нужно инициировать поиск через Enter, чтобы затем отследить навигацию/изменение контента и записать URL страницы результатов в second_html.
-🔵 target: Отправить поисковый запрос из поля ввода, нажав Enter
-🟡 action: press_enter
-
-
-🛠️  press_enter({})
-Инструмент вернул результат: {"status": "ok", "error": null}
-
-———————————   Шаг 11   ———————————
-
-🟢 reasoning: В фазе 3 нужно зафиксировать URL страницы результатов поиска (second_html). Enter уже нажат, поэтому следующий шаг — дождаться навигации или заметного изменения контента относительно исходного URL.
-🔵 target: Дождаться смены URL или существенного изменения контента после нажатия Enter (запуск поиска)
-🟡 action: wait_for_navigation_or_content
-   🔶 args: {"old_url": "https://makitaclub.ru/", "timeout": 15000, "change_threshold": 0.2}
-
-🛠️  wait_for_navigation_or_content({'old_url': 'https://makitaclub.ru/', 'timeout': 15000, 'change_threshold': 0.2})
-Инструмент вернул результат: {"status": "ok", "reason": "url_changed", "new_url": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product", "change_fraction": null, "error": null}
-
-———————————   Шаг 12   ———————————
-
-🟢 reasoning: В текущей фазе нужно заполнить second_html. По результату wait_for_navigation_or_content уже произошла смена URL (reason=url_changed) и получен new_url страницы результатов поиска. Достаточно записать этот URL в second_html.
-🔵 target: Записать URL страницы результатов поиска (new_url) в result.second_html
-🟡 action: update_result
-   🔶 args: {"field": "second_html", "value": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"}
-
-🛠️  update_result({'field': 'second_html', 'value': 'https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product'})
-Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#woocommerce-product-search-field-0", "used_seletor_search_button": "form.woocommerce-product-search button[type=\"submit\"]", "used_search_request": "инструмент", "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"}}
-
-———————————   Шаг 13   ———————————
-
-🟢 reasoning: main_plan полностью завершён, текущая фаза не требует дополнительных fills. В result уже заполнены used_seletor_search_input, used_search_request, used_seletor_search_button и second_html (URL страницы результатов поиска). Дополнительных действий в браузере не требуется.
-🔵 target: Завершить задачу: все поля result заполнены, URL результатов поиска зафиксирован
-🟡 action: DONE
-
 

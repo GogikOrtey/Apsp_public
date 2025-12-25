@@ -62,6 +62,64 @@ from new_program.html_toolkit import *  # регистрирует инстру�
         }
     ]
 }
+
+На 2м:
+
+{
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Определить рабочий селектор поля ввода поиска и зафиксировать его как использованный.",
+            "fills": [
+                "used_seletor_search_input"
+            ]
+        },
+        {
+            "step_id": 2,
+            "goal": "Выбрать поисковый запрос из semantics и зафиксировать его как использованный.",
+            "fills": [
+                "used_search_request"
+            ]
+        },
+        {
+            "step_id": 3,
+            "goal": "Определить рабочий способ запуска поиска (Enter или кнопка) и зафиксировать использованный селектор кнопки (если применимо).",
+            "fills": [
+                "used_seletor_search_button"
+            ]
+        },
+        {
+            "step_id": 4,
+            "goal": "Зафиксировать URL страницы, на которую произошёл переход после запуска поиска.",
+            "fills": [
+                "second_html"
+            ]
+        }
+    ]
+}
+
+3й
+
+{
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Определить рабочий селектор поля ввода поиска и зафиксировать выбранный поисковый запрос из semantics, который будет введён в это поле.",
+            "fills": [
+                "used_seletor_search_input",
+                "used_search_request"
+            ]
+        },
+        {
+            "step_id": 2,
+            "goal": "Запустить поиск (Enter или кнопка), при необходимости подобрать рабочий селектор кнопки запуска поиска и зафиксировать URL страницы, на которую произошёл переход после запуска поиска.",
+            "fills": [
+                "used_seletor_search_button",
+                "second_html"
+            ]
+        }
+    ]
+}
 """
 
 
@@ -150,7 +208,8 @@ def use_agent_for_step_2_gen_parsePage(input_data):
         max_steps = 40,
         result_schema = main_result_schema,
         result_template = main_result_template,
-        # plan = main_plan
+        # plan = main_plan,
+        step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
     result_task = get_result()
