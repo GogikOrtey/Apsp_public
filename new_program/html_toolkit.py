@@ -362,6 +362,9 @@ def get_html_frame(
     except Exception:
         return ""
 
+    # Count total nodes in original document
+    orig_nodes = sum(1 for _ in doc.iter())
+
     # Find target (first match)
     try:
         targets = doc.cssselect(selector)
@@ -422,6 +425,10 @@ def get_html_frame(
         container = best_fallback
     else:
         container = target
+
+    # Count nodes inside chosen container and how many were dropped outside it
+    container_nodes = sum(1 for _ in container.iter())
+    trimmed_outside_container = orig_nodes - container_nodes
 
     # Compute tree once after container selection
     tree = container.getroottree()
@@ -565,17 +572,20 @@ def get_html_frame(
             keep_nodes.add(el)
 
     # Prune: remove any element not in keep_nodes (post-order) and count removals
-    trimmed_counter = 0
+    trimmed_inside_container = 0
     for el in list(clone.iterdescendants())[::-1]:
         if el not in keep_nodes:
             parent = el.getparent()
             if parent is not None:
                 parent.remove(el)
-                trimmed_counter += 1
+                trimmed_inside_container += 1
 
-    if trimmed_counter > 0:
+    if trimmed_outside_container > 0 or trimmed_inside_container > 0:
         from lxml import etree
-        clone.insert(0, etree.Comment(f"TRIMMED_NODES: {trimmed_counter}"))
+        if trimmed_outside_container > 0:
+            clone.insert(0, etree.Comment(f"TRIMMED_OUTSIDE_CONTAINER: {trimmed_outside_container}"))
+        if trimmed_inside_container > 0:
+            clone.insert(0, etree.Comment(f"TRIMMED_INSIDE_CONTAINER: {trimmed_inside_container}"))
 
     # Sanitize: remove disallowed tags just in case
     DISALLOWED_TAGS = {"script", "style", "noscript", "svg"}
