@@ -309,7 +309,7 @@
 
 # @tool(
 #     name="check_url_status",
-#     description="Проверяет, какой HTTP-код вернёт запрос по URL (без навигации)",
+#     description="Проверяет, какой HTTP-код вернёт запрос по URL (Выполняет запрос через API-контекст Playwright и возвращает HTTP-код)",
 #     args=[
 #         {
 #             "name": "url",
@@ -422,7 +422,7 @@
 
 # @tool(
 #     name="smart_focus",
-#     description="Цикл Click -> Wait(1s) -> Click с обработкой перехвата клика (Escape + повтор)",
+#     description="Пытается сфокусироваться: Click -> Wait(timeout) -> Click. При перехвате клика нажимает Escape и повторяет попытку.",
 #     args=[
 #         {
 #             "name": "selector",
@@ -551,7 +551,7 @@
 
 # @tool(
 #     name="human_like_input",
-#     description="Очищает поле и вводит текст посимвольно через press_sequentially",
+#     description="Очищает поле и вводит текст посимвольно используя press_sequentially, иммитируя человеческий ввод",
 #     args=[
 #         {
 #             "name": "selector",
@@ -776,7 +776,7 @@
 
 # @tool(
 #     name="search_in_page_html",
-#     description="Ищет подстроку в текущем HTML страницы (до 5 вхождений, ±200 символов контекста)",
+#     description="Ищет подстроку в текущем HTML страницы (до 5 вхождений, 200 символов контекста перед и после найденного элемента)",
 #     args=[
 #         {
 #             "name": "substring",
