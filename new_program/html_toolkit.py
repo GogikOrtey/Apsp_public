@@ -329,6 +329,7 @@ def get_html_frame(
     max_container_html_chars: int = 5000,
     sibling_elems: int = 2,
     max_text_node_chars: int = 200,
+    ancestor_levels: int = 3,
 ) -> str:
     """
     Создаёт компактный и информативный HTML-снимок («html_frame») вокруг первого элемента
@@ -340,6 +341,9 @@ def get_html_frame(
     - Очищает теги/атрибуты и удаляет пробелы.
     - Ограничивается значением max_frame_chars.
     """
+
+    print(f"\nЗапустили get_html_frame с селектором:", selector)
+
     try:
         import lxml.html
         from lxml import etree
@@ -454,6 +458,14 @@ def get_html_frame(
     # Always keep target
     keep_abs_paths.add(target_path)
 
+    # Keep N ancestors above target
+    cur = target.getparent()
+    for _ in range(ancestor_levels):
+        if cur is None:
+            break
+        keep_abs_paths.add(tree.getpath(cur))
+        cur = cur.getparent()
+
     # Keep siblings around target
     prevs, nxts = _element_siblings(target, sibling_elems)
     for s in prevs + nxts:
@@ -535,12 +547,18 @@ def get_html_frame(
         for el in target_clone.iter():
             keep_nodes.add(el)
 
-    # Prune: remove any element not in keep_nodes (post-order)
+    # Prune: remove any element not in keep_nodes (post-order) and count removals
+    trimmed_counter = 0
     for el in list(clone.iterdescendants())[::-1]:
         if el not in keep_nodes:
             parent = el.getparent()
             if parent is not None:
                 parent.remove(el)
+                trimmed_counter += 1
+
+    if trimmed_counter > 0:
+        from lxml import etree
+        clone.insert(0, etree.Comment(f"TRIMMED_NODES: {trimmed_counter}"))
 
     # Sanitize: remove disallowed tags just in case
     DISALLOWED_TAGS = {"script", "style", "noscript", "svg"}
@@ -624,6 +642,7 @@ def get_html_frame(
     if len(out) > max_frame_chars:
         out = out[:max_frame_chars - 1] + "…"
 
+    print(f"\nРезультат get_html_frame:\n", out)
     return out
 
 
@@ -645,9 +664,9 @@ def save_page_html(html: str, filename: str = "page_html.html") -> str:
 # Проверка
 url = "https://makitaclub.ru/products/df488d002/"
 html_content = get_html_from_cache(url)
-save_page_html(html_content, filename = "page_html.html")
+# save_page_html(html_content, filename = "page_html.html")
 
 # selector = "#main .product_title.entry-title"
 selector = ".col-sm-6 .woocommerce-Price-amount.amount"
-result_get_html_frame = get_html_frame(html_content, selector)
-print(f"result_get_html_frame:\n", result_get_html_frame)
+result_get_html_frame = get_html_frame(html_content, selector, ancestor_levels = 3)
+# print(f"result_get_html_frame:\n", result_get_html_frame)

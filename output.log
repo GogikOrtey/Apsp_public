@@ -1,5 +1,7 @@
-25.12.2025 08:19:23
+25.12.2025 08:32:35
 
-Сохраняем html страницы в файл page_html.html
-result_get_html_frame:
+
+Запустили get_html_frame с селектором: .col-sm-6 .woocommerce-Price-amount.amount
+
+Результат get_html_frame:
  <div class="col-sm-6"><p class="special-background text-center price"><!--TARGET_START--><span class="woocommerce-Price-amount amount"><bdi>12 880<span class="woocommerce-Price-currencySymbol">₽</span></bdi></span><!--TARGET_END--></p></div>
