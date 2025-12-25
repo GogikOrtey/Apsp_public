@@ -434,9 +434,27 @@ def get_html_frame(
     else:
         container = target
 
-    # Count nodes inside chosen container and how many were dropped outside it
+    # Count nodes inside chosen container and compute trimmed nodes before/after by source line
     container_nodes = sum(1 for _ in container.iter())
-    trimmed_outside_container = orig_nodes - container_nodes
+    container_nodes_set = set(container.iter())
+    container_line = getattr(container, "sourceline", None)
+    container_line = container_line if container_line is not None else -1
+
+    def _sline(node):
+        try:
+            return node.sourceline
+        except Exception:
+            return None
+
+    trimmed_outside_before = sum(
+        1 for n in doc.iter()
+        if n not in container_nodes_set and (_sline(n) is not None and _sline(n) < container_line)
+    )
+    trimmed_outside_after = sum(
+        1 for n in doc.iter()
+        if n not in container_nodes_set and (_sline(n) is not None and _sline(n) > container_line)
+    )
+    trimmed_outside_container = trimmed_outside_before + trimmed_outside_after
 
     # Compute tree once after container selection
     tree = container.getroottree()
@@ -589,12 +607,10 @@ def get_html_frame(
                 parent.remove(el)
 
     trimmed_inside_container = sum(trim_map.values())
+    outside_trim_info = (trimmed_outside_before, trimmed_outside_after)
 
     if trimmed_outside_container > 0 or trimmed_inside_container > 0:
         from lxml import etree
-        if trimmed_outside_container > 0:
-            clone.insert(0, etree.Comment(f"TRIMMED_OUTSIDE_CONTAINER: {trimmed_outside_container} NODES"))
-            clone.append(etree.Comment(f"TRIMMED_OUTSIDE_CONTAINER: {trimmed_outside_container} NODES"))
 
         # Локальные маркеры вокруг каждого родителя, у которого были вырезанные узлы
         for parent, count in trim_map.items():
@@ -679,7 +695,20 @@ def get_html_frame(
 
     # Serialize
     from lxml import etree
-    out = etree.tostring(clone, encoding="unicode", with_tail=False, method="html")
+    def _serialize_with_outside_comments():
+        before, after = outside_trim_info
+        if before == 0 and after == 0:
+            return etree.tostring(clone, encoding="unicode", with_tail=False, method="html")
+        before_comment = etree.Comment(f"TRIMMED_OUTSIDE_CONTAINER_BEFORE: {before} NODES")
+        after_comment = etree.Comment(f"TRIMMED_OUTSIDE_CONTAINER_AFTER: {after} NODES")
+        parts = [
+            etree.tostring(before_comment, encoding="unicode", with_tail=False, method="html"),
+            etree.tostring(clone, encoding="unicode", with_tail=False, method="html"),
+            etree.tostring(after_comment, encoding="unicode", with_tail=False, method="html"),
+        ]
+        return "".join(parts)
+
+    out = _serialize_with_outside_comments()
 
     # Collapse whitespace between tags + inside text reasonably
     out = re.sub(r">\s+<", "><", out)
