@@ -24,6 +24,7 @@ from reasoning_agent.chat_terminal import init_chat_channel, chat_print
 # Подключаю инструменты
 from reasoning_agent.agent_tools import *
 from reasoning_agent.plan_tools import *
+from reasoning_agent.runtime_state import set_main_plan as _set_runtime_main_plan
 
 
 
@@ -855,6 +856,12 @@ def orchestrate(
     # Фоллбэк на шаблон, если плана нет или пришёл в неверном формате
     if not isinstance(main_plan, dict):
         main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
+
+    # Делаем main_plan доступным инструментам (через runtime_state) без циклических импортов
+    try:
+        _set_runtime_main_plan(main_plan)
+    except Exception:
+        pass
 
     # Синхронизируем прогресс плана с уже предзаполненным result (например, из result_template)
     try:

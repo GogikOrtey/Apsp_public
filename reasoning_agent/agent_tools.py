@@ -16,6 +16,8 @@ if str(ROOT_DIR) not in sys.path:
 # Импортируем LLM-клиент для генерации и формализации плана
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
+from reasoning_agent.runtime_state import get_main_plan as _get_runtime_main_plan
+
 """
 
 Начальные инструменты:
@@ -297,5 +299,138 @@ def update_result(field: str, value: Any):
 
     node[path[-1]] = value
     return {"status": "ok", "result": RESULT}
+
+
+# region goto_main_plan_step
+@tool(
+    name="goto_main_plan_step",
+    description=(
+        "Перемещает main_plan на указанный РАНЕЕ выполненный шаг (назад относительно текущего). "
+        "Используй, когда нужно переиграть/уточнить уже закрытую фазу плана. "
+        "По умолчанию очищает поля result из fills выбранного шага, чтобы оркестратор не продвинул план вперёд сразу же."
+    ),
+    args=[
+        {
+            "name": "step_index",
+            "type": "int",
+            "required": False,
+            "description": "Индекс шага в main_plan.steps (0..N-1). Можно не задавать, если задан step_id."
+        },
+        {
+            "name": "step_id",
+            "type": "int",
+            "required": False,
+            "description": "Идентификатор шага step_id (обычно 1..N). Можно не задавать, если задан step_index."
+        },
+        {
+            "name": "clear_fills",
+            "type": "bool",
+            "required": False,
+            "description": "Очищать ли поля result, указанные в fills выбранного шага (по умолчанию True)."
+        },
+        {
+            "name": "reset_following_steps",
+            "type": "bool",
+            "required": False,
+            "description": "Сбросить ли статусы всех последующих шагов в pending (по умолчанию True)."
+        }
+    ],
+    returns={
+        "status": "ok|error",
+        "error": "str|null",
+        "from_step": "int",
+        "to_step": "int",
+        "cleared_fields": "array",
+        "steps_status": "array"
+    },
+    example_args={"step_id": 1, "clear_fills": True, "reset_following_steps": True}
+)
+def goto_main_plan_step(
+    step_index: int | None = None,
+    step_id: int | None = None,
+    clear_fills: bool = True,
+    reset_following_steps: bool = True,
+):
+    main_plan = _get_runtime_main_plan()
+    if not isinstance(main_plan, dict):
+        return {"status": "error", "error": "main_plan не инициализирован (runtime_state пуст)"}
+
+    steps = main_plan.get("steps")
+    if not isinstance(steps, list) or not steps:
+        return {"status": "error", "error": "main_plan.steps пуст или имеет неверный формат"}
+
+    current_idx = main_plan.get("current_step", 0)
+    if not isinstance(current_idx, int) or current_idx < 0:
+        current_idx = 0
+
+    target_idx: int | None = None
+    if isinstance(step_index, int):
+        target_idx = step_index
+    elif isinstance(step_id, int):
+        for i, s in enumerate(steps):
+            if isinstance(s, dict) and s.get("step_id") == step_id:
+                target_idx = i
+                break
+
+    if target_idx is None:
+        return {"status": "error", "error": "Нужно указать step_index (0..N-1) или step_id (1..N)"}
+
+    if not isinstance(target_idx, int) or target_idx < 0 or target_idx >= len(steps):
+        return {"status": "error", "error": f"target_idx вне диапазона: {target_idx}"}
+
+    if target_idx >= current_idx:
+        return {
+            "status": "error",
+            "error": f"Можно перейти только на более ранний шаг: target={target_idx}, current={current_idx}"
+        }
+
+    target_step = steps[target_idx] if isinstance(steps[target_idx], dict) else {}
+    if target_step.get("status") != "done":
+        return {
+            "status": "error",
+            "error": f"Целевой шаг должен быть выполненным (status='done'), сейчас: {target_step.get('status')!r}"
+        }
+
+    # Откатываем current_step и статусы
+    main_plan["status"] = "in_progress"
+    main_plan["current_step"] = target_idx
+
+    for i, s in enumerate(steps):
+        if not isinstance(s, dict):
+            continue
+        if i < target_idx:
+            s["status"] = "done"
+        elif i == target_idx:
+            s["status"] = "in_progress"
+        else:
+            if reset_following_steps:
+                s["status"] = "pending"
+
+    cleared_fields: list[str] = []
+    if clear_fills:
+        fills = target_step.get("fills") if isinstance(target_step.get("fills"), list) else []
+        for f in fills:
+            if not isinstance(f, str) or not f.strip():
+                continue
+            # update_result делает минимальную валидацию по RESULT_SCHEMA
+            resp = update_result(f.strip(), None)
+            if isinstance(resp, dict) and resp.get("status") == "ok":
+                cleared_fields.append(f.strip())
+
+    steps_status = []
+    for s in steps:
+        if not isinstance(s, dict):
+            continue
+        steps_status.append({"step_id": s.get("step_id"), "status": s.get("status")})
+
+    return {
+        "status": "ok",
+        "error": None,
+        "from_step": current_idx,
+        "to_step": target_idx,
+        "cleared_fields": cleared_fields,
+        "steps_status": steps_status
+    }
+# endregion goto_main_plan_step
 
 
