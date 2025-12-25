@@ -73,19 +73,20 @@ from reasoning_agent.agent_tools import tool
 
 """
 
-find_elements: Ищет элементы по селектору. Возвращает их количество и до max_results элементов
+find_elements:          Ищет элементы по селектору. Возвращает их количество и до max_results элементов
     с текстом и inner_html.
-search_in_page_html: Ищет подстроку в HTML страницы. Возвращает до max_results сниппетов ±context символов.
+search_in_page_html:    Ищет подстроку в HTML страницы. Возвращает до max_results сниппетов ±context символов.
 wait_for_navigation_or_content: Ждёт смену URL или изменение текстового контента более чем на change_threshold.
-press_key: Нажимает переданную клавишу через page.keyboard.press.
-press_enter: Эмулирует нажатие клавиши Enter на текущей странице
-human_like_input: Очищает поле и вводит текст посимвольно через press_sequentially
-smart_focus: Цикл Click -> Wait(1s) -> Click с обработкой перехвата клика (Escape + повтор)
+press_key:              Нажимает переданную клавишу через page.keyboard.press.
+press_enter:            Эмулирует нажатие клавиши Enter на текущей странице
+human_like_input:       Очищает поле и вводит текст посимвольно через press_sequentially
+smart_focus:            Цикл Click -> Wait(1s) -> Click с обработкой перехвата клика (Escape + повтор)
 validate_interactivity: Быстрая проверка селектора: isEditable, isVisible, isEnabled
-check_url_status: Проверяет, какой HTTP-код вернёт запрос по URL (без навигации)
-goto_url: Открывает указанную страницу по URL и возвращает код ответа
-page_restart: Перезагружает текущую страницу и возвращает код ответа
-
+check_url_status:       Проверяет, какой HTTP-код вернёт запрос по URL (без навигации)
+goto_url:               Открывает указанную страницу по URL и возвращает код ответа
+page_restart:           Перезагружает текущую страницу и возвращает код ответа
+get_current_url:        Возвращает текущий URL открытой страницы
+click_element:          Кликает по элементу с заданным селектором. По умолчанию — по первому, можно выбрать индекс.
 
 """
 
@@ -117,6 +118,39 @@ def _change_fraction(old_text: str, new_text: str) -> float:
         return 0.0
     similarity = SequenceMatcher(None, old_text, new_text).ratio()
     return max(0.0, 1 - similarity)
+
+
+_current_page: Page | None = None
+
+
+def set_shared_page(page: Page) -> None:
+    """
+    Сохраняет экземпляр Playwright Page в общей области для всех инструментов.
+    """
+    global _current_page
+    _current_page = page
+
+
+def get_shared_page() -> Page:
+    """
+    Возвращает сохранённую страницу Playwright или выбрасывает исключение, если она не установлена.
+    """
+    if _current_page is None:
+        raise RuntimeError("Playwright page is not initialized. Call set_shared_page(page) before using toolkit tools.")
+    return _current_page
+
+
+def _require_page_or_error(extra: dict[str, Any] | None = None) -> tuple[Page | None, dict[str, Any] | None]:
+    """
+    Возвращает сохранённую страницу или готовый словарь ошибки, если страница не установлена.
+    """
+    try:
+        return get_shared_page(), None
+    except Exception as exc:  # noqa: BLE001
+        payload: dict[str, Any] = {"status": "error", "error": str(exc)}
+        if extra:
+            payload.update(extra)
+        return None, payload
 
 
 def _safe_page_content(page: Page, timeout_ms: int = 1_000, poll_ms: int = 100) -> str:
@@ -162,12 +196,6 @@ def _safe_page_content(page: Page, timeout_ms: int = 1_000, poll_ms: int = 100) 
     description="Перезагружает текущую страницу и возвращает код ответа",
     args=[
         {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright"
-        },
-        {
             "name": "wait_until",
             "type": "str",
             "required": False,
@@ -189,13 +217,15 @@ def _safe_page_content(page: Page, timeout_ms: int = 1_000, poll_ms: int = 100) 
     example_args={"wait_until": "load", "timeout": 30000}
 )
 def page_restart(
-    page: Page,
     wait_until: Literal["load", "domcontentloaded", "networkidle"] = "load",
     timeout: int = 30_000,
 ) -> dict[str, str | int | None]:
     """
     Перезагружает текущую страницу.
     """
+    page, err = _require_page_or_error({"code": None, "url": None})
+    if err:
+        return err
     try:
         response = page.reload(wait_until=wait_until, timeout=timeout)
         return {"status": "ok", "code": _response_status(response), "url": page.url, "error": None}
@@ -207,12 +237,6 @@ def page_restart(
     name="goto_url",
     description="Открывает указанную страницу по URL и возвращает код ответа",
     args=[
-        {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright"
-        },
         {
             "name": "url",
             "type": "str",
@@ -241,7 +265,6 @@ def page_restart(
     example_args={"url": "https://example.com", "wait_until": "load", "timeout": 30000}
 )
 def goto_url(
-    page: Page,
     url: str,
     wait_until: Literal["load", "domcontentloaded", "networkidle"] = "load",
     timeout: int = 30_000,
@@ -249,6 +272,9 @@ def goto_url(
     """
     Открывает указанную страницу по URL.
     """
+    page, err = _require_page_or_error({"code": None, "url": url})
+    if err:
+        return err
     try:
         response = page.goto(url, wait_until=wait_until, timeout=timeout)
         return {"status": "ok", "code": _response_status(response), "url": page.url, "error": None}
@@ -257,15 +283,34 @@ def goto_url(
 
 
 @tool(
+    name="get_current_url",
+    description="Возвращает текущий URL открытой страницы",
+    args=[
+    ],
+    returns={
+        "status": "ok|error",
+        "url": "str|null",
+        "error": "Описание ошибки, если была"
+    },
+    example_args={},
+)
+def get_current_url() -> dict[str, str | None]:
+    """
+    Возвращает URL текущей страницы.
+    """
+    page, err = _require_page_or_error({"url": None})
+    if err:
+        return err
+    try:
+        return {"status": "ok", "url": page.url, "error": None}
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "url": None, "error": str(exc)}
+
+
+@tool(
     name="check_url_status",
     description="Проверяет, какой HTTP-код вернёт запрос по URL (без навигации)",
     args=[
-        {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright (используется request-контекст)"
-        },
         {
             "name": "url",
             "type": "str",
@@ -294,7 +339,6 @@ def goto_url(
     example_args={"url": "https://example.com", "method": "HEAD", "timeout": 10000}
 )
 def check_url_status(
-    page: Page,
     url: str,
     method: Literal["GET", "HEAD"] = "GET",
     timeout: int = 10_000,
@@ -302,6 +346,9 @@ def check_url_status(
     """
     Выполняет запрос через API-контекст Playwright и возвращает HTTP-код.
     """
+    page, err = _require_page_or_error({"code": None, "url": url})
+    if err:
+        return err
     try:
         method_upper = method.upper()
         request_ctx = page.context.request
@@ -321,12 +368,6 @@ def check_url_status(
     description="Быстрая проверка селектора: isEditable, isVisible, isEnabled",
     args=[
         {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright"
-        },
-        {
             "name": "selector",
             "type": "str",
             "required": True,
@@ -343,8 +384,18 @@ def check_url_status(
     },
     example_args={"selector": "input[name='q']"}
 )
-def validate_interactivity(page: Page, selector: str) -> dict[str, str | bool | None]:
+def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
     """Вызывает isEditable(), isVisible() и isEnabled() для локатора."""
+    page, err = _require_page_or_error(
+        {
+            "selector": selector,
+            "editable": None,
+            "visible": None,
+            "enabled": None,
+        }
+    )
+    if err:
+        return err
     locator = page.locator(selector)
     try:
         editable = locator.is_editable()
@@ -374,12 +425,6 @@ def validate_interactivity(page: Page, selector: str) -> dict[str, str | bool | 
     description="Цикл Click -> Wait(1s) -> Click с обработкой перехвата клика (Escape + повтор)",
     args=[
         {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright"
-        },
-        {
             "name": "selector",
             "type": "str",
             "required": True,
@@ -400,11 +445,14 @@ def validate_interactivity(page: Page, selector: str) -> dict[str, str | bool | 
     },
     example_args={"selector": "input[name='q']", "timeout": 1000}
 )
-def smart_focus(page: Page, selector: str, timeout: int = 1_000) -> dict[str, str | int | None]:
+def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | None]:
     """
     Пытается сфокусироваться: Click -> Wait(timeout) -> Click.
     При перехвате клика нажимает Escape и повторяет попытку.
     """
+    page, err = _require_page_or_error({"selector": selector, "attempts": 0})
+    if err:
+        return err
     locator = page.locator(selector)
     last_error: str | None = None
 
@@ -425,15 +473,86 @@ def smart_focus(page: Page, selector: str, timeout: int = 1_000) -> dict[str, st
 
 
 @tool(
+    name="click_element",
+    description="Кликает по элементу с заданным селектором. По умолчанию — по первому, можно выбрать индекс.",
+    args=[
+        {
+            "name": "selector",
+            "type": "str",
+            "required": True,
+            "description": "CSS/XPath селектор элемента",
+        },
+        {
+            "name": "element_index",
+            "type": "int",
+            "required": False,
+            "description": "Номер элемента, если их несколько (0 — первый по умолчанию)",
+        },
+    ],
+    returns={
+        "status": "ok|error",
+        "selector": "str",
+        "element_index": "int",
+        "total_count": "int|null",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={"selector": "button.submit", "element_index": 0},
+)
+def click_element(
+    selector: str,
+    element_index: int = 0,
+) -> dict[str, str | int | None]:
+    """
+    Кликает по element_index-му элементу по селектору (0 — первый).
+    """
+    page, err = _require_page_or_error(
+        {"selector": selector, "element_index": element_index, "total_count": None}
+    )
+    if err:
+        return err
+    locator = page.locator(selector)
+    try:
+        count = locator.count()
+        if count == 0:
+            return {
+                "status": "error",
+                "selector": selector,
+                "element_index": element_index,
+                "total_count": 0,
+                "error": "Элементы по селектору не найдены",
+            }
+
+        if element_index < 0 or element_index >= count:
+            return {
+                "status": "error",
+                "selector": selector,
+                "element_index": element_index,
+                "total_count": count,
+                "error": f"Индекс {element_index} вне диапазона [0, {count - 1}]",
+            }
+
+        locator.nth(element_index).click()
+        return {
+            "status": "ok",
+            "selector": selector,
+            "element_index": element_index,
+            "total_count": count,
+            "error": None,
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "status": "error",
+            "selector": selector,
+            "element_index": element_index,
+            "total_count": None,
+            "error": str(exc),
+        }
+
+
+@tool(
     name="human_like_input",
     description="Очищает поле и вводит текст посимвольно через press_sequentially",
     args=[
-        {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright"
-        },
         {
             "name": "selector",
             "type": "str",
@@ -462,7 +581,6 @@ def smart_focus(page: Page, selector: str, timeout: int = 1_000) -> dict[str, st
     example_args={"selector": "input[name='q']", "text": "hello world", "delay_ms": 100}
 )
 def human_like_input(
-    page: Page,
     selector: str,
     text: str,
     delay_ms: int = 100,
@@ -470,6 +588,9 @@ def human_like_input(
     """
     Очистка поля -> посимвольный ввод через press_sequentially (активирует фронтовую валидацию).
     """
+    page, err = _require_page_or_error({"selector": selector, "text_len": 0})
+    if err:
+        return err
     locator = page.locator(selector)
     try:
         locator.click()
@@ -485,12 +606,6 @@ def human_like_input(
     name="press_enter",
     description="Эмулирует нажатие клавиши Enter на текущей странице",
     args=[
-        {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright",
-        }
     ],
     returns={
         "status": "ok|error",
@@ -498,10 +613,13 @@ def human_like_input(
     },
     example_args={},
 )
-def press_enter(page: Page) -> dict[str, str | None]:
+def press_enter() -> dict[str, str | None]:
     """
     Простое нажатие Enter через page.keyboard.press.
     """
+    page, err = _require_page_or_error({})
+    if err:
+        return err
     try:
         page.keyboard.press("Enter")
         return {"status": "ok", "error": None}
@@ -513,12 +631,6 @@ def press_enter(page: Page) -> dict[str, str | None]:
     name="press_key",
     description="Эмулирует нажатие указанной клавиши на текущей странице",
     args=[
-        {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright",
-        },
         {
             "name": "key",
             "type": "str",
@@ -533,10 +645,13 @@ def press_enter(page: Page) -> dict[str, str | None]:
     },
     example_args={"key": "Enter"},
 )
-def press_key(page: Page, key: str) -> dict[str, str | None]:
+def press_key(key: str) -> dict[str, str | None]:
     """
     Нажимает переданную клавишу через page.keyboard.press.
     """
+    page, err = _require_page_or_error({"pressed_key": None})
+    if err:
+        return err
     try:
         page.keyboard.press(key)
         return {"status": "ok", "pressed_key": key, "error": None}
@@ -548,12 +663,6 @@ def press_key(page: Page, key: str) -> dict[str, str | None]:
     name="wait_for_navigation_or_content",
     description="Ждёт смену URL или существенное изменение контента (>20% текста) за таймаут",
     args=[
-        {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright"
-        },
         {
             "name": "old_url",
             "type": "str",
@@ -583,7 +692,6 @@ def press_key(page: Page, key: str) -> dict[str, str | None]:
     example_args={"old_url": "https://example.com", "timeout": 15000, "change_threshold": 0.2}
 )
 def wait_for_navigation_or_content(
-    page: Page,
     old_url: str,
     timeout: int = 30_000,
     change_threshold: float = 0.2,
@@ -591,6 +699,15 @@ def wait_for_navigation_or_content(
     """
     Ждёт смену URL или изменение текстового контента более чем на change_threshold.
     """
+    page, err = _require_page_or_error(
+        {
+            "reason": "no_change",
+            "new_url": None,
+            "change_fraction": None,
+        }
+    )
+    if err:
+        return err
     deadline = time.monotonic() + timeout / 1000
     start_text: str | None = None
     last_fraction: float | None = None
@@ -662,12 +779,6 @@ def wait_for_navigation_or_content(
     description="Ищет подстроку в текущем HTML страницы (до 5 вхождений, ±200 символов контекста)",
     args=[
         {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright"
-        },
-        {
             "name": "substring",
             "type": "str",
             "required": True,
@@ -695,7 +806,6 @@ def wait_for_navigation_or_content(
     example_args={"substring": "Example Domain", "max_results": 3, "context": 120}
 )
 def search_in_page_html(
-    page: Page,
     substring: str,
     max_results: int = 5,
     context: int = 200,
@@ -703,6 +813,9 @@ def search_in_page_html(
     """
     Ищет подстроку в HTML страницы. Возвращает до max_results сниппетов ±context символов.
     """
+    page, err = _require_page_or_error({"count": 0, "matches": None})
+    if err:
+        return err
     try:
         html = _safe_page_content(page, timeout_ms=2_000)
         haystack = html.lower()
@@ -733,12 +846,6 @@ def search_in_page_html(
     description="Возвращает элементы по селектору (max 5) и их количество. Можно запросить только count.",
     args=[
         {
-            "name": "page",
-            "type": "Page",
-            "required": True,
-            "description": "Экземпляр страницы Playwright"
-        },
-        {
             "name": "selector",
             "type": "str",
             "required": True,
@@ -766,7 +873,6 @@ def search_in_page_html(
     example_args={"selector": "a", "only_count": False, "max_results": 3}
 )
 def find_elements(
-    page: Page,
     selector: str,
     only_count: bool = False,
     max_results: int = 5,
@@ -775,6 +881,9 @@ def find_elements(
     Ищет элементы по селектору. Возвращает их количество и до max_results элементов
     с текстом и inner_html.
     """
+    page, err = _require_page_or_error({"count": 0, "elements": None})
+    if err:
+        return err
     locator = page.locator(selector)
     try:
         count = locator.count()
@@ -801,6 +910,10 @@ def find_elements(
 
 
 
+
+###### Надо установить страницу 1 раз через
+# set_shared_page(page)
+# Иначе инструменты вернут ошибку
 
 
 
