@@ -96,57 +96,6 @@ main_task = """
 Найти, в каком файле говорится про презентацию, и в какое время можно собрать на собрании необходимых человек. Название файла поместить в file_name, его содержание - в file_content, а наилучшее время для проведения собрания - в meeting_time
 """
 
-# Создаю план задачи в формальном виде
-main_plan = None
-
-# Явно задаю план в формальной форме
-# Это можно закомментировать, и план сгенерируется из задачи main_task
-main_plan = {
-    "status": "not_started",
-    "current_step": 0,
-    "steps": [
-        {
-            "step_id": 1,
-            "goal": "Определить, в каком файле упоминается презентация, и извлечь из него имя и полное содержание.",
-            "fills": [
-                "file_name",
-                "file_content"
-            ],
-            "status": "pending"
-        },
-        {
-            "step_id": 2,
-            "goal": "Определить наилучшее время, когда на собрании можно собрать всех необходимых людей.",
-            "fills": [
-                "meeting_time"
-            ],
-            "status": "pending"
-        }
-    ]
-}
-
-if not main_plan:
-    # Создаю план задачи в формальном виде
-    _main_plan_resp = create_main_plan_from_task(main_task, get_result_schema())
-
-    if isinstance(_main_plan_resp, dict) and _main_plan_resp.get("status") == "ok":
-        plan_value = _main_plan_resp.get("plan")
-        if isinstance(plan_value, dict):
-            main_plan = plan_value
-
-    if not isinstance(main_plan, dict):
-        # Фоллбэк на безопасный пустой план
-        main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
-
-
-
-
-
-# # Схема результата и шаблон для этой задачи (можно переопределить при запуске orchestrate(...))
-# # По умолчанию берём примеры из agent_tools.py
-# main_result_schema = copy.deepcopy(DEFAULT_RESULT_SCHEMA)
-# main_result_template = copy.deepcopy(DEFAULT_RESULT_TEMPLATE)
-
 # Схема результата
 main_result_schema = {
     "file_name": {
@@ -172,6 +121,50 @@ main_result_template = {
     "file_content": None,
     "meeting_time": None
 }
+
+# Создаю план задачи в формальном виде (устанавливается при запуске)
+main_plan = None
+
+# Пример явного плана в формальной форме (оставлен для справки, по умолчанию не используется)
+example_main_plan = {
+    "status": "not_started",
+    "current_step": 0,
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Определить, в каком файле упоминается презентация, и извлечь из него имя и полное содержание.",
+            "fills": [
+                "file_name",
+                "file_content"
+            ],
+            "status": "pending"
+        },
+        {
+            "step_id": 2,
+            "goal": "Определить наилучшее время, когда на собрании можно собрать всех необходимых людей.",
+            "fills": [
+                "meeting_time"
+            ],
+            "status": "pending"
+        }
+    ]
+}
+
+if False and not main_plan:
+    # Создаю план задачи в формальном виде
+    _main_plan_resp = create_main_plan_from_task(main_task, main_result_schema)
+
+    if isinstance(_main_plan_resp, dict) and _main_plan_resp.get("status") == "ok":
+        plan_value = _main_plan_resp.get("plan")
+        if isinstance(plan_value, dict):
+            main_plan = plan_value
+
+    if not isinstance(main_plan, dict):
+        # Фоллбэк на безопасный пустой план
+        main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
+
+
+
 
 
 # HISTORY_WINDOW = 12         # = 6 шагов - это сколько последних шагов отдаём в модель, в history
@@ -837,16 +830,29 @@ def orchestrate(
     # все модули с @tool, которые могли быть импортированы до вызова orchestrate.
     tools_annotation = get_tools_annotations()
 
-    # Позволяем передать кастомный план на запуск, иначе используем глобальный
+    # Выбираем схему и шаблон результата для текущего запуска (обязательно переданы снаружи)
+    schema_to_use = copy.deepcopy(result_schema or main_result_schema)
+    template_to_use = copy.deepcopy(result_template or main_result_template)
+
+    # Инициализируем объект результата для текущего запуска
+    init_result(schema_to_use, template_to_use)
+
+    # Формируем план: приоритет — явно переданный, иначе генерируем из текущей задачи и схемы
     if plan is not None:
-        main_plan = plan
+        main_plan = copy.deepcopy(plan)
+    else:
+        main_plan = None
+
+    if not isinstance(main_plan, dict):
+        _plan_resp = create_main_plan_from_task(task, schema_to_use)
+        if isinstance(_plan_resp, dict) and _plan_resp.get("status") == "ok":
+            generated_plan = _plan_resp.get("plan")
+            if isinstance(generated_plan, dict):
+                main_plan = generated_plan
 
     # Фоллбэк на шаблон, если плана нет или пришёл в неверном формате
     if not isinstance(main_plan, dict):
         main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
-
-    # Инициализируем объект результата для текущего запуска
-    init_result(result_schema or main_result_schema, result_template or main_result_template)
 
     # Синхронизируем прогресс плана с уже предзаполненным result (например, из result_template)
     try:

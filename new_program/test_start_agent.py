@@ -123,7 +123,8 @@ main_result_template = {
 }
 
 
-
+# Запускаю браузер с видимым окном
+launch_browser(headless = False)
 
 resulr_answer = orchestrate(
     task = main_task,

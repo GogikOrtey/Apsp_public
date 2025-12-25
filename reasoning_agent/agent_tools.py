@@ -76,36 +76,10 @@ search_in_file - ищет вхождения подстроки в тексте 
 
 
 
-# Пример схемы результата (ее можно переопределить при запуске агента)
-DEFAULT_RESULT_SCHEMA = {
-    "file_name": {
-        "type": "string",
-        "required": True,
-        "description": "Имя файла"
-    },
-    "file_content": {
-        "type": "string",
-        "required": True,
-        "description": "Содержимое файла"
-    },
-    "meeting_time": {
-        "type": "string",
-        "required": True,
-        "description": "Время проведения собрания"
-    }
-}
-
-# Базовый шаблон результата, который агент заполняет в процессе работы
-DEFAULT_RESULT_TEMPLATE = {
-    "file_name": None,
-    "file_content": None,
-    "meeting_time": None
-}
-
 # Текущая схема и текущий результат, который агент постепенно заполняет.
 # Инициализация делается через init_result(...) (см. ниже).
-RESULT_SCHEMA: dict[str, Any] = copy.deepcopy(DEFAULT_RESULT_SCHEMA)
-RESULT: dict[str, Any] = copy.deepcopy(DEFAULT_RESULT_TEMPLATE)
+RESULT_SCHEMA: dict[str, Any] = {}
+RESULT: dict[str, Any] = {}
 
 
 def init_result(schema: dict[str, Any] | None = None, template: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -113,10 +87,10 @@ def init_result(schema: dict[str, Any] | None = None, template: dict[str, Any] |
     Инициализирует (или переинициализирует) схему результата и сам результат.
     """
     global RESULT_SCHEMA, RESULT
-    if schema is None:
-        schema = DEFAULT_RESULT_SCHEMA
-    if template is None:
-        template = DEFAULT_RESULT_TEMPLATE
+    if not isinstance(schema, dict) or not schema:
+        raise ValueError("init_result: result_schema должен быть передан явно и не может быть пустым")
+    if not isinstance(template, dict) or not template:
+        raise ValueError("init_result: result_template должен быть передан явно и не может быть пустым")
     RESULT_SCHEMA = copy.deepcopy(schema)
     RESULT = copy.deepcopy(template)
     return {"status": "ok", "result_schema": RESULT_SCHEMA, "result": RESULT}
