@@ -50,6 +50,8 @@ class PlaywrightLastChange:
 class PlaywrightContextState:
     current_url: str | None = None
     http_status: int | None = None
+    page_version: int = 0
+    nav_count: int = 0
     actions_since_load: list[str] = field(default_factory=list)
     last_change: PlaywrightLastChange = field(default_factory=PlaywrightLastChange)
     _last_trigger_candidate: str | None = None
@@ -184,9 +186,23 @@ def record_playwright_action(
 def get_playwright_context_snapshot(*, max_actions: int = 10) -> dict[str, Any]:
     """Возвращает снапшот state в простом dict-формате (удобно для промптов)."""
     actions = _state.actions_since_load[-max_actions:] if max_actions > 0 else []
+
+    load_state: str | None = None
+    try:
+        if _current_page is not None:
+            # Единственный стабильный "геттер" состояния загрузки в sync API — через document.readyState.
+            load_state = _current_page.evaluate("() => document.readyState")
+            if not isinstance(load_state, str):
+                load_state = str(load_state)
+    except Exception:
+        load_state = None
+
     return {
         "current_url": _state.current_url,
         "http_status": _state.http_status,
+        "page_version": _state.page_version,
+        "nav_count": _state.nav_count,
+        "load_state": load_state,
         "last_change": {
             "type": _state.last_change.type,
             "trigger": _state.last_change.trigger,
@@ -216,11 +232,14 @@ def _ensure_listeners(page: Page) -> None:
             url = resp.url
             status = resp.status
 
-            # Если это действительно новый документ (URL изменился) — сбрасываем историю "since load".
-            if _state._last_document_url is None or url != _state._last_document_url:
-                _state.actions_since_load = []
-                _state._last_trigger_candidate = None
-                _state._last_document_url = url
+            # Любой document-ответ главного фрейма = новая версия страницы.
+            _state.page_version += 1
+            _state.nav_count += 1
+
+            # Сбрасываем историю "since load" на каждую новую версию (включая reload/переход на тот же URL).
+            _state.actions_since_load = []
+            _state._last_trigger_candidate = None
+            _state._last_document_url = url
 
             _state._last_document_ts = time.time()
             _state.current_url = url
