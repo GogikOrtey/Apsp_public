@@ -291,14 +291,15 @@ def check_selector_on_cheerio(selector: str, html_content: str) -> int:
 
 
 
+
+
+
+
+
 """
 
-    Осталось реализовать:
-
-    - get_html_frame (дописать) - Доработать код в get_html_frame, и вынести его в html_toolkit
+    Нужно будет реализовать:
     - Формирование curl запроса, с body, заголовками и прочим
-
-    Это уже на потом:
     - Получение всех запросов в браузере, с их параметрами и частью body (обрезанной в середине)
     - Получение результатов конкретного запроса, с указанием сколько контента из ответа нужно показать
     - Поиск запросов в которых есть вхождение подстроки (как в результатах так и в запросах, это можно будет например контролировать параметрами)    
@@ -310,9 +311,19 @@ def check_selector_on_cheerio(selector: str, html_content: str) -> int:
 """
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 # region get_html_frame
-
-
 @tool(
     name="get_html_frame",
     description="Строит компактный HTML-фрейм вокруг первого элемента по CSS-селектору, добавляя маркеры TARGET и комментарии об усечениях.",
@@ -993,12 +1004,12 @@ def save_page_html(html: str, filename: str = "page_html.html") -> str:
     return str(output_path)
 
 
-# Проверка
-url = "https://makitaclub.ru/products/df488d002/"
-html_content = get_html_from_cache(url)
-# save_page_html(html_content, filename = "page_html.html")
+# # Проверка
+# url = "https://makitaclub.ru/products/df488d002/"
+# html_content = get_html_from_cache(url)
+# # save_page_html(html_content, filename = "page_html.html")
 
-selector = "#main .product_title.entry-title"
-# selector = ".col-sm-6 .woocommerce-Price-amount.amount"
-result_get_html_frame = get_html_frame(html_content, selector)
-# print(f"result_get_html_frame:\n", result_get_html_frame)
+# selector = "#main .product_title.entry-title"
+# # selector = ".col-sm-6 .woocommerce-Price-amount.amount"
+# result_get_html_frame = get_html_frame(html_content, selector)
+# # print(f"result_get_html_frame:\n", result_get_html_frame)
