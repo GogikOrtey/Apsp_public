@@ -597,6 +597,26 @@ def get_html_frame(
         for el in target_clone.iter():
             keep_nodes.add(el)
 
+    # Подсчёт удалённых узлов по краям (до/после) для каждого родителя
+    edge_trim_counts = {}
+    for parent in list(clone.iter()):
+        children = list(parent)
+        if not children:
+            continue
+        kept_flags = [child in keep_nodes for child in children]
+        kept_indices = [i for i, k in enumerate(kept_flags) if k]
+        if kept_indices:
+            first_keep = min(kept_indices)
+            last_keep = max(kept_indices)
+            trimmed_before = sum(1 for i in range(first_keep) if not kept_flags[i])
+            trimmed_after = sum(1 for i in range(last_keep + 1, len(children)) if not kept_flags[i])
+        else:
+            # нет сохранённых детей — считаем все удалёнными "сверху"
+            trimmed_before = len(children)
+            trimmed_after = 0
+        if trimmed_before > 0 or trimmed_after > 0:
+            edge_trim_counts[parent] = (trimmed_before, trimmed_after)
+
     # Prune: remove any element not in keep_nodes (post-order) and count removals
     trim_map = defaultdict(int)  # parent_node -> count
     for el in list(clone.iterdescendants())[::-1]:
@@ -612,16 +632,18 @@ def get_html_frame(
     if trimmed_outside_container > 0 or trimmed_inside_container > 0:
         from lxml import etree
 
-        # Локальные маркеры вокруг каждого родителя, у которого были вырезанные узлы
-        for parent, count in trim_map.items():
-            try:
-                if count > 0 and parent.getparent() is not None:
-                    gp = parent.getparent()
-                    idx = gp.index(parent)
-                    gp.insert(idx, etree.Comment(f"TRIMMED {count} NODES"))
-                    gp.insert(idx + 2, etree.Comment(f"TRIMMED {count} NODES"))
-            except Exception:
-                pass
+        # Локальные маркеры: вставляем внутрь родителя с раздельным счётом сверху/снизу
+        for parent, counts in edge_trim_counts.items():
+            before_count, after_count = counts
+            children = list(parent)
+            if children:
+                if before_count > 0:
+                    parent.insert(0, etree.Comment(f"TRIMMED_BEFORE {before_count} NODES"))
+                if after_count > 0:
+                    parent.append(etree.Comment(f"TRIMMED_AFTER {after_count} NODES"))
+            else:
+                # если после очистки родитель пуст
+                parent.text = (parent.text or "") + f"<!--TRIMMED_BEFORE {before_count} AFTER {after_count} NODES-->"
 
     # Sanitize: remove disallowed tags just in case
     DISALLOWED_TAGS = {"script", "style", "noscript", "svg"}
