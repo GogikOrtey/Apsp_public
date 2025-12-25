@@ -44,56 +44,82 @@ from new_program.html_toolkit import *  # регистрирует инстру�
 
 
 
+main_task = """ 
+Тебе нужно сделать:
 
+Перейти на страницу https://makitaclub.ru
+И положить в поля результата номер кода ответа от перехода на эту страницу (в поле url_open_code), а также кол-во вхождений слова "makita" на странице, результат положи в поле count_includes_string
 
-
-
-
-
-
-
-
-
-main_task = """
-Найти, в каком файле говорится про презентацию
-Название файла поместить в file_name, его содержание - в file_content
 """
 
 
-main_plan = {
-    "status": "not_started",
-    "current_step": 0,
-    "steps": [
-        {
-            "step_id": 1,
-            "goal": "Определить, в каком файле упоминается презентация, и извлечь из него имя и полное содержание.",
-            "fills": [
-                "file_name",
-                "file_content"
-            ],
-            "status": "pending"
-        }
-    ]
-}
+
+
+
+
+
+
+
+# main_task = """
+# Найти, в каком файле говорится про презентацию
+# Название файла поместить в file_name, его содержание - в file_content
+# """
+
+
+# main_plan = {
+#     "status": "not_started",
+#     "current_step": 0,
+#     "steps": [
+#         {
+#             "step_id": 1,
+#             "goal": "Определить, в каком файле упоминается презентация, и извлечь из него имя и полное содержание.",
+#             "fills": [
+#                 "file_name",
+#                 "file_content"
+#             ],
+#             "status": "pending"
+#         }
+#     ]
+# }
+
+# # Схема результата
+# main_result_schema = {
+#     "file_name": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Имя файла"
+#     },
+#     "file_content": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Содержимое файла"
+#     }
+# }
+
+# # Шаблон результата, который агент заполняет в процессе работы
+# main_result_template = {
+#     "file_name": None,
+#     "file_content": None
+# }
 
 # Схема результата
 main_result_schema = {
-    "file_name": {
+    "url_open_code": {
         "type": "string",
         "required": True,
-        "description": "Имя файла"
+        "description": "Номер кода ответа от перехода на эту страницу"
     },
-    "file_content": {
+    "count_includes_string": {
         "type": "string",
         "required": True,
-        "description": "Содержимое файла"
+        "description": "Кол-во вхождений слова \"makita\" на странице"
     }
 }
 
 # Шаблон результата, который агент заполняет в процессе работы
 main_result_template = {
-    "file_name": None,
-    "file_content": None
+    "url_open_code": None,
+    "count_includes_string": None
 }
 
 
@@ -104,7 +130,7 @@ resulr_answer = orchestrate(
     max_steps = 40,
     result_schema = main_result_schema,
     result_template = main_result_template,
-    plan = main_plan
+    # plan = main_plan
 ) 
 
 result_task = get_result()
