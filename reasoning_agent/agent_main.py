@@ -11,7 +11,7 @@ import copy
 import traceback
 import time
 from typing import Any
-from chat_terminal import init_chat_channel, chat_print
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -19,6 +19,7 @@ if str(ROOT_DIR) not in sys.path:
 # Подключение всех библиотек и функций
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+from reasoning_agent.chat_terminal import init_chat_channel, chat_print
 
 # Подключаю инструменты
 from reasoning_agent.agent_tools import *

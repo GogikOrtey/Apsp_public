@@ -2,7 +2,7 @@ import copy
 import json
 from typing import Any, Callable
 
-from agent_tools import *
+
 
 from pathlib import Path
 import sys
@@ -12,6 +12,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+from reasoning_agent.agent_tools import *
 
 
 # Здесь реализован функционал для генерации плана действий в формальном виде,
