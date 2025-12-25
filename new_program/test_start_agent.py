@@ -23,10 +23,10 @@ from import_all_libraries import *
 
 from reasoning_agent.agent_main import *
 
-main_task = """
-Найти, в каком файле говорится про презентацию
-Название файла поместить в file_name, его содержание - в file_content
-"""
+from playwright.playwright_toolkit import *  # регистрирует инструменты playwright
+from new_program.html_tool # регистрирует инструменты html_tool
+
+
 
 """
 
@@ -42,6 +42,14 @@ main_task = """
 
 """
 
+
+
+
+
+main_task = """
+Найти, в каком файле говорится про презентацию
+Название файла поместить в file_name, его содержание - в file_content
+"""
 
 
 main_plan = {

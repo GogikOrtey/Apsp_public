@@ -669,7 +669,11 @@ def orchestrate(
     result_template: dict[str, Any] | None = None,
     plan: dict[str, Any] | None = None
 ) -> str:
-    global steps_future_value, long_term_memory, main_plan
+    global steps_future_value, long_term_memory, main_plan, tools_annotation
+
+    # Обновляем аннотации инструментов перед запуском, чтобы подхватить
+    # все модули с @tool, которые могли быть импортированы до вызова orchestrate.
+    tools_annotation = get_tools_annotations()
 
     # Позволяем передать кастомный план на запуск, иначе используем глобальный
     if plan is not None:

@@ -17,6 +17,9 @@ import time
 from typing import Any
 from urllib.parse import urlparse
 
+import subprocess
+import tempfile
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -25,6 +28,7 @@ if str(ROOT_DIR) not in sys.path:
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
+from reasoning_agent.agent_tools import tool
 
 
 
@@ -189,6 +193,118 @@ def clean_html_universal(html_content: str) -> str:
 
 
 """
+
+
+
+@tool(
+    name="check_selector_on_cheerio",
+    description="Считает количество совпадений CSS-селектора в HTML через cheerio (Node.js)",
+    args=[
+        {
+            "name": "selector",
+            "type": "str",
+            "required": True,
+            "description": "CSS-селектор для поиска",
+        },
+        {
+            "name": "html_content",
+            "type": "str",
+            "required": True,
+            "description": "HTML-код, в котором ищем селектор",
+        },
+    ],
+    returns={
+        "count": "int — количество найденных элементов по селектору",
+    },
+    example_args={
+        "selector": "div.item",
+        "html_content": "<div class='item'></div><div class='other'></div>",
+    },
+)
+def check_selector_on_cheerio(selector: str, html_content: str) -> int:
+    """
+    Проверяет количество совпадений селектора через cheerio (Node.js).
+    HTML кладем во временный файл, чтобы не строить гигантскую команду.
+    """
+    if not selector:
+        raise ValueError("Selector must be non-empty")
+
+    # Записываем HTML во временный файл (удалим после вызова Node)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as tmp:
+        tmp.write(html_content or "")
+        tmp_path = tmp.name
+
+    selector_js = json.dumps(selector)          # безопасно экранируем селектор
+    tmp_path_js = json.dumps(tmp_path)          # безопасно экранируем путь
+
+    node_script = (
+        "const cheerio=require('cheerio');"
+        "const fs=require('fs');"
+        f"const html=fs.readFileSync({tmp_path_js}, 'utf-8');"
+        "const $=cheerio.load(html);"
+        f"const count=$({selector_js}).length;"
+        "console.log(count);"
+    )
+
+    try:
+        result = subprocess.run(
+            ["node", "-e", node_script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            print("Node.js error:", result.stderr.strip())
+            return 0
+
+        output = result.stdout.strip()
+        try:
+            return int(output)
+        except ValueError:
+            print("Unexpected Node.js output:", output)
+            return 0
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+
+
+url = "https://makitaclub.ru/"
+html_content = get_html_from_cache(url)
+selector = "form.woocommerce-product-search button[type=\"submit\"]"
+result_check_selector = check_selector_on_cheerio(selector, html_content)
+print("result_check_selector =", result_check_selector)
+
+
+"""
+Проверяет, валидный ли это селектор Cheerio
+
+Скрипт на JS:
+
+const cheerio = require('cheerio');
+const fs = require('fs');
+
+// Загружаем HTML
+const html = fs.readFileSync('page.html', 'utf-8');
+const $ = cheerio.load(html);
+
+// Проверяем селектор
+const elements = $('твой_селектор');
+console.log('Найдено элементов:', elements.length);
+elements.each((i, el) => {
+  console.log($(el).text().trim());
+});
+
+
+Его запуск на питоне:
+
+
+
+
+
+"""
+
 
 
 
