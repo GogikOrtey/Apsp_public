@@ -36,11 +36,46 @@ from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 from reasoning_agent.agent_tools import tool
+from playwright_tool.shared_page import get_shared_page
 
 
 
 
 
+
+
+
+
+
+"""
+
+    Нужно будет реализовать:
+    - Формирование curl запроса, с body, заголовками и прочим
+    - Получение всех запросов в браузере, с их параметрами и частью body (обрезанной в середине)
+    - Получение результатов конкретного запроса, с указанием сколько контента из ответа нужно показать
+    - Поиск запросов в которых есть вхождение подстроки (как в результатах так и в запросах, это можно будет например контролировать параметрами)    
+    - Max pagination
+
+    - Реализовать инструмент, который возвращает html между двумя найденными вхождениями одинаковых селекторов
+    и возможно как-то собирает полный элемент между ними. Возвращает с доп. информацией
+        - Да, это прям надо сделать автоматически, для валидации селектора товара
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# region — OTHER TOOLS —
 
 # Приводит любую ссылку на сайт к виду https://makitaclub.ru
 def normalize_url(url: str) -> str:
@@ -64,11 +99,6 @@ def normalize_url(url: str) -> str:
     result =  f"https://{domain}"
     print("Нормализовали ссылку, получилось:", result)
     return result
-
-
-
-
-
 
 
 # Очищает html перед отправкой в LLM
@@ -166,6 +196,43 @@ def clean_html_universal(html_content: str) -> str:
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# region — FROM AGENT —
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # region Max pagination
 """
 Оригинал на JS:
@@ -203,9 +270,12 @@ def clean_html_universal(html_content: str) -> str:
 
 # region check_selector_on_cheerio
 
+
+
+# Обёртка для агента, с использованием локального html из открытой Page
 @tool(
-    name="check_selector_on_cheerio",
-    description="Считает количество совпадений CSS-селектора в HTML через cheerio (Node.js)",
+    name="check_selector_on_current_page_cheerio",
+    description="Проверяет, является ли селектор верным и валидным в cheerio (Node.js). Возвращает количество совпадений CSS-селектора на текущей странице Playwright",
     args=[
         {
             "name": "selector",
@@ -213,21 +283,54 @@ def clean_html_universal(html_content: str) -> str:
             "required": True,
             "description": "CSS-селектор для поиска",
         },
-        {
-            "name": "html_content",
-            "type": "str",
-            "required": True,
-            "description": "HTML-код, в котором ищем селектор",
-        },
     ],
     returns={
-        "count": "int — количество найденных элементов по селектору",
+        "count": "int — количество найденных элементов по селектору на текущей странице Playwright, либо текст ошибки",
     },
     example_args={
         "selector": "div.item",
-        "html_content": "<div class='item'></div><div class='other'></div>",
     },
 )
+def check_selector_on_current_page_cheerio(selector: str) -> int:
+    """
+    Обёртка над check_selector_on_cheerio(...), которая берёт HTML через текущую Playwright page.
+
+    Требования:
+    - до вызова должна быть установлена общая page через playwright_tool.shared_page.set_shared_page(page)
+    """
+    page = get_shared_page()
+    html_content = page.content()
+    return check_selector_on_cheerio(selector=selector, html_content=html_content)
+
+
+
+
+# @tool(
+#     name="check_selector_on_cheerio",
+#     description="Считает количество совпадений CSS-селектора в HTML через cheerio (Node.js)",
+#     args=[
+#         {
+#             "name": "selector",
+#             "type": "str",
+#             "required": True,
+#             "description": "CSS-селектор для поиска",
+#         },
+#         {
+#             "name": "html_content",
+#             "type": "str",
+#             "required": True,
+#             "description": "HTML-код, в котором ищем селектор",
+#         },
+#     ],
+#     returns={
+#         "count": "int — количество найденных элементов по селектору",
+#     },
+#     example_args={
+#         "selector": "div.item",
+#         "html_content": "<div class='item'></div><div class='other'></div>",
+#     },
+# )
+
 def check_selector_on_cheerio(selector: str, html_content: str) -> int:
     """
     Проверяет количество совпадений селектора через cheerio (Node.js).
@@ -293,42 +396,13 @@ def check_selector_on_cheerio(selector: str, html_content: str) -> int:
 
 
 
-
-
-
-"""
-
-    Нужно будет реализовать:
-    - Формирование curl запроса, с body, заголовками и прочим
-    - Получение всех запросов в браузере, с их параметрами и частью body (обрезанной в середине)
-    - Получение результатов конкретного запроса, с указанием сколько контента из ответа нужно показать
-    - Поиск запросов в которых есть вхождение подстроки (как в результатах так и в запросах, это можно будет например контролировать параметрами)    
-
-    - Реализовать инструмент, который возвращает html между двумя найденными вхождениями одинаковых селекторов
-    и возможно как-то собирает полный элемент между ними. Возвращает с доп. информацией
-        - Да, это прям надо сделать автоматически, для валидации селектора товара
-
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # region get_html_frame
+
+# Обёртка для агента, с использованием локального html из открытой Page
 @tool(
-    name="get_html_frame",
-    description="Строит компактный HTML-фрейм вокруг первого элемента по CSS-селектору, добавляя маркеры TARGET и комментарии об усечениях.",
+    name="get_html_frame_on_current_page",
+    description="Строит компактный HTML-фрейм вокруг первого элемента по CSS-селектору, беря HTML из текущей страницы Playwright",
     args=[
-        {"name": "html", "type": "str", "required": True, "description": "Исходный HTML-документ"},
         {"name": "selector", "type": "str", "required": True, "description": "CSS-селектор для поиска target"},
         {"name": "max_frame_chars", "type": "int", "required": False, "description": "Макс. длина итогового HTML-фрейма"},
         {"name": "max_container_text_chars", "type": "int", "required": False, "description": "Лимит текста при выборе контейнера"},
@@ -338,14 +412,66 @@ def check_selector_on_cheerio(selector: str, html_content: str) -> int:
         {"name": "ancestor_levels", "type": "int", "required": False, "description": "Сколько уровней предков сохранять"},
     ],
     returns={
-        "html_frame": "str — HTML-фрейм с комментариями TRIMMED_* и маркерами TARGET",
+        "html_frame": "str — HTML-фрейм с комментариями TRIMMED_* с количеством удалённых узлов и маркерами TARGET вокруг исходного элемента",
     },
     example_args={
-        "html": "<div class='card'><span class='price'>$10</span></div>",
         "selector": ".price",
         "max_frame_chars": 2000,
     },
 )
+def get_html_frame_on_current_page(
+    selector: str,
+    *,
+    max_frame_chars: int = 3000,
+    max_container_text_chars: int = 1000,
+    max_container_html_chars: int = 5000,
+    sibling_elems: int = 2,
+    max_text_node_chars: int = 200,
+    ancestor_levels: int = 3,
+) -> str:
+    """
+    Обёртка над get_html_frame(...), которая берёт HTML через текущую Playwright page.
+
+    Требования:
+    - до вызова должна быть установлена общая page через playwright_tool.shared_page.set_shared_page(page)
+    """
+    page = get_shared_page()
+    html = page.content()
+    return get_html_frame(
+        html=html,
+        selector=selector,
+        max_frame_chars=max_frame_chars,
+        max_container_text_chars=max_container_text_chars,
+        max_container_html_chars=max_container_html_chars,
+        sibling_elems=sibling_elems,
+        max_text_node_chars=max_text_node_chars,
+        ancestor_levels=ancestor_levels,
+    )
+
+
+# @tool(
+#     name="get_html_frame",
+#     description="Строит компактный HTML-фрейм вокруг первого элемента по CSS-селектору, добавляя маркеры TARGET и комментарии об усечениях.",
+#     args=[
+#         {"name": "html", "type": "str", "required": True, "description": "Исходный HTML-документ"},
+#         {"name": "selector", "type": "str", "required": True, "description": "CSS-селектор для поиска target"},
+#         {"name": "max_frame_chars", "type": "int", "required": False, "description": "Макс. длина итогового HTML-фрейма"},
+#         {"name": "max_container_text_chars", "type": "int", "required": False, "description": "Лимит текста при выборе контейнера"},
+#         {"name": "max_container_html_chars", "type": "int", "required": False, "description": "Лимит HTML при выборе контейнера"},
+#         {"name": "sibling_elems", "type": "int", "required": False, "description": "Сколько соседних элементов сохранять рядом с target"},
+#         {"name": "max_text_node_chars", "type": "int", "required": False, "description": "Лимит длины текста внутри узла"},
+#         {"name": "ancestor_levels", "type": "int", "required": False, "description": "Сколько уровней предков сохранять"},
+#     ],
+#     returns={
+#         "html_frame": "str — HTML-фрейм с комментариями TRIMMED_* и маркерами TARGET",
+#     },
+#     example_args={
+#         "html": "<div class='card'><span class='price'>$10</span></div>",
+#         "selector": ".price",
+#         "max_frame_chars": 2000,
+#     },
+# )
+
 def get_html_frame(
     html: str,
     selector: str,
@@ -772,222 +898,6 @@ def get_html_frame(
 
 
 
-
-
-
-# def get_html_frame(
-#     html: str,
-#     selector: str,
-#     *,
-#     max_frame_chars: int = 3000,           # Максимальная длина всего итогового html-фрейма (после всех сокращений)
-#     max_container_text_chars: int = 1000,  # Максимальная длина текста контейнера при выборе подходящего родителя
-#     max_container_html_chars: int = 5000,  # Максимальная длина HTML-кода контейнера при выборе родителя
-#     sibling_elems: int = 2,                # Количество соседних элементов на том же уровне, которые нужно сохранить рядом с target
-#     max_text_node_chars: int = 200,        # Максимальная длина текста внутри узла (длинный текст будет обрезан)
-#     ancestor_levels: int = 3,              # Количество уровней предков target, которые нужно сохранить для контекста
-# ) -> str:
-#     """
-#     Создаёт компактный и информативный HTML-фрейм вокруг первого элемента, найденного по CSS-селектору.
-    
-#     Параметры:
-#     - html: исходный HTML-документ.
-#     - selector: CSS-селектор для выбора target-элемента.
-#     - max_frame_chars: максимальная длина итогового HTML-фрейма.
-#     - max_container_text_chars: лимит текста при выборе контейнера-родителя.
-#     - max_container_html_chars: лимит HTML-кода при выборе контейнера.
-#     - sibling_elems: количество соседних элементов target на одном уровне, которые нужно сохранить.
-#     - max_text_node_chars: максимальная длина текстового содержимого в узле (обрезка длинных текстов).
-#     - ancestor_levels: сколько уровней предков target сохранить для контекста.
-    
-#     Возвращает:
-#     - HTML-фрейм с пометками <!--TARGET_START-->, <!--TARGET_END--> и комментариями о вырезанных узлах.
-#     """
-
-#     print(f"\nЗапустили get_html_frame с селектором:", selector)
-
-#     try:
-#         import lxml.html
-#         from lxml import etree
-#     except ImportError:
-#         raise RuntimeError("Required library 'lxml' is missing.")
-
-#     if not html or not selector:
-#         return ""
-
-#     try:
-#         doc = lxml.html.fromstring(html)
-#     except Exception:
-#         return ""
-
-#     # Находим цель
-#     try:
-#         targets = doc.cssselect(selector)
-#     except Exception:
-#         return ""
-
-#     if not targets:
-#         return ""
-
-#     target = targets[0]
-
-#     # Хелперы для замеров
-#     def _norm_text_len(el) -> int:
-#         txt = el.text_content() if hasattr(el, "text_content") else ""
-#         return len(" ".join(txt.split()))
-
-#     def _html_len(el) -> int:
-#         try:
-#             return len(etree.tostring(el, encoding="unicode", with_tail=False, method="html"))
-#         except:
-#             return 10**9
-
-#     SEMANTIC_TAGS = {"section", "article", "main", "header", "aside", "div", "li", "td", "dd", "dl", "table"}
-#     STOP_TAGS = {"html", "body"}
-
-#     # Выбор контейнера
-#     chosen = None
-#     best_fallback = None
-#     cur = target
-#     while cur is not None and isinstance(cur.tag, str):
-#         tag = cur.tag.lower()
-#         if tag in STOP_TAGS:
-#             break
-        
-#         tlen, hlen = _norm_text_len(cur), _html_len(cur)
-#         if best_fallback is None:
-#             best_fallback = cur
-#         if tag in SEMANTIC_TAGS and tlen <= max_container_text_chars and hlen <= max_container_html_chars:
-#             chosen = cur
-#             break
-#         cur = cur.getparent()
-
-#     container = chosen or best_fallback or target
-
-#     # Оптимизированный подсчет удаленных узлов снаружи (Fix #4)
-#     container_nodes_set = set(container.iter())
-#     container_line = getattr(container, "sourceline", -1) or -1
-    
-#     trimmed_outside_before = 0
-#     trimmed_outside_after = 0
-#     for n in doc.iter():
-#         if n in container_nodes_set: continue
-#         line = getattr(n, "sourceline", None)
-#         if line is not None:
-#             if line < container_line: trimmed_outside_before += 1
-#             else: trimmed_outside_after += 1
-
-#     tree = container.getroottree()
-#     container_path = tree.getpath(container)
-#     target_path = tree.getpath(target)
-
-#     # Исправленный релятивный путь (Fix #3)
-#     def _rel_path(abs_path: str) -> str:
-#         if abs_path == container_path: return ""
-#         prefix = container_path + "/"
-#         if abs_path.startswith(prefix):
-#             return abs_path[len(container_path):]
-#         return ""
-
-#     # Собираем пути для сохранения
-#     keep_abs_paths = {target_path}
-    
-#     # Соседи и предки
-#     def _add_to_keep(el, levels):
-#         c = el
-#         for _ in range(levels + 1):
-#             if c is None: break
-#             keep_abs_paths.add(tree.getpath(c))
-#             if c == container: break
-#             c = c.getparent()
-
-#     _add_to_keep(target, ancestor_levels)
-
-#     # Сиблинги
-#     p, n = target.getprevious(), target.getnext()
-#     for _ in range(sibling_elems):
-#         if p is not None: keep_abs_paths.add(tree.getpath(p)); p = p.getprevious()
-#         if n is not None: keep_abs_paths.add(tree.getpath(n)); n = n.getnext()
-
-#     # Клонирование и очистка
-#     clone = deepcopy(container)
-#     keep_nodes = {clone}
-    
-#     for ap in keep_abs_paths:
-#         rp = _rel_path(ap)
-#         if not rp: continue
-#         for f in clone.xpath("." + rp):
-#             curr = f
-#             while curr is not None:
-#                 keep_nodes.add(curr)
-#                 if curr == clone: break
-#                 curr = curr.getparent()
-
-#     # Сохраняем все внутри цели
-#     target_rel = _rel_path(target_path)
-#     target_clones = clone.xpath("." + target_rel) if target_rel else [clone]
-#     target_clone = target_clones[0] if target_clones else None
-#     if target_clone is not None:
-#         keep_nodes.update(target_clone.iter())
-
-#     # Прунинг
-#     edge_trim_counts = {}
-#     for parent in list(clone.iter()):
-#         childs = list(parent)
-#         if not childs: continue
-#         kept = [c in keep_nodes for c in childs]
-#         if any(kept):
-#             first, last = kept.index(True), len(kept) - 1 - kept[::-1].index(True)
-#             tb = sum(1 for i in range(first) if not kept[i])
-#             ta = sum(1 for i in range(last + 1, len(childs)) if not kept[i])
-#             if tb > 0 or ta > 0: edge_trim_counts[parent] = (tb, ta)
-
-#     for el in list(clone.iterdescendants())[::-1]:
-#         if el not in keep_nodes:
-#             el.getparent().remove(el)
-
-#     # Вставка комментариев (Fix #2)
-#     for parent, (tb, ta) in edge_trim_counts.items():
-#         if list(parent):
-#             if tb > 0: parent.insert(0, etree.Comment(f"TRIMMED_BEFORE {tb} NODES"))
-#             if ta > 0: parent.append(etree.Comment(f"TRIMMED_AFTER {ta} NODES"))
-#         else:
-#             parent.append(etree.Comment(f"TRIMMED_BEFORE {tb} AFTER {ta} NODES"))
-
-#     # Атрибуты и тексты
-#     ATTR_WHITELIST = {"class", "id", "itemprop", "content", "href", "aria-label", "role", "title"}
-#     for el in clone.iter():
-#         if not isinstance(el.tag, str): continue
-#         # Очистка атрибутов
-#         attrs = {}
-#         for k, v in el.attrib.items():
-#             if k.lower() in ATTR_WHITELIST or k.lower().startswith("data-"):
-#                 attrs[k] = v[:200] + "…" if len(v) > 200 else v
-#         el.attrib.clear()
-#         el.attrib.update(attrs)
-#         # Тексты
-#         if el.text:
-#             t = " ".join(el.text.split())
-#             el.text = (t[:max_text_node_chars] + "…") if len(t) > max_text_node_chars else t
-
-#     # Маркеры цели
-#     if target_clone is not None:
-#         p = target_clone.getparent()
-#         if p is not None:
-#             idx = p.index(target_clone)
-#             p.insert(idx, etree.Comment("TARGET_START"))
-#             p.insert(idx + 2, etree.Comment("TARGET_END"))
-
-#     # Сериализация (Fix #1)
-#     res = [etree.tostring(etree.Comment(f"TRIMMED_OUTSIDE_BEFORE: {trimmed_outside_before}"), encoding="unicode")]
-#     res.append(etree.tostring(clone, encoding="unicode", method="html"))
-#     res.append(etree.tostring(etree.Comment(f"TRIMMED_OUTSIDE_AFTER: {trimmed_outside_after}"), encoding="unicode"))
-    
-#     out = "".join(res)
-#     out = re.sub(r">\s+<", "><", out)
-#     result = re.sub(r"\s{2,}", " ", out).strip()
-#     print(f"\nРезультат get_html_frame:\n", result)
-
-#     return result 
 
 # region Доп. функции
 
