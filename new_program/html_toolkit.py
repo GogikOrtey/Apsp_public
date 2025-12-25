@@ -321,6 +321,28 @@ def check_selector_on_cheerio(selector: str, html_content: str) -> int:
 
 # region get_html_frame
 
+@tool(
+    name="get_html_frame",
+    description="Строит компактный HTML-фрейм вокруг первого элемента по CSS-селектору, добавляя маркеры TARGET и комментарии об усечениях.",
+    args=[
+        {"name": "html", "type": "str", "required": True, "description": "Исходный HTML-документ"},
+        {"name": "selector", "type": "str", "required": True, "description": "CSS-селектор для поиска target"},
+        {"name": "max_frame_chars", "type": "int", "required": False, "description": "Макс. длина итогового HTML-фрейма"},
+        {"name": "max_container_text_chars", "type": "int", "required": False, "description": "Лимит текста при выборе контейнера"},
+        {"name": "max_container_html_chars", "type": "int", "required": False, "description": "Лимит HTML при выборе контейнера"},
+        {"name": "sibling_elems", "type": "int", "required": False, "description": "Сколько соседних элементов сохранять рядом с target"},
+        {"name": "max_text_node_chars", "type": "int", "required": False, "description": "Лимит длины текста внутри узла"},
+        {"name": "ancestor_levels", "type": "int", "required": False, "description": "Сколько уровней предков сохранять"},
+    ],
+    returns={
+        "html_frame": "str — HTML-фрейм с комментариями TRIMMED_* и маркерами TARGET",
+    },
+    example_args={
+        "html": "<div class='card'><span class='price'>$10</span></div>",
+        "selector": ".price",
+        "max_frame_chars": 2000,
+    },
+)
 def get_html_frame(
     html: str,
     selector: str,
@@ -348,7 +370,6 @@ def get_html_frame(
     Возвращает:
     - HTML-фрейм с пометками <!--TARGET_START-->, <!--TARGET_END--> и комментариями о вырезанных узлах.
     """
-
 
     print(f"\nЗапустили get_html_frame с селектором:", selector)
 
