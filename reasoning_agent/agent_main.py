@@ -409,6 +409,106 @@ def format_main_plan_for_prompt(main_plan: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def build_playwright_context_block_for_prompt(*, max_actions: int = 10) -> str:
+    """
+    Собирает диагностический блок по текущей странице Playwright для вставки в промпт.
+
+    Важно: блок должен быть "best-effort" и никогда не ломать работу агента.
+    """
+    try:
+        from playwright_tool.shared_page import (  # локальный импорт, чтобы избежать лишних зависимостей при старте
+            get_shared_page,
+            get_playwright_context_snapshot,
+        )
+    except Exception:
+        return ""
+
+    try:
+        page = get_shared_page()
+    except Exception:
+        return ""
+
+    try:
+        snapshot = get_playwright_context_snapshot(max_actions=max_actions)
+    except Exception:
+        snapshot = {"current_url": None, "http_status": None, "last_change": {}, "actions_since_load": []}
+
+    url = None
+    try:
+        url = page.url
+    except Exception:
+        url = None
+    if not url:
+        url = snapshot.get("current_url")
+
+    http_status = snapshot.get("http_status")
+    last_change = snapshot.get("last_change") or {}
+    actions = snapshot.get("actions_since_load") or []
+
+    # DOM summary (быстро и дёшево)
+    dom_counts = None
+    try:
+        dom_counts = page.evaluate(
+            """() => ({
+                total: document.getElementsByTagName('*').length,
+                links: document.querySelectorAll('a').length,
+                inputs: document.querySelectorAll('input').length,
+                buttons: document.querySelectorAll('button').length
+            })"""
+        )
+    except Exception:
+        dom_counts = None
+
+    total_elems = dom_counts.get("total") if isinstance(dom_counts, dict) else None
+    links = dom_counts.get("links") if isinstance(dom_counts, dict) else None
+    inputs = dom_counts.get("inputs") if isinstance(dom_counts, dict) else None
+    buttons = dom_counts.get("buttons") if isinstance(dom_counts, dict) else None
+
+    # Форматируем историю действий как в примере
+    if actions:
+        actions_lines = "\n".join(f"{i + 1}. {a}" for i, a in enumerate(actions))
+    else:
+        actions_lines = "—"
+
+    last_type = last_change.get("type") or "none"
+    last_trigger = last_change.get("trigger") or "unknown"
+    last_delta = last_change.get("delta_text") or "null"
+
+    # Если страница закрыта/неактивна — не шумим (но блок оставим, чтобы модель понимала, что нет контекста)
+    try:
+        if getattr(page, "is_closed", None) and page.is_closed():
+            return """
+————————————————————————————————————
+Контекст браузера (Playwright)
+
+Страница Playwright закрыта (page.is_closed() == True)
+"""
+    except Exception:
+        pass
+
+    return f"""
+————————————————————————————————————
+Контекст браузера (Playwright)
+
+Текущая открытая страница: {url}
+HTTP status: {http_status}
+
+DOM summary:
+- total elements: {total_elems}
+- links: {links}
+- inputs: {inputs}
+- buttons: {buttons}
+
+После какого последнего действия произошли изменения на странице:
+- type: {last_type}
+- trigger: {last_trigger}
+- delta_text: {last_delta}
+
+History actions since load on this page:
+{actions_lines}
+"""
+
+
 def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any]) -> str:
     global steps_future_value, long_term_memory
 
@@ -497,6 +597,8 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
         current_phase_goal = steps_list[current_idx].get("goal") or current_phase_goal
         current_phase_fills = steps_list[current_idx].get("fills") or []
 
+    playwright_context_block = build_playwright_context_block_for_prompt(max_actions=12)
+
     return f"""
 ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
 {tools_json}
@@ -518,7 +620,7 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 Необходимо заполнить поля в result: {current_phase_fills}
 
 ТАКТИЧЕСКИЙ ПЛАН (steps_future) должен вести к завершению этой фазы
-#
+{playwright_context_block}
 ————————————————————————————————————
 
 ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):

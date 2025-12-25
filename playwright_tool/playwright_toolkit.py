@@ -36,7 +36,11 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 from reasoning_agent.agent_tools import tool 
 from playwright_tool.browser_start import launch_browser, close_browser 
-from playwright_tool.shared_page import set_shared_page, get_shared_page
+from playwright_tool.shared_page import (
+    set_shared_page,
+    get_shared_page,
+    record_playwright_action,
+)
 
 
 
@@ -205,14 +209,18 @@ def page_restart(
     """
     Перезагружает текущую страницу.
     """
+    args = {"wait_until": wait_until, "timeout": timeout}
     page, err = _require_page_or_error({"code": None, "url": None})
     if err:
+        record_playwright_action("page_restart", args=args, result=err)
         return err
     try:
         response = page.reload(wait_until=wait_until, timeout=timeout)
-        return {"status": "ok", "code": _response_status(response), "url": page.url, "error": None}
+        res = {"status": "ok", "code": _response_status(response), "url": page.url, "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "code": None, "url": page.url, "error": str(exc)}
+        res = {"status": "error", "code": None, "url": page.url, "error": str(exc)}
+    record_playwright_action("page_restart", args=args, result=res)
+    return res
 
 
 @tool(
@@ -254,14 +262,18 @@ def goto_url(
     """
     Открывает указанную страницу по URL.
     """
+    args = {"url": url, "wait_until": wait_until, "timeout": timeout}
     page, err = _require_page_or_error({"code": None, "url": url})
     if err:
+        record_playwright_action("goto_url", args=args, result=err)
         return err
     try:
         response = page.goto(url, wait_until=wait_until, timeout=timeout)
-        return {"status": "ok", "code": _response_status(response), "url": page.url, "error": None}
+        res = {"status": "ok", "code": _response_status(response), "url": page.url, "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "code": None, "url": url, "error": str(exc)}
+        res = {"status": "error", "code": None, "url": url, "error": str(exc)}
+    record_playwright_action("goto_url", args=args, result=res)
+    return res
 
 
 @tool(
@@ -280,13 +292,17 @@ def get_current_url() -> dict[str, str | None]:
     """
     Возвращает URL текущей страницы.
     """
+    args: dict[str, Any] = {}
     page, err = _require_page_or_error({"url": None})
     if err:
+        record_playwright_action("get_current_url", args=args, result=err)
         return err
     try:
-        return {"status": "ok", "url": page.url, "error": None}
+        res = {"status": "ok", "url": page.url, "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "url": None, "error": str(exc)}
+        res = {"status": "error", "url": None, "error": str(exc)}
+    record_playwright_action("get_current_url", args=args, result=res)
+    return res
 
 
 @tool(
@@ -328,8 +344,10 @@ def check_url_status(
     """
     Выполняет запрос через API-контекст Playwright и возвращает HTTP-код.
     """
+    args = {"url": url, "method": method, "timeout": timeout}
     page, err = _require_page_or_error({"code": None, "url": url})
     if err:
+        record_playwright_action("check_url_status", args=args, result=err)
         return err
     try:
         method_upper = method.upper()
@@ -340,9 +358,11 @@ def check_url_status(
         else:
             response = request_ctx.get(url, timeout=timeout)
 
-        return {"status": "ok", "code": response.status, "url": url, "error": None}
+        res = {"status": "ok", "code": response.status, "url": url, "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "code": None, "url": url, "error": str(exc)}
+        res = {"status": "error", "code": None, "url": url, "error": str(exc)}
+    record_playwright_action("check_url_status", args=args, result=res)
+    return res
 
 
 @tool(
@@ -368,6 +388,7 @@ def check_url_status(
 )
 def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
     """Вызывает isEditable(), isVisible() и isEnabled() для локатора."""
+    args = {"selector": selector}
     page, err = _require_page_or_error(
         {
             "selector": selector,
@@ -377,13 +398,14 @@ def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
         }
     )
     if err:
+        record_playwright_action("validate_interactivity", args=args, result=err)
         return err
     locator = page.locator(selector)
     try:
         editable = locator.is_editable()
         visible = locator.is_visible()
         enabled = locator.is_enabled()
-        return {
+        res = {
             "status": "ok",
             "selector": selector,
             "editable": editable,
@@ -392,7 +414,7 @@ def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
             "error": None,
         }
     except Exception as exc:  # noqa: BLE001
-        return {
+        res = {
             "status": "error",
             "selector": selector,
             "editable": None,
@@ -400,6 +422,8 @@ def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
             "enabled": None,
             "error": str(exc),
         }
+    record_playwright_action("validate_interactivity", args=args, result=res)
+    return res
 
 
 @tool(
@@ -432,8 +456,10 @@ def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | No
     Пытается сфокусироваться: Click -> Wait(timeout) -> Click.
     При перехвате клика нажимает Escape и повторяет попытку.
     """
+    args = {"selector": selector, "timeout": timeout}
     page, err = _require_page_or_error({"selector": selector, "attempts": 0})
     if err:
+        record_playwright_action("smart_focus", args=args, result=err)
         return err
     locator = page.locator(selector)
     last_error: str | None = None
@@ -443,7 +469,9 @@ def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | No
             locator.click()
             page.wait_for_timeout(timeout)
             locator.click()
-            return {"status": "ok", "selector": selector, "attempts": attempt, "error": None}
+            res = {"status": "ok", "selector": selector, "attempts": attempt, "error": None}
+            record_playwright_action("smart_focus", args=args, result=res)
+            return res
         except Exception as exc:  # noqa: BLE001
             last_error = str(exc)
             try:
@@ -451,7 +479,9 @@ def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | No
             except Exception:
                 pass
 
-    return {"status": "error", "selector": selector, "attempts": 2, "error": last_error}
+    res = {"status": "error", "selector": selector, "attempts": 2, "error": last_error}
+    record_playwright_action("smart_focus", args=args, result=res)
+    return res
 
 
 @tool(
@@ -487,48 +517,58 @@ def click_element(
     """
     Кликает по element_index-му элементу по селектору (0 — первый).
     """
+    args = {"selector": selector, "index": element_index}
     page, err = _require_page_or_error(
         {"selector": selector, "element_index": element_index, "total_count": None}
     )
     if err:
+        record_playwright_action("click_element", args=args, result=err)
         return err
     locator = page.locator(selector)
     try:
         count = locator.count()
         if count == 0:
-            return {
+            res = {
                 "status": "error",
                 "selector": selector,
                 "element_index": element_index,
                 "total_count": 0,
                 "error": "Элементы по селектору не найдены",
             }
+            record_playwright_action("click_element", args=args, result=res)
+            return res
 
         if element_index < 0 or element_index >= count:
-            return {
+            res = {
                 "status": "error",
                 "selector": selector,
                 "element_index": element_index,
                 "total_count": count,
                 "error": f"Индекс {element_index} вне диапазона [0, {count - 1}]",
             }
+            record_playwright_action("click_element", args=args, result=res)
+            return res
 
         locator.nth(element_index).click()
-        return {
+        res = {
             "status": "ok",
             "selector": selector,
             "element_index": element_index,
             "total_count": count,
             "error": None,
         }
+        record_playwright_action("click_element", args=args, result=res)
+        return res
     except Exception as exc:  # noqa: BLE001
-        return {
+        res = {
             "status": "error",
             "selector": selector,
             "element_index": element_index,
             "total_count": None,
             "error": str(exc),
         }
+        record_playwright_action("click_element", args=args, result=res)
+        return res
 
 
 @tool(
@@ -570,8 +610,10 @@ def human_like_input(
     """
     Очистка поля -> посимвольный ввод через press_sequentially (активирует фронтовую валидацию).
     """
+    args = {"selector": selector, "text": text, "delay_ms": delay_ms}
     page, err = _require_page_or_error({"selector": selector, "text_len": 0})
     if err:
+        record_playwright_action("human_like_input", args=args, result=err)
         return err
     locator = page.locator(selector)
     try:
@@ -579,9 +621,11 @@ def human_like_input(
         locator.fill("")  # очистка
         # press_sequentially доступен в Playwright Python (аналог JS pressSequentially)
         locator.press_sequentially(text, delay=delay_ms)
-        return {"status": "ok", "selector": selector, "text_len": len(text), "error": None}
+        res = {"status": "ok", "selector": selector, "text_len": len(text), "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "selector": selector, "text_len": 0, "error": str(exc)}
+        res = {"status": "error", "selector": selector, "text_len": 0, "error": str(exc)}
+    record_playwright_action("human_like_input", args=args, result=res)
+    return res
 
 
 @tool(
@@ -599,14 +643,18 @@ def press_enter() -> dict[str, str | None]:
     """
     Простое нажатие Enter через page.keyboard.press.
     """
+    args: dict[str, Any] = {}
     page, err = _require_page_or_error({})
     if err:
+        record_playwright_action("press_enter", args=args, result=err)
         return err
     try:
         page.keyboard.press("Enter")
-        return {"status": "ok", "error": None}
+        res = {"status": "ok", "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "error": str(exc)}
+        res = {"status": "error", "error": str(exc)}
+    record_playwright_action("press_enter", args=args, result=res)
+    return res
 
 
 @tool(
@@ -631,14 +679,18 @@ def press_key(key: str) -> dict[str, str | None]:
     """
     Нажимает переданную клавишу через page.keyboard.press.
     """
+    args = {"key": key}
     page, err = _require_page_or_error({"pressed_key": None})
     if err:
+        record_playwright_action("press_key", args=args, result=err)
         return err
     try:
         page.keyboard.press(key)
-        return {"status": "ok", "pressed_key": key, "error": None}
+        res = {"status": "ok", "pressed_key": key, "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "pressed_key": None, "error": str(exc)}
+        res = {"status": "error", "pressed_key": None, "error": str(exc)}
+    record_playwright_action("press_key", args=args, result=res)
+    return res
 
 
 @tool(
@@ -681,6 +733,7 @@ def wait_for_navigation_or_content(
     """
     Ждёт смену URL или изменение текстового контента более чем на change_threshold.
     """
+    args = {"old_url": old_url, "timeout": timeout, "change_threshold": change_threshold}
     page, err = _require_page_or_error(
         {
             "reason": "no_change",
@@ -689,6 +742,7 @@ def wait_for_navigation_or_content(
         }
     )
     if err:
+        record_playwright_action("wait_for_navigation_or_content", args=args, result=err)
         return err
     deadline = time.monotonic() + timeout / 1000
     start_text: str | None = None
@@ -703,13 +757,15 @@ def wait_for_navigation_or_content(
                     page.wait_for_load_state("load", timeout=remaining)
                 except Exception:
                     pass
-                return {
+                res = {
                     "status": "ok",
                     "reason": "url_changed",
                     "new_url": page.url,
                     "change_fraction": None,
                     "error": None,
                 }
+                record_playwright_action("wait_for_navigation_or_content", args=args, result=res)
+                return res
 
             # Пытаемся зафиксировать baseline. Если страница в навигации — подождём и продолжим.
             if start_text is None:
@@ -726,34 +782,40 @@ def wait_for_navigation_or_content(
                     fraction = _change_fraction(start_text, new_text)
                     last_fraction = fraction
                     if fraction > change_threshold:
-                        return {
+                        res = {
                             "status": "ok",
                             "reason": "content_changed",
                             "new_url": page.url,
                             "change_fraction": round(fraction, 3),
                             "error": None,
                         }
+                        record_playwright_action("wait_for_navigation_or_content", args=args, result=res)
+                        return res
                 except Exception:
                     # Если контент не удаётся прочитать (например, опять навигация) — просто ждём дальше.
                     pass
 
             page.wait_for_timeout(500)
 
-        return {
+        res = {
             "status": "timeout",
             "reason": "no_change",
             "new_url": page.url,
             "change_fraction": (round(last_fraction, 3) if last_fraction is not None else None),
             "error": None,
         }
+        record_playwright_action("wait_for_navigation_or_content", args=args, result=res)
+        return res
     except Exception as exc:  # noqa: BLE001
-        return {
+        res = {
             "status": "error",
             "reason": "no_change",
             "new_url": page.url,
             "change_fraction": None,
             "error": str(exc),
         }
+        record_playwright_action("wait_for_navigation_or_content", args=args, result=res)
+        return res
 
 
 @tool(
@@ -795,8 +857,10 @@ def search_in_page_html(
     """
     Ищет подстроку в HTML страницы. Возвращает до max_results сниппетов ±context символов.
     """
+    args = {"substring": substring, "max_results": max_results, "context": context}
     page, err = _require_page_or_error({"count": 0, "matches": None})
     if err:
+        record_playwright_action("search_in_page_html", args=args, result=err)
         return err
     try:
         html = _safe_page_content(page, timeout_ms=2_000)
@@ -818,9 +882,11 @@ def search_in_page_html(
                 matches.append(html[snippet_start:snippet_end])
             start = idx + len(substring)
 
-        return {"status": "ok", "count": count, "matches": matches, "error": None}
+        res = {"status": "ok", "count": count, "matches": matches, "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "count": 0, "matches": None, "error": str(exc)}
+        res = {"status": "error", "count": 0, "matches": None, "error": str(exc)}
+    record_playwright_action("search_in_page_html", args=args, result=res)
+    return res
 
 
 @tool(
@@ -863,8 +929,10 @@ def find_elements(
     Ищет элементы по селектору. Возвращает их количество и до max_results элементов
     с текстом и inner_html.
     """
+    args = {"selector": selector, "only_count": only_count, "max_results": max_results}
     page, err = _require_page_or_error({"count": 0, "elements": None})
     if err:
+        record_playwright_action("find_elements", args=args, result=err)
         return err
     locator = page.locator(selector)
     try:
@@ -885,9 +953,11 @@ def find_elements(
                     html = None
                 elements.append({"index": i, "text": text, "html": html})
 
-        return {"status": "ok", "count": count, "elements": elements, "error": None}
+        res = {"status": "ok", "count": count, "elements": elements, "error": None}
     except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "count": 0, "elements": None, "error": str(exc)}
+        res = {"status": "error", "count": 0, "elements": None, "error": str(exc)}
+    record_playwright_action("find_elements", args=args, result=res)
+    return res
 
 
 
