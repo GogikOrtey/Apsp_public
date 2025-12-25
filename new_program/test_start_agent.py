@@ -24,7 +24,7 @@ from import_all_libraries import *
 from reasoning_agent.agent_main import *
 
 from playwright.playwright_toolkit import *  # регистрирует инструменты playwright
-from new_program.html_tool # регистрирует инструменты html_tool
+from new_program.html_tool import * # регистрирует инструменты html_tool
 
 
 
