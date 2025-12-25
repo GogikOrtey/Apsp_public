@@ -203,6 +203,9 @@ def get_playwright_context_snapshot(*, max_actions: int = 10) -> dict[str, Any]:
         "page_version": _state.page_version,
         "nav_count": _state.nav_count,
         "load_state": load_state,
+        # Timestamp последнего document-ответа главного фрейма (top-level навигации).
+        # По смыслу: "когда была загружена текущая версия страницы".
+        "last_document_ts": _state._last_document_ts,
         "last_change": {
             "type": _state.last_change.type,
             "trigger": _state.last_change.trigger,

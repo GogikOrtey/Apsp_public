@@ -35,30 +35,6 @@ from reasoning_agent.plan_tools import *
 
 
 
-Локальные задачи:
-
-
-
-
-
-
-
-
-Глобальные задачи:
-
-1. Развернуть Playwright
-2. Реализовать инструменты для агента, для взаимодействия с ним
-3. Попробовать простроить план и формат результатов, что бы он зашёл на главную страницу сайта, собрал семантику, нашёл поле ввода, ввёл в него данные, и сдетектил переход на страницу - и вернул нужные данные которые собрал
-
-Далее - усиливать план и агента, что бы он смог сам собрать все необходимые данные для генерации parsePage и ссылки для parseCard
-    Пока что без запросов в JSON
-Затем - отлаживать на этих данных генератор кода для parseCard
-И после этого - прикрутить работу с доп. запросами JSON
-
-После этого - тестировать на сайтах из колонки аутсорса. Нужно 85% успеха
-Далее - собрать новый фронт, и сделать что бы всё было красиво и функционально
-
-
 """
 
 
@@ -450,8 +426,33 @@ def build_playwright_context_block_for_prompt(*, max_actions: int = 10) -> str:
     page_version = snapshot.get("page_version")
     nav_count = snapshot.get("nav_count")
     load_state = snapshot.get("load_state")
+    last_document_ts = snapshot.get("last_document_ts")
     last_change = snapshot.get("last_change") or {}
     actions = snapshot.get("actions_since_load") or []
+
+    # Время "с момента загрузки страницы" (best-effort):
+    # 1) основной источник — last_document_ts (top-level document response)
+    # 2) fallback — performance.now() (секунды с момента начала навигации)
+    time_since_load_s: float | None = None
+    try:
+        if isinstance(last_document_ts, (int, float)) and last_document_ts > 0:
+            time_since_load_s = max(0.0, float(time.time()) - float(last_document_ts))
+    except Exception:
+        time_since_load_s = None
+
+    if time_since_load_s is None:
+        try:
+            perf_now_s = page.evaluate(
+                "() => (typeof performance !== 'undefined' && typeof performance.now === 'function') ? (performance.now() / 1000) : null"
+            )
+            if isinstance(perf_now_s, (int, float)):
+                time_since_load_s = max(0.0, float(perf_now_s))
+        except Exception:
+            time_since_load_s = None
+
+    time_since_load_text = (
+        f"{time_since_load_s:.1f} сек" if isinstance(time_since_load_s, (int, float)) else "—"
+    )
 
     # DOM summary (быстро и дёшево)
     dom_counts = None
@@ -504,6 +505,7 @@ HTTP status: {http_status}
 Page version: {page_version}
 Navigations since start: {nav_count}
 Load state: {load_state}
+Time since the page was loaded: {time_since_load_text}
 
 DOM summary:
 - total elements: {total_elems}
@@ -511,7 +513,7 @@ DOM summary:
 - inputs: {inputs}
 - buttons: {buttons}
 
-Изменения, которые произошли последнего действия на странице:
+Изменения, которые произошли после последнего действия на странице:
 - type: {last_type}
 - trigger: {last_trigger}
 - delta_text: {last_delta}
