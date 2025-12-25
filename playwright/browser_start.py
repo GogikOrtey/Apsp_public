@@ -1,5 +1,6 @@
 from pathlib import Path
 from playwright.sync_api import sync_playwright, Page, Browser, Playwright
+from playwright_toolkit import set_shared_page ############################### Возможен цикличный импорт
 
 # region Запуск браузера
 
@@ -12,6 +13,7 @@ def launch_browser(headless: bool = True) -> tuple[Playwright, Browser, Page]:
     browser = pw.chromium.launch(headless=headless)
     context = browser.new_context()
     page = context.new_page()
+    set_shared_page(page)
     print("Браузер успешно запущен")
     return pw, browser, page
 
