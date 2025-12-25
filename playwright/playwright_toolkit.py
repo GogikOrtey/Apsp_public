@@ -72,7 +72,8 @@ from reasoning_agent.agent_tools import tool
         - Либо если после таймаута html поменялось более чем на 20% (но считать от текстового содержания страниц, без учёта html тегов)
     - Поиск на текущей html странице по подстроке (вернёт максимум 5 вхождений +- 200 символов вокруг, также вернёт кол-во вхождений)
     - Найти и вернуть элемент по селектору (также max 5, + кол-во найденных. Можно запросить только кол-во)
-    
+    - Функция, которая нажимает Enter
+    - Функция, через которую можно нажать любую клавишу
 """
 
 
@@ -107,6 +108,44 @@ def _change_fraction(old_text: str, new_text: str) -> float:
         return 0.0
     similarity = SequenceMatcher(None, old_text, new_text).ratio()
     return max(0.0, 1 - similarity)
+
+
+def _safe_page_content(page: Page, timeout_ms: int = 1_000, poll_ms: int = 100) -> str:
+    """
+    Безопасно получает HTML через page.content(), переживая краткие периоды навигации.
+
+    Playwright может бросать:
+      "Page.content: Unable to retrieve content because the page is navigating..."
+    В этом случае делаем короткие ретраи до timeout_ms.
+    """
+    deadline = time.monotonic() + timeout_ms / 1000
+    last_exc: Exception | None = None
+
+    while time.monotonic() < deadline:
+        try:
+            return page.content()
+        except Exception as exc:  # noqa: BLE001
+            last_exc = exc
+            msg = str(exc).lower()
+            # Самая частая причина в реальном использовании: момент навигации/перерендера.
+            if "page.content" in msg and "navigat" in msg:
+                remaining = max(0, int((deadline - time.monotonic()) * 1000))
+                # Пробуем дождаться хоть какого-то состояния, но не блокируемся надолго.
+                try:
+                    page.wait_for_load_state("domcontentloaded", timeout=min(300, remaining))
+                except Exception:
+                    pass
+                page.wait_for_timeout(min(poll_ms, max(1, remaining)))
+                continue
+
+            # Для прочих ошибок делаем один короткий ретрай; если ошибка стабильная — выйдем по таймауту.
+            remaining = max(0, int((deadline - time.monotonic()) * 1000))
+            page.wait_for_timeout(min(poll_ms, max(1, remaining)))
+
+    # Если совсем не получилось за отведённое время — пробрасываем последнюю ошибку.
+    if last_exc is not None:
+        raise last_exc
+    raise RuntimeError("Failed to read page.content()")
 
 
 @tool(
@@ -462,6 +501,41 @@ def press_enter(page: Page) -> dict[str, str | None]:
 
 
 @tool(
+    name="press_key",
+    description="Эмулирует нажатие указанной клавиши на текущей странице",
+    args=[
+        {
+            "name": "page",
+            "type": "Page",
+            "required": True,
+            "description": "Экземпляр страницы Playwright",
+        },
+        {
+            "name": "key",
+            "type": "str",
+            "required": True,
+            "description": "Название клавиши в формате Playwright (например, 'Enter', 'Tab', 'ArrowDown')",
+        },
+    ],
+    returns={
+        "status": "ok|error",
+        "pressed_key": "str|null",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={"key": "Enter"},
+)
+def press_key(page: Page, key: str) -> dict[str, str | None]:
+    """
+    Нажимает переданную клавишу через page.keyboard.press.
+    """
+    try:
+        page.keyboard.press(key)
+        return {"status": "ok", "pressed_key": key, "error": None}
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "pressed_key": None, "error": str(exc)}
+
+
+@tool(
     name="wait_for_navigation_or_content",
     description="Ждёт смену URL или существенное изменение контента (>20% текста) за таймаут",
     args=[
@@ -508,13 +582,15 @@ def wait_for_navigation_or_content(
     """
     Ждёт смену URL или изменение текстового контента более чем на change_threshold.
     """
-    start_text = _strip_html_to_text(page.content())
     deadline = time.monotonic() + timeout / 1000
+    start_text: str | None = None
+    last_fraction: float | None = None
 
     try:
         while time.monotonic() < deadline:
+            remaining = max(0, int((deadline - time.monotonic()) * 1000))
+
             if page.url != old_url:
-                remaining = max(0, int((deadline - time.monotonic()) * 1000))
                 try:
                     page.wait_for_load_state("load", timeout=remaining)
                 except Exception:
@@ -526,23 +602,40 @@ def wait_for_navigation_or_content(
                     "change_fraction": None,
                     "error": None,
                 }
+
+            # Пытаемся зафиксировать baseline. Если страница в навигации — подождём и продолжим.
+            if start_text is None:
+                try:
+                    html = _safe_page_content(page, timeout_ms=min(1_000, max(50, remaining)))
+                    start_text = _strip_html_to_text(html)
+                except Exception:
+                    page.wait_for_timeout(200)
+                    continue
+            else:
+                try:
+                    html = _safe_page_content(page, timeout_ms=min(1_000, max(50, remaining)))
+                    new_text = _strip_html_to_text(html)
+                    fraction = _change_fraction(start_text, new_text)
+                    last_fraction = fraction
+                    if fraction > change_threshold:
+                        return {
+                            "status": "ok",
+                            "reason": "content_changed",
+                            "new_url": page.url,
+                            "change_fraction": round(fraction, 3),
+                            "error": None,
+                        }
+                except Exception:
+                    # Если контент не удаётся прочитать (например, опять навигация) — просто ждём дальше.
+                    pass
+
             page.wait_for_timeout(500)
 
-        new_text = _strip_html_to_text(page.content())
-        fraction = _change_fraction(start_text, new_text)
-        if fraction > change_threshold:
-            return {
-                "status": "ok",
-                "reason": "content_changed",
-                "new_url": page.url,
-                "change_fraction": round(fraction, 3),
-                "error": None,
-            }
         return {
             "status": "timeout",
             "reason": "no_change",
             "new_url": page.url,
-            "change_fraction": round(fraction, 3),
+            "change_fraction": (round(last_fraction, 3) if last_fraction is not None else None),
             "error": None,
         }
     except Exception as exc:  # noqa: BLE001
@@ -602,7 +695,7 @@ def search_in_page_html(
     Ищет подстроку в HTML страницы. Возвращает до max_results сниппетов ±context символов.
     """
     try:
-        html = page.content()
+        html = _safe_page_content(page, timeout_ms=2_000)
         haystack = html.lower()
         needle = substring.lower()
 
@@ -721,9 +814,11 @@ if __name__ == "__main__":
         input("Нажмите Enter, чтобы продолжить...")
 
         # Нажать Enter
+        old_url = page.url
         print("Нажимаем Enter:", press_enter(page))
+        # print("Нажимаем Tab через универсальную функцию:", press_key(page, "Tab"))
 
-        print("Ожидаем изменение URL или контента:", wait_for_navigation_or_content(page, page.url, timeout=5000))
+        print("Ожидаем изменение URL или контента:", wait_for_navigation_or_content(page, old_url, timeout=5000))
         # print("Перезагружаем страницу:", page_restart(page))
         input("Нажмите Enter, чтобы закрыть браузер...")
     finally:
