@@ -38,16 +38,16 @@ search_in_file - ищет вхождения подстроки в тексте 
 #     "archive.txt": "Старые заметки за 2022 год."
 # }
 
-# Пример входных данных 2
-FILES = {
-    "notes.txt": "Встреча в пятницу. Купить хлеб. Проверить отчёт.",
-    "todo.txt": "Нужно на собрании показать презентацию Алексею и Анне",
-    "archive.txt": "Старые заметки за 2022 год.",
-    "schedule_alexey.txt": "Расписание Алексея: Свободен с 12:30 до 16:00",
-    "schedule_anna.txt": "Расписание Анны: Свободна с 14:00 до 15:00",
-    # "schedule_anna.txt": "Расписание Анны: Занята весь день - в коммандировке", # Плохой пример
-    "schedule_vladimir.txt": "Расписание Владимира: Свободен весь день",
-}
+# # Пример входных данных 2
+# FILES = {
+#     "notes.txt": "Встреча в пятницу. Купить хлеб. Проверить отчёт.",
+#     "todo.txt": "Нужно на собрании показать презентацию Алексею и Анне",
+#     "archive.txt": "Старые заметки за 2022 год.",
+#     "schedule_alexey.txt": "Расписание Алексея: Свободен с 12:30 до 16:00",
+#     "schedule_anna.txt": "Расписание Анны: Свободна с 14:00 до 15:00",
+#     # "schedule_anna.txt": "Расписание Анны: Занята весь день - в коммандировке", # Плохой пример
+#     "schedule_vladimir.txt": "Расписание Владимира: Свободен весь день",
+# }
 
 
 ### Тут надо будет потом реализовать функцию, которая принимает результат, и разбивает его на схему и шаблон
@@ -190,79 +190,82 @@ def get_tools_annotations(as_json: bool = True):
 
 # region Реализация инструментов с аннотациями
 
-@tool(
-    name="list_files",
-    description="Возвращает список всех файлов в окружении",
-    args=[],
-    # ВАЖНО: лучше хранить `returns` как структуру (dict/list), а не как JSON-строку внутри строки.
-    # Тогда при json.dumps() не будет экранирования кавычек вида \"...\".
-    returns={
-        "files": ["notes.txt", "todo.txt", "..."]
-    },
-    example_args={}
-)
-def list_files():
-    # JSON-friendly ответ, чтобы совпадало с аннотацией returns
-    return {"files": list(FILES.keys())}
+
+####### Старые инструменты, для примера
+
+# @tool(
+#     name="list_files",
+#     description="Возвращает список всех файлов в окружении",
+#     args=[],
+#     # ВАЖНО: лучше хранить `returns` как структуру (dict/list), а не как JSON-строку внутри строки.
+#     # Тогда при json.dumps() не будет экранирования кавычек вида \"...\".
+#     returns={
+#         "files": ["notes.txt", "todo.txt", "..."]
+#     },
+#     example_args={}
+# )
+# def list_files():
+#     # JSON-friendly ответ, чтобы совпадало с аннотацией returns
+#     return {"files": list(FILES.keys())}
 
 
-@tool(
-    name="read_file",
-    description="Читает содержимое файла по имени. Возвращает словарь с содержимым и статусом",
-    args=[
-            {
-                "name": "filename", 
-                "type": "str", 
-                "required": True, 
-                "description": "Имя файла"
-            }
-        ],
-    returns=[
-        {"status": "ok", "content": "..."},
-        {"status": "error", "content": None}
-    ],
-    example_args={"filename": "todo.txt"}
-)
-def read_file(filename):
-    if filename in FILES:
-        return {"status": "ok", "content": FILES[filename]}
-    else:
-        return {"status": "error", "content": None}
+# @tool(
+#     name="read_file",
+#     description="Читает содержимое файла по имени. Возвращает словарь с содержимым и статусом",
+#     args=[
+#             {
+#                 "name": "filename", 
+#                 "type": "str", 
+#                 "required": True, 
+#                 "description": "Имя файла"
+#             }
+#         ],
+#     returns=[
+#         {"status": "ok", "content": "..."},
+#         {"status": "error", "content": None}
+#     ],
+#     example_args={"filename": "todo.txt"}
+# )
+# def read_file(filename):
+#     if filename in FILES:
+#         return {"status": "ok", "content": FILES[filename]}
+#     else:
+#         return {"status": "error", "content": None}
 
 
-@tool(
-    name="search_in_file",
-    description="Ищет вхождения подстроки в тексте файла",
-    args=[
-        {
-            "name": "filename",
-            "type": "str", 
-            "required": True, 
-            "description": "Имя файла"
-        },
-        {
-            "name": "substr", 
-            "type": "str", 
-            "required": True, 
-            "description": "Подстрока для поиска"
-        }
-    ],
-    returns={
-        "status": "ok|error",
-        "count": "int",
-        "first_index": "int|null"
-    },
-    example_args={"filename": "todo.txt", "substr": "презентац"}
-)
-def search_in_file(filename, substr):
-    if filename not in FILES:
-        return {"status": "error", "count": 0, "first_index": None}
+# @tool(
+#     name="search_in_file",
+#     description="Ищет вхождения подстроки в тексте файла",
+#     args=[
+#         {
+#             "name": "filename",
+#             "type": "str", 
+#             "required": True, 
+#             "description": "Имя файла"
+#         },
+#         {
+#             "name": "substr", 
+#             "type": "str", 
+#             "required": True, 
+#             "description": "Подстрока для поиска"
+#         }
+#     ],
+#     returns={
+#         "status": "ok|error",
+#         "count": "int",
+#         "first_index": "int|null"
+#     },
+#     example_args={"filename": "todo.txt", "substr": "презентац"}
+# )
+# def search_in_file(filename, substr):
+#     if filename not in FILES:
+#         return {"status": "error", "count": 0, "first_index": None}
     
-    text = FILES[filename]
-    count = text.count(substr)
-    first_index = text.find(substr) if count > 0 else None
+#     text = FILES[filename]
+#     count = text.count(substr)
+#     first_index = text.find(substr) if count > 0 else None
     
-    return {"status": "ok", "count": count, "first_index": first_index}
+#     return {"status": "ok", "count": count, "first_index": first_index}
 
 
 
