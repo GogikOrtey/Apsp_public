@@ -423,8 +423,25 @@ def get_html_frame(
     else:
         container = target
 
-    # Compute absolute xpath of container and target; create relative xpath to find same nodes inside clone
+    # Compute tree once after container selection
     tree = container.getroottree()
+
+    # Enforce ancestor_levels: container must be at least N levels above target
+    cur = target
+    for _ in range(ancestor_levels):
+        if cur.getparent() is None:
+            break
+        cur = cur.getparent()
+
+    # cur is now the minimal allowed container
+    if cur is not None:
+        # if heuristic container is below required level → lift it
+        if container is not None:
+            # check if container is inside required ancestor
+            if tree.getpath(container).startswith(tree.getpath(cur)):
+                container = cur
+
+    # Compute absolute xpath of container and target; create relative xpath to find same nodes inside clone
     container_path = tree.getpath(container)
     target_path = tree.getpath(target)
 
@@ -666,7 +683,7 @@ url = "https://makitaclub.ru/products/df488d002/"
 html_content = get_html_from_cache(url)
 # save_page_html(html_content, filename = "page_html.html")
 
-# selector = "#main .product_title.entry-title"
-selector = ".col-sm-6 .woocommerce-Price-amount.amount"
-result_get_html_frame = get_html_frame(html_content, selector, ancestor_levels = 3)
+selector = "#main .product_title.entry-title"
+# selector = ".col-sm-6 .woocommerce-Price-amount.amount"
+result_get_html_frame = get_html_frame(html_content, selector)
 # print(f"result_get_html_frame:\n", result_get_html_frame)
