@@ -173,7 +173,8 @@ main_result_template = {
 }
 
 
-HISTORY_WINDOW = 12         # = 6 шагов - это сколько последних шагов отдаём в модель, в history
+# HISTORY_WINDOW = 12         # = 6 шагов - это сколько последних шагов отдаём в модель, в history
+HISTORY_WINDOW = 20         # = 6 шагов - это сколько последних шагов отдаём в модель, в history
 MAX_STEPS = 30              # Максимальное количество шагов агента для решения задачи
 INVALID_JSON_RETRIES = 1    # Повторяем запрос шага при невалидном JSON ответа
 
@@ -665,9 +666,18 @@ def orchestrate(
     task: str = main_task,
     max_steps: int = MAX_STEPS,
     result_schema: dict[str, Any] | None = None,
-    result_template: dict[str, Any] | None = None
+    result_template: dict[str, Any] | None = None,
+    plan: dict[str, Any] | None = None
 ) -> str:
-    global steps_future_value, long_term_memory
+    global steps_future_value, long_term_memory, main_plan
+
+    # Позволяем передать кастомный план на запуск, иначе используем глобальный
+    if plan is not None:
+        main_plan = plan
+
+    # Фоллбэк на шаблон, если плана нет или пришёл в неверном формате
+    if not isinstance(main_plan, dict):
+        main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
 
     # Инициализируем объект результата для текущего запуска
     init_result(result_schema or main_result_schema, result_template or main_result_template)
@@ -1001,14 +1011,14 @@ def log_development_feedback(feedback):
 
 
 
-if __name__ == "__main__":
-    orchestrate()
+# if __name__ == "__main__":
+#     orchestrate()
 
-    # try:
-    #     import global_variable
-    #     print(
-    #         f"🔢 Использовано токенов — input: {global_variable.total_input_tokens}, "
-    #         f"output: {global_variable.total_output_tokens}"
-    #     )
-    # except Exception as ex:
-    #     print(f"Не удалось вывести статистику токенов: {ex}")
+#     # try:
+#     #     import global_variable
+#     #     print(
+#     #         f"🔢 Использовано токенов — input: {global_variable.total_input_tokens}, "
+#     #         f"output: {global_variable.total_output_tokens}"
+#     #     )
+#     # except Exception as ex:
+#     #     print(f"Не удалось вывести статистику токенов: {ex}")
