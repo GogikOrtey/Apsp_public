@@ -434,6 +434,34 @@ def human_like_input(
 
 
 @tool(
+    name="press_enter",
+    description="Эмулирует нажатие клавиши Enter на текущей странице",
+    args=[
+        {
+            "name": "page",
+            "type": "Page",
+            "required": True,
+            "description": "Экземпляр страницы Playwright",
+        }
+    ],
+    returns={
+        "status": "ok|error",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={},
+)
+def press_enter(page: Page) -> dict[str, str | None]:
+    """
+    Простое нажатие Enter через page.keyboard.press.
+    """
+    try:
+        page.keyboard.press("Enter")
+        return {"status": "ok", "error": None}
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "error": str(exc)}
+
+
+@tool(
     name="wait_for_navigation_or_content",
     description="Ждёт смену URL или существенное изменение контента (>20% текста) за таймаут",
     args=[
@@ -676,15 +704,27 @@ if __name__ == "__main__":
     try:
         print("Проверяем статус без навигации:", check_url_status(page, "https://makitaclub.ru/"))
         print("Навигируемся на страницу:", goto_url(page, "https://makitaclub.ru/"))
+
         input("Нажмите Enter, чтобы продолжить...")
-        print("Проверяем интерактивность body:", validate_interactivity(page, "body"))
         print("Ищем 'makita' в html:", search_in_page_html(page, "makita"))
+        input("Нажмите Enter, чтобы продолжить...")
         print("Ищем ссылки на странице:", find_elements(page, "a", max_results=3))
-        if page.locator("input").count() > 0:
-            print("Smart focus для первого input:", smart_focus(page, "input"))
-            print("Human-like input:", human_like_input(page, "input", "test input", delay_ms=80))
+        input("Нажмите Enter, чтобы продолжить...")
+
+        input("Нажмите Enter, чтобы продолжить...")
+        print("Smart focus для первого input:", smart_focus(page, "#woocommerce-product-search-field-0"))
+
+        input("Нажмите Enter, чтобы продолжить...")
+        print("Проверяем интерактивность body:", validate_interactivity(page, "#woocommerce-product-search-field-0"))
+        
+        print("Human-like input:", human_like_input(page, "#woocommerce-product-search-field-0", "инструмент", delay_ms=80))
+        input("Нажмите Enter, чтобы продолжить...")
+
+        # Нажать Enter
+        print("Нажимаем Enter:", press_enter(page))
+
         print("Ожидаем изменение URL или контента:", wait_for_navigation_or_content(page, page.url, timeout=5000))
-        print("Перезагружаем страницу:", page_restart(page))
+        # print("Перезагружаем страницу:", page_restart(page))
         input("Нажмите Enter, чтобы закрыть браузер...")
     finally:
         close_browser(pw, browser)
