@@ -112,5 +112,5 @@ def fetch_page_html(
         close_browser(pw, browser)
 
 
-link_html = "https://makitaclub.ru/"
-fetch_page_html( link_html, keep_open=True)
+# link_html = "https://makitaclub.ru/"
+# fetch_page_html( link_html, keep_open=True)

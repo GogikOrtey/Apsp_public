@@ -558,12 +558,12 @@ url.searchParams.set("p", set.page)
 """
 
 
-result_request = send_message_to_ChatGPT(
-        prompt = my_prompt,
-        is_print = True,
-        model = "gpt-4o",
-        temperature = 0.85
-    )
+# result_request = send_message_to_ChatGPT(
+#         prompt = my_prompt,
+#         is_print = True,
+#         model = "gpt-4o",
+#         temperature = 0.85
+#     )
 
 
 

@@ -14,13 +14,30 @@ import sys
 from typing import Literal
 
 from playwright.sync_api import Page, Response
+from browser_start import launch_browser, close_browser 
 
-# Декоратор аннотаций берём из reasoning_agent, чтобы формат совпадал
+# region Импорты
+# Чтобы при запуске файла из этой папки были видны модули из корня проекта (addedFunc.py и др.)
+### Потом убрать, что бы было нормально
+from pathlib import Path
+import sys
+import os
+import json
+import copy
+import traceback
+import time
+from typing import Any
+from urllib.parse import urlparse
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from reasoning_agent.agent_tools import tool  # noqa: E402
+# Подключение всех библиотек и функций
+from import_all_libraries import *
+from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
+
+from reasoning_agent.agent_tools import tool 
 
 
 
@@ -230,13 +247,13 @@ def check_url_status(
 
 if __name__ == "__main__":
     # Небольшой пример использования
-    # Важно: чтобы импорт работал корректно, добавляем ROOT_DIR в sys.path выше
-    from playwright.browser_start import launch_browser, close_browser  # type: ignore  # noqa: E402
 
-    pw, browser, page = launch_browser(headless=True)
+    pw, browser, page = launch_browser(headless = False)
     try:
-        print("Проверяем статус без навигации:", check_url_status(page, "https://example.com"))
-        print("Навигируемся на страницу:", goto_url(page, "https://example.com"))
+        print("Проверяем статус без навигации:", check_url_status(page, "https://makitaclub.ru/"))
+        print("Навигируемся на страницу:", goto_url(page, "https://makitaclub.ru/"))
+        input("Нажмите Enter, чтобы продолжить...")
         print("Перезагружаем страницу:", page_restart(page))
+        input("Нажмите Enter, чтобы закрыть браузер...")
     finally:
         close_browser(pw, browser)
