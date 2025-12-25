@@ -1,6 +1,16 @@
 from pathlib import Path
 from playwright.sync_api import sync_playwright, Page, Browser, Playwright
-from playwright_toolkit import set_shared_page ############################### Возможен цикличный импорт
+
+from pathlib import Path
+import sys
+import os
+import json
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from playwright_tool.shared_page import set_shared_page
 
 # region Запуск браузера
 
