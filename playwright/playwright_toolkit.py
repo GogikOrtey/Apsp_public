@@ -798,20 +798,20 @@ if __name__ == "__main__":
         print("Проверяем статус без навигации:", check_url_status(page, "https://makitaclub.ru/"))
         print("Навигируемся на страницу:", goto_url(page, "https://makitaclub.ru/"))
 
-        input("Нажмите Enter, чтобы продолжить...")
+        time.sleep(5)
         print("Ищем 'makita' в html:", search_in_page_html(page, "makita"))
-        input("Нажмите Enter, чтобы продолжить...")
+        time.sleep(5)
         print("Ищем ссылки на странице:", find_elements(page, "a", max_results=3))
-        input("Нажмите Enter, чтобы продолжить...")
 
-        input("Нажмите Enter, чтобы продолжить...")
+        time.sleep(5)
         print("Smart focus для первого input:", smart_focus(page, "#woocommerce-product-search-field-0"))
 
-        input("Нажмите Enter, чтобы продолжить...")
+        time.sleep(5)
         print("Проверяем интерактивность body:", validate_interactivity(page, "#woocommerce-product-search-field-0"))
         
+        time.sleep(5)
         print("Human-like input:", human_like_input(page, "#woocommerce-product-search-field-0", "инструмент", delay_ms=80))
-        input("Нажмите Enter, чтобы продолжить...")
+        time.sleep(5)
 
         # Нажать Enter
         old_url = page.url
@@ -820,6 +820,6 @@ if __name__ == "__main__":
 
         print("Ожидаем изменение URL или контента:", wait_for_navigation_or_content(page, old_url, timeout=5000))
         # print("Перезагружаем страницу:", page_restart(page))
-        input("Нажмите Enter, чтобы закрыть браузер...")
+        time.sleep(5)
     finally:
         close_browser(pw, browser)
