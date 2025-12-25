@@ -35,9 +35,6 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 Текущие задачи:
 
-- Задание на 2й шаг для агента практически выписал
-    - В целом, можно уже даже запускать
-
 - Запустить 1-2-3 шаги вместе
 
 Далее:
@@ -58,7 +55,10 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 
 
-
+Надо:
+- Протестировать инструмент перехода к ранее выполненному шагу плана
+- Если первый селектор поиска не верный
+- Если нажатие кнопки Enter не меняет state браузера, и нужно будет использовать кнопку начала поиска
 
 
 
@@ -132,6 +132,40 @@ def main_processer(input_url):
         "search_button_selectors": [
             "form.woocommerce-product-search button[type=\"submit\"]",
             ...
+        ]
+    }
+    """
+
+    """ 
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Страница успешно обработана",
+        "semantics": [
+            "инструмент",
+            "дрель",
+            "шуруповерт",
+            "перфоратор",
+            "болгарка",
+            "пила",
+            "шлифмашина",
+            "пылесос",
+            "аккумулятор",
+            "оснастка"
+        ],
+        "search_input_selectors": [
+            "#woocommerce-product-search-field-0",   
+            "form.woocommerce-product-search input.search-field",
+            ".site-search form.woocommerce-product-search input[type=\"search\"]",
+            "input.search-field[name=\"s\"]",        
+            "form[role=\"search\"] input[type=\"search\"]"
+        ],
+        "search_button_selectors": [
+            "form.woocommerce-product-search button[type=\"submit\"]",
+            ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+            "form[role=\"search\"] button[type=\"submit\"]",
+            ".woocommerce-product-search button[type=\"submit\"]",
+            ".site-search button[type=\"submit\"]"   
         ]
     }
     """
@@ -474,9 +508,9 @@ def main_processer(input_url):
 
 
 
-# link = "https://makitaclub.ru"
+link = "https://makitaclub.ru"
 # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
-link = "https://makitatrading.ru"
+# link = "https://makitatrading.ru"
 main_processer(link)
 
 

@@ -76,6 +76,37 @@ main_task = """
 Задача успешно завершится, когда ты заполнишь поле second_html в result.
 Если не указано иного, то выбирай первые элементы из массивов в input_data.
 
+Входные данные:
+
+{
+    "semantics": [
+        "инструмент",
+        "дрель",
+        "шуруповерт",
+        "перфоратор",
+        "болгарка",
+        "пила",
+        "шлифмашина",
+        "пылесос",
+        "аккумулятор",
+        "оснастка"
+    ],
+    "search_input_selectors": [
+        "#woocommerce-product-search-field-0",   
+        "form.woocommerce-product-search input.search-field",
+        ".site-search form.woocommerce-product-search input[type=\"search\"]",
+        "input.search-field[name=\"s\"]",        
+        "form[role=\"search\"] input[type=\"search\"]"
+    ],
+    "search_button_selectors": [
+        "form.woocommerce-product-search button[type=\"submit\"]",
+        ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+        "form[role=\"search\"] button[type=\"submit\"]",
+        ".woocommerce-product-search button[type=\"submit\"]",
+        ".site-search button[type=\"submit\"]"   
+    ]
+}
+
 """
 
 
@@ -185,6 +216,11 @@ main_result_template = {
 
 # Запускаю браузер с видимым окном
 launch_browser(headless = False)
+goto_url( ###### Потом наверное внести внутрь агента
+    url = "https://makitaclub.ru/",
+    wait_until = "load",
+    timeout = 30_000
+)
 
 resulr_answer = orchestrate(
     task = main_task,

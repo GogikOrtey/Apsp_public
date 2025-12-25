@@ -183,26 +183,29 @@ def HGF_main_page_selector_and_semantic_handler(input_html):
 
     result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.1, system_prompt = SYSTEM_PROMPT)
 
+    # send_message_to_ChatGPT возвращает ChatGPTResult; достаём текст ответа
+    result_text = result_request.answer if hasattr(result_request, "answer") else str(result_request)
+
     # Удаляем обертку ``` ``` если модель вернула JSON внутри Markdown
-    if "```" in result_request:
-        match = re.search(r"```(?:json)?\s*(.*?)\s*```", result_request, re.DOTALL)
+    if "```" in result_text:
+        match = re.search(r"```(?:json)?\s*(.*?)\s*```", result_text, re.DOTALL)
         if match:
-            result_request = match.group(1)
+            result_text = match.group(1)
 
-    return result_request
+    return result_text
 
 
 
-# Для тестов:
+# # Для тестов:
 
-url = "https://www.krason.ru/"
+# url = "https://www.krason.ru/"
 
-html_content = get_html_from_cache(url)
-html_content_zip = clean_html_universal(html_content)
+# html_content = get_html_from_cache(url)
+# html_content_zip = clean_html_universal(html_content)
 
-HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
-print(f"\nHGF_result:\n")
-print(HGF_result)
+# HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+# print(f"\nHGF_result:\n")
+# print(HGF_result)
 
 
 
