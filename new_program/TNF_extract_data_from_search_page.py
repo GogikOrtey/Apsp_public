@@ -15,6 +15,7 @@ import json
 import copy
 import traceback
 import time
+import re
 from typing import Any
 
 
@@ -289,6 +290,12 @@ def TNF_extract_data_from_search_page(input_html):
     """
 
     result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.1, system_prompt = SYSTEM_PROMPT)
+
+    # Удаляем обертку ``` ``` если модель вернула JSON внутри Markdown
+    if "```" in result_request:
+        match = re.search(r"```(?:json)?\s*(.*?)\s*```", result_request, re.DOTALL)
+        if match:
+            result_request = match.group(1)
 
     return result_request
 
