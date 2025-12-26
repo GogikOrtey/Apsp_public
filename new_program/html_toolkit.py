@@ -915,11 +915,11 @@ def save_page_html(html: str, filename: str = "page_html.html") -> str:
 
 
 # # Проверка
-# url = "https://makitaclub.ru/products/df488d002/"
+# url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
 # html_content = get_html_from_cache(url)
 # # save_page_html(html_content, filename = "page_html.html")
 
-# selector = "#main .product_title.entry-title"
+# selector = "nav.woocommerce-pagination"
 # # selector = ".col-sm-6 .woocommerce-Price-amount.amount"
 # result_get_html_frame = get_html_frame(html_content, selector)
 # # print(f"result_get_html_frame:\n", result_get_html_frame)
