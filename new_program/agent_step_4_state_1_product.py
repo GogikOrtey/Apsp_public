@@ -79,12 +79,14 @@ console.log("link = " + link)
 
 Не добавляй дополнительных строчек без необходимости. В контексте проверки, инициализация объекта сheerio уже будет произведена выше, тебе не нужно добавлять её в этот фрагмент кода.
 
-Сформируй и сохрани этот фрагмент кода в result в поле code_product_processing.
+Сформируй и сохрани этот фрагмент кода в result в поле builded_code_product_processing.
 
 Далее тебе нужно будет проверить, что этот фрагмент кода запускается корректно в среде JS, и корректно обрабатывает и печатает ссылку на первый товар на текущей странице. Для этого используй инструмент get_product_link_on_current_page_cheerio_code. 
 
 Когда проверка будет успешна - запиши в result в поле check_generated_code_successful значение true и заверши задание, отправив DONE.
 
+Если проверка фрагмента кода показала неудачный результат, то не записывай значение false в поле check_generated_code_successful. В таком случае - пробуй изменить код, и запустить проверку снова. Если код будет требовать изменения, не забудь перезаписать его в result в поле builded_code_product_processing.
+
 """
 
 
@@ -103,34 +105,7 @@ console.log("link = " + link)
 
 
 
-
-
-
-
-
-
-""" 
-result_template:
-{
-    count_of_product_on_this_page: "",
-    product_selector: "",
-    additional_processing_for_the_link_value: false,
-    code_product_processing: "",
-    check_generated_code_successful: true
-}
-"""
-
-
-
-
-
-
-
-
-
-
-
-# Пример: 
+# Пример входных данных:
 """ 
 {
     "search_input_selectors": [
@@ -174,36 +149,58 @@ result_template:
 
 
 
+
+
+
+""" 
+result_template:
+{
+    count_of_product_on_this_page: "",
+    product_selector: "",
+    additional_processing_for_the_link_value: false,
+    builded_code_product_processing: "",
+    check_generated_code_successful: true
+}
+"""
+
+
+
 # Схема результата
 main_result_schema = {
-    "used_seletor_search_input": {
+    "count_of_product_on_this_page": {
         "type": "string",
         "required": True,
-        "description": "Использованный селектор для поля ввода поискового запроса"
+        "description": "Количество товаров на странице найденных по выбранному селектору товара"
     },
-    "used_seletor_search_button": {
-        "type": "string",
-        "required": False,
-        "description": "Использованный селектор для кнопки старта поиска"
-    },
-    "used_search_request": {
+    "product_selector": {
         "type": "string",
         "required": True,
-        "description": "Использованный поисковый запрос из семантики"
+        "description": "Выбранный селектор на ссылку товара"
     },
-    "second_html": {
+    "additional_processing_for_the_link_value": {
+        "type": "boolean",
+        "required": True,
+        "description": "Нужна ли доп. обработка для значения ссылки, извлекаемой селектором на ссылку товара"
+    },
+    "builded_code_product_processing": {
         "type": "string",
         "required": True,
-        "description": "URL страницы на которую был совершён переход, после запуска поиска"
+        "description": "Сформированный фрагмент кода обработки ссылок товаров"
+    },
+    "check_generated_code_successful": {
+        "type": "string",
+        "required": True,
+        "description": "Была ли проверка сгенерированного фрагмента кода успешна. Ожидает только записи значения true"
     }
 }
 
 # Шаблон результата, который агент заполняет в процессе работы
 main_result_template = {
-    "used_seletor_search_input": None,
-    "used_seletor_search_button": None,
-    "used_search_request": None,
-    "second_html": None
+    "count_of_product_on_this_page": None,
+    "product_selector": None,
+    "additional_processing_for_the_link_value": None,
+    "builded_code_product_processing": None,
+    "check_generated_code_successful": None
 }
 
 
@@ -249,8 +246,8 @@ def use_agent_for_step_2_gen_parsePage(input_data, search_request):
         max_steps = 40,
         result_schema = main_result_schema,
         result_template = main_result_template,
-        plan = main_plan,
-        step_by_step_running = False, # Разрешаем агенту работать автоматически
+        # plan = main_plan,
+        # step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
     result_task = get_result()
