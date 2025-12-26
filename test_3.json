@@ -1,0 +1,6 @@
+{'count_of_product_on_this_page': 16, 'choose_product_selector': ".products .product-card 
+a.stretched-link[href*='/products/'
+    ]", 'additional_processing_for_the_link_value': False, 
+'builded_code_product_processing': 'let products = $(\'.products .product-card a.stretched-link[href*="/products/"
+    ]\')\nlet product = products?.eq(0)\nlet link = $(product)?.attr(\'href\')\nconsole.log(\'link = \' + link)', 'check_generated_code_successful': True
+}
