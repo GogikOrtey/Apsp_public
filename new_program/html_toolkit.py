@@ -541,19 +541,47 @@ const cheerio = require('cheerio');
 function main() {
   try {
     const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
-    const $ = cheerio.load(html);
+    const $raw = cheerio.load(html);
     const userCode = __USER_CODE__;
 
-    // Sandbox: даём только то, что нужно для cheerio-выражений + базовые примитивы.
+    // Harden: оборачиваем host-объекты/функции в Proxy, скрывая constructor/__proto__/prototype.
+    // Это закрывает типичные sandbox-escape цепочки вида:
+    //   $.constructor("return process")()
+    //   obj.constructor.constructor("return process")()
+    const DENY_PROPS = new Set(['constructor', '__proto__', 'prototype']);
+    function makeSafe(value) {
+      if (value === null || value === undefined) return value;
+      const t = typeof value;
+      if (t === 'function') {
+        return new Proxy(value, {
+          get(target, prop, receiver) {
+            if (DENY_PROPS.has(prop)) return undefined;
+            const v = Reflect.get(target, prop, receiver);
+            return makeSafe(v);
+          },
+          apply(target, thisArg, args) {
+            const res = Reflect.apply(target, thisArg, args);
+            return makeSafe(res);
+          },
+        });
+      }
+      if (t === 'object') {
+        return new Proxy(value, {
+          get(target, prop, receiver) {
+            if (DENY_PROPS.has(prop)) return undefined;
+            const v = Reflect.get(target, prop, receiver);
+            return makeSafe(v);
+          },
+        });
+      }
+      return value;
+    }
+    const $ = makeSafe($raw);
+
+    // Sandbox: даём только то, что нужно для cheerio-выражений.
     // console глушим, чтобы stdout не ломал JSON-ответ.
     const sandbox = {
       $,
-      cheerio,
-      Math,
-      Number,
-      String,
-      Boolean,
-      Array,
       result: null,
       console: { log: () => {}, error: () => {}, warn: () => {}, info: () => {}, debug: () => {} },
     };
@@ -567,7 +595,11 @@ function main() {
     sandbox.require = undefined;
     sandbox.Buffer = undefined;
 
-    const prefix = `"use strict";\ntry {\n`;
+    const prefix = `"use strict";
+try{Object.defineProperty(Function.prototype,'constructor',{value:undefined,writable:false,configurable:false});}catch(e){}
+try{Object.defineProperty(Object.prototype,'__proto__',{get:undefined,set:undefined,configurable:false});}catch(e){}
+try {
+`;
     const suffix = `
   if (typeof totalPages === "undefined") {
     result = "__ERROR__:totalPages is not defined";
@@ -733,18 +765,46 @@ const cheerio = require('cheerio');
 function main() {
   try {
     const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
-    const $ = cheerio.load(html);
+    const $raw = cheerio.load(html);
     const userCode = __USER_CODE__;
 
     const logs = [];
+    // Harden: оборачиваем host-объекты/функции в Proxy, скрывая constructor/__proto__/prototype.
+    // Это закрывает типичные sandbox-escape цепочки вида:
+    //   $.constructor("return process")()
+    //   obj.constructor.constructor("return process")()
+    const DENY_PROPS = new Set(['constructor', '__proto__', 'prototype']);
+    function makeSafe(value) {
+      if (value === null || value === undefined) return value;
+      const t = typeof value;
+      if (t === 'function') {
+        return new Proxy(value, {
+          get(target, prop, receiver) {
+            if (DENY_PROPS.has(prop)) return undefined;
+            const v = Reflect.get(target, prop, receiver);
+            return makeSafe(v);
+          },
+          apply(target, thisArg, args) {
+            const res = Reflect.apply(target, thisArg, args);
+            return makeSafe(res);
+          },
+        });
+      }
+      if (t === 'object') {
+        return new Proxy(value, {
+          get(target, prop, receiver) {
+            if (DENY_PROPS.has(prop)) return undefined;
+            const v = Reflect.get(target, prop, receiver);
+            return makeSafe(v);
+          },
+        });
+      }
+      return value;
+    }
+    const $ = makeSafe($raw);
+
     const sandbox = {
       $,
-      cheerio,
-      Math,
-      Number,
-      String,
-      Boolean,
-      Array,
       result: null,
       logs,
       console: {
@@ -762,7 +822,11 @@ function main() {
     sandbox.require = undefined;
     sandbox.Buffer = undefined;
 
-    const prefix = `"use strict";\ntry {\n`;
+    const prefix = `"use strict";
+try{Object.defineProperty(Function.prototype,'constructor',{value:undefined,writable:false,configurable:false});}catch(e){}
+try{Object.defineProperty(Object.prototype,'__proto__',{get:undefined,set:undefined,configurable:false});}catch(e){}
+try {
+`;
     const suffix = `
   if (typeof link === "undefined") {
     result = "__ERROR__:link is not defined";
@@ -842,7 +906,19 @@ main();
             pass
 
 
+""" 
+Закрытые дыры:
 
+Constructor escape через host-объекты ($, результаты $()):
+Теперь $ (и всё, что возвращается при вызовах/чейнинге) оборачивается в Proxy, который скрывает свойства constructor / __proto__ / prototype.
+Поэтому $.constructor("return process")() больше не работает.
+Constructor escape через встроенные конструкторы ([].constructor.constructor(...)):
+Внутри vm-контекста перед выполнением user-кода добавил hardening:
+Function.prototype.constructor принудительно обнуляется (через Object.defineProperty(...))
+Object.prototype.__proto__ отключается
+Поэтому [].constructor.constructor(...) теперь падает.
+
+"""
 
 
 
@@ -1701,3 +1777,460 @@ def parse_product_blocks(html_content: str, item_selector: str) -> Dict[str, Any
 # selector = ".products .product-card a.stretched-link[href*='/products/']"
 # result_parse_product_blocks = parse_product_blocks(html_content, selector)
 # print(f"result_parse_product_blocks:\n", result_parse_product_blocks)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# region _
+
+
+""" 
+Код 2х методов проверки ОS кода путём их выполнения, до закрытия дыр с конструктором:
+""" 
+
+
+# # region Функции-проверяльщики
+
+# """
+
+# Здесь нужно реализовать функции-проверяльщики, которые нужны для того, что бы передать им фрагменты кода, и они запустили полный кусок кода в среде JS cheerio (с текущей html страницей), для проверки корректности написанного кода, и его работоспособности
+
+# Сейчас нужно реализовать функцию с таким кодом JS внутри:
+
+# 1. Функция, которая принимает строку кода, которая может быть примерно такой:
+
+# let totalPages = +$(".page-nav__nums_desktop > a").last().text().trim()
+# или let totalPages = +$('.site-main__inner > a[href]').eq(-1).text().trim()
+# или let totalPages = +$('.pagination > span').last().find('a').text().trim()
+
+# И возвращает значение в totalPages
+
+# В отличии от реализованной выше функции get_total_pages_on_cheerio - там передавался селектор, а тут надо что бы передавалась вся строка кода (или может быть даже несколько строк, но это скорее исключение).
+
+
+# Для того, что бы не допустить угроз безопасности, нужно будет использовать песочницу. Вот можно написать что-то типо такого кода:
+
+# const vm = require("vm");
+# const cheerio = require("cheerio");
+
+# const $ = cheerio.load(html);
+
+# const sandbox = {
+#     $,
+#     cheerio,
+#     Math,
+#     Number,
+#     String,
+#     result: null
+# };
+
+# const wrappedCode = `
+# try {
+#     ${userCode}
+#     result = totalPages;
+# } catch (e) {
+#     result = "__ERROR__:" + e.message;
+# }
+# `;
+
+# vm.runInNewContext(wrappedCode, sandbox, {
+#     timeout: 1000,
+#     codeGeneration: { strings: false, wasm: false }
+# });
+
+# """
+
+
+
+
+
+
+# # region check_total_pages_code_on_cheerio
+
+# # Обёртка для агента, с использованием локального html из открытой Page
+# @tool(
+#     name="get_total_pages_on_current_page_cheerio_code",
+#     description=(
+#         "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной totalPages. "
+#         "Код запускается в песочнице vm (без eval/new Function и wasm). "
+#         "Ожидается, что в коде будет присваивание вида `let totalPages = ...` (для проверки корректного извлечения количества максимальных страниц в пагинации)."
+#     ),
+#     args=[
+#         {
+#             "name": "user_code",
+#             "type": "str",
+#             "required": True,
+#             "description": "JS-код, который должен вычислить переменную totalPages (например `let totalPages = +$('.pagination a').last().text().trim()`)",
+#         },
+#     ],
+#     returns={
+#         "status": "ok|error",
+#         "totalPages": "str|null — значение переменной totalPages (как в JS)",
+#         "error": "Описание ошибки, если была",
+#     },
+#     example_args={
+#         "user_code": "let totalPages = +$('.pagination > a').last().text().trim()",
+#     },
+# )
+# def get_total_pages_on_current_page_cheerio_code(user_code: str) -> dict[str, str | None]:
+#     """
+#     Обёртка над get_total_pages_on_cheerio_code(...), которая берёт HTML через текущую Playwright page.
+
+#     Требования:
+#     - до вызова должна быть установлена общая page через playwright_tool.shared_page.set_shared_page(page)
+#     """
+#     page = get_shared_page()
+#     html_content = page.content()
+#     return get_total_pages_on_cheerio_code(user_code=user_code, html_content=html_content)
+
+
+# def get_total_pages_on_cheerio_code(user_code: str, html_content: str) -> dict[str, str | None]:
+#     """
+#     Запускает переданный фрагмент JS-кода в окружении cheerio (Node.js) на HTML-странице и возвращает totalPages.
+
+#     Безопасность:
+#     - выполнение в vm.runInNewContext(...)
+#     - timeout 1000ms
+#     - запрещена генерация кода из строк (eval/new Function) и wasm
+#     - console подавлен, чтобы stdout был строго JSON
+#     """
+#     if not isinstance(user_code, str) or not user_code.strip():
+#         return {"status": "error", "totalPages": None, "error": "user_code должен быть непустой строкой"}
+
+#     # Записываем HTML во временный файл (удалим после вызова Node)
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as tmp:
+#         tmp.write(html_content or "")
+#         tmp_path = tmp.name
+
+#     user_code_js = json.dumps(user_code)  # безопасно экранируем код как JS-строку
+#     tmp_path_js = json.dumps(tmp_path)  # безопасно экранируем путь
+
+#     # ВАЖНО: печатаем строго JSON одним console.log, чтобы Python мог распарсить результат.
+#     # Также глушим console внутри песочницы, чтобы пользовательский код не портил stdout.
+#     node_script_template = """
+# const fs = require('fs');
+# const vm = require('vm');
+# const cheerio = require('cheerio');
+
+# function main() {
+#   try {
+#     const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
+#     const $ = cheerio.load(html);
+#     const userCode = __USER_CODE__;
+
+#     // Sandbox: даём только то, что нужно для cheerio-выражений + базовые примитивы.
+#     // console глушим, чтобы stdout не ломал JSON-ответ.
+#     const sandbox = {
+#       $,
+#       cheerio,
+#       Math,
+#       Number,
+#       String,
+#       Boolean,
+#       Array,
+#       result: null,
+#       console: { log: () => {}, error: () => {}, warn: () => {}, info: () => {}, debug: () => {} },
+#     };
+
+#     // Чуть-чуть совместимости: некоторые сниппеты ожидают global/globalThis.
+#     sandbox.global = sandbox;
+#     sandbox.globalThis = sandbox;
+
+#     // Доп. урезание окружения
+#     sandbox.process = undefined;
+#     sandbox.require = undefined;
+#     sandbox.Buffer = undefined;
+
+#     const prefix = `"use strict";\ntry {\n`;
+#     const suffix = `
+#   if (typeof totalPages === "undefined") {
+#     result = "__ERROR__:totalPages is not defined";
+#   } else {
+#     result = totalPages;
+#   }
+# } catch (e) {
+#   result = "__ERROR__:" + (e && e.message ? e.message : String(e));
+# }
+# `;
+
+#     const wrappedCode = prefix + userCode + suffix;
+#     vm.runInNewContext(wrappedCode, sandbox, {
+#       timeout: 1000,
+#       codeGeneration: { strings: false, wasm: false },
+#     });
+
+#     const r = sandbox.result;
+#     if (typeof r === 'string' && r.startsWith('__ERROR__:')) {
+#       console.log(JSON.stringify({ status: 'error', totalPages: null, error: r.slice(10) }));
+#     } else {
+#       console.log(JSON.stringify({ status: 'ok', totalPages: String(r), error: null }));
+#     }
+#   } catch (e) {
+#     console.log(JSON.stringify({ status: 'error', totalPages: null, error: String(e && e.message ? e.message : e) }));
+#   }
+# }
+
+# main();
+# """.strip()
+#     node_script = (
+#         node_script_template
+#         .replace("__TMP_PATH__", tmp_path_js)
+#         .replace("__USER_CODE__", user_code_js)
+#     )
+
+#     try:
+#         result = subprocess.run(
+#             ["node", "-e", node_script],
+#             capture_output=True,
+#             text=True,
+#             check=False,
+#         )
+
+#         if result.returncode != 0:
+#             err = (result.stderr or "").strip() or f"Node.js exited with code {result.returncode}"
+#             return {"status": "error", "totalPages": None, "error": err}
+
+#         output = (result.stdout or "").strip()
+#         # На всякий случай берём последнюю непустую строку (если окружение всё же что-то напечатало)
+#         last_line = ""
+#         for line in reversed(output.splitlines()):
+#             if line.strip():
+#                 last_line = line.strip()
+#                 break
+#         if not last_line:
+#             return {"status": "error", "totalPages": None, "error": "Empty Node.js output"}
+
+#         try:
+#             parsed = json.loads(last_line)
+#         except Exception:
+#             return {"status": "error", "totalPages": None, "error": f"Unexpected Node.js output: {output!r}"}
+
+#         status = parsed.get("status")
+#         if status == "ok":
+#             return {"status": "ok", "totalPages": parsed.get("totalPages"), "error": None}
+#         return {"status": "error", "totalPages": None, "error": parsed.get("error") or "Unknown error"}
+#     finally:
+#         try:
+#             os.remove(tmp_path)
+#         except OSError:
+#             pass
+
+
+
+
+
+
+
+# """
+
+# Инструмент для проверки корректности извлечения ссылок из селектора на товар. Ожидает, что будут переданы примерно такие строки:
+
+# let HOST = "https://makitaclub.ru"
+# let products = $('.products .card a.stretched-link')
+# let product = products?.eq(0)
+# let link = HOST + $(product)?.attr('href')
+# console.log("link = " + link)
+
+# """
+
+
+# # region check_product_link_code_on_cheerio
+
+# # Обёртка для агента, с использованием локального html из открытой Page
+# @tool(
+#     name="get_product_link_on_current_page_cheerio_code",
+#     description=(
+#         "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной `link` "
+#         "(проверка корректного извлечения ссылки на товар из селектора). "
+#         "Код запускается в песочнице vm (без eval/new Function и wasm)."
+#     ),
+#     args=[
+#         {
+#             "name": "user_code",
+#             "type": "str",
+#             "required": True,
+#             "description": (
+#                 "JS-код, который должен вычислить переменную `link`, например:\n"
+#                 "let HOST='https://example.com';\n"
+#                 "let products=$('.products a.stretched-link');\n"
+#                 "let product=products?.eq(0);\n"
+#                 "let link=HOST + $(product)?.attr('href');\n"
+#                 "console.log('link = ' + link);"
+#             ),
+#         },
+#     ],
+#     returns={
+#         "status": "ok|error",
+#         "link": "str|null — значение переменной link (как в JS)",
+#         "logs": "str|null — отладочные логи console.log (по строкам), если были",
+#         "error": "Описание ошибки, если была",
+#     },
+#     example_args={
+#         "user_code": "let HOST='https://makitaclub.ru'; let products=$('.products .card a.stretched-link'); let product=products?.eq(0); let link=HOST + $(product)?.attr('href'); console.log('link = ' + link);",
+#     },
+# )
+# def get_product_link_on_current_page_cheerio_code(user_code: str) -> dict[str, str | None]:
+#     """
+#     Обёртка над get_product_link_on_cheerio_code(...), которая берёт HTML через текущую Playwright page.
+
+#     Требования:
+#     - до вызова должна быть установлена общая page через playwright_tool.shared_page.set_shared_page(page)
+#     """
+#     page = get_shared_page()
+#     html_content = page.content()
+#     return get_product_link_on_cheerio_code(user_code=user_code, html_content=html_content)
+
+
+# def get_product_link_on_cheerio_code(user_code: str, html_content: str) -> dict[str, str | None]:
+#     """
+#     Запускает переданный фрагмент JS-кода в окружении cheerio (Node.js) на HTML-странице и возвращает link.
+
+#     Ожидается, что пользовательский код присвоит переменную `link` (например `let link = ...`).
+#     console.log(...) не печатается в stdout, а собирается в logs, чтобы не ломать JSON-ответ.
+#     """
+#     if not isinstance(user_code, str) or not user_code.strip():
+#         return {"status": "error", "link": None, "logs": None, "error": "user_code должен быть непустой строкой"}
+
+#     # Записываем HTML во временный файл (удалим после вызова Node)
+#     with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as tmp:
+#         tmp.write(html_content or "")
+#         tmp_path = tmp.name
+
+#     user_code_js = json.dumps(user_code)  # безопасно экранируем код как JS-строку
+#     tmp_path_js = json.dumps(tmp_path)  # безопасно экранируем путь
+
+#     node_script_template = """
+# const fs = require('fs');
+# const vm = require('vm');
+# const cheerio = require('cheerio');
+
+# function main() {
+#   try {
+#     const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
+#     const $ = cheerio.load(html);
+#     const userCode = __USER_CODE__;
+
+#     const logs = [];
+#     const sandbox = {
+#       $,
+#       cheerio,
+#       Math,
+#       Number,
+#       String,
+#       Boolean,
+#       Array,
+#       result: null,
+#       logs,
+#       console: {
+#         log: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+#         error: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+#         warn: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+#         info: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+#         debug: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+#       },
+#     };
+
+#     sandbox.global = sandbox;
+#     sandbox.globalThis = sandbox;
+#     sandbox.process = undefined;
+#     sandbox.require = undefined;
+#     sandbox.Buffer = undefined;
+
+#     const prefix = `"use strict";\ntry {\n`;
+#     const suffix = `
+#   if (typeof link === "undefined") {
+#     result = "__ERROR__:link is not defined";
+#   } else {
+#     result = link;
+#   }
+# } catch (e) {
+#   result = "__ERROR__:" + (e && e.message ? e.message : String(e));
+# }
+# `;
+
+#     const wrappedCode = prefix + userCode + suffix;
+#     vm.runInNewContext(wrappedCode, sandbox, {
+#       timeout: 1000,
+#       codeGeneration: { strings: false, wasm: false },
+#     });
+
+#     const r = sandbox.result;
+#     const joinedLogs = (sandbox.logs || []).join('\\n');
+#     if (typeof r === 'string' && r.startsWith('__ERROR__:')) {
+#       console.log(JSON.stringify({ status: 'error', link: null, logs: joinedLogs || null, error: r.slice(10) }));
+#     } else {
+#       console.log(JSON.stringify({ status: 'ok', link: String(r), logs: joinedLogs || null, error: null }));
+#     }
+#   } catch (e) {
+#     console.log(JSON.stringify({ status: 'error', link: null, logs: null, error: String(e && e.message ? e.message : e) }));
+#   }
+# }
+
+# main();
+# """.strip()
+#     node_script = (
+#         node_script_template
+#         .replace("__TMP_PATH__", tmp_path_js)
+#         .replace("__USER_CODE__", user_code_js)
+#     )
+
+#     try:
+#         result = subprocess.run(
+#             ["node", "-e", node_script],
+#             capture_output=True,
+#             text=True,
+#             check=False,
+#         )
+
+#         if result.returncode != 0:
+#             err = (result.stderr or "").strip() or f"Node.js exited with code {result.returncode}"
+#             return {"status": "error", "link": None, "logs": None, "error": err}
+
+#         output = (result.stdout or "").strip()
+#         last_line = ""
+#         for line in reversed(output.splitlines()):
+#             if line.strip():
+#                 last_line = line.strip()
+#                 break
+#         if not last_line:
+#             return {"status": "error", "link": None, "logs": None, "error": "Empty Node.js output"}
+
+#         try:
+#             parsed = json.loads(last_line)
+#         except Exception:
+#             return {"status": "error", "link": None, "logs": None, "error": f"Unexpected Node.js output: {output!r}"}
+
+#         status = parsed.get("status")
+#         if status == "ok":
+#             return {"status": "ok", "link": parsed.get("link"), "logs": parsed.get("logs"), "error": None}
+#         return {
+#             "status": "error",
+#             "link": None,
+#             "logs": parsed.get("logs"),
+#             "error": parsed.get("error") or "Unknown error",
+#         }
+#     finally:
+#         try:
+#             os.remove(tmp_path)
+#         except OSError:
+#             pass
