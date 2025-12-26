@@ -4,6 +4,8 @@
 
 from bs4 import BeautifulSoup, Comment, NavigableString
 from collections import defaultdict
+from bs4 import BeautifulSoup, Tag
+from typing import Optional, List, Literal, Dict, Any
 
 # region Импорты
 # Чтобы при запуске файла из этой папки были видны модули из корня проекта (addedFunc.py и др.)
@@ -409,7 +411,7 @@ def check_selector_on_cheerio(selector: str, html_content: str) -> int:
         {"name": "max_container_html_chars", "type": "int", "required": False, "description": "Лимит HTML при выборе контейнера"},
         {"name": "sibling_elems", "type": "int", "required": False, "description": "Сколько соседних элементов сохранять рядом с target"},
         {"name": "max_text_node_chars", "type": "int", "required": False, "description": "Лимит длины текста внутри узла"},
-        {"name": "ancestor_levels", "type": "int", "required": False, "description": "Сколько уровней предков сохранять"},
+        {"name": "ancestor_levels", "type": "int", "required": False, "description": "Сколько уровней предков сохранять. Если нужно расширить окно, попробуй увеличить значение например до 5"},
     ],
     returns={
         "html_frame": "str — HTML-фрейм с комментариями TRIMMED_* с количеством удалённых узлов и маркерами TARGET вокруг исходного элемента",
@@ -919,7 +921,173 @@ def save_page_html(html: str, filename: str = "page_html.html") -> str:
 # html_content = get_html_from_cache(url)
 # # save_page_html(html_content, filename = "page_html.html")
 
-# selector = "nav.woocommerce-pagination"
+# selector = ".products .product-card a.stretched-link[href*='/products/']"
 # # selector = ".col-sm-6 .woocommerce-Price-amount.amount"
-# result_get_html_frame = get_html_frame(html_content, selector)
+# # result_get_html_frame = get_html_frame(html_content, selector)
+# result_get_html_frame = get_html_frame(html_content, selector, ancestor_levels = 5)
 # # print(f"result_get_html_frame:\n", result_get_html_frame)
+
+
+
+
+
+
+
+
+
+@tool(
+    name="parse_product_blocks",
+    description="Анализирует HTML, находит полные блоки товаров на основе селектора ссылки внутри товара и возвращает их HTML и общий селектор. Важно: первый элемент массива blocks_html всегда будет пуст - это корректный ответ. Заполненными будут 2й и 3й элементы массива, там будут лежать объекты 2го и 3го товара на странице. Также помни, что данный инструмент не гарантирует полную правильность block_selector.",
+    args=[
+        {
+            "name": "html_content",
+            "type": "str",
+            "required": True,
+            "description": "HTML код страницы"
+        },
+        {
+            "name": "item_selector",
+            "type": "str",
+            "required": True,
+            "description": "CSS селектор элемента внутри карточки товара (например, ссылка на товар)"
+        }
+    ],
+    returns={
+        "status": "ok|error",
+        "blocks_html": "list[str|None]",
+        "block_selector": "str",
+        "error": "Описание ошибки"
+    },
+    example_args={
+        "html_content": "<html>...</html>",
+        "item_selector": "a.stretched-link"
+    }
+)
+def parse_product_blocks(html_content: str, item_selector: str) -> Dict[str, Any]:
+    """
+    Анализирует структуру HTML и извлекает полные блоки товаров.
+    """
+    """ 
+    Алгоритм поиска блока товара (описание как работает эта функция):
+
+    1. Мы находим целевой элемент (ссылку) внутри товара.
+    2. Начинаем подниматься вверх по его родителям (от <a> к div, выше и выше).
+    3. На каждом шаге проверяем: содержит ли этот родитель "соседние" целевые ссылки (предыдущую или следующую)?
+    4. Как только мы находим родителя, который содержит соседей — значит, мы поднялись слишком высоко (это уже общий контейнер списка товаров).
+    5. Следовательно, предыдущий проверенный узел (дочерний по отношению к общему контейнеру) и является карточкой товара.
+    """
+
+    try:
+        soup = BeautifulSoup(html_content, 'html.parser')
+        elements = soup.select(item_selector)
+        
+        # 1. Проверяем количество элементов
+        count = len(elements)
+        if count < 5:
+            error_msg = f"Найдено слишком мало элементов ({count}), ожидалось минимум 5."
+            print(error_msg)
+            return {
+                "status": "error",
+                "blocks_html": [],
+                "block_selector": "",
+                "error": error_msg
+            }
+
+        # Выбираем референсные элементы (1-й, 2-й, 3-й, 4-й)
+        # Индексы: 0, 1, 2, 3
+        el1 = elements[0]
+        el2 = elements[1]
+        el3 = elements[2]
+        el4 = elements[3] # Нужен для поиска блока 3-го товара
+
+        def find_container_block(target: Tag, neighbor_prev: Tag, neighbor_next: Tag) -> Optional[Tag]:
+            """
+            Находит максимально высокий родительский блок для target, 
+            который НЕ содержит neighbor_prev и neighbor_next.
+            """
+            current = target
+            # Поднимаемся по родителям target
+            while current.parent:
+                parent = current.parent
+                
+                # Если мы дошли до корня (html/body), останавливаемся
+                if parent.name in ['html', 'body', '[document]']:
+                    return current
+
+                # Проверяем, содержит ли родитель соседей.
+                # Метод .find() может быть медленным, лучше проверить вхождение
+                # Но так как мы идем вверх, проще проверить:
+                # Является ли parent предком для neighbor_prev ИЛИ neighbor_next?
+                
+                prev_parents = list(neighbor_prev.parents)
+                next_parents = list(neighbor_next.parents)
+                
+                if parent in prev_parents or parent in next_parents:
+                    # Родитель общий для соседей, значит current - это искомый изолированный блок
+                    return current
+                
+                current = parent
+            return target
+
+        # 2. Находим полный блок 2-го товара (между 1 и 3)
+        block2 = find_container_block(el2, el1, el3)
+        
+        # 3. Находим полный блок 3-го товара (между 2 и 4)
+        block3 = find_container_block(el3, el2, el4)
+
+        if not block2 or not block3:
+             return {
+                "status": "error",
+                "blocks_html": [],
+                "block_selector": "",
+                "error": "Не удалось определить границы блоков товаров."
+            }
+
+        # 4. Вычисляем общий селектор для блоков
+        # Логика: берем тег и классы, которые есть и у block2, и у block3
+        tag_name = block2.name
+        classes2 = set(block2.get('class', []))
+        classes3 = set(block3.get('class', []))
+        
+        # Пересечение классов (чтобы исключить уникальные модификаторы типа 'first', 'hover')
+        common_classes = classes2.intersection(classes3)
+        
+        # Формируем селектор
+        generated_selector = tag_name
+        if common_classes:
+            # Сортируем для стабильности и добавляем точки
+            sorted_classes = sorted(list(common_classes))
+            generated_selector += "." + ".".join(sorted_classes)
+
+        # 5. Формируем ответ
+        result_array = [
+            None,                # Первый элемент пустой по ТЗ
+            str(block2),         # HTML код блока 2
+            str(block3)          # HTML код блока 3
+        ]
+
+        return {
+            "status": "ok",
+            "blocks_html": result_array,
+            "block_selector": generated_selector,
+            "error": None
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "blocks_html": [],
+            "block_selector": "",
+            "error": str(e)
+        }
+
+
+
+# # Проверка:
+
+# url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+# html_content = get_html_from_cache(url)
+
+# selector = ".products .product-card a.stretched-link[href*='/products/']"
+# result_parse_product_blocks = parse_product_blocks(html_content, selector)
+# print(f"result_parse_product_blocks:\n", result_parse_product_blocks)
