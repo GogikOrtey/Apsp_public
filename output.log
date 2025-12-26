@@ -1,4 +1,3 @@
-26.12.2025 23:04:27
+26.12.2025 23:29:49
 
-result_get_total_pages_on_cheerio:
- {'status': 'ok', 'totalPages': '59', 'error': None}
+{'status': 'ok', 'totalPages': '5', 'error': None}

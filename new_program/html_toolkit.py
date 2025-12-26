@@ -410,6 +410,206 @@ def get_total_pages_on_cheerio(selector: str, html_content: str) -> dict[str, st
 
 
 
+# region Функции-проверяльщики
+
+"""
+
+Здесь нужно реализовать функции-проверяльщики, которые нужны для того, что бы передать им фрагменты кода, и они запустили полный кусок кода в среде JS cheerio (с текущей html страницей), для проверки корректности написанного кода, и его работоспособности
+
+Сейчас нужно реализовать функцию с таким кодом JS внутри:
+
+1. Функция, которая принимает строку кода, которая может быть примерно такой:
+
+let totalPages = +$(".page-nav__nums_desktop > a").last().text().trim()
+или let totalPages = +$('.site-main__inner > a[href]').eq(-1).text().trim()
+или let totalPages = +$('.pagination > span').last().find('a').text().trim()
+
+И возвращает значение в totalPages
+
+В отличии от реализованной выше функции get_total_pages_on_cheerio - там передавался селектор, а тут надо что бы передавалась вся строка кода (или может быть даже несколько строк, но это скорее исключение).
+
+
+Для того, что бы не допустить угроз безопасности, нужно будет использовать песочницу. Вот можно написать что-то типо такого кода:
+
+const vm = require("vm");
+const cheerio = require("cheerio");
+
+const $ = cheerio.load(html);
+
+const sandbox = {
+    $,
+    cheerio,
+    Math,
+    Number,
+    String,
+    result: null
+};
+
+const wrappedCode = `
+try {
+    ${userCode}
+    result = totalPages;
+} catch (e) {
+    result = "__ERROR__:" + e.message;
+}
+`;
+
+vm.runInNewContext(wrappedCode, sandbox, {
+    timeout: 1000,
+    codeGeneration: { strings: false, wasm: false }
+});
+
+"""
+
+
+
+
+
+
+# region check_total_pages_code_on_cheerio
+
+# Обёртка для агента, с использованием локального html из открытой Page
+@tool(
+    name="get_total_pages_on_current_page_cheerio_code",
+    description=(
+        "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной totalPages. "
+        "Код запускается в песочнице vm (без eval/new Function и wasm). "
+        "Ожидается, что в коде будет присваивание вида `let totalPages = ...`."
+    ),
+    args=[
+        {
+            "name": "user_code",
+            "type": "str",
+            "required": True,
+            "description": "JS-код, который должен вычислить переменную totalPages (например `let totalPages = +$('.pagination a').last().text().trim()`)",
+        },
+    ],
+    returns={
+        "status": "ok|error",
+        "totalPages": "str|null — значение переменной totalPages (как в JS)",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={
+        "user_code": "let totalPages = +$('.pagination > a').last().text().trim()",
+    },
+)
+def get_total_pages_on_current_page_cheerio_code(user_code: str) -> dict[str, str | None]:
+    """
+    Обёртка над get_total_pages_on_cheerio_code(...), которая берёт HTML через текущую Playwright page.
+
+    Требования:
+    - до вызова должна быть установлена общая page через playwright_tool.shared_page.set_shared_page(page)
+    """
+    page = get_shared_page()
+    html_content = page.content()
+    return get_total_pages_on_cheerio_code(user_code=user_code, html_content=html_content)
+
+
+def get_total_pages_on_cheerio_code(user_code: str, html_content: str) -> dict[str, str | None]:
+    """
+    Запускает переданный фрагмент JS-кода в окружении cheerio (Node.js) на HTML-странице и возвращает totalPages.
+
+    Безопасность:
+    - выполнение в vm.runInNewContext(...)
+    - timeout 1000ms
+    - запрещена генерация кода из строк (eval/new Function) и wasm
+    - console подавлен, чтобы stdout был строго JSON
+    """
+    if not isinstance(user_code, str) or not user_code.strip():
+        return {"status": "error", "totalPages": None, "error": "user_code должен быть непустой строкой"}
+
+    # Записываем HTML во временный файл (удалим после вызова Node)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as tmp:
+        tmp.write(html_content or "")
+        tmp_path = tmp.name
+
+    user_code_js = json.dumps(user_code)  # безопасно экранируем код как JS-строку
+    tmp_path_js = json.dumps(tmp_path)  # безопасно экранируем путь
+
+    # ВАЖНО: печатаем строго JSON одним console.log, чтобы Python мог распарсить результат.
+    # Также глушим console внутри песочницы, чтобы пользовательский код не портил stdout.
+    node_script = (
+        "const fs=require('fs');"
+        "const vm=require('vm');"
+        "const cheerio=require('cheerio');"
+        "function main(){"
+        "try{"
+        f"const html=fs.readFileSync({tmp_path_js}, 'utf-8');"
+        "const $=cheerio.load(html);"
+        f"const userCode={user_code_js};"
+        "const sandbox={"
+        "  $, cheerio, Math, Number, String, Boolean, Array,"
+        "  result:null,"
+        "  console:{log:()=>{},error:()=>{},warn:()=>{},info:()=>{},debug:()=>{}}"
+        "};"
+        "sandbox.global=sandbox;"
+        "sandbox.globalThis=sandbox;"
+        "sandbox.process=undefined;"
+        "sandbox.require=undefined;"
+        "sandbox.Buffer=undefined;"
+        "const prefix='\"use strict\";\\ntry {\\n';"
+        "const suffix='\\n"
+        "  if (typeof totalPages === \"undefined\") {\\n"
+        "    result = \"__ERROR__:totalPages is not defined\";\\n"
+        "  } else {\\n"
+        "    result = totalPages;\\n"
+        "  }\\n"
+        "} catch (e) {\\n"
+        "  result = \"__ERROR__:\" + (e && e.message ? e.message : String(e));\\n"
+        "}\\n';"
+        "const wrappedCode = prefix + userCode + suffix;"
+        "vm.runInNewContext(wrappedCode, sandbox, {timeout:1000, codeGeneration:{strings:false, wasm:false}});"
+        "const r=sandbox.result;"
+        "if (typeof r==='string' && r.startsWith('__ERROR__:')) {"
+        "  console.log(JSON.stringify({status:'error', totalPages:null, error:r.slice(10)}));"
+        "} else {"
+        "  console.log(JSON.stringify({status:'ok', totalPages:String(r), error:null}));"
+        "}"
+        "}catch(e){"
+        "console.log(JSON.stringify({status:'error', totalPages:null, error:String(e&&e.message?e.message:e)}));"
+        "}"
+        "}"
+        "main();"
+    )
+
+    try:
+        result = subprocess.run(
+            ["node", "-e", node_script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode != 0:
+            err = (result.stderr or "").strip() or f"Node.js exited with code {result.returncode}"
+            return {"status": "error", "totalPages": None, "error": err}
+
+        output = (result.stdout or "").strip()
+        # На всякий случай берём последнюю непустую строку (если окружение всё же что-то напечатало)
+        last_line = ""
+        for line in reversed(output.splitlines()):
+            if line.strip():
+                last_line = line.strip()
+                break
+        if not last_line:
+            return {"status": "error", "totalPages": None, "error": "Empty Node.js output"}
+
+        try:
+            parsed = json.loads(last_line)
+        except Exception:
+            return {"status": "error", "totalPages": None, "error": f"Unexpected Node.js output: {output!r}"}
+
+        status = parsed.get("status")
+        if status == "ok":
+            return {"status": "ok", "totalPages": parsed.get("totalPages"), "error": None}
+        return {"status": "error", "totalPages": None, "error": parsed.get("error") or "Unknown error"}
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+
+
 
 
 
