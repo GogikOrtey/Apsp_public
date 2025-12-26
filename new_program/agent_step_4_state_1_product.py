@@ -2,19 +2,42 @@
 Здесь будет реализация алгоритма работы агента для 4го шага
 """
 
+# region Импорты
+# Чтобы при запуске файла из этой папки были видны модули из корня проекта (addedFunc.py и др.)
+### Потом убрать, что бы было нормально
+from pathlib import Path
+import sys
+import os
+import json
+import copy
+import traceback
+import time
+from typing import Any
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+# Подключение всех библиотек и функций
+from import_all_libraries import *
+
+from reasoning_agent.agent_main import *
+
+from playwright_tool.playwright_toolkit import *  # регистрирует инструменты playwright
+from new_program.html_toolkit import *  # регистрирует инструменты html_tool
+
+
 """ 
 
-############ Добавить с какого запроса выдача
+
 
 """
 
+
+
+
+
 main_task_all = """
-
-Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу {}.
 Во входных данных (input_data) тебе даны селекторы на элементы этой страницы. Они понадобятся тебе в ходе выполнения проверок и решения задачи. В каждом массиве есть input_data по 3 селектора, из них первый - это самый стабильный и предпочтительный, по умолчанию используй его. Но если вдруг первый окажется по каким-то причинам неподходящим или нерабочим, то есть ещё 2 запасных селектора, которые указывают также на этот элемент.
-
-
-———————————————————————— Фаза 1 - product
 
 Тебе нужно:
 
@@ -148,3 +171,91 @@ result_template:
     "last_page_number_displayed": true
 }
 """
+
+
+
+# Схема результата
+main_result_schema = {
+    "used_seletor_search_input": {
+        "type": "string",
+        "required": True,
+        "description": "Использованный селектор для поля ввода поискового запроса"
+    },
+    "used_seletor_search_button": {
+        "type": "string",
+        "required": False,
+        "description": "Использованный селектор для кнопки старта поиска"
+    },
+    "used_search_request": {
+        "type": "string",
+        "required": True,
+        "description": "Использованный поисковый запрос из семантики"
+    },
+    "second_html": {
+        "type": "string",
+        "required": True,
+        "description": "URL страницы на которую был совершён переход, после запуска поиска"
+    }
+}
+
+# Шаблон результата, который агент заполняет в процессе работы
+main_result_template = {
+    "used_seletor_search_input": None,
+    "used_seletor_search_button": None,
+    "used_search_request": None,
+    "second_html": None
+}
+
+
+main_plan = {
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Определить рабочий селектор поля ввода поиска и зафиксировать выбранный поисковый запрос из semantics, который будет введён в это поле.",
+            "fills": [
+                "used_seletor_search_input",
+                "used_search_request"
+            ]
+        },
+        {
+            "step_id": 2,
+            "goal": "Запустить поиск (Enter или кнопка), при необходимости подобрать рабочий селектор кнопки запуска поиска и зафиксировать URL страницы, на которую произошёл переход после запуска поиска.",
+            "fills": [
+                "used_seletor_search_button",
+                "second_html"
+            ]
+        }
+    ]
+}
+
+
+def use_agent_for_step_2_gen_parsePage(input_data, search_request):
+    # Приводим input_data к строке
+    if isinstance(input_data, str):
+        input_data_str = input_data
+    else:
+        try:
+            input_data_str = json.dumps(input_data, ensure_ascii=False, indent=4, default=str)
+        except Exception:
+            input_data_str = str(input_data)
+
+    task = (
+        f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу {search_request}." +
+        main_task_all + 
+        input_data_str)
+
+    resulr_answer = orchestrate(
+        task = task,
+        max_steps = 40,
+        result_schema = main_result_schema,
+        result_template = main_result_template,
+        plan = main_plan,
+        step_by_step_running = False, # Разрешаем агенту работать автоматически
+    ) 
+
+    result_task = get_result()
+    return result_task
+
+
+# print("result_task:")
+# print(result_task)

@@ -401,7 +401,9 @@ def main_processer(input_url):
 
     # region Шаг 4 - Агент
 
-    # use_agent_for_step_4_gen_parsePage
+    # agent_step_4_state_1_product
+    # agent_step_4_state_2
+    # agent_step_4_state_3
 
     print("🟦 Завершили первые 3 фазы для parsePage ✅")
     input("Нажмите Enter, чтобы закрыть браузер...")
