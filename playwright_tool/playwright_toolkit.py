@@ -92,6 +92,10 @@ check_url_status:       Проверяет, какой HTTP-код вернёт 
 goto_url:               Открывает указанную страницу по URL и возвращает код ответа
 page_restart:           Перезагружает текущую страницу и возвращает код ответа
 get_current_url:        Возвращает текущий URL открытой страницы
+wait_ms:                Ожидание указанное количество миллисекунд (по умолчанию 10 секунд)
+scroll_to_bottom:       Прокручивает страницу к низу
+scroll_to_top:          Прокручивает страницу к верху
+scroll_to_selector:     Прокручивает страницу к элементу по селектору (к первому совпадению)
 click_element:          Кликает по элементу с заданным селектором. По умолчанию — по первому, можно выбрать индекс.
 
 """
@@ -302,6 +306,46 @@ def get_current_url() -> dict[str, str | None]:
     except Exception as exc:  # noqa: BLE001
         res = {"status": "error", "url": None, "error": str(exc)}
     record_playwright_action("get_current_url", args=args, result=res)
+    return res
+
+
+@tool(
+    name="wait_ms",
+    description="Ожидание указанное количество миллисекунд (по умолчанию 10 секунд) на текущей странице, открытой в Playwright",
+    args=[
+        {
+            "name": "ms",
+            "type": "int",
+            "required": False,
+            "description": "Сколько миллисекунд ждать (по умолчанию 10000)"
+        }
+    ],
+    returns={
+        "status": "ok|error",
+        "ms": "int|null",
+        "error": "Описание ошибки, если была"
+    },
+    example_args={"ms": 10_000},
+)
+def wait_ms(ms: int = 10_000) -> dict[str, str | int | None]:
+    """
+    Ждёт указанное количество миллисекунд.
+    """
+    args: dict[str, Any] = {"ms": ms}
+    page, err = _require_page_or_error({"ms": None})
+    if err:
+        record_playwright_action("wait_ms", args=args, result=err)
+        return err
+    try:
+        if not isinstance(ms, int):
+            raise TypeError("ms должен быть int")
+        if ms < 0:
+            raise ValueError("ms должен быть >= 0")
+        page.wait_for_timeout(ms)
+        res = {"status": "ok", "ms": ms, "error": None}
+    except Exception as exc:  # noqa: BLE001
+        res = {"status": "error", "ms": None, "error": str(exc)}
+    record_playwright_action("wait_ms", args=args, result=res)
     return res
 
 
@@ -569,6 +613,118 @@ def click_element(
         }
         record_playwright_action("click_element", args=args, result=res)
         return res
+
+
+@tool(
+    name="scroll_to_bottom",
+    description="Прокручивает страницу к низу. На текущей странице открытой в Playwright",
+    args=[],
+    returns={
+        "status": "ok|error",
+        "position": "bottom",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={},
+)
+def scroll_to_bottom() -> dict[str, str | None]:
+    """
+    Прокрутка страницы к низу.
+    """
+    args: dict[str, Any] = {}
+    page, err = _require_page_or_error({"position": "bottom"})
+    if err:
+        record_playwright_action("scroll_to_bottom", args=args, result=err)
+        return err
+    try:
+        page.evaluate(
+            """
+            () => {
+                const el = document.scrollingElement || document.documentElement || document.body;
+                window.scrollTo(0, el.scrollHeight);
+            }
+            """
+        )
+        res = {"status": "ok", "position": "bottom", "error": None}
+    except Exception as exc:  # noqa: BLE001
+        res = {"status": "error", "position": "bottom", "error": str(exc)}
+    record_playwright_action("scroll_to_bottom", args=args, result=res)
+    return res
+
+
+@tool(
+    name="scroll_to_top",
+    description="Прокручивает страницу к верху. На текущей странице открытой в Playwright",
+    args=[],
+    returns={
+        "status": "ok|error",
+        "position": "top",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={},
+)
+def scroll_to_top() -> dict[str, str | None]:
+    """
+    Прокрутка страницы к верху.
+    """
+    args: dict[str, Any] = {}
+    page, err = _require_page_or_error({"position": "top"})
+    if err:
+        record_playwright_action("scroll_to_top", args=args, result=err)
+        return err
+    try:
+        page.evaluate("() => window.scrollTo(0, 0)")
+        res = {"status": "ok", "position": "top", "error": None}
+    except Exception as exc:  # noqa: BLE001
+        res = {"status": "error", "position": "top", "error": str(exc)}
+    record_playwright_action("scroll_to_top", args=args, result=res)
+    return res
+
+
+@tool(
+    name="scroll_to_selector",
+    description="Прокручивает страницу к элементу по селектору (к первому совпадению). На текущей странице открытой в Playwright",
+    args=[
+        {
+            "name": "selector",
+            "type": "str",
+            "required": True,
+            "description": "CSS/XPath селектор элемента",
+        }
+    ],
+    returns={
+        "status": "ok|error",
+        "selector": "str",
+        "total_count": "int|null",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={"selector": "form button[type='submit']"},
+)
+def scroll_to_selector(selector: str) -> dict[str, str | int | None]:
+    """
+    Прокрутка к элементу по селектору (к первому совпадению).
+    """
+    args = {"selector": selector}
+    page, err = _require_page_or_error({"selector": selector, "total_count": None})
+    if err:
+        record_playwright_action("scroll_to_selector", args=args, result=err)
+        return err
+    locator = page.locator(selector)
+    try:
+        count = locator.count()
+        if count == 0:
+            res = {
+                "status": "error",
+                "selector": selector,
+                "total_count": 0,
+                "error": "Элементы по селектору не найдены",
+            }
+        else:
+            locator.first.scroll_into_view_if_needed()
+            res = {"status": "ok", "selector": selector, "total_count": count, "error": None}
+    except Exception as exc:  # noqa: BLE001
+        res = {"status": "error", "selector": selector, "total_count": None, "error": str(exc)}
+    record_playwright_action("scroll_to_selector", args=args, result=res)
+    return res
 
 
 @tool(
