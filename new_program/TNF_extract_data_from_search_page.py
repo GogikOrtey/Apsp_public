@@ -302,7 +302,8 @@ def TNF_extract_data_from_search_page(input_html):
         if match:
             result_text = match.group(1)
 
-    return result_request
+    # Возвращаем именно текст, чтобы вызывающий код мог сразу парсить JSON
+    return result_text
 
 
 
