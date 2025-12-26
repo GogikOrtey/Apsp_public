@@ -241,6 +241,8 @@ def clean_html_universal(html_content: str) -> str:
 
     let totalPages = Math.max(...$(".module-pagination__wrapper > a").get().map(item => +$(item).text().trim()).filter(Boolean))
 
+    let totalPages = Math.max(...$("/* SELECTOR_HERE */").get().map(item => +$(item).text().trim()).filter(Boolean))
+
 Полная версия на питоне:
 
     from bs4 import BeautifulSoup
@@ -270,9 +272,147 @@ def clean_html_universal(html_content: str) -> str:
 
 """
 
+
+# Обёртка для агента, с использованием локального html из открытой Page
+@tool(
+    name="get_total_pages_on_current_page_cheerio",
+    description=(
+        "Запускает JS-выражение (cheerio/Node.js) вида "
+        "`let totalPages = Math.max(...$(selector).get().map(item => +$(item).text().trim()).filter(Boolean))` "
+        "на HTML текущей страницы Playwright и возвращает значение totalPages."
+    ),
+    args=[
+        {
+            "name": "selector",
+            "type": "str",
+            "required": True,
+            "description": "CSS-селектор элементов пагинации (например, '.module-pagination__wrapper > a')",
+        },
+    ],
+    returns={
+        "status": "ok|error",
+        "totalPages": "str|null — значение переменной totalPages (как в JS)",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={
+        "selector": ".module-pagination__wrapper > a",
+    },
+)
+def get_total_pages_on_current_page_cheerio(selector: str) -> dict[str, str | None]:
+    """
+    Обёртка над get_total_pages_on_cheerio(...), которая берёт HTML через текущую Playwright page.
+
+    Требования:
+    - до вызова должна быть установлена общая page через playwright_tool.shared_page.set_shared_page(page)
+    """
+    page = get_shared_page()
+    html_content = page.content()
+    return get_total_pages_on_cheerio(selector=selector, html_content=html_content)
+
+
+def get_total_pages_on_cheerio(selector: str, html_content: str) -> dict[str, str | None]:
+    """
+    Вычисляет totalPages по JS-формуле через cheerio (Node.js).
+
+    Для максимальной совместимости повторяет смысл кода:
+        let totalPages = Math.max(...$(selector).get().map(item => +$(item).text().trim()).filter(Boolean))
+    """
+    if not isinstance(selector, str) or not selector.strip():
+        return {"status": "error", "totalPages": None, "error": "selector должен быть непустой строкой"}
+
+    # Записываем HTML во временный файл (удалим после вызова Node)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as tmp:
+        tmp.write(html_content or "")
+        tmp_path = tmp.name
+
+    selector_js = json.dumps(selector)  # безопасно экранируем селектор
+    tmp_path_js = json.dumps(tmp_path)  # безопасно экранируем путь
+
+    # ВАЖНО: печатаем строго JSON одним console.log, чтобы Python мог распарсить результат.
+    node_script = (
+        "const cheerio=require('cheerio');"
+        "const fs=require('fs');"
+        "function main(){"
+        "try{"
+        f"const html=fs.readFileSync({tmp_path_js}, 'utf-8');"
+        "const $=cheerio.load(html);"
+        f"const sel={selector_js};"
+        # cheerio совместим с jQuery API, но .toArray() чуть стабильнее чем .get()
+        "const elements=$(sel).toArray();"
+        "const nums=elements.map(el=>+$(el).text().trim()).filter(Boolean);"
+        "const totalPages = nums.length ? Math.max(...nums) : 0;"
+        "console.log(JSON.stringify({status:'ok', totalPages:String(totalPages), error:null}));"
+        "}catch(e){"
+        "console.log(JSON.stringify({status:'error', totalPages:null, error:String(e&&e.message?e.message:e)}));"
+        "}"
+        "}"
+        "main();"
+    )
+
+    try:
+        result = subprocess.run(
+            ["node", "-e", node_script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode != 0:
+            err = (result.stderr or "").strip() or f"Node.js exited with code {result.returncode}"
+            return {"status": "error", "totalPages": None, "error": err}
+
+        output = (result.stdout or "").strip()
+        try:
+            parsed = json.loads(output)
+        except Exception:
+            return {"status": "error", "totalPages": None, "error": f"Unexpected Node.js output: {output!r}"}
+
+        status = parsed.get("status")
+        if status == "ok":
+            return {"status": "ok", "totalPages": parsed.get("totalPages"), "error": None}
+        return {"status": "error", "totalPages": None, "error": parsed.get("error") or "Unknown error"}
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+
+
+# Проверка
+url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+html_content = get_html_from_cache(url)
+# save_page_html(html_content, filename = "page_html.html")
+
+selector = "nav.woocommerce-pagination"
+result_get_total_pages_on_cheerio = get_total_pages_on_cheerio(html_content, selector)
+print(f"result_get_total_pages_on_cheerio:\n", result_get_total_pages_on_cheerio)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # region check_selector_on_cheerio
-
-
 
 # Обёртка для агента, с использованием локального html из открытой Page
 @tool(
