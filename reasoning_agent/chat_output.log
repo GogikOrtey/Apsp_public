@@ -98,88 +98,88 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 1   ———————————
 
-🟢 reasoning: В Фазе 1 нужно определить рабочий селектор search input. Начинаю с первого селектора из input_data и проверяю, что он реально находит элемент на текущей странице через find_elements.
-🔵 target: Проверить первый кандидат-селектор поля поиска на странице, чтобы выбрать рабочий селектор для текущей фазы
+🟢 reasoning: Текущая фаза требует определить рабочий селектор поля поиска. Начинаю с первого селектора из input_data и проверяю, что он реально находит input на текущей странице.
+🔵 target: Проверить первый кандидат-селектор поля ввода поиска на наличие элементов на странице
 🟡 action: find_elements
-   🔶 args: {"selector": "#woocommerce-product-search-field-0", "only_count": false, "max_results": 5}
+   🔶 args: {"selector": "form.c-input-search input[name=\"query\"]", "only_count": false, "max_results": 5}
 
-🛠️  find_elements({'selector': '#woocommerce-product-search-field-0', 'only_count': False, 'max_results': 5})
+🛠️  find_elements({'selector': 'form.c-input-search input[name="query"]', 'only_count': False, 'max_results': 5})
 Инструмент вернул результат: {"status": "ok", "count": 1, "elements": [{"index": 0, "text": "", "html": ""}], "error": null}
 
 ———————————   Шаг 2   ———————————
 
-🟢 reasoning: В Фазе 1 нужно зафиксировать рабочий селектор поля ввода. Селектор #woocommerce-product-search-field-0 уже найден (count=1), теперь нужно посмотреть окружающий HTML, чтобы убедиться, что это поле поиска (input type=search/name=s/внутри формы поиска), прежде чем записывать used_seletor_search_input и выбирать used_search_request.
-🔵 target: Получить HTML-фрейм вокруг найденного поля поиска #woocommerce-product-search-field-0, чтобы подтвердить что это именно search input
+🟢 reasoning: В текущей фазе нужно зафиксировать рабочий селектор поля поиска. Селектор уже нашёл 1 элемент, теперь нужно проверить окружение в DOM (form/placeholder/button/search-атрибуты), чтобы подтвердить, что это именно поле поиска, прежде чем фокусироваться и вводить запрос.
+🔵 target: Получить HTML-фрейм вокруг найденного поля ввода, чтобы убедиться, что это действительно поисковый input
 🟡 action: get_html_frame_on_current_page
-   🔶 args: {"selector": "#woocommerce-product-search-field-0", "max_frame_chars": 2500, "sibling_elems": 2, "ancestor_levels": 4}
+   🔶 args: {"selector": "form.c-input-search input[name=\"query\"]", "max_frame_chars": 2500, "ancestor_levels": 4, "sibling_elems": 2}
 
-🛠️  get_html_frame_on_current_page({'selector': '#woocommerce-product-search-field-0', 'max_frame_chars': 2500, 'sibling_elems': 2, 'ancestor_levels': 4})
-Инструмент вернул результат: "<!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 163 NODES--><div class=\"container align-items-center container d-flex justify-content-between\"><!--TRIMMED_BEFORE 3 NODES--><div class=\"site-search\"><div class=\"widget woocommerce widget_product_search\"><form role=\"search\" class=\"woocommerce-product-search\"><label class=\"screen-reader-text\">Искать:</label><!--TARGET_START--><input id=\"woocommerce-product-search-field-0\" class=\"search-field\"><!--TARGET_END--><button>Найти</button><input></form></div></div></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 1110 NODES-->"
+🛠️  get_html_frame_on_current_page({'selector': 'form.c-input-search input[name="query"]', 'max_frame_chars': 2500, 'ancestor_levels': 4, 'sibling_elems': 2})
+Инструмент вернул результат: "<!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 156 NODES--><div class=\"c-header-bottom-bar__container\"><!--TRIMMED_BEFORE 1 NODES--><div class=\"c-header-bottom-bar__container-search\"><form class=\"c-input-search c-input-search_style_inverse\" data-autocomplete=\"1\"><div class=\"c-input-search__input-container\"><!--TARGET_START--><input class=\"c-input-search__input c-input-text c-input-text_size_s c-input-text_fill ui-autocomplete-input\"><!--TARGET_END--></div><!--TRIMMED_AFTER 1 NODES--></form></div><!--TRIMMED_AFTER 1 NODES--></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 1908 NODES-->"
 
 ———————————   Шаг 3   ———————————
 
-🟢 reasoning: find_elements вернул count=1 для #woocommerce-product-search-field-0, а HTML-фрейм показывает, что это input внутри form role="search" class="woocommerce-product-search" рядом с кнопкой "Найти", значит селектор рабочий и соответствует полю поиска. Записываю его в result для завершения части требований Фазы 1.
-🔵 target: Зафиксировать в result рабочий селектор поля ввода поиска (#woocommerce-product-search-field-0) по подтверждённому HTML-фрейму
+🟢 reasoning: Текущая фаза требует заполнить used_seletor_search_input и used_search_request. Селектор form.c-input-search input[name="query"] найден (count=1), а HTML-фрейм показывает, что input находится внутри формы c-input-search в контейнере поиска шапки, значит это корректное поле поиска. Фиксирую селектор в result.
+🔵 target: Зафиксировать в result рабочий селектор поля поиска (найден 1 элемент и HTML-окружение соответствует форме поиска)
 🟡 action: update_result
-   🔶 args: {"field": "used_seletor_search_input", "value": "#woocommerce-product-search-field-0"}
+   🔶 args: {"field": "used_seletor_search_input", "value": "form.c-input-search input[name=\"query\"]"}
 
-🛠️  update_result({'field': 'used_seletor_search_input', 'value': '#woocommerce-product-search-field-0'})
-Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#woocommerce-product-search-field-0", "used_seletor_search_button": null, "used_search_request": null, "second_html": null}}
+🛠️  update_result({'field': 'used_seletor_search_input', 'value': 'form.c-input-search input[name="query"]'})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "form.c-input-search input[name=\"query\"]", "used_seletor_search_button": null, "used_search_request": null, "second_html": null}}
 
 ———————————   Шаг 4   ———————————
 
-🟢 reasoning: В Фазе 1 нужно заполнить used_seletor_search_input и used_search_request. Селектор уже зафиксирован, осталось выбрать и записать запрос. По инструкции берём первый элемент из semantics: 'инструмент'.
-🔵 target: Зафиксировать выбранный поисковый запрос из semantics в result, чтобы завершить требования Фазы 1
+🟢 reasoning: В фазе 1 нужно заполнить used_search_request. По инструкции, если не указано иного, выбираем первый запрос из массива semantics — "котел". Фиксирую его в result, после чего останется выполнить фокус и ввод в поле (уже в рамках последующих шагов).
+🔵 target: Зафиксировать выбранный поисковый запрос из semantics для текущей фазы
 🟡 action: update_result
-   🔶 args: {"field": "used_search_request", "value": "инструмент"}
+   🔶 args: {"field": "used_search_request", "value": "котел"}
 
-🛠️  update_result({'field': 'used_search_request', 'value': 'инструмент'})
-Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#woocommerce-product-search-field-0", "used_seletor_search_button": null, "used_search_request": "инструмент", "second_html": null}}
+🛠️  update_result({'field': 'used_search_request', 'value': 'котел'})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "form.c-input-search input[name=\"query\"]", "used_seletor_search_button": null, "used_search_request": "котел", "second_html": null}}
 
 ———————————   Шаг 5   ———————————
 
-🟢 reasoning: В текущей фазе нужно запустить поиск и зафиксировать URL результата. Для этого сначала нужно сфокусироваться на уже выбранном поле поиска, чтобы корректно ввести запрос и затем нажать Enter/кнопку.
-🔵 target: Сфокусироваться на поле ввода поиска, чтобы затем ввести поисковый запрос и запустить поиск
+🟢 reasoning: В активной фазе нужно запустить поиск и зафиксировать URL результата. Для этого сначала необходимо сфокусироваться на поле ввода, чтобы корректно ввести запрос и далее отправить форму (Enter/кнопка).
+🔵 target: Сфокусироваться на найденном поле ввода поиска перед вводом запроса
 🟡 action: smart_focus
-   🔶 args: {"selector": "#woocommerce-product-search-field-0", "timeout": 1000}
+   🔶 args: {"selector": "form.c-input-search input[name=\"query\"]", "timeout": 1000}
 
-🛠️  smart_focus({'selector': '#woocommerce-product-search-field-0', 'timeout': 1000})
-Инструмент вернул результат: {"status": "ok", "selector": "#woocommerce-product-search-field-0", "attempts": 1, "error": null}
+🛠️  smart_focus({'selector': 'form.c-input-search input[name="query"]', 'timeout': 1000})
+Инструмент вернул результат: {"status": "ok", "selector": "form.c-input-search input[name=\"query\"]", "attempts": 1, "error": null}
 
 ———————————   Шаг 6   ———————————
 
-🟢 reasoning: Для запуска поиска в текущей фазе сначала нужно заполнить поле ввода выбранным запросом, затем можно будет сохранить текущий URL, нажать Enter и дождаться перехода на страницу результатов.
-🔵 target: Ввести поисковый запрос 'инструмент' в сфокусированное поле поиска #woocommerce-product-search-field-0
+🟢 reasoning: Для запуска поиска в текущей фазе нужно сначала заполнить поле ввода запросом из result.used_search_request, после чего можно отправлять форму через Enter и отслеживать переход на страницу результатов.
+🔵 target: Ввести поисковый запрос "котел" в сфокусированное поле поиска
 🟡 action: human_like_input
-   🔶 args: {"selector": "#woocommerce-product-search-field-0", "text": "инструмент", "delay_ms": 80}
+   🔶 args: {"selector": "form.c-input-search input[name=\"query\"]", "text": "котел", "delay_ms": 80}
 
-🛠️  human_like_input({'selector': '#woocommerce-product-search-field-0', 'text': 'инструмент', 'delay_ms': 80})
-Инструмент вернул результат: {"status": "ok", "selector": "#woocommerce-product-search-field-0", "text_len": 10, "error": null}
+🛠️  human_like_input({'selector': 'form.c-input-search input[name="query"]', 'text': 'котел', 'delay_ms': 80})
+Инструмент вернул результат: {"status": "ok", "selector": "form.c-input-search input[name=\"query\"]", "text_len": 5, "error": null}
 
 ———————————   Шаг 7   ———————————
 
-🟢 reasoning: По алгоритму перед нажатием Enter нужно зафиксировать текущий URL как old_url (в memory), чтобы затем инструмент wait_for_navigation_or_content мог определить факт перехода/изменения.
-🔵 target: Сохранить текущий URL страницы перед запуском поиска, чтобы затем корректно отследить редирект/изменение контента
+🟢 reasoning: Для запуска поиска далее нужно нажать Enter и дождаться смены URL/контента. Чтобы корректно использовать wait_for_navigation_or_content, сначала фиксирую текущий URL как old_url (сохраню в memory на следующем шаге).
+🔵 target: Сохранить текущий URL страницы перед отправкой поискового запроса (для последующего ожидания редиректа/изменения контента)
 🟡 action: get_current_url
 
 
 🛠️  get_current_url({})
-Инструмент вернул результат: {"status": "ok", "url": "https://makitaclub.ru/", "error": null}
+Инструмент вернул результат: {"status": "ok", "url": "https://kotel-nasos.ru/", "error": null}
 
 ———————————   Шаг 8   ———————————
 
-🟢 reasoning: Для wait_for_navigation_or_content нужен исходный URL. Мы уже получили текущий URL https://makitaclub.ru/ — сохраняю его в memory как old_url перед нажатием Enter.
-🔵 target: Сохранить текущий URL (old_url) в долговременную память, чтобы затем дождаться перехода после запуска поиска
+🟢 reasoning: Для корректного ожидания перехода после отправки поиска нужен old_url. Инструмент get_current_url уже вернул https://kotel-nasos.ru/, сохраняю его в memory, чтобы на следующем шаге использовать в wait_for_navigation_or_content.
+🔵 target: Сохранить текущий URL (old_url) в memory перед отправкой поискового запроса
 🟡 action: update_memory
-   🔶 args: {"value": "old_url=https://makitaclub.ru/"}
+   🔶 args: {"value": "old_url=https://kotel-nasos.ru/"}
 
-🛠️  update_memory({'value': 'old_url=https://makitaclub.ru/'})
+🛠️  update_memory({'value': 'old_url=https://kotel-nasos.ru/'})
 Инструмент вернул результат: {"status": "ok", "added": 1, "memory_size": 1, "error": null}
 
 ———————————   Шаг 9   ———————————
 
-🟢 reasoning: Поле поиска уже сфокусировано и заполнено запросом, old_url сохранён в memory. Следующий шаг по алгоритму — нажать Enter, чтобы инициировать поиск и затем отследить переход.
-🔵 target: Запустить поиск нажатием Enter после ввода запроса в поле поиска
+🟢 reasoning: Текущая фаза требует запустить поиск и зафиксировать URL результата (second_html), а также при необходимости selector кнопки. Поле уже заполнено запросом, old_url сохранён в memory, поэтому следующий атомарный шаг — отправить форму клавишей Enter.
+🔵 target: Отправить поисковый запрос из поля ввода через Enter, чтобы инициировать переход на страницу результатов
 🟡 action: press_enter
 
 
@@ -188,38 +188,38 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 10   ———————————
 
-🟢 reasoning: В текущей фазе нужно получить second_html (URL после запуска поиска). Enter уже нажат, old_url сохранён. Следующий шаг по алгоритму — подождать смену URL или существенное изменение контента.
-🔵 target: Дождаться перехода или существенного изменения контента после нажатия Enter, чтобы зафиксировать URL страницы результатов поиска
+🟢 reasoning: В текущей фазе нужно получить second_html (URL после запуска поиска). Enter уже нажат, old_url сохранён. Следующий атомарный шаг — дождаться смены URL или изменения контента, чтобы понять, произошёл ли переход на результаты поиска.
+🔵 target: Дождаться перехода/существенного изменения контента после отправки поиска Enter, чтобы зафиксировать URL страницы результатов
 🟡 action: wait_for_navigation_or_content
-   🔶 args: {"old_url": "https://makitaclub.ru/", "timeout": 15000, "change_threshold": 0.2}
+   🔶 args: {"old_url": "https://kotel-nasos.ru/", "timeout": 15000, "change_threshold": 0.2}
 
-🛠️  wait_for_navigation_or_content({'old_url': 'https://makitaclub.ru/', 'timeout': 15000, 'change_threshold': 0.2})
-Инструмент вернул результат: {"status": "ok", "reason": "url_changed", "new_url": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product", "change_fraction": null, "error": null}
+🛠️  wait_for_navigation_or_content({'old_url': 'https://kotel-nasos.ru/', 'timeout': 15000, 'change_threshold': 0.2})
+Инструмент вернул результат: {"status": "ok", "reason": "url_changed", "new_url": "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB", "change_fraction": null, "error": null}
 
 ———————————   Шаг 11   ———————————
 
-🟢 reasoning: wait_for_navigation_or_content вернул url_changed и new_url, значит поиск успешно запущен через Enter; нужно сохранить этот URL как second_html для завершения фазы.
-🔵 target: Зафиксировать URL страницы результатов поиска в поле second_html (переход после Enter уже произошёл)
+🟢 reasoning: wait_for_navigation_or_content вернул status=ok и reason=url_changed с new_url, значит переход на страницу результатов поиска состоялся. Для завершения текущей фазы нужно заполнить second_html этим URL.
+🔵 target: Зафиксировать URL страницы результатов поиска после успешной отправки запроса Enter
 🟡 action: update_result
-   🔶 args: {"field": "second_html", "value": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"}
+   🔶 args: {"field": "second_html", "value": "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"}
 
-🛠️  update_result({'field': 'second_html', 'value': 'https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product'})
-Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#woocommerce-product-search-field-0", "used_seletor_search_button": null, "used_search_request": "инструмент", "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"}}
+🛠️  update_result({'field': 'second_html', 'value': 'https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB'})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "form.c-input-search input[name=\"query\"]", "used_seletor_search_button": null, "used_search_request": "котел", "second_html": "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"}}
 
 ———————————   Шаг 12   ———————————
 
-🟢 reasoning: В текущей фазе нужно заполнить used_seletor_search_button и second_html. second_html уже зафиксирован после успешного url_changed. Кнопка поиска не использовалась, поэтому фиксирую это явным строковым значением 'ENTER' (поле ожидает string).
-🔵 target: Заполнить used_seletor_search_button: поиск был запущен клавишей Enter без использования кнопки
+🟢 reasoning: Текущая фаза требует заполнить used_seletor_search_button и second_html. Переход на страницу результатов успешно произошёл после нажатия Enter (кнопка не применялась), поэтому для завершения фазы заполняю used_seletor_search_button пустой строкой как маркер 'не использовалась'.
+🔵 target: Зафиксировать, что кнопка запуска поиска не использовалась (поиск был отправлен через Enter), чтобы заполнить used_seletor_search_button и закрыть fills фазы
 🟡 action: update_result
-   🔶 args: {"field": "used_seletor_search_button", "value": "ENTER"}
+   🔶 args: {"field": "used_seletor_search_button", "value": ""}
 
-🛠️  update_result({'field': 'used_seletor_search_button', 'value': 'ENTER'})
-Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#woocommerce-product-search-field-0", "used_seletor_search_button": "ENTER", "used_search_request": "инструмент", "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"}}
+🛠️  update_result({'field': 'used_seletor_search_button', 'value': ''})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "form.c-input-search input[name=\"query\"]", "used_seletor_search_button": "", "used_search_request": "котел", "second_html": "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"}}
 
 ———————————   Шаг 13   ———————————
 
-🟢 reasoning: main_plan помечен как completed, в result заполнены used_seletor_search_input, used_search_request и second_html (а также used_seletor_search_button). Текущая фаза не требует дополнительных fills, дальнейшие действия не нужны.
-🔵 target: Завершить задачу: все фазы main_plan выполнены, обязательные поля result заполнены
+🟢 reasoning: Текущая фаза требует заполнить used_seletor_search_button и second_html. В result уже есть second_html=https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB, а used_seletor_search_button заполнен пустой строкой, так как поиск отправлен через Enter без использования кнопки. Поля предыдущей фазы также заполнены, следовательно main_plan выполнен полностью.
+🔵 target: Завершить задачу: все поля результата заполнены, поиск запущен и URL результатов зафиксирован
 🟡 action: DONE
 
 

@@ -275,12 +275,13 @@ def main_processer(input_url):
     """
 
     print("🟦 Завершили первые 3 фазы для parsePage ✅")
+    input("Нажмите Enter, чтобы закрыть браузер...")
     
 
 
-link = "https://makitaclub.ru"
+# link = "https://makitaclub.ru"
 # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
-# link = "https://makitatrading.ru"
+link = "https://makitatrading.ru"
 main_processer(link)
 
 
