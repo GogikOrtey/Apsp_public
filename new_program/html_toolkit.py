@@ -935,34 +935,69 @@ def save_page_html(html: str, filename: str = "page_html.html") -> str:
 
 
 
+
+# Обёртка для агента, с использованием локального html из открытой Page
 @tool(
-    name="parse_product_blocks",
-    description="Анализирует HTML, находит полные блоки товаров на основе селектора ссылки внутри товара и возвращает их HTML и общий селектор. Важно: первый элемент массива blocks_html всегда будет пуст - это корректный ответ. Заполненными будут 2й и 3й элементы массива, там будут лежать объекты 2го и 3го товара на странице. Также помни, что данный инструмент не гарантирует полную правильность block_selector.",
+    name="parse_product_blocks_on_current_page",
+    description="Анализирует HTML, находит полные блоки товаров на основе селектора ссылки внутри товара и возвращает их HTML и общий селектор. Важно: в ответе первый элемент массива blocks_html всегда будет пуст - это корректный ответ. Заполненными будут 2й и 3й элементы массива, там будут лежать объекты 2го и 3го товара на странице. Также помни, что данный инструмент не гарантирует полную правильность block_selector.",
     args=[
-        {
-            "name": "html_content",
-            "type": "str",
-            "required": True,
-            "description": "HTML код страницы"
-        },
         {
             "name": "item_selector",
             "type": "str",
             "required": True,
-            "description": "CSS селектор элемента внутри карточки товара (например, ссылка на товар)"
+            "description": "CSS селектор элемента внутри карточки товара (например, ссылка на товар)",
         }
     ],
     returns={
         "status": "ok|error",
         "blocks_html": "list[str|None]",
         "block_selector": "str",
-        "error": "Описание ошибки"
+        "error": "Описание ошибки",
     },
     example_args={
-        "html_content": "<html>...</html>",
-        "item_selector": "a.stretched-link"
-    }
+        "item_selector": "a.stretched-link",
+    },
 )
+def parse_product_blocks_on_current_page(item_selector: str) -> Dict[str, Any]:
+    """
+    Обёртка над parse_product_blocks(...), которая берёт HTML через текущую Playwright page.
+
+    Требования:
+    - до вызова должна быть установлена общая page через playwright_tool.shared_page.set_shared_page(page)
+    """
+    page = get_shared_page()
+    html_content = page.content()
+    return parse_product_blocks(html_content=html_content, item_selector=item_selector)
+
+
+# @tool(
+#     name="parse_product_blocks",
+#     description="Анализирует HTML, находит полные блоки товаров на основе селектора ссылки внутри товара и возвращает их HTML и общий селектор. Важно: первый элемент массива blocks_html всегда будет пуст - это корректный ответ. Заполненными будут 2й и 3й элементы массива, там будут лежать объекты 2го и 3го товара на странице. Также помни, что данный инструмент не гарантирует полную правильность block_selector.",
+#     args=[
+#         {
+#             "name": "html_content",
+#             "type": "str",
+#             "required": True,
+#             "description": "HTML код страницы"
+#         },
+#         {
+#             "name": "item_selector",
+#             "type": "str",
+#             "required": True,
+#             "description": "CSS селектор элемента внутри карточки товара (например, ссылка на товар)"
+#         }
+#     ],
+#     returns={
+#         "status": "ok|error",
+#         "blocks_html": "list[str|None]",
+#         "block_selector": "str",
+#         "error": "Описание ошибки"
+#     },
+#     example_args={
+#         "html_content": "<html>...</html>",
+#         "item_selector": "a.stretched-link"
+#     }
+# )
 def parse_product_blocks(html_content: str, item_selector: str) -> Dict[str, Any]:
     """
     Анализирует структуру HTML и извлекает полные блоки товаров.
