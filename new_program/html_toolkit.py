@@ -228,6 +228,18 @@ def clean_html_universal(html_content: str) -> str:
 
 
 
+def save_page_html(html: str, filename: str = "page_html.html") -> str:
+    """
+    Сохраняет HTML в файл рядом со скриптом и возвращает путь к файлу.
+    
+    Args:
+        html: html-содержимое страницы
+    """
+    print("Сохраняем html страницы в файл", filename)
+    output_path = Path(__file__).resolve().parent / filename
+    output_path.write_text(html, encoding="utf-8")
+    return str(output_path)
+
 
 
 
@@ -337,10 +349,11 @@ def get_total_pages_on_cheerio(selector: str, html_content: str) -> dict[str, st
         f"const html=fs.readFileSync({tmp_path_js}, 'utf-8');"
         "const $=cheerio.load(html);"
         f"const sel={selector_js};"
-        # cheerio совместим с jQuery API, но .toArray() чуть стабильнее чем .get()
-        "const elements=$(sel).toArray();"
-        "const nums=elements.map(el=>+$(el).text().trim()).filter(Boolean);"
-        "const totalPages = nums.length ? Math.max(...nums) : 0;"
+
+        # "const totalPages=Math.max(...$(sel).toArray().map(el=>+$(el).text().trim()).filter(Boolean));"
+        "const totalPages = Math.max(...$(sel).get().map(item => +$(item).text().trim()).filter(Boolean));"
+        #  let totalPages = Math.max(...$(sel).get().map(item => +$(item).text().trim()).filter(Boolean))
+
         "console.log(JSON.stringify({status:'ok', totalPages:String(totalPages), error:null}));"
         "}catch(e){"
         "console.log(JSON.stringify({status:'error', totalPages:null, error:String(e&&e.message?e.message:e)}));"
@@ -380,11 +393,14 @@ def get_total_pages_on_cheerio(selector: str, html_content: str) -> dict[str, st
 
 # Проверка
 url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+# url = "https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8"
 html_content = get_html_from_cache(url)
 # save_page_html(html_content, filename = "page_html.html")
 
-selector = "nav.woocommerce-pagination"
-result_get_total_pages_on_cheerio = get_total_pages_on_cheerio(html_content, selector)
+# selector = "nav.woocommerce-pagination"
+selector = "nav.woocommerce-pagination .page-numbers a, nav.woocommerce-pagination .page-numbers span"
+# selector = "nav#pagination"
+result_get_total_pages_on_cheerio = get_total_pages_on_cheerio(selector, html_content)
 print(f"result_get_total_pages_on_cheerio:\n", result_get_total_pages_on_cheerio)
 
 
@@ -1041,19 +1057,7 @@ def get_html_frame(
 
 
 
-# region Доп. функции
 
-def save_page_html(html: str, filename: str = "page_html.html") -> str:
-    """
-    Сохраняет HTML в файл рядом со скриптом и возвращает путь к файлу.
-    
-    Args:
-        html: html-содержимое страницы
-    """
-    print("Сохраняем html страницы в файл", filename)
-    output_path = Path(__file__).resolve().parent / filename
-    output_path.write_text(html, encoding="utf-8")
-    return str(output_path)
 
 
 # # Проверка
