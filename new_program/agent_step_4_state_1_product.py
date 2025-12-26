@@ -46,21 +46,21 @@ main_task_all = """
 
 Алгоритм: 
 
-1. Проверить, что на текущей странице есть элементы по этому селектору (используя инструмент find_elements). Обычно на странице 12, 16, 24, 36, 48, 64, или примерно такое количество товаров. Если результатов у этого селектора товара меньше 10 или больше 80, то скорее всего он неверный.
+1. Проверить, что на текущей странице есть элементы по этому селектору (используя инструмент find_elements). Обычно на странице 12, 16, 24, 36, 48, 64, или примерно такое количество товаров. Если результатов у этого селектора товара меньше 10 или больше 80, то скорее всего он неверный (используй это как эвристику, а не как жёсткое правило).
 
 В result запиши количество товаров на странице найденных по селектору, в поле count_of_product_on_this_page.
 
-2. Далее - просмотри структуру элемента товара. Это можно сделать удобным инструментом parse_product_blocks_on_current_page. Он вернёт тебе структурные блоки 2го и 3го по счёту товаров на странице, достаточно передать ему селектор, который ты сейчас проверяешь, из поля product_link_selectors. Иногда инструмент parse_product_blocks_on_current_page может отработать некорректно, тогда используй универсальную функцию get_html_frame_on_current_page. В ней можно расширить окно контекста при необходимости. Также помни, что селектор product_link_selectors указывает не на весь блок товара на странице, а только на ссылку на этот товар.
+2. Далее - просмотри структуру элемента товара. Это можно сделать удобным инструментом parse_product_blocks_on_current_page. Он вернёт тебе структурные блоки 2го и 3го по счёту товаров на странице, достаточно передать ему селектор, который ты сейчас проверяешь, из поля product_link_selectors. Этот инструмент ожидает именно селектор на ссылку товара, и сам пройдётся по дереву DOM и извлечёт полные блоки товаров. Иногда инструмент parse_product_blocks_on_current_page может отработать некорректно, тогда используй универсальную функцию get_html_frame_on_current_page. В ней можно расширить окно контекста при необходимости. Также помни, что селектор product_link_selectors указывает не на весь блок товара на странице, а только на ссылку на этот товар.
 
 Запиши html структуру одного из товаров в memory, пригодится в будущем.
 
 Когда получишь блок товара, посмотри и убедись, что в нём как минимум есть название. Чаще всего там также есть цена, кнопка "В корзину", "Купить" и подобные, изображение, и иногда краткое описание или характеристики товара. 
 
-Когда корректный селектор товара будет найден - запиши его в поле product_selector в result.
+Выбери один из селекторов из product_link_selectors, который оказался корректным, и запиши его в choose_product_selector в result.
 
-3. Затем нужно посмотреть, будет ли нужна дополнительная обработка значения ссылки на товар, что бы она стала валидной ссылкой. Достаточно часто сайты хранят на товары ссылки без хоста, например в таком виде: href="/products/831271-6/". Тогда нужно будет добавлять хост (напрмиер HOST = "https://example.com")
+3. Затем нужно посмотреть, будет ли нужна дополнительная обработка значения ссылки на товар, что бы она стала валидной ссылкой. Достаточно часто сайты хранят на товары ссылки без хоста, например в таком виде: href="/products/831271-6/". Тогда нужно будет добавлять хост (например HOST = "https://example.com"). HOST должен быть доменом текущей страницы Playwright (протокол + домен).
 
-Если доп. обработка нужна, то попробуй составить валидную ссылку на товар, и проверить её через инструмент check_url_status. Если он вернёт корректный ответ, то собранная ссылка валидна. 
+Если доп. обработка нужна, то попробуй составить валидную ссылку на товар, и проверить её через инструмент check_url_status. Если он вернёт корректный ответ, то собранная ссылка является валидной. 
 Запиши в result в поле additional_processing_for_the_link_value значение true, если доп. обработка нужна, и значение false, если селектором извлекается сразу валидная ссылка. Если извлекается сразу валидная ссылка, то можно её не проверять через инструмент check_url_status.
 
 4. Нужно составить корректный фрагмент кода, который будет по селектору извлекать ссылку на товар.
@@ -73,11 +73,11 @@ let link = HOST + $(product)?.attr('href')
 console.log("link = " + link)
 
 Это код на JS с использованием cheerio. В нём:
-- Вместо .products-selector - укажи текущий селектор товара из поля product_selector в result
+- Вместо .products-selector - укажи текущий селектор товара из поля choose_product_selector в result
 - Если требуется добавлять HOST перед ссылкой, то укажи его верное значение. Если не требуется - то убери строчку let HOST = ... и не используй его в let link = ...
-- В строке let link = ... нужно будет прописать код, который извлечёт верное значение ссылки на товар, и если это нужно, добавь доп. обработки, что бы в итоге в поле link получилась валидная ссылка на этот товар.
+- В строке let link = ... нужно будет прописать код, который извлечёт верное значение ссылки на товар, и если это нужно, добавь дополнительной обработки, что бы в итоге в поле link получилась валидная ссылка на этот товар. Т.е. если требуется извлечь другой аттрибут из элемента, например не href а data-href, data-url, a или другие, то пропиши это здесь. 
 
-Не добавляй дополнительных строчек без необходимости. В контексте проверки, инициализация объекта сheerio уже будет произведена выше, тебе не нужно добавлять её в этот фрагмент кода.
+Не добавляй дополнительных строчек без необходимости. В контексте проверки, инициализация объекта cheerio уже будет произведена выше, тебе не нужно добавлять её в этот фрагмент кода.
 
 Сформируй и сохрани этот фрагмент кода в result в поле builded_code_product_processing.
 
@@ -104,10 +104,114 @@ console.log("link = " + link)
 
 
 
-
-# Пример входных данных:
 """ 
+result_template:
 {
+    count_of_product_on_this_page: "",
+    choose_product_selector: "",
+    additional_processing_for_the_link_value: false,
+    builded_code_product_processing: "",
+    check_generated_code_successful: true
+}
+"""
+
+
+
+# Схема результата
+main_result_schema = {
+    "count_of_product_on_this_page": {
+        "type": "number",
+        "required": True,
+        "description": "Количество товаров на странице найденных по выбранному селектору товара"
+    },
+    "choose_product_selector": {
+        "type": "string",
+        "required": True,
+        "description": "Выбранный селектор на ссылку товара"
+    },
+    "additional_processing_for_the_link_value": {
+        "type": "boolean",
+        "required": True,
+        "description": "Нужна ли доп. обработка для значения ссылки, извлекаемой селектором на ссылку товара"
+    },
+    "builded_code_product_processing": {
+        "type": "string",
+        "required": True,
+        "description": "Сформированный фрагмент кода обработки ссылок товаров"
+    },
+    "check_generated_code_successful": {
+        "type": "boolean",
+        "required": True,
+        "description": "Была ли проверка сгенерированного фрагмента кода успешна. Ожидает только записи значения true"
+    }
+}
+
+# Шаблон результата, который агент заполняет в процессе работы
+main_result_template = {
+    "count_of_product_on_this_page": None,
+    "choose_product_selector": None,
+    "additional_processing_for_the_link_value": None,
+    "builded_code_product_processing": None,
+    "check_generated_code_successful": None
+}
+
+
+# main_plan = {
+#     "steps": [
+#         {
+#             "step_id": 1,
+#             "goal": "Определить рабочий селектор поля ввода поиска и зафиксировать выбранный поисковый запрос из semantics, который будет введён в это поле.",
+#             "fills": [
+#                 "used_seletor_search_input",
+#                 "used_search_request"
+#             ]
+#         },
+#         {
+#             "step_id": 2,
+#             "goal": "Запустить поиск (Enter или кнопка), при необходимости подобрать рабочий селектор кнопки запуска поиска и зафиксировать URL страницы, на которую произошёл переход после запуска поиска.",
+#             "fills": [
+#                 "used_seletor_search_button",
+#                 "second_html"
+#             ]
+#         }
+#     ]
+# }
+
+
+def use_agent_for_step_2_gen_parsePage(input_data, search_request):
+    # Приводим input_data к строке
+    if isinstance(input_data, str):
+        input_data_str = input_data
+    else:
+        try:
+            input_data_str = json.dumps(input_data, ensure_ascii=False, indent=4, default=str)
+        except Exception:
+            input_data_str = str(input_data)
+
+    task = (
+        f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу {search_request}." +
+        main_task_all + 
+        input_data_str)
+
+    resulr_answer = orchestrate(
+        task = task,
+        max_steps = 40,
+        result_schema = main_result_schema,
+        result_template = main_result_template,
+        # plan = main_plan,
+        # step_by_step_running = False, # Разрешаем агенту работать автоматически
+    ) 
+
+    result_task = get_result()
+    return result_task
+
+
+
+
+
+# Проверка:
+
+input_data_test = {
     "search_input_selectors": [
         "#woocommerce-product-search-field-0",
         "form.woocommerce-product-search input.search-field[type='search'][name='s']",
@@ -143,116 +247,22 @@ console.log("link = " + link)
         "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
         "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
     ],
-    "last_page_number_displayed": true
-}
-"""
-
-
-
-
-
-
-""" 
-result_template:
-{
-    count_of_product_on_this_page: "",
-    product_selector: "",
-    additional_processing_for_the_link_value: false,
-    builded_code_product_processing: "",
-    check_generated_code_successful: true
-}
-"""
-
-
-
-# Схема результата
-main_result_schema = {
-    "count_of_product_on_this_page": {
-        "type": "string",
-        "required": True,
-        "description": "Количество товаров на странице найденных по выбранному селектору товара"
-    },
-    "product_selector": {
-        "type": "string",
-        "required": True,
-        "description": "Выбранный селектор на ссылку товара"
-    },
-    "additional_processing_for_the_link_value": {
-        "type": "boolean",
-        "required": True,
-        "description": "Нужна ли доп. обработка для значения ссылки, извлекаемой селектором на ссылку товара"
-    },
-    "builded_code_product_processing": {
-        "type": "string",
-        "required": True,
-        "description": "Сформированный фрагмент кода обработки ссылок товаров"
-    },
-    "check_generated_code_successful": {
-        "type": "string",
-        "required": True,
-        "description": "Была ли проверка сгенерированного фрагмента кода успешна. Ожидает только записи значения true"
-    }
+    "last_page_number_displayed": "true"
 }
 
-# Шаблон результата, который агент заполняет в процессе работы
-main_result_template = {
-    "count_of_product_on_this_page": None,
-    "product_selector": None,
-    "additional_processing_for_the_link_value": None,
-    "builded_code_product_processing": None,
-    "check_generated_code_successful": None
-}
+search_request_test = "инструмент"
 
 
-main_plan = {
-    "steps": [
-        {
-            "step_id": 1,
-            "goal": "Определить рабочий селектор поля ввода поиска и зафиксировать выбранный поисковый запрос из semantics, который будет введён в это поле.",
-            "fills": [
-                "used_seletor_search_input",
-                "used_search_request"
-            ]
-        },
-        {
-            "step_id": 2,
-            "goal": "Запустить поиск (Enter или кнопка), при необходимости подобрать рабочий селектор кнопки запуска поиска и зафиксировать URL страницы, на которую произошёл переход после запуска поиска.",
-            "fills": [
-                "used_seletor_search_button",
-                "second_html"
-            ]
-        }
-    ]
-}
+# Запускаю браузер с видимым окном
+launch_browser(headless = False)
 
+goto_url( 
+    url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+    wait_until = "load",
+    timeout = 30_000
+)
 
-def use_agent_for_step_2_gen_parsePage(input_data, search_request):
-    # Приводим input_data к строке
-    if isinstance(input_data, str):
-        input_data_str = input_data
-    else:
-        try:
-            input_data_str = json.dumps(input_data, ensure_ascii=False, indent=4, default=str)
-        except Exception:
-            input_data_str = str(input_data)
+resilt = use_agent_for_step_2_gen_parsePage(input_data_test, search_request_test)
 
-    task = (
-        f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу {search_request}." +
-        main_task_all + 
-        input_data_str)
-
-    resulr_answer = orchestrate(
-        task = task,
-        max_steps = 40,
-        result_schema = main_result_schema,
-        result_template = main_result_template,
-        # plan = main_plan,
-        # step_by_step_running = False, # Разрешаем агенту работать автоматически
-    ) 
-
-    result_task = get_result()
-    return result_task
-
-
-# print("result_task:")
-# print(result_task)
+print("resilt:")
+print(resilt)
