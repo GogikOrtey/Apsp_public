@@ -1591,7 +1591,7 @@ def get_html_frame(
 
 
 
-
+# region parse_product_blocks_on_current_page
 
 # Обёртка для агента, с использованием локального html из открытой Page
 @tool(
