@@ -649,7 +649,7 @@ main();
 
 """
 
-Отлично, далее нужно реализовать по аналогии инструмент для проверки корректности извлечения ссылок из селектора на товар. Т.е. нужно будет запустить строки:
+Инструмент для проверки корректности извлечения ссылок из селектора на товар. Ожидает, что будут переданы примерно такие строки:
 
 let HOST = "https://makitaclub.ru"
 let products = $('.products .card a.stretched-link')
@@ -657,66 +657,191 @@ let product = products?.eq(0)
 let link = HOST + $(product)?.attr('href')
 console.log("link = " + link)
 
-
-
-
-
-
-
-
-let HOST = "https://glavsantex.ru"
-let products = $('article.product-card')
-let link = HOST + $(product).find('a').attr('href')
-console.log("link = " + link)
-
-
-
-
-
-
-let products = $('article.product-card')
-
-if (products.length > 0) {
-    products.slice(0, +this.conf.itemscount).each((i, product) => {
-        let link = host + $(product).find('a').attr('href')
-        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-    })
-} else {
-    this.logger.put(`По запросу ${set.query} ничего не найдено`)
-    throw new NotFoundError()
-}
-
-
-
-
-let products = $('.product-layout')
-
-if (products.length > 0) {
-    products.slice(0, +this.conf.itemscount).each((i, product) => {
-        const link = $(product).find('a').attr('href')
-        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
-    })
-} else {
-    this.logger.put(`По запросу ${set.query} ничего не найдено`)
-    throw new NotFoundError()
-}
-
-
-
-
-let products = $(".block_line.buy > .bl > a")
-if (products.length == 0) {
-    this.logger.put(`По запросу ${set.query} ничего не найдено`)
-    throw new NotFoundError()
-}
-products.slice(0, +this.conf.itemsCount).each((i, product) => {
-    let link = HOST + $(product)?.attr("href")
-    this.query.add({ ...set, query: link, type: "card", lvl: 1 }) 
-})
-
-
-
 """
+
+
+# region check_product_link_code_on_cheerio
+
+# Обёртка для агента, с использованием локального html из открытой Page
+@tool(
+    name="get_product_link_on_current_page_cheerio_code",
+    description=(
+        "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной `link` "
+        "(проверка корректного извлечения ссылки на товар из селектора). "
+        "Код запускается в песочнице vm (без eval/new Function и wasm)."
+    ),
+    args=[
+        {
+            "name": "user_code",
+            "type": "str",
+            "required": True,
+            "description": (
+                "JS-код, который должен вычислить переменную `link`, например:\n"
+                "let HOST='https://example.com';\n"
+                "let products=$('.products a.stretched-link');\n"
+                "let product=products?.eq(0);\n"
+                "let link=HOST + $(product)?.attr('href');\n"
+                "console.log('link = ' + link);"
+            ),
+        },
+    ],
+    returns={
+        "status": "ok|error",
+        "link": "str|null — значение переменной link (как в JS)",
+        "logs": "str|null — отладочные логи console.log (по строкам), если были",
+        "error": "Описание ошибки, если была",
+    },
+    example_args={
+        "user_code": "let HOST='https://makitaclub.ru'; let products=$('.products .card a.stretched-link'); let product=products?.eq(0); let link=HOST + $(product)?.attr('href'); console.log('link = ' + link);",
+    },
+)
+def get_product_link_on_current_page_cheerio_code(user_code: str) -> dict[str, str | None]:
+    """
+    Обёртка над get_product_link_on_cheerio_code(...), которая берёт HTML через текущую Playwright page.
+
+    Требования:
+    - до вызова должна быть установлена общая page через playwright_tool.shared_page.set_shared_page(page)
+    """
+    page = get_shared_page()
+    html_content = page.content()
+    return get_product_link_on_cheerio_code(user_code=user_code, html_content=html_content)
+
+
+def get_product_link_on_cheerio_code(user_code: str, html_content: str) -> dict[str, str | None]:
+    """
+    Запускает переданный фрагмент JS-кода в окружении cheerio (Node.js) на HTML-странице и возвращает link.
+
+    Ожидается, что пользовательский код присвоит переменную `link` (например `let link = ...`).
+    console.log(...) не печатается в stdout, а собирается в logs, чтобы не ломать JSON-ответ.
+    """
+    if not isinstance(user_code, str) or not user_code.strip():
+        return {"status": "error", "link": None, "logs": None, "error": "user_code должен быть непустой строкой"}
+
+    # Записываем HTML во временный файл (удалим после вызова Node)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as tmp:
+        tmp.write(html_content or "")
+        tmp_path = tmp.name
+
+    user_code_js = json.dumps(user_code)  # безопасно экранируем код как JS-строку
+    tmp_path_js = json.dumps(tmp_path)  # безопасно экранируем путь
+
+    node_script_template = """
+const fs = require('fs');
+const vm = require('vm');
+const cheerio = require('cheerio');
+
+function main() {
+  try {
+    const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
+    const $ = cheerio.load(html);
+    const userCode = __USER_CODE__;
+
+    const logs = [];
+    const sandbox = {
+      $,
+      cheerio,
+      Math,
+      Number,
+      String,
+      Boolean,
+      Array,
+      result: null,
+      logs,
+      console: {
+        log: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+        error: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+        warn: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+        info: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+        debug: (...args) => logs.push(args.map(a => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')),
+      },
+    };
+
+    sandbox.global = sandbox;
+    sandbox.globalThis = sandbox;
+    sandbox.process = undefined;
+    sandbox.require = undefined;
+    sandbox.Buffer = undefined;
+
+    const prefix = `"use strict";\ntry {\n`;
+    const suffix = `
+  if (typeof link === "undefined") {
+    result = "__ERROR__:link is not defined";
+  } else {
+    result = link;
+  }
+} catch (e) {
+  result = "__ERROR__:" + (e && e.message ? e.message : String(e));
+}
+`;
+
+    const wrappedCode = prefix + userCode + suffix;
+    vm.runInNewContext(wrappedCode, sandbox, {
+      timeout: 1000,
+      codeGeneration: { strings: false, wasm: false },
+    });
+
+    const r = sandbox.result;
+    const joinedLogs = (sandbox.logs || []).join('\\n');
+    if (typeof r === 'string' && r.startsWith('__ERROR__:')) {
+      console.log(JSON.stringify({ status: 'error', link: null, logs: joinedLogs || null, error: r.slice(10) }));
+    } else {
+      console.log(JSON.stringify({ status: 'ok', link: String(r), logs: joinedLogs || null, error: null }));
+    }
+  } catch (e) {
+    console.log(JSON.stringify({ status: 'error', link: null, logs: null, error: String(e && e.message ? e.message : e) }));
+  }
+}
+
+main();
+""".strip()
+    node_script = (
+        node_script_template
+        .replace("__TMP_PATH__", tmp_path_js)
+        .replace("__USER_CODE__", user_code_js)
+    )
+
+    try:
+        result = subprocess.run(
+            ["node", "-e", node_script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode != 0:
+            err = (result.stderr or "").strip() or f"Node.js exited with code {result.returncode}"
+            return {"status": "error", "link": None, "logs": None, "error": err}
+
+        output = (result.stdout or "").strip()
+        last_line = ""
+        for line in reversed(output.splitlines()):
+            if line.strip():
+                last_line = line.strip()
+                break
+        if not last_line:
+            return {"status": "error", "link": None, "logs": None, "error": "Empty Node.js output"}
+
+        try:
+            parsed = json.loads(last_line)
+        except Exception:
+            return {"status": "error", "link": None, "logs": None, "error": f"Unexpected Node.js output: {output!r}"}
+
+        status = parsed.get("status")
+        if status == "ok":
+            return {"status": "ok", "link": parsed.get("link"), "logs": parsed.get("logs"), "error": None}
+        return {
+            "status": "error",
+            "link": None,
+            "logs": parsed.get("logs"),
+            "error": parsed.get("error") or "Unknown error",
+        }
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+
+
 
 
 
