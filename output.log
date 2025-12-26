@@ -1,3 +1,1258 @@
-27.12.2025 00:08:31
+27.12.2025 04:09:59
 
-{'status': 'ok', 'link': 'https://makitaclub.ru/p/123', 'logs': 'link = https://makitaclub.ru/p/123', 'error': None}
+SYSTEM_PROMPT = 
+Ты — reasoning-агент, который решает задачи пошагово, строго следуя Глобальному Плану (main_plan).
+
+Ты работаешь в интерактивном браузере (Playwright), и взаимодействуешь с реальной веб-страницей через инструменты (goto_url, click_element, press_key, find_elements и т.п.).
+- Страница может изменяться после твоих действий (навигация, SPA-обновления, AJAX).
+- Единственный источник истины о состоянии страницы — блок "Контекст браузера (Playwright)" в промпте шага.
+- Ты всегда работаешь с одной текущей открытой страницей, на одной вкладке. Если ты выполняешь действие перехода на другую страницу, то текущая страница заменяется новой, и далее ты работаешь только с этой новой версией страницы.
+
+ОБЩИЕ ПРАВИЛА:
+- Ты выполняешь задачу итеративно, шаг за шагом, работая в рамках ТЕКУЩЕЙ ФАЗЫ Глобального Плана
+- На каждом шаге ты выбираешь ОДНО действие (action)
+- На каждом шаге ты возвращаешь ровно ОДИН JSON-объект, соответствующий следующему шагу
+- Даже если шаги очевидны — верни только один следующий шаг
+- Любой текст в твоём ответе вне одного JSON-объекта считается ошибкой
+- Если задача решена (все фазы плана завершены) — используй action="DONE"
+- Если в ходе рассуждений ты понимаешь, что цель текущей фазы или всей задачи недостижима (нет данных, логическое противоречие и т.п.) — не выдумывай результат. Заполни доступные поля описанием проблемы и используй action="FAILED", указав причину в args.reason
+- Ты не выдумываешь результаты инструментов — они приходят извне
+- Ты не повторяешь уже выполненные действия без причины
+
+ГЛОБАЛЬНЫЙ ПЛАН (main_plan):
+- План разбит на фазы. У каждой фазы есть цель (goal) и список полей (fills), которые нужно заполнить в result.
+- Твоя приоритетная задача — выполнить цель ТЕКУЩЕЙ АКТИВНОЙ ФАЗЫ.
+- Не пытайся выполнять задачи будущих фаз, пока не закрыты требования текущей.
+
+ИСТОРИЯ (history):
+- history — это кратковременная история твоих последних действий и наблюдений
+- history может быть усечена в любой момент, старые шаги могут исчезать
+- history не является надёжным источником фактов и отражает лишь ход выполнения задачи
+- нельзя рассчитывать на сохранность информации в history между шагами
+- любая информация (факт, вывод, наблюдение, результат инструмента), которая может понадобиться для:
+заполнения result, принятия решений на следующих шагах, будущих фаз плана - должна быть сохранена в memory через memory_updates или инструмент update_memory(value)
+- не нужно сохранять в memory информацию, которая уже надёжно зафиксирована в result
+
+ДОЛГОВРЕМЕННАЯ ПАМЯТЬ (memory):
+- memory содержит информацию, которую ты ранее сохранил
+- memory передаётся тебе полностью на каждом шаге
+- memory не ограничена HISTORY_WINDOW
+- если информация может понадобиться позже — сохрани её через memory_updates или инструмент update_memory(value)
+
+ТЕКУЩИЙ ТАКТИЧЕСКИЙ ПЛАН (steps_future):
+- steps_future — это твоя тактическая гипотеза действий внутри ТЕКУЩЕЙ ФАЗЫ глобального плана
+- используй её как ориентир для декомпозиции цели фазы
+- на каждом шаге переписывай steps_future полностью
+- если план стал неактуален — замени его полностью
+
+ИНСТРУМЕНТЫ:
+- используй только инструменты из списка доступных
+- передавай корректные аргументы
+- не используй инструмент, если результат уже известен
+
+КОНТЕКСТ БРАУЗЕРА (Playwright):
+- Любые селекторы, тексты и DOM-наблюдения действительны ТОЛЬКО для текущей версии страницы (Page version).
+- Если Page version изменилась — все старые DOM-наблюдения считаются устаревшими.
+- Если после действия last_change.type == "none", значит действие не привело к изменению страницы. В этом случае НЕ повторяй то же действие без изменения стратегии.
+- Смена URL всегда означает новую версию страницы (Page version увеличивается), даже если страница визуально похожа.
+- History actions since load относится только к текущей версии страницы. При смене Page version это новая страница.
+
+Помимо решения основной задачи, ты можешь помогать разработчику улучшать архитектуру агента.
+Для этого существует специальное поле: development_feedback (опционально, на любом шаге)
+Используй development_feedback, если во время выполнения задачи ты обнаружил:
+- отсутствие нужного инструмента
+- неудобный или ограничивающий контракт инструмента
+- избыточную или недостаточную информацию в промпте
+- архитектурное ограничение, мешающее рассуждению
+- повторяющиеся действия, которые можно автоматизировать
+
+Правила для development_feedback:
+- development_feedback НЕ влияет на выполнение текущей задачи
+- НЕ используй development_feedback для рассуждений
+- НЕ сохраняй туда факты задачи
+- development_feedback не передаётся тебе на следующих шагах
+- development_feedback предназначен ТОЛЬКО для разработчика
+
+Формат development_feedback — массив объектов:
+{
+    "type": "tool_gap | improvement | other",
+    "description": "<краткое и конкретное описание проблемы или идеи>"
+}
+
+ФОРМАТ ОТВЕТА:
+- ты ВСЕГДА отвечаешь строго валидным JSON
+- без пояснений, без markdown, без текста вне JSON
+
+РЕЗУЛЬТАТ (result):
+- Тебе будет дан result_schema и текущий result
+- Заполняй result ПОШАГОВО через инструмент update_result(field, value)
+- Текущая фаза считается завершенной, когда заполнены все поля, указанные в её "fills"
+- Используй action="DONE" только когда все фазы Глобального Плана выполнены и result полон
+- Используй action="FAILED" только когда ты не можешь продвинуться из-за недостижимости цели; в args обязательно передай reason (строку)
+
+МЕНТАЛЬНАЯ МОДЕЛЬ:
+- 1. Определи текущую активную ФАЗУ в Глобальном Плане и её цель (goal).
+- 2. Проверь, какие поля из списка "fills" текущей фазы еще не заполнены в result.
+- 3. Спланируй ОДИН атомарный шаг (action), чтобы приблизиться к заполнению этих полей.
+- 4. После ответа управление ВСЕГДА возвращается оркестратору.
+- 5. Ты НИКОГДА не выполняешь следующий шаг сам.
+
+Запускаем браузер
+Браузер успешно запущен
+
+Ты — модуль планирования для reasoning-агента.
+
+Твоя задача — составить МИНИМАЛЬНЫЙ глобальный план,
+который определяет, КАКИЕ ЧАСТИ РЕЗУЛЬТАТА должны быть получены
+и В КАКИХ ЛОГИЧЕСКИХ ШАГАХ.
+
+ВАЖНЫЕ ПРАВИЛА:
+
+1. Каждый шаг плана ОБЯЗАТЕЛЬНО должен заполнять
+   хотя бы одно поле из result_schema.
+   Шаги без fills ЗАПРЕЩЕНЫ.
+
+2. План НЕ описывает алгоритм, стратегию или технические действия.
+   Он описывает ТОЛЬКО логические подзадачи,
+   необходимые для заполнения результата.
+
+3. Если несколько действий приводят к заполнению одних и тех же полей —
+   это ДОЛЖЕН быть один шаг.
+
+4. Reasoning-агент сам решает, КАК выполнить шаг.
+   План не должен содержать:
+   - переборов
+   - подготовки данных
+   - поиска способов решения
+   - технических подшагов
+
+5. Не делай предположений о структуре входных данных,
+   если они явно не указаны в тексте задачи.
+
+6. Количество шагов должно быть минимально достаточным
+   для заполнения result_schema.
+
+Верни результат СТРОГО в формате JSON.
+Никакого текста вне JSON.
+
+
+💫 Запрос к ChatGPT без истории, модель gpt-5.2. PROMPT:
+
+Текст задачи:
+
+Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу инструмент.
+Во входных данных (input_data) тебе даны селекторы на элементы этой страницы. Они понадобятся тебе в ходе выполнения проверок и решения задачи. В каждом массиве есть input_data по 3 селектора, из них первый - это самый стабильный и предпочтительный, по умолчанию используй его. Но если вдруг первый окажется по каким-то причинам неподходящим или нерабочим, то есть ещё 2 запасных селектора, которые указывают также на этот элемент.
+
+Тебе нужно:
+
+Проверить и выбрать селектор для ссылки на товар. Селектор лежит в поле product_link_selectors во входных данных.
+Этот селектор указывает не на весь блок товара, с описанием, ценой и прочим - а только на ссылку, которая далее ведёт на страницу с этим товаром.
+
+Алгоритм: 
+
+1. Проверить, что на текущей странице есть элементы по этому селектору (используя инструмент find_elements). Обычно на странице 12, 16, 24, 36, 48, 64, или примерно такое количество товаров. Если результатов у этого селектора товара меньше 10 или больше 80, то скорее всего он неверный (используй это как эвристику, а не как жёсткое правило).
+
+В result запиши количество товаров на странице найденных по селектору, в поле count_of_product_on_this_page.
+
+2. Далее - просмотри структуру элемента товара. Это можно сделать удобным инструментом parse_product_blocks_on_current_page. Он вернёт тебе структурные блоки 2го и 3го по счёту товаров на странице, достаточно передать ему селектор, который ты сейчас проверяешь, из поля product_link_selectors. Этот инструмент ожидает именно селектор на ссылку товара, и сам пройдётся по дереву DOM и извлечёт полные блоки товаров. Иногда инструмент parse_product_blocks_on_current_page может отработать некорректно, тогда используй универсальную функцию get_html_frame_on_current_page. В ней можно расширить окно контекста при необходимости. Также помни, что селектор product_link_selectors указывает не на весь блок товара на странице, а только на ссылку на этот товар.
+
+Запиши html структуру одного из товаров в memory, пригодится в будущем.
+
+Когда получишь блок товара, посмотри и убедись, что в нём как минимум есть название. Чаще всего там также есть цена, кнопка "В корзину", "Купить" и подобные, изображение, и иногда краткое описание или характеристики товара. 
+
+Выбери один из селекторов из product_link_selectors, который оказался корректным, и запиши его в choose_product_selector в result.
+
+3. Затем нужно посмотреть, будет ли нужна дополнительная обработка значения ссылки на товар, что бы она стала валидной ссылкой. Достаточно часто сайты хранят на товары ссылки без хоста, например в таком виде: href="/products/831271-6/". Тогда нужно будет добавлять хост (например HOST = "https://example.com"). HOST должен быть доменом текущей страницы Playwright (протокол + домен).
+
+Если доп. обработка нужна, то попробуй составить валидную ссылку на товар, и проверить её через инструмент check_url_status. Если он вернёт корректный ответ, то собранная ссылка является валидной. 
+Запиши в result в поле additional_processing_for_the_link_value значение true, если доп. обработка нужна, и значение false, если селектором извлекается сразу валидная ссылка. Если извлекается сразу валидная ссылка, то можно её не проверять через инструмент check_url_status.
+
+4. Нужно составить корректный фрагмент кода, который будет по селектору извлекать ссылку на товар.
+На основе результатов предыдущих шагов (значений, которые записаны в result), составь фрагмент кода, формата:
+
+let HOST = "https://example.com"
+let products = $('.products-selector')
+let product = products?.eq(0)
+let link = HOST + $(product)?.attr('href')
+console.log("link = " + link)
+
+Это код на JS с использованием cheerio. В нём:
+- Вместо .products-selector - укажи текущий селектор товара из поля choose_product_selector в result
+- Если требуется добавлять HOST перед ссылкой, то укажи его верное значение. Если не требуется - то убери строчку let HOST = ... и не используй его в let link = ...
+- В строке let link = ... нужно будет прописать код, который извлечёт верное значение ссылки на товар, и если это нужно, добавь дополнительной обработки, что бы в итоге в поле link получилась валидная ссылка на этот товар. Т.е. если требуется извлечь другой аттрибут из элемента, например не href а data-href, data-url, a или другие, то пропиши это здесь. 
+
+Не добавляй дополнительных строчек без необходимости. В контексте проверки, инициализация объекта cheerio уже будет произведена выше, тебе не нужно добавлять её в этот фрагмент кода.
+
+Сформируй и сохрани этот фрагмент кода в result в поле builded_code_product_processing.
+
+Далее тебе нужно будет проверить, что этот фрагмент кода запускается корректно в среде JS, и корректно обрабатывает и печатает ссылку на первый товар на текущей странице. Для этого используй инструмент get_product_link_on_current_page_cheerio_code. 
+
+Когда проверка будет успешна - запиши в result в поле check_generated_code_successful значение true и заверши задание, отправив DONE.
+
+Если проверка фрагмента кода показала неудачный результат, то не записывай значение false в поле check_generated_code_successful. В таком случае - пробуй изменить код, и запустить проверку снова. Если код будет требовать изменения, не забудь перезаписать его в result в поле builded_code_product_processing.
+
+{
+    "search_input_selectors": [
+        "#woocommerce-product-search-field-0",
+        "form.woocommerce-product-search input.search-field[type='search'][name='s']",
+        ".site-search .woocommerce-product-search input.search-field"
+    ],
+    "search_button_selectors": [
+        "form.woocommerce-product-search button[type='submit']",
+        ".site-search form.woocommerce-product-search button",
+        ".widget_product_search form button[type='submit']"
+    ],
+    "total_results_count_selectors": [
+        "p.woocommerce-result-count",
+        ".storefront-sorting > p.woocommerce-result-count",
+        "main#main p.woocommerce-result-count"
+    ],
+    "product_link_selectors": [
+        ".products .product-card a.stretched-link[href*='/products/']",
+        ".products a.stretched-link[href*='/products/']",
+        ".products .card a.stretched-link"
+    ],
+    "pagination_container_selectors": [
+        "nav.woocommerce-pagination",
+        ".storefront-sorting nav.woocommerce-pagination",
+        "ul.page-numbers"
+    ],
+    "pagination_page2_selectors": [
+        "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
+        "ul.page-numbers a.page-numbers[href*='/page/2/']",
+        "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
+    ],
+    "pagination_last_page_selectors": [
+        "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+        "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+        "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
+    ],
+    "last_page_number_displayed": "true"
+}
+
+—————————————————————————————————
+
+Схема результата (result_schema):
+
+{'count_of_product_on_this_page': 'Количество товаров на странице найденных по выбранному селектору товара', 'choose_product_selector': 'Выбранный селектор на ссылку товара', 'additional_processing_for_the_link_value': 'Нужна ли доп. обработка для значения ссылки, извлекаемой селектором на ссылку товара', 'builded_code_product_processing': 'Сформированный фрагмент кода обработки ссылок товаров', 'check_generated_code_successful': 'Была ли проверка сгенерированного фрагмента кода успешна. Ожидает только записи значения true'}
+
+—————————————————————————————————
+
+Составь глобальный план в формате:
+
+{
+  "steps": [
+    {
+      "step_id": number,
+      "goal": string,
+      "fills": array of strings
+    }
+  ]
+}
+
+—————————————————————————————————
+
+Правила:
+- каждый шаг должен заполнять хотя бы одно поле result
+- шагов должно быть минимально возможное количество
+- не описывай технические действия
+
+Верни только JSON.
+
+
+💬 AI ANSWER:
+"{
+  "steps": [
+    {
+      "step_id": 1,
+      "goal": "Проверить селекторы product_link_selectors на наличие и адекватное количество найденных ссылок товаров на текущей странице; зафиксировать количество найденных элементов по выбранному рабочему селектору.",
+      "fills": ["count_of_product_on_this_page"]
+    },
+    {
+      "step_id": 2,
+      "goal": "Проверить, что найденные элементы действительно являются ссылками внутри полноценных карточек товаров (в карточке есть как минимум название), выбрать корректный селектор ссылки на товар и сохранить HTML-структуру одной карточки товара в память.",
+      "fills": ["choose_product_selector"]
+    },
+    {
+      "step_id": 3,
+      "goal": "Определить, требуется ли дополнительная обработка значения ссылки (например, добавление HOST к относительному href или использование другого атрибута) и зафиксировать это в результате.",
+      "fills": ["additional_processing_for_the_link_value"]
+    },
+    {
+      "step_id": 4,
+      "goal": "Сформировать минимальный JS/cheerio фрагмент кода для извлечения валидной ссылки на первый товар по choose_product_selector с учётом необходимости доп. обработки; сохранить код и подтвердить успешность его проверки в среде выполнения.",
+      "fills": ["builded_code_product_processing", "check_generated_code_successful"]
+    }
+  ]
+}"
+
+Время выполнения: 10.21 секунд
+
+
+
+———————————   Шаг 1   ———————————
+
+
+💫 Запрос к ChatGPT без истории, модель gpt-5.2. PROMPT:
+
+ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
+{
+    "update_result": {
+        "name": "update_result",
+        "description": "Обновляет поле в объекте результата (result). Используй это, чтобы постепенно собрать финальный ответ по заданной схеме.",
+        "args": [
+            {
+                "name": "field",
+                "type": "str",
+                "required": true,
+                "description": "Имя поля в result"
+            },
+            {
+                "name": "value",
+                "type": "any",
+                "required": true,
+                "description": "Значение, которое нужно записать в указанное поле"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "result": "{...}",
+            "error": "str|null"
+        },
+        "example_args": {
+            "field": "file_name",
+            "value": "todo.txt"
+        }
+    },
+    "update_memory": {
+        "name": "update_memory",
+        "description": "Добавляет значение в долговременную память агента (long_term_memory). Используй, когда нужно сохранить факт/наблюдение, которое понадобится позже.",
+        "args": [
+            {
+                "name": "value",
+                "type": "any",
+                "required": true,
+                "description": "Значение для сохранения (обычно строка). Если передан массив — будет добавлен целиком (extend)."
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "added": "int",
+            "memory_size": "int|null",
+            "error": "str|null"
+        },
+        "example_args": {
+            "value": "old_url=https://makitaclub.ru/"
+        }
+    },
+    "goto_main_plan_step": {
+        "name": "goto_main_plan_step",
+        "description": "Перемещает main_plan на указанный РАНЕЕ выполненный шаг (назад относительно текущего). Используй, когда нужно переиграть/уточнить уже закрытую фазу плана. По умолчанию очищает поля result из fills выбранного шага, чтобы оркестратор не продвинул план вперёд сразу же.",
+        "args": [
+            {
+                "name": "step_index",
+                "type": "int",
+                "required": false,
+                "description": "Индекс шага в main_plan.steps (0..N-1). Можно не задавать, если задан step_id."
+            },
+            {
+                "name": "step_id",
+                "type": "int",
+                "required": false,
+                "description": "Идентификатор шага step_id (обычно 1..N). Можно не задавать, если задан step_index."
+            },
+            {
+                "name": "clear_fills",
+                "type": "bool",
+                "required": false,
+                "description": "Очищать ли поля result, указанные в fills выбранного шага (по умолчанию True)."
+            },
+            {
+                "name": "reset_following_steps",
+                "type": "bool",
+                "required": false,
+                "description": "Сбросить ли статусы всех последующих шагов в pending (по умолчанию True)."
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "error": "str|null",
+            "from_step": "int",
+            "to_step": "int",
+            "cleared_fields": "array",
+            "steps_status": "array"
+        },
+        "example_args": {
+            "step_id": 1,
+            "clear_fills": true,
+            "reset_following_steps": true
+        }
+    },
+    "page_restart": {
+        "name": "page_restart",
+        "description": "Перезагружает текущую страницу и возвращает код ответа. Этот инструмент взаимодействует с текущей страницей открытой в Playwright",
+        "args": [
+            {
+                "name": "wait_until",
+                "type": "str",
+                "required": false,
+                "description": "Событие завершения перезагрузки (load|domcontentloaded|networkidle)"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут операции в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "code": "HTTP-код ответа или null",
+            "url": "str",
+            "error": "Описание ошибки, если она была"
+        },
+        "example_args": {
+            "wait_until": "load",
+            "timeout": 30000
+        }
+    },
+    "goto_url": {
+        "name": "goto_url",
+        "description": "Открывает указанную страницу по URL в текущей вкладке Playwright и возвращает код ответа",
+        "args": [
+            {
+                "name": "url",
+                "type": "str",
+                "required": true,
+                "description": "Адрес страницы для перехода"
+            },
+            {
+                "name": "wait_until",
+                "type": "str",
+                "required": false,
+                "description": "Событие завершения загрузки (load|domcontentloaded|networkidle)"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут операции в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "code": "HTTP-код ответа или null",
+            "url": "str",
+            "error": "Описание ошибки, если она была"
+        },
+        "example_args": {
+            "url": "https://example.com",
+            "wait_until": "load",
+            "timeout": 30000
+        }
+    },
+    "get_current_url": {
+        "name": "get_current_url",
+        "description": "Возвращает текущий URL открытой страницы, открытой в Playwright",
+        "args": [],
+        "returns": {
+            "status": "ok|error",
+            "url": "str|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {}
+    },
+    "wait_ms": {
+        "name": "wait_ms",
+        "description": "Ожидание указанное количество миллисекунд (по умолчанию 10 секунд) на текущей странице, открытой в Playwright",
+        "args": [
+            {
+                "name": "ms",
+                "type": "int",
+                "required": false,
+                "description": "Сколько миллисекунд ждать (по умолчанию 10000)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "ms": "int|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "ms": 10000
+        }
+    },
+    "check_url_status": {
+        "name": "check_url_status",
+        "description": "Проверяет, какой HTTP-код вернёт запрос по URL (Выполняет запрос через API-контекст Playwright и возвращает HTTP-код). Этот метод не открывает страницу в активной вкладке Playwright, а только возвращает статус который вернётся при обращении на указанный URL",
+        "args": [
+            {
+                "name": "url",
+                "type": "str",
+                "required": true,
+                "description": "Адрес, для которого нужно узнать код ответа"
+            },
+            {
+                "name": "method",
+                "type": "str",
+                "required": false,
+                "description": "HTTP-метод: GET или HEAD"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут запроса в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "code": "HTTP-код ответа или null",
+            "url": "str",
+            "error": "Описание ошибки, если она была"
+        },
+        "example_args": {
+            "url": "https://example.com",
+            "method": "HEAD",
+            "timeout": 10000
+        }
+    },
+    "validate_interactivity": {
+        "name": "validate_interactivity",
+        "description": "Быстрая проверка селектора: isEditable, isVisible, isEnabled. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор элемента"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "editable": "bool|null",
+            "visible": "bool|null",
+            "enabled": "bool|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "input[name='q']"
+        }
+    },
+    "smart_focus": {
+        "name": "smart_focus",
+        "description": "Пытается сфокусироваться: Click -> Wait(timeout) -> Click. При перехвате клика нажимает Escape и повторяет попытку. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор элемента"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут ожиданий между действиями в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "attempts": "int",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "input[name='q']",
+            "timeout": 1000
+        }
+    },
+    "click_element": {
+        "name": "click_element",
+        "description": "Кликает по элементу с заданным селектором. По умолчанию — по первому, можно выбрать индекс. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор элемента"
+            },
+            {
+                "name": "element_index",
+                "type": "int",
+                "required": false,
+                "description": "Номер элемента, если их несколько (0 — первый по умолчанию)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "element_index": "int",
+            "total_count": "int|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "button.submit",
+            "element_index": 0
+        }
+    },
+    "scroll_to_bottom": {
+        "name": "scroll_to_bottom",
+        "description": "Прокручивает страницу к низу. На текущей странице открытой в Playwright",
+        "args": [],
+        "returns": {
+            "status": "ok|error",
+            "position": "bottom",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {}
+    },
+    "scroll_to_top": {
+        "name": "scroll_to_top",
+        "description": "Прокручивает страницу к верху. На текущей странице открытой в Playwright",
+        "args": [],
+        "returns": {
+            "status": "ok|error",
+            "position": "top",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {}
+    },
+    "scroll_to_selector": {
+        "name": "scroll_to_selector",
+        "description": "Прокручивает страницу к элементу по селектору (к первому совпадению). На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор элемента"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "total_count": "int|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "form button[type='submit']"
+        }
+    },
+    "human_like_input": {
+        "name": "human_like_input",
+        "description": "Очищает поле и вводит текст посимвольно используя press_sequentially, иммитируя человеческий ввод. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор поля ввода"
+            },
+            {
+                "name": "text",
+                "type": "str",
+                "required": true,
+                "description": "Текст для ввода"
+            },
+            {
+                "name": "delay_ms",
+                "type": "int",
+                "required": false,
+                "description": "Задержка между символами в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "text_len": "int",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "input[name='q']",
+            "text": "hello world",
+            "delay_ms": 100
+        }
+    },
+    "press_enter": {
+        "name": "press_enter",
+        "description": "Эмулирует нажатие клавиши Enter на текущей странице открытой в Playwright",
+        "args": [],
+        "returns": {
+            "status": "ok|error",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {}
+    },
+    "press_key": {
+        "name": "press_key",
+        "description": "Эмулирует нажатие указанной клавиши на текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "key",
+                "type": "str",
+                "required": true,
+                "description": "Название клавиши в формате Playwright (например, 'Enter', 'Tab', 'ArrowDown')"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "pressed_key": "str|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "key": "Enter"
+        }
+    },
+    "wait_for_navigation_or_content": {
+        "name": "wait_for_navigation_or_content",
+        "description": "Ждёт смену URL или существенное изменение контента (>20% текста) за таймаут. На текущей вкладке Playwright",
+        "args": [
+            {
+                "name": "old_url",
+                "type": "str",
+                "required": true,
+                "description": "URL, который считаем исходным"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут ожидания в миллисекундах"
+            },
+            {
+                "name": "change_threshold",
+                "type": "float",
+                "required": false,
+                "description": "Порог доли изменения текста (по умолчанию 0.2 = 20%)"
+            }
+        ],
+        "returns": {
+            "status": "ok|timeout|error",
+            "reason": "url_changed|content_changed|no_change",
+            "new_url": "str",
+            "change_fraction": "float|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "old_url": "https://example.com",
+            "timeout": 15000,
+            "change_threshold": 0.2
+        }
+    },
+    "search_in_page_html": {
+        "name": "search_in_page_html",
+        "description": "Ищет подстроку в текущем HTML страницы (до 5 вхождений, 200 символов контекста перед и после найденного элемента). На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "substring",
+                "type": "str",
+                "required": true,
+                "description": "Подстрока для поиска"
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "required": false,
+                "description": "Максимальное число сниппетов (по умолчанию 5)"
+            },
+            {
+                "name": "context",
+                "type": "int",
+                "required": false,
+                "description": "Длина контекста вокруг совпадения (по умолчанию 200 символов)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "count": "int",
+            "matches": "list[str]|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "substring": "Example Domain",
+            "max_results": 3,
+            "context": 120
+        }
+    },
+    "find_elements": {
+        "name": "find_elements",
+        "description": "Возвращает элементы по селектору (max 5) и их количество. Можно запросить только count. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор"
+            },
+            {
+                "name": "only_count",
+                "type": "bool",
+                "required": false,
+                "description": "Если True — вернуть только количество без данных элементов"
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "required": false,
+                "description": "Максимум элементов в выдаче (по умолчанию 5)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "count": "int",
+            "elements": "list[dict]|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "a",
+            "only_count": false,
+            "max_results": 3
+        }
+    },
+    "get_total_pages_on_current_page_cheerio": {
+        "name": "get_total_pages_on_current_page_cheerio",
+        "description": "Запускает JS-выражение (cheerio/Node.js) вида `let totalPages = Math.max(...$(selector).get().map(item => +$(item).text().trim()).filter(Boolean))` на HTML текущей страницы Playwright и возвращает значение totalPages.",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS-селектор элементов пагинации (например, '.module-pagination__wrapper > a')"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "totalPages": "str|null — значение переменной totalPages (как в JS)",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": ".module-pagination__wrapper > a"
+        }
+    },
+    "get_total_pages_on_current_page_cheerio_code": {
+        "name": "get_total_pages_on_current_page_cheerio_code",
+        "description": "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной totalPages. Код запускается в песочнице vm (без eval/new Function и wasm). Ожидается, что в коде будет присваивание вида `let totalPages = ...` (для проверки корректного извлечения количества максимальных страниц в пагинации).",
+        "args": [
+            {
+                "name": "user_code",
+                "type": "str",
+                "required": true,
+                "description": "JS-код, который должен вычислить переменную totalPages (например `let totalPages = +$('.pagination a').last().text().trim()`)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "totalPages": "str|null — значение переменной totalPages (как в JS)",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "user_code": "let totalPages = +$('.pagination > a').last().text().trim()"
+        }
+    },
+    "get_product_link_on_current_page_cheerio_code": {
+        "name": "get_product_link_on_current_page_cheerio_code",
+        "description": "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной `link` (проверка корректного извлечения ссылки на товар из селектора). Код запускается в песочнице vm (без eval/new Function и wasm).",
+        "args": [
+            {
+                "name": "user_code",
+                "type": "str",
+                "required": true,
+                "description": "JS-код, который должен вычислить переменную `link`, например:\nlet HOST='https://example.com';\nlet products=$('.products a.stretched-link');\nlet product=products?.eq(0);\nlet link=HOST + $(product)?.attr('href');\nconsole.log('link = ' + link);"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "link": "str|null — значение переменной link (как в JS)",
+            "logs": "str|null — отладочные логи console.log (по строкам), если были",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "user_code": "let HOST='https://makitaclub.ru'; let products=$('.products .card a.stretched-link'); let product=products?.eq(0); let link=HOST + $(product)?.attr('href'); console.log('link = ' + link);"
+        }
+    },
+    "check_selector_on_current_page_cheerio": {
+        "name": "check_selector_on_current_page_cheerio",
+        "description": "Проверяет, является ли селектор верным и валидным в cheerio (Node.js). Возвращает количество совпадений CSS-селектора на текущей странице Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS-селектор для поиска"
+            }
+        ],
+        "returns": {
+            "count": "int — количество найденных элементов по селектору на текущей странице Playwright, либо текст ошибки"
+        },
+        "example_args": {
+            "selector": "div.item"
+        }
+    },
+    "get_html_frame_on_current_page": {
+        "name": "get_html_frame_on_current_page",
+        "description": "Строит компактный HTML-фрейм вокруг первого элемента по CSS-селектору, беря HTML из текущей страницы Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS-селектор для поиска target"
+            },
+            {
+                "name": "max_frame_chars",
+                "type": "int",
+                "required": false,
+                "description": "Макс. длина итогового HTML-фрейма"
+            },
+            {
+                "name": "max_container_text_chars",
+                "type": "int",
+                "required": false,
+                "description": "Лимит текста при выборе контейнера"
+            },
+            {
+                "name": "max_container_html_chars",
+                "type": "int",
+                "required": false,
+                "description": "Лимит HTML при выборе контейнера"
+            },
+            {
+                "name": "sibling_elems",
+                "type": "int",
+                "required": false,
+                "description": "Сколько соседних элементов сохранять рядом с target"
+            },
+            {
+                "name": "max_text_node_chars",
+                "type": "int",
+                "required": false,
+                "description": "Лимит длины текста внутри узла"
+            },
+            {
+                "name": "ancestor_levels",
+                "type": "int",
+                "required": false,
+                "description": "Сколько уровней предков сохранять. Если нужно расширить окно, попробуй увеличить значение например до 5"
+            }
+        ],
+        "returns": {
+            "html_frame": "str — HTML-фрейм с комментариями TRIMMED_* с количеством удалённых узлов и маркерами TARGET вокруг исходного элемента"
+        },
+        "example_args": {
+            "selector": ".price",
+            "max_frame_chars": 2000
+        }
+    },
+    "parse_product_blocks_on_current_page": {
+        "name": "parse_product_blocks_on_current_page",
+        "description": "Анализирует HTML, находит полные блоки товаров на основе селектора ссылки внутри товара и возвращает их HTML и общий селектор. Важно: в ответе первый элемент массива blocks_html всегда будет пуст - это корректный ответ. Заполненными будут 2й и 3й элементы массива, там будут лежать объекты 2го и 3го товара на странице. Также помни, что данный инструмент не гарантирует полную правильность block_selector.",
+        "args": [
+            {
+                "name": "item_selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS селектор элемента внутри карточки товара (например, ссылка на товар)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "blocks_html": "list[str|None]",
+            "block_selector": "str",
+            "error": "Описание ошибки"
+        },
+        "example_args": {
+            "item_selector": "a.stretched-link"
+        }
+    }
+}
+
+————————————————————————————————————
+
+ТЕКУЩАЯ ЗАДАЧА (общее описание):
+Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу инструмент.
+Во входных данных (input_data) тебе даны селекторы на элементы этой страницы. Они понадобятся тебе в ходе выполнения проверок и решения задачи. В каждом массиве есть input_data по 3 селектора, из них первый - это самый стабильный и предпочтительный, по умолчанию используй его. Но если вдруг первый окажется по каким-то причинам неподходящим или нерабочим, то есть ещё 2 запасных селектора, которые указывают также на этот элемент.
+
+Тебе нужно:
+
+Проверить и выбрать селектор для ссылки на товар. Селектор лежит в поле product_link_selectors во входных данных.
+Этот селектор указывает не на весь блок товара, с описанием, ценой и прочим - а только на ссылку, которая далее ведёт на страницу с этим товаром.
+
+Алгоритм: 
+
+1. Проверить, что на текущей странице есть элементы по этому селектору (используя инструмент find_elements). Обычно на странице 12, 16, 24, 36, 48, 64, или примерно такое количество товаров. Если результатов у этого селектора товара меньше 10 или больше 80, то скорее всего он неверный (используй это как эвристику, а не как жёсткое правило).
+
+В result запиши количество товаров на странице найденных по селектору, в поле count_of_product_on_this_page.
+
+2. Далее - просмотри структуру элемента товара. Это можно сделать удобным инструментом parse_product_blocks_on_current_page. Он вернёт тебе структурные блоки 2го и 3го по счёту товаров на странице, достаточно передать ему селектор, который ты сейчас проверяешь, из поля product_link_selectors. Этот инструмент ожидает именно селектор на ссылку товара, и сам пройдётся по дереву DOM и извлечёт полные блоки товаров. Иногда инструмент parse_product_blocks_on_current_page может отработать некорректно, тогда используй универсальную функцию get_html_frame_on_current_page. В ней можно расширить окно контекста при необходимости. Также помни, что селектор product_link_selectors указывает не на весь блок товара на странице, а только на ссылку на этот товар.
+
+Запиши html структуру одного из товаров в memory, пригодится в будущем.
+
+Когда получишь блок товара, посмотри и убедись, что в нём как минимум есть название. Чаще всего там также есть цена, кнопка "В корзину", "Купить" и подобные, изображение, и иногда краткое описание или характеристики товара. 
+
+Выбери один из селекторов из product_link_selectors, который оказался корректным, и запиши его в choose_product_selector в result.
+
+3. Затем нужно посмотреть, будет ли нужна дополнительная обработка значения ссылки на товар, что бы она стала валидной ссылкой. Достаточно часто сайты хранят на товары ссылки без хоста, например в таком виде: href="/products/831271-6/". Тогда нужно будет добавлять хост (например HOST = "https://example.com"). HOST должен быть доменом текущей страницы Playwright (протокол + домен).
+
+Если доп. обработка нужна, то попробуй составить валидную ссылку на товар, и проверить её через инструмент check_url_status. Если он вернёт корректный ответ, то собранная ссылка является валидной. 
+Запиши в result в поле additional_processing_for_the_link_value значение true, если доп. обработка нужна, и значение false, если селектором извлекается сразу валидная ссылка. Если извлекается сразу валидная ссылка, то можно её не проверять через инструмент check_url_status.
+
+4. Нужно составить корректный фрагмент кода, который будет по селектору извлекать ссылку на товар.
+На основе результатов предыдущих шагов (значений, которые записаны в result), составь фрагмент кода, формата:
+
+let HOST = "https://example.com"
+let products = $('.products-selector')
+let product = products?.eq(0)
+let link = HOST + $(product)?.attr('href')
+console.log("link = " + link)
+
+Это код на JS с использованием cheerio. В нём:
+- Вместо .products-selector - укажи текущий селектор товара из поля choose_product_selector в result
+- Если требуется добавлять HOST перед ссылкой, то укажи его верное значение. Если не требуется - то убери строчку let HOST = ... и не используй его в let link = ...
+- В строке let link = ... нужно будет прописать код, который извлечёт верное значение ссылки на товар, и если это нужно, добавь дополнительной обработки, что бы в итоге в поле link получилась валидная ссылка на этот товар. Т.е. если требуется извлечь другой аттрибут из элемента, например не href а data-href, data-url, a или другие, то пропиши это здесь. 
+
+Не добавляй дополнительных строчек без необходимости. В контексте проверки, инициализация объекта cheerio уже будет произведена выше, тебе не нужно добавлять её в этот фрагмент кода.
+
+Сформируй и сохрани этот фрагмент кода в result в поле builded_code_product_processing.
+
+Далее тебе нужно будет проверить, что этот фрагмент кода запускается корректно в среде JS, и корректно обрабатывает и печатает ссылку на первый товар на текущей странице. Для этого используй инструмент get_product_link_on_current_page_cheerio_code. 
+
+Когда проверка будет успешна - запиши в result в поле check_generated_code_successful значение true и заверши задание, отправив DONE.
+
+Если проверка фрагмента кода показала неудачный результат, то не записывай значение false в поле check_generated_code_successful. В таком случае - пробуй изменить код, и запустить проверку снова. Если код будет требовать изменения, не забудь перезаписать его в result в поле builded_code_product_processing.
+
+{
+    "search_input_selectors": [
+        "#woocommerce-product-search-field-0",
+        "form.woocommerce-product-search input.search-field[type='search'][name='s']",
+        ".site-search .woocommerce-product-search input.search-field"
+    ],
+    "search_button_selectors": [
+        "form.woocommerce-product-search button[type='submit']",
+        ".site-search form.woocommerce-product-search button",
+        ".widget_product_search form button[type='submit']"
+    ],
+    "total_results_count_selectors": [
+        "p.woocommerce-result-count",
+        ".storefront-sorting > p.woocommerce-result-count",
+        "main#main p.woocommerce-result-count"
+    ],
+    "product_link_selectors": [
+        ".products .product-card a.stretched-link[href*='/products/']",
+        ".products a.stretched-link[href*='/products/']",
+        ".products .card a.stretched-link"
+    ],
+    "pagination_container_selectors": [
+        "nav.woocommerce-pagination",
+        ".storefront-sorting nav.woocommerce-pagination",
+        "ul.page-numbers"
+    ],
+    "pagination_page2_selectors": [
+        "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
+        "ul.page-numbers a.page-numbers[href*='/page/2/']",
+        "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
+    ],
+    "pagination_last_page_selectors": [
+        "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+        "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+        "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
+    ],
+    "last_page_number_displayed": "true"
+}
+
+————————————————————————————————————
+
+ГЛОБАЛЬНЫЙ ПЛАН ЗАДАЧИ (main_plan):
+ШАГИ ПЛАНА (фазы):
+АКТИВНАЯ ФАЗА [Фаза 1]
+   Цель (Goal): Проверить селекторы product_link_selectors на наличие и адекватное количество найденных ссылок товаров на текущей странице; зафиксировать количество найденных элементов по выбранному рабочему селектору.
+   Требует заполнить (Fills): ['count_of_product_on_this_page']
+   Статус: in_progress
+ [Фаза 2]
+   Цель (Goal): Проверить, что найденные элементы действительно являются ссылками внутри полноценных карточек товаров (в карточке есть как минимум название), выбрать корректный селектор ссылки на товар и сохранить HTML-структуру одной карточки товара в память.
+   Требует заполнить (Fills): ['choose_product_selector']
+   Статус: pending
+ [Фаза 3]
+   Цель (Goal): Определить, требуется ли дополнительная обработка значения ссылки (например, добавление HOST к относительному href или использование другого атрибута) и зафиксировать это в результате.
+   Требует заполнить (Fills): ['additional_processing_for_the_link_value']
+   Статус: pending
+ [Фаза 4]
+   Цель (Goal): Сформировать минимальный JS/cheerio фрагмент кода для извлечения валидной ссылки на первый товар по choose_product_selector с учётом необходимости доп. обработки; сохранить код и подтвердить успешность его проверки в среде выполнения.
+   Требует заполнить (Fills): ['builded_code_product_processing', 'check_generated_code_successful']
+   Статус: pending
+
+————————————————————————————————————
+
+ТВОЙ ФОКУС ПРЯМО СЕЙЧАС (текущая фаза):
+Цель фазы: Проверить селекторы product_link_selectors на наличие и адекватное количество найденных ссылок товаров на текущей странице; зафиксировать количество найденных элементов по выбранному рабочему селектору.
+Необходимо заполнить поля в result: ['count_of_product_on_this_page']
+
+ТАКТИЧЕСКИЙ ПЛАН (steps_future) должен вести к завершению этой фазы
+
+————————————————————————————————————
+Контекст браузера (Playwright)
+
+Текущая открытая страница: https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product
+HTTP status: 200
+Page version: 1
+Navigations since start: 1
+Load state: complete
+Time since the page was loaded: 11.8 сек
+
+DOM summary:
+- total elements: 1664
+- links: 461
+- inputs: 8
+- buttons: 6
+
+Изменения, которые произошли после последнего действия на странице:
+- type: navigation
+- trigger: goto_url("https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product")
+- delta_text: null
+
+History actions since load on this page:
+1. goto_url("https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product")
+
+
+————————————————————————————————————
+
+ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):
+{
+    "count_of_product_on_this_page": {
+        "type": "number",
+        "required": true,
+        "description": "Количество товаров на странице найденных по выбранному селектору товара"
+    },
+    "choose_product_selector": {
+        "type": "string",
+        "required": true,
+        "description": "Выбранный селектор на ссылку товара"
+    },
+    "additional_processing_for_the_link_value": {
+        "type": "boolean",
+        "required": true,
+        "description": "Нужна ли доп. обработка для значения ссылки, извлекаемой селектором на ссылку товара"
+    },
+    "builded_code_product_processing": {
+        "type": "string",
+        "required": true,
+        "description": "Сформированный фрагмент кода обработки ссылок товаров"
+    },
+    "check_generated_code_successful": {
+        "type": "boolean",
+        "required": true,
+        "description": "Была ли проверка сгенерированного фрагмента кода успешна. Ожидает только записи значения true"
+    }
+}
+
+————————————————————————————————————
+
+ТЕКУЩИЙ РЕЗУЛЬТАТ (result):
+{
+    "count_of_product_on_this_page": null,
+    "choose_product_selector": null,
+    "additional_processing_for_the_link_value": null,
+    "builded_code_product_processing": null,
+    "check_generated_code_successful": null
+}
+
+————————————————————————————————————
+
+ИСТОРИЯ ПОСЛЕДНИХ ШАГОВ:
+[]
+
+————————————————————————————————————
+
+ДОЛГОВРЕМЕННАЯ ПАМЯТЬ (memory):
+[]
+
+————————————————————————————————————
+
+ТЕКУЩИЙ ТАКТИЧЕСКИЙ ПЛАН (steps_future):
+[]
+
+————————————————————————————————————
+
+ТВОЯ ЗАДАЧА НА ЭТОМ ШАГЕ:
+
+1. Ориентация по плану:
+   - Сверься с целью ТЕКУЩЕЙ ФАЗЫ main_plan
+   - Посмотри на fills в текущей фазе в main_plan: какие данные являются итоговым критерием успеха этой фазы?
+
+2. Оценка прогресса:
+   - Проанализируй историю: какая информация для достижения цели фазы уже получена, а какой не хватает?
+   - Если нужные данные для fills уже найдены в истории — внеси их в результат используя update_result
+   - Если данных еще нет — определи, какой промежуточный шаг необходим сейчас
+
+3. Выбор действий:
+   - Сформулируй цель текущего шага (target), которая максимально приблизит тебя к выполнению цели всей фазы
+   - Выбери ОДИН подходящий инструмент (action) и подготовь аргументы (args)
+
+4. Коррекция тактики:
+   - Обнови steps_future, чтобы наметить цепочку шагов до конца текущей фазы
+   - Если обнаружена важная информация «на будущее» (для следующих фаз) — сохрани её в memory_updates
+   - При необходимости оставь development_feedback
+
+————————————————————————————————————
+
+ФОРМАТ ОТВЕТА (СТРОГО JSON):
+
+{
+    "target": "краткое описание цели текущего шага",
+    "action": "ИМЯ_ИНСТРУМЕНТА | DONE | FAILED",
+    "args": { ... },
+    "reasoning": "твои рассуждения",
+    "steps_future": [
+        "шаг 1",
+        "шаг 2"
+    ],
+    "memory_updates": [
+        "строка памяти 1",
+        "строка памяти 2"
+    ],
+    "development_feedback": [
+        {
+            "type": "tool_gap | improvement | other",
+            "description": "что можно улучшить"
+        }
+    ]
+}
+
+ПРАВИЛА:
+- target, action, args, reasoning — ОБЯЗАТЕЛЬНЫ
+- steps_future, memory_updates, development_feedback — ОПЦИОНАЛЬНЫ
+- если поле не нужно — НЕ передавай его
+- в ответе верни только один JSON объект, соответствующий следующему шагу
+- для завершения задачи используй action="DONE"
+- если задача/фаза недостижима — используй action="FAILED" и передай причину в args.reason (строка)
+- чтобы собрать финальный ответ, заполняй result через action="update_result"
+- action="DONE" используй только когда result заполнен и содержит итог в нужном формате
+
+
+💬 AI ANSWER:
+"{
+  "target": "Проверить основной селектор product_link_selectors[0] и получить количество найденных ссылок на товары на текущей странице",
+  "action": "find_elements",
+  "args": {
+    "selector": ".products .product-card a.stretched-link[href*='/products/']",
+    "only_count": true
+  },
+  "reasoning": "Текущая фаза требует зафиксировать count_of_product_on_this_page. Начинаю с самого стабильного (первого) селектора и получаю количество совпадений; далее по эвристике оценю адекватность и при необходимости проверю запасные селекторы.",
+  "steps_future": [
+    "Если count < 10 или > 80 — проверить следующий селектор product_link_selectors[1] через find_elements(only_count=true)",
+    "Если второй тоже неадекватен — проверить product_link_selectors[2]",
+    "Выбрать рабочий селектор, записать count_of_product_on_this_page в result через update_result"
+  ]
+}"
+
+Время выполнения: 7.92 секунд
+
+
+🟢 reasoning: Текущая фаза требует зафиксировать count_of_product_on_this_page. Начинаю с самого стабильного (первого) селектора и получаю количество совпадений; далее по эвристике оценю адекватность и при необходимости проверю запасные селекторы.
+🔵 target: Проверить основной селектор product_link_selectors[0] и получить количество найденных ссылок на товары на текущей странице
+🟡 action: find_elements
+   🔶 args: {"selector": ".products .product-card a.stretched-link[href*='/products/']", "only_count": true}
+
+
+-----> Нажмите Enter чтобы продолжить
