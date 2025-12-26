@@ -164,6 +164,23 @@ count_of_step_on_history = 0 # Текущий номер шага в истор�
 # Запускаю второй терминал для кастомного чата
 CHAT_LOG_PATH = init_chat_channel()
 
+# --- Safe JSON helpers ---
+# В реальном мире инструменты иногда возвращают не-JSON-serializable объекты (set, bytes,
+# playwright Page/ElementHandle и т.п.). История и prompt собираются через json.dumps(),
+# поэтому важно не падать на сериализации.
+def safe_json_dumps(obj: Any, *, indent: int | None = None) -> str:
+    """
+    Гарантированно возвращает строку: либо JSON, либо безопасный fallback через default=str,
+    либо str(obj), чтобы агент не падал на логировании/формировании промпта.
+    """
+    try:
+        return json.dumps(obj, ensure_ascii=False, indent=indent)
+    except Exception:  # noqa: BLE001
+        try:
+            return json.dumps(obj, ensure_ascii=False, indent=indent, default=str)
+        except Exception:  # noqa: BLE001
+            return str(obj)
+
 # Добавляет запись в историю с автоинкрементом порядкового номера
 def add_history_entry(entry: dict[str, Any]) -> None:
     global count_of_step_on_history
@@ -342,7 +359,7 @@ def build_last_step_state_block(history) -> str:
         "result": last_tool.get("result"),
     }
 
-    block_json = json.dumps(block, ensure_ascii=False, indent=4)
+    block_json = safe_json_dumps(block, indent=4)
 
     return f"""
 ————————————————————————————————————
@@ -539,7 +556,11 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
         history_slice = history_slice[2:]
 
     for entry in history_slice:
-        entry_copy = copy.deepcopy(entry)
+        # deepcopy может упасть на не-копируемых объектах, если инструмент вернул что-то "живое"
+        try:
+            entry_copy = copy.deepcopy(entry)
+        except Exception:  # noqa: BLE001
+            entry_copy = {"role": entry.get("role"), "name": entry.get("name"), "content": str(entry.get("content")), "result": str(entry.get("result"))}
 
         # Для ответов модели оставляем только target/action/args/reasoning
         if entry_copy.get("role") == "assistant":
@@ -552,15 +573,15 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 
         history_for_prompt.append(entry_copy)
 
-    history_text = json.dumps(history_for_prompt, ensure_ascii=False, indent=4)
+    history_text = safe_json_dumps(history_for_prompt, indent=4)
 
 
     # Шаги на будущее
     steps_future_for_prompt = steps_future_value or []
-    steps_future_text = json.dumps(steps_future_for_prompt, ensure_ascii=False, indent=4)
+    steps_future_text = safe_json_dumps(steps_future_for_prompt, indent=4)
 
     # Долговременная память
-    long_term_memory_value = json.dumps(long_term_memory, ensure_ascii=False, indent=4)
+    long_term_memory_value = safe_json_dumps(long_term_memory, indent=4)
 
 
     # Элементы, которые будут удалены на следующем шаге
@@ -572,9 +593,7 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
         window_slice = history[-HISTORY_WINDOW:]
         about_to_drop = window_slice[:2]
 
-        drop_block = ",\n".join(
-            json.dumps(item, ensure_ascii=False, indent=4) for item in about_to_drop
-        )
+        drop_block = ",\n".join(safe_json_dumps(item, indent=4) for item in about_to_drop)
 
         str_description = f"""
 История ограничена {HISTORY_WINDOW} шагами.
@@ -591,15 +610,8 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
     last_step_state_block = build_last_step_state_block(history)
 
     # Схема результата и текущий результат (агент заполняет его через update_result)
-    try:
-        result_schema_text = json.dumps(get_result_schema(), ensure_ascii=False, indent=4)
-    except TypeError:
-        result_schema_text = str(get_result_schema())
-
-    try:
-        current_result_text = json.dumps(get_result(), ensure_ascii=False, indent=4)
-    except TypeError:
-        current_result_text = str(get_result())
+    result_schema_text = safe_json_dumps(get_result_schema(), indent=4)
+    current_result_text = safe_json_dumps(get_result(), indent=4)
 
 
     # --- Формирование текста плана ---
@@ -913,10 +925,7 @@ def orchestrate(
         args_text = "—"
         model_args = step_reply.get("args")
         if model_args:
-            try:
-                args_text = json.dumps(model_args, ensure_ascii=False)
-            except TypeError:
-                args_text = str(model_args)
+            args_text = safe_json_dumps(model_args)
 
         model_summary = (
             f"🟢 reasoning: {step_reply.get('reasoning') or '—'}\n"     # Рассуждения модели
@@ -1021,10 +1030,7 @@ def orchestrate(
 
             # 2) Новый режим: возвращаем накопленный result
             if not completion_text:
-                try:
-                    completion_text = json.dumps(get_result(), ensure_ascii=False, indent=4)
-                except TypeError:
-                    completion_text = str(get_result())
+                completion_text = safe_json_dumps(get_result(), indent=4)
 
             done_result = {"status": "done", "result": get_result(), "message": completion_text}
             add_history_entry({"role": "tool", "name": "DONE", "result": done_result})
@@ -1040,10 +1046,7 @@ def orchestrate(
             if not isinstance(reason, str) or not reason.strip():
                 reason = "Причина не указана (ожидалось args.reason: string)"
 
-            try:
-                result_text = json.dumps(get_result(), ensure_ascii=False, indent=4)
-            except TypeError:
-                result_text = str(get_result())
+            result_text = safe_json_dumps(get_result(), indent=4)
 
             failed_payload = {
                 "status": "failed",
@@ -1054,10 +1057,7 @@ def orchestrate(
             add_history_entry({"role": "tool", "name": "FAILED", "result": failed_payload})
 
             final_text = ""
-            try:
-                final_text = json.dumps(failed_payload, ensure_ascii=False, indent=4)
-            except TypeError:
-                final_text = str(failed_payload)
+            final_text = safe_json_dumps(failed_payload, indent=4)
 
             print(f"❌ Агент завершил задачу с ошибкой/недостижимостью: {reason}\nТекущий result:\n{result_text}")
             emit_execution_time(start, emit=print, print_time_smile=True)
@@ -1070,8 +1070,8 @@ def orchestrate(
         chat_print(tool_log)
 
         try:
-            tool_result_text = json.dumps(tool_result, ensure_ascii=False)
-        except TypeError:
+            tool_result_text = safe_json_dumps(tool_result)
+        except Exception:  # noqa: BLE001
             tool_result_text = str(tool_result)
 
         tool_result_log = f"Инструмент вернул результат: {tool_result_text}"
