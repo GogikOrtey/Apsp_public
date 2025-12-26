@@ -677,6 +677,13 @@ main();
 
 
 
+# get_total_pages_on_cheerio_code; 
+# print(get_total_pages_on_cheerio_code("let totalPages = +$(\"a\").last().text().trim()", "<a>1</a><a>5</a>"))
+
+
+
+
+
 
 
 """
@@ -906,19 +913,18 @@ main();
             pass
 
 
-""" 
-Закрытые дыры:
 
-Constructor escape через host-объекты ($, результаты $()):
-Теперь $ (и всё, что возвращается при вызовах/чейнинге) оборачивается в Proxy, который скрывает свойства constructor / __proto__ / prototype.
-Поэтому $.constructor("return process")() больше не работает.
-Constructor escape через встроенные конструкторы ([].constructor.constructor(...)):
-Внутри vm-контекста перед выполнением user-кода добавил hardening:
-Function.prototype.constructor принудительно обнуляется (через Object.defineProperty(...))
-Object.prototype.__proto__ отключается
-Поэтому [].constructor.constructor(...) теперь падает.
 
-"""
+
+
+
+# get_product_link_on_cheerio_code
+# html="<div class=\"products\"><div class=\"card\"><a class=\"stretched-link\" href=\"/p/123\">x</a></div></div>"
+# code="let HOST = \"https://makitaclub.ru\"; let products = $(\".products .card a.stretched-link\"); let product = products?.eq(0); let link = HOST + $(product)?.attr(\"href\"); console.log(\"link = \" + link)"; print(get_product_link_on_cheerio_code(code, html))
+
+
+
+
 
 
 
@@ -2234,3 +2240,21 @@ def parse_product_blocks(html_content: str, item_selector: str) -> Dict[str, Any
 #             os.remove(tmp_path)
 #         except OSError:
 #             pass
+
+
+
+
+""" 
+Закрытые дыры:
+
+Constructor escape через host-объекты ($, результаты $()):
+Теперь $ (и всё, что возвращается при вызовах/чейнинге) оборачивается в Proxy, который скрывает свойства constructor / __proto__ / prototype.
+Поэтому $.constructor("return process")() больше не работает.
+Constructor escape через встроенные конструкторы ([].constructor.constructor(...)):
+Внутри vm-контекста перед выполнением user-кода добавил hardening:
+Function.prototype.constructor принудительно обнуляется (через Object.defineProperty(...))
+Object.prototype.__proto__ отключается
+Поэтому [].constructor.constructor(...) теперь падает.
+
+"""
+
