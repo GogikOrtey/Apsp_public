@@ -647,6 +647,78 @@ main();
 
 
 
+"""
+
+Отлично, далее нужно реализовать по аналогии инструмент для проверки корректности извлечения ссылок из селектора на товар. Т.е. нужно будет запустить строки:
+
+let HOST = "https://makitaclub.ru"
+let products = $('.products .card a.stretched-link')
+let product = products?.eq(0)
+let link = HOST + $(product)?.attr('href')
+console.log("link = " + link)
+
+
+
+
+
+
+
+
+let HOST = "https://glavsantex.ru"
+let products = $('article.product-card')
+let link = HOST + $(product).find('a').attr('href')
+console.log("link = " + link)
+
+
+
+
+
+
+let products = $('article.product-card')
+
+if (products.length > 0) {
+    products.slice(0, +this.conf.itemscount).each((i, product) => {
+        let link = host + $(product).find('a').attr('href')
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+} else {
+    this.logger.put(`По запросу ${set.query} ничего не найдено`)
+    throw new NotFoundError()
+}
+
+
+
+
+let products = $('.product-layout')
+
+if (products.length > 0) {
+    products.slice(0, +this.conf.itemscount).each((i, product) => {
+        const link = $(product).find('a').attr('href')
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+} else {
+    this.logger.put(`По запросу ${set.query} ничего не найдено`)
+    throw new NotFoundError()
+}
+
+
+
+
+let products = $(".block_line.buy > .bl > a")
+if (products.length == 0) {
+    this.logger.put(`По запросу ${set.query} ничего не найдено`)
+    throw new NotFoundError()
+}
+products.slice(0, +this.conf.itemsCount).each((i, product) => {
+    let link = HOST + $(product)?.attr("href")
+    this.query.add({ ...set, query: link, type: "card", lvl: 1 }) 
+})
+
+
+
+"""
+
+
 
 
 
