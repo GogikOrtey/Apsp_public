@@ -166,6 +166,8 @@ MAIN_PROMPT = """
 # region Внешняя функция
 
 def HGF_main_page_selector_and_semantic_handler(input_html):
+    print("Отправляем запрос к HGF")
+
     request_from_LLM = f"""
     Инструкции:
     {MAIN_PROMPT}

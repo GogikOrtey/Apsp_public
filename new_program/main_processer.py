@@ -106,103 +106,103 @@ def main_processer(input_url):
     # Запускаю браузер с видимым окном
     launch_browser(headless = False)
 
-    goto_url( 
-        url = url_input,
-        wait_until = "load",
-        timeout = 30_000
-    )
-    
-    ############# Что делаеть если браузер вдруг внезапно закроется посреди выполнения алгоритма?
-    ############# Что делаеть если не дождёмся загрузки страницы в таймаут?
-
-    # html_content = get_html_from_cache(url_input)
-
-    html_content = get_shared_page().content()
-    html_content_zip = clean_html_universal(html_content)
-
-    # # Сохранения страниц - может пригодится для отладки
-    # save_page_html(html_content, filename = "page_html.html")
-    # save_page_html(html_content_zip, filename = "page_html_zip.html")
-
-    # region Шаг 1 - HGF
-
-    HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
-    print(f"\nHGF_result:\n")
-    print(HGF_result)
-
-    # # Пример ответа HGF для сайта makitaclub.ru
-    # HGF_result = r"""{
-    #     "status": "ok",
-    #     "error_type": null,
-    #     "analysis_message": "Страница успешно обработана",
-    #     "semantics": [
-    #         "инструмент",
-    #         "дрель",
-    #         "шуруповерт",
-    #         "перфоратор",
-    #         "болгарка",
-    #         "пила",
-    #         "шлифмашина",
-    #         "пылесос",
-    #         "аккумулятор",
-    #         "оснастка"
-    #     ],
-    #     "search_input_selectors": [
-    #         "#woocommerce-product-search-field-0",   
-    #         "form.woocommerce-product-search input.search-field",
-    #         ".site-search form.woocommerce-product-search input[type=\"search\"]",
-    #         "input.search-field[name=\"s\"]",        
-    #         "form[role=\"search\"] input[type=\"search\"]"
-    #     ],
-    #     "search_button_selectors": [
-    #         "form.woocommerce-product-search button[type=\"submit\"]",
-    #         ".site-search form.woocommerce-product-search button[type=\"submit\"]",
-    #         "form[role=\"search\"] button[type=\"submit\"]",
-    #         ".woocommerce-product-search button[type=\"submit\"]",
-    #         ".site-search button[type=\"submit\"]"   
-    #     ]
-    # }"""
-
-    # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
-    HGF_result = json.loads(HGF_result)
-
-    ############# Что делаеть при ошибке парсинга, когда HGF вернула невалидный ответ?
-
-    # Проверяем статус
-    if HGF_result.get("status") != "ok":
-        raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{HGF_result}")
-
-    # Удаляем первые 3 поля
-    keys_to_remove = list(HGF_result.keys())[:3]
-    for key in keys_to_remove:
-        del HGF_result[key]
-
-    # region Шаг 2 - Агент 
-
-    result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
-    print("result_agent_answer_from_2_step:")
-    print(result_agent_answer_from_2_step)
-
-    """ 
-    Пример ответа агента:
-
-    {
-        "used_seletor_search_input": "#woocommerce-product-search-field-0",
-        "used_seletor_search_button": "",
-        "used_search_request": "инструмент",
-        "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
-    }
-
-    """
-
-    # region Шаг 3 - TNF
-
-    # # Для тестов
     # goto_url( 
-    #     url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+    #     url = url_input,
     #     wait_until = "load",
     #     timeout = 30_000
     # )
+    
+    # ############# Что делаеть если браузер вдруг внезапно закроется посреди выполнения алгоритма?
+    # ############# Что делаеть если не дождёмся загрузки страницы в таймаут?
+
+    # # html_content = get_html_from_cache(url_input)
+
+    # html_content = get_shared_page().content()
+    # html_content_zip = clean_html_universal(html_content)
+
+    # # # Сохранения страниц - может пригодится для отладки
+    # # save_page_html(html_content, filename = "page_html.html")
+    # # save_page_html(html_content_zip, filename = "page_html_zip.html")
+
+    # # region Шаг 1 - HGF
+
+    # HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+    # print(f"\nHGF_result:\n")
+    # print(HGF_result)
+
+    # # # Пример ответа HGF для сайта makitaclub.ru
+    # # HGF_result = r"""{
+    # #     "status": "ok",
+    # #     "error_type": null,
+    # #     "analysis_message": "Страница успешно обработана",
+    # #     "semantics": [
+    # #         "инструмент",
+    # #         "дрель",
+    # #         "шуруповерт",
+    # #         "перфоратор",
+    # #         "болгарка",
+    # #         "пила",
+    # #         "шлифмашина",
+    # #         "пылесос",
+    # #         "аккумулятор",
+    # #         "оснастка"
+    # #     ],
+    # #     "search_input_selectors": [
+    # #         "#woocommerce-product-search-field-0",   
+    # #         "form.woocommerce-product-search input.search-field",
+    # #         ".site-search form.woocommerce-product-search input[type=\"search\"]",
+    # #         "input.search-field[name=\"s\"]",        
+    # #         "form[role=\"search\"] input[type=\"search\"]"
+    # #     ],
+    # #     "search_button_selectors": [
+    # #         "form.woocommerce-product-search button[type=\"submit\"]",
+    # #         ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+    # #         "form[role=\"search\"] button[type=\"submit\"]",
+    # #         ".woocommerce-product-search button[type=\"submit\"]",
+    # #         ".site-search button[type=\"submit\"]"   
+    # #     ]
+    # # }"""
+
+    # # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
+    # HGF_result = json.loads(HGF_result)
+
+    # ############# Что делаеть при ошибке парсинга, когда HGF вернула невалидный ответ?
+
+    # # Проверяем статус
+    # if HGF_result.get("status") != "ok":
+    #     raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{HGF_result}")
+
+    # # Удаляем первые 3 поля
+    # keys_to_remove = list(HGF_result.keys())[:3]
+    # for key in keys_to_remove:
+    #     del HGF_result[key]
+
+    # # region Шаг 2 - Агент 
+
+    # result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
+    # print("result_agent_answer_from_2_step:")
+    # print(result_agent_answer_from_2_step)
+
+    # """ 
+    # Пример ответа агента:
+
+    # {
+    #     "used_seletor_search_input": "#woocommerce-product-search-field-0",
+    #     "used_seletor_search_button": "",
+    #     "used_search_request": "инструмент",
+    #     "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+    # }
+
+    # """
+
+    # # region Шаг 3 - TNF
+
+    # Для тестов
+    goto_url( 
+        url = "https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8",
+        wait_until = "load",
+        timeout = 30_000
+    )
     
     # Получает html страницы результатов поисковой выдачи, и вытаскивает от туда нужные селекторы при помощи TNF
 
@@ -221,7 +221,7 @@ def main_processer(input_url):
 
     # Проверяем статус
     if TNF_result.get("status") != "ok":
-        raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{TNF_result}")
+        raise ValueError(f"Ошибка TNF - извлечение селекторов товара и пагинации неудачно с сайта! \nПолный ответ: \n{TNF_result}")
 
     # Удаляем первые 3 поля
     keys_to_remove = list(TNF_result.keys())[:3]
