@@ -106,115 +106,183 @@ def main_processer(input_url):
     # Запускаю браузер с видимым окном
     launch_browser(headless = False)
 
+    # goto_url( 
+    #     url = url_input,
+    #     wait_until = "load",
+    #     timeout = 30_000
+    # )
+    
+    # ############# Что делаеть если браузер вдруг внезапно закроется посреди выполнения алгоритма?
+    # ############# Что делаеть если не дождёмся загрузки страницы в таймаут?
+
+    # # html_content = get_html_from_cache(url_input)
+
+    # html_content = get_shared_page().content()
+    # html_content_zip = clean_html_universal(html_content)
+
+    # # # Сохранения страниц - может пригодится для отладки
+    # # save_page_html(html_content, filename = "page_html.html")
+    # # save_page_html(html_content_zip, filename = "page_html_zip.html")
+
+    # # region Шаг 1 - HGF
+
+    # HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+    # print(f"\nHGF_result:\n")
+    # print(HGF_result)
+
+    # # # Временно используем готовый результат HGF для сайта makitaclub.ru
+    # # HGF_result = r"""{
+    # #     "status": "ok",
+    # #     "error_type": null,
+    # #     "analysis_message": "Страница успешно обработана",
+    # #     "semantics": [
+    # #         "инструмент",
+    # #         "дрель",
+    # #         "шуруповерт",
+    # #         "перфоратор",
+    # #         "болгарка",
+    # #         "пила",
+    # #         "шлифмашина",
+    # #         "пылесос",
+    # #         "аккумулятор",
+    # #         "оснастка"
+    # #     ],
+    # #     "search_input_selectors": [
+    # #         "#woocommerce-product-search-field-0",   
+    # #         "form.woocommerce-product-search input.search-field",
+    # #         ".site-search form.woocommerce-product-search input[type=\"search\"]",
+    # #         "input.search-field[name=\"s\"]",        
+    # #         "form[role=\"search\"] input[type=\"search\"]"
+    # #     ],
+    # #     "search_button_selectors": [
+    # #         "form.woocommerce-product-search button[type=\"submit\"]",
+    # #         ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+    # #         "form[role=\"search\"] button[type=\"submit\"]",
+    # #         ".woocommerce-product-search button[type=\"submit\"]",
+    # #         ".site-search button[type=\"submit\"]"   
+    # #     ]
+    # # }"""
+
+    # # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
+    # HGF_result = json.loads(HGF_result)
+
+    # ############# Что делаеть при ошибке парсинга, когда HGF вернула невалидный ответ?
+
+    # # Проверяем статус
+    # if HGF_result.get("status") != "ok":
+    #     raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{HGF_result}")
+
+    # # Удаляем первые 3 поля
+    # keys_to_remove = list(HGF_result.keys())[:3]
+    # for key in keys_to_remove:
+    #     del HGF_result[key]
+
+    # # region Шаг 2 - Агент 
+
+    # result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
+    # print("result_agent_answer_from_2_step:")
+    # print(result_agent_answer_from_2_step)
+
+
+    # """ 
+    # Ответ агента:
+
+    # {
+    #     "used_seletor_search_input": "#woocommerce-product-search-field-0",
+    #     "used_seletor_search_button": "",
+    #     "used_search_request": "инструмент",
+    #     "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+    # }
+
+    # """
+
+    # # region Шаг 3 - TNF
+
+
     goto_url( 
-        url = url_input,
+        url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
         wait_until = "load",
         timeout = 30_000
     )
     
-    ############# Что делаеть если браузер вдруг внезапно закроется посреди выполнения алгоритма?
-    ############# Что делаеть если не дождёмся загрузки страницы в таймаут?
-
-    # html_content = get_html_from_cache(url_input)
-
-    html_content = get_shared_page().content()
-    html_content_zip = clean_html_universal(html_content)
-
-    # # Сохранения страниц - может пригодится для отладки
-    # save_page_html(html_content, filename = "page_html.html")
-    # save_page_html(html_content_zip, filename = "page_html_zip.html")
-
-    # region Шаг 1 - HGF
-
-    HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
-    print(f"\nHGF_result:\n")
-    print(HGF_result)
-
-    # # Временно используем готовый результат HGF для сайта makitaclub.ru
-    # HGF_result = r"""{
-    #     "status": "ok",
-    #     "error_type": null,
-    #     "analysis_message": "Страница успешно обработана",
-    #     "semantics": [
-    #         "инструмент",
-    #         "дрель",
-    #         "шуруповерт",
-    #         "перфоратор",
-    #         "болгарка",
-    #         "пила",
-    #         "шлифмашина",
-    #         "пылесос",
-    #         "аккумулятор",
-    #         "оснастка"
-    #     ],
-    #     "search_input_selectors": [
-    #         "#woocommerce-product-search-field-0",   
-    #         "form.woocommerce-product-search input.search-field",
-    #         ".site-search form.woocommerce-product-search input[type=\"search\"]",
-    #         "input.search-field[name=\"s\"]",        
-    #         "form[role=\"search\"] input[type=\"search\"]"
-    #     ],
-    #     "search_button_selectors": [
-    #         "form.woocommerce-product-search button[type=\"submit\"]",
-    #         ".site-search form.woocommerce-product-search button[type=\"submit\"]",
-    #         "form[role=\"search\"] button[type=\"submit\"]",
-    #         ".woocommerce-product-search button[type=\"submit\"]",
-    #         ".site-search button[type=\"submit\"]"   
-    #     ]
-    # }"""
-
-    # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
-    HGF_result = json.loads(HGF_result)
-
-    ############# Что делаеть при ошибке парсинга, когда HGF вернула невалидный ответ?
-
-    # Проверяем статус
-    if HGF_result.get("status") != "ok":
-        raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{HGF_result}")
-
-    # Удаляем первые 3 поля
-    keys_to_remove = list(HGF_result.keys())[:3]
-    for key in keys_to_remove:
-        del HGF_result[key]
-
-    # region Шаг 2 - Агент 
-
-    result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
-    print("result_agent_answer_from_2_step:")
-    print(result_agent_answer_from_2_step)
 
 
-    """ 
-    Ответ агента:
 
-    {
-        "used_seletor_search_input": "#woocommerce-product-search-field-0",
-        "used_seletor_search_button": "",
-        "used_search_request": "инструмент",
-        "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
-    }
-
-    """
-
-    # region Шаг 3 - TNF
 
     # Получает html страницы результатов поисковой выдачи, и вытаскивает от туда нужные селекторы при помощи TNF
 
     html_content = get_shared_page().content()
     html_content_zip = clean_html_universal(html_content)
 
-    #################### закомментировать
-    save_page_html(html_content, filename = "page_html.html")
-    save_page_html(html_content_zip, filename = "page_html_zip.html")
+    # #################### закомментировать
+    # save_page_html(html_content, filename = "page_html.html")
+    # save_page_html(html_content_zip, filename = "page_html_zip.html")
 
-    HGF_result = TNF_extract_data_from_search_page(html_content_zip)
+    TNF_result = TNF_extract_data_from_search_page(html_content_zip)
     print(f"\nTNF_result:\n")
-    print(HGF_result)
+    print(TNF_result)
+
+    # Преобразует строку ответа в json
+    TNF_result = json.loads(TNF_result)
+
+    # Проверяем статус
+    if TNF_result.get("status") != "ok":
+        raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{TNF_result}")
+
+    # Удаляем первые 3 поля
+    keys_to_remove = list(TNF_result.keys())[:3]
+    for key in keys_to_remove:
+        del TNF_result[key]
+
+
+    # #################### закомментировать
+    print(f"\nTNF_result:\n")
+    print(TNF_result)
 
     """
     Пример ответа:
 
-
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Страница результатов поиска WooCommerce доступна, капча/блокировки и сообщения об  отсутствии результатов не обнаружены. Все ключевые элементы найдены.",
+        "search_input_selectors": [
+            "#woocommerce-product-search-field-0",
+            "form.woocommerce-product-search input.search-field[type='search'][name='s']",
+            ".site-search .woocommerce-product-search input.search-field"
+        ],
+        "search_button_selectors": [
+            "form.woocommerce-product-search button[type='submit']",
+            ".site-search form.woocommerce-product-search button",
+            ".widget_product_search form button[type='submit']"
+        ],
+        "total_results_count_selectors": [
+            "p.woocommerce-result-count",
+            ".storefront-sorting > p.woocommerce-result-count",
+            "main#main p.woocommerce-result-count"
+        ],
+        "product_link_selectors": [
+            ".products .product-card a.stretched-link[href*='/products/']",
+            ".products a.stretched-link[href*='/products/']",
+            ".products .card a.stretched-link"
+        ],
+        "pagination_container_selectors": [
+            "nav.woocommerce-pagination",
+            ".storefront-sorting nav.woocommerce-pagination",
+            "ul.page-numbers"
+        ],
+        "pagination_page2_selectors": [
+            "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
+            "ul.page-numbers a.page-numbers[href*='/page/2/']",
+            "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
+        ],
+        "pagination_last_page_selectors": [
+            "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+            "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+            "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
+        ],
+        "last_page_number_displayed": true
+    }
     """
     
 

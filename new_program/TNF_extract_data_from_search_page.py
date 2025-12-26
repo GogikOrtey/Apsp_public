@@ -274,6 +274,8 @@ MAIN_PROMPT = """
 # region Внешняя функция
 
 def TNF_extract_data_from_search_page(input_html):
+    print("Отправляем запрос к TNF")
+
     request_from_LLM = f"""
     Инструкции:
     {MAIN_PROMPT}
