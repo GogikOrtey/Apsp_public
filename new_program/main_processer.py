@@ -54,6 +54,7 @@ from new_program.use_agent_for_step_2_gen_parsePage import *
 - Надо будет проверять, как работает get_html_frame, и возможно править её
 - Надо будет добавить скриншоты состояния из браузера, по актуальным шагам
 - Добавить проверку на то, такая же страница открывается вне браузера по прямому curl запросу, или нет
+- Убедиться, что не забыл закомментировать все проверки
 
 
 
@@ -108,103 +109,142 @@ def main_processer(input_url):
     # Запускаю браузер с видимым окном
     launch_browser(headless = False)
 
-    # goto_url( 
-    #     url = url_input,
-    #     wait_until = "load",
-    #     timeout = 30_000
-    # )
-    
-    # ############# Что делаеть если браузер вдруг внезапно закроется посреди выполнения алгоритма?
-    # ############# Что делаеть если не дождёмся загрузки страницы в таймаут?
-
-    # # html_content = get_html_from_cache(url_input)
-
-    # html_content = get_shared_page().content()
-    # html_content_zip = clean_html_universal(html_content)
-
-    # # # Сохранения страниц - может пригодится для отладки
-    # # save_page_html(html_content, filename = "page_html.html")
-    # # save_page_html(html_content_zip, filename = "page_html_zip.html")
-
-    # # region Шаг 1 - HGF
-
-    # HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
-    # print(f"\nHGF_result:\n")
-    # print(HGF_result)
-
-    # # # Пример ответа HGF для сайта makitaclub.ru
-    # # HGF_result = r"""{
-    # #     "status": "ok",
-    # #     "error_type": null,
-    # #     "analysis_message": "Страница успешно обработана",
-    # #     "semantics": [
-    # #         "инструмент",
-    # #         "дрель",
-    # #         "шуруповерт",
-    # #         "перфоратор",
-    # #         "болгарка",
-    # #         "пила",
-    # #         "шлифмашина",
-    # #         "пылесос",
-    # #         "аккумулятор",
-    # #         "оснастка"
-    # #     ],
-    # #     "search_input_selectors": [
-    # #         "#woocommerce-product-search-field-0",   
-    # #         "form.woocommerce-product-search input.search-field",
-    # #         ".site-search form.woocommerce-product-search input[type=\"search\"]",
-    # #         "input.search-field[name=\"s\"]",        
-    # #         "form[role=\"search\"] input[type=\"search\"]"
-    # #     ],
-    # #     "search_button_selectors": [
-    # #         "form.woocommerce-product-search button[type=\"submit\"]",
-    # #         ".site-search form.woocommerce-product-search button[type=\"submit\"]",
-    # #         "form[role=\"search\"] button[type=\"submit\"]",
-    # #         ".woocommerce-product-search button[type=\"submit\"]",
-    # #         ".site-search button[type=\"submit\"]"   
-    # #     ]
-    # # }"""
-
-    # # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
-    # HGF_result = json.loads(HGF_result)
-
-    # ############# Что делаеть при ошибке парсинга, когда HGF вернула невалидный ответ?
-
-    # # Проверяем статус
-    # if HGF_result.get("status") != "ok":
-    #     raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{HGF_result}")
-
-    # # Удаляем первые 3 поля
-    # keys_to_remove = list(HGF_result.keys())[:3]
-    # for key in keys_to_remove:
-    #     del HGF_result[key]
-
-    # # region Шаг 2 - Агент 
-
-    # result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
-    # print("result_agent_answer_from_2_step:")
-    # print(result_agent_answer_from_2_step)
-
-    # """ 
-    # Пример ответа агента:
-
-    # {
-    #     "used_seletor_search_input": "#woocommerce-product-search-field-0",
-    #     "used_seletor_search_button": "",
-    #     "used_search_request": "инструмент",
-    #     "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
-    # }
-
-    # """
-
-    # # region Шаг 3 - TNF
-
-    # Для тестов
     goto_url( 
-        url = "https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8",
+        url = url_input,
         wait_until = "load",
         timeout = 30_000
     )
+    
+    ############# Что делаеть если браузер вдруг внезапно закроется посреди выполнения алгоритма?
+    ############# Что делаеть если не дождёмся загрузки страницы в таймаут?
+
+    # html_content = get_html_from_cache(url_input)
+
+    html_content = get_shared_page().content()
+    html_content_zip = clean_html_universal(html_content)
+
+    # # Сохранения страниц - может пригодится для отладки
+    # save_page_html(html_content, filename = "page_html.html")
+    # save_page_html(html_content_zip, filename = "page_html_zip.html")
+
+    # region Шаг 1 - HGF
+
+    HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+    print(f"\nHGF_result:\n")
+    print(HGF_result)
+
+    # # Пример ответа HGF для сайта makitaclub.ru
+    # HGF_result = r"""
+    # """
+
+    """
+
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Страница успешно обработана",
+        "semantics": [
+            "инструмент",
+            "дрель",
+            "шуруповерт",
+            "перфоратор",
+            "болгарка",
+            "пила",
+            "шлифмашина",
+            "пылесос",
+            "аккумулятор",
+            "оснастка"
+        ],
+        "search_input_selectors": [
+            "#woocommerce-product-search-field-0",   
+            "form.woocommerce-product-search input.search-field",
+            ".site-search form.woocommerce-product-search input[type=\"search\"]",
+            "input.search-field[name=\"s\"]",        
+            "form[role=\"search\"] input[type=\"search\"]"
+        ],
+        "search_button_selectors": [
+            "form.woocommerce-product-search button[type=\"submit\"]",
+            ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+            "form[role=\"search\"] button[type=\"submit\"]",
+            ".woocommerce-product-search button[type=\"submit\"]",
+            ".site-search button[type=\"submit\"]"   
+        ]
+    }
+
+    https://galleryceramics.ru/
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Контент интернет-магазина доступен: присутствуют меню, каталог, баннеры и форма поиска. Капча (reCAPTCHA) встречается как фоновый элемент в формах и не блокирует доступ к сайту.",
+        "semantics": [
+            "плитка",
+            "керамогранит",
+            "сантехника",
+            "мозаика",
+            "унитаз",
+            "раковина",
+            "смеситель",
+            "душ",
+            "ванна",
+            "мебель"
+        ],
+        "search_input_selectors": [
+            "#title-search-input",
+            "form.search.search--hastype input#title-search-input",
+            "#title-search input[name=\"q\"]",
+            "#title-search_fixed input#title-search-input_fixed",
+            "form.search input.search-input[name=\"q\"]"
+        ],
+        "search_button_selectors": [
+            "#title-search button.btn-search[type=\"submit\"]",
+            "form.search.search--hastype button.btn-search[name=\"s\"]",
+            "#title-search form.search button[type=\"submit\"].btn-search",
+            "#title-search_fixed button.btn-search[type=\"submit\"]",
+            "#title-search_fixed form.search button[name=\"s\"].btn-search"
+        ]
+    }
+    """
+
+    # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
+    HGF_result = json.loads(HGF_result)
+
+    ############# Что делаеть при ошибке парсинга, когда HGF вернула невалидный ответ?
+
+    # Проверяем статус
+    if HGF_result.get("status") != "ok":
+        raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{HGF_result}")
+
+    # Удаляем первые 3 поля
+    keys_to_remove = list(HGF_result.keys())[:3]
+    for key in keys_to_remove:
+        del HGF_result[key]
+
+    # region Шаг 2 - Агент 
+
+    result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
+    print("result_agent_answer_from_2_step:")
+    print(result_agent_answer_from_2_step)
+
+    """ 
+    Пример ответа агента:
+
+    {
+        "used_seletor_search_input": "#woocommerce-product-search-field-0",
+        "used_seletor_search_button": "",
+        "used_search_request": "инструмент",
+        "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+    }
+
+    """
+
+    # region Шаг 3 - TNF
+
+    # # Для тестов
+    # goto_url( 
+    #     url = "https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8",
+    #     wait_until = "load",
+    #     timeout = 30_000
+    # )
     
     # Получает html страницы результатов поисковой выдачи, и вытаскивает от туда нужные селекторы при помощи TNF
 
@@ -316,6 +356,50 @@ def main_processer(input_url):
         "last_page_number_displayed": true
     }
 
+
+    https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Страница поиска с результатами (156 товаров) успешно распознана. На странице присутствует reCAPTCHA (бейдж), но 
+      полезный контент и нужные элементы доступны.","search_input_selectors": [
+            "#title-search-input",
+            "form.search.search--hastype input[name='q']#title-search-input",
+            "header .search-wrapper #title-search input.search-input[name='q']"
+        ],
+        "search_button_selectors": [
+            "#title-search button.btn-search[type='submit']",
+            "#title-search form.search.search--hastype button[name='s'][type='submit']",
+            "header .search-wrapper #title-search button.btn-search"
+        ],
+        "total_results_count_selectors": [
+            ".topic__heading .element-count-wrapper .element-count",
+            "h1#pagetitle + .element-count-wrapper .element-count",
+            ".topic .topic__heading span.element-count"
+        ],
+        "product_link_selectors": [
+            ".catalog-block .catalog-block__wrapper .catalog-block__info-title > a.dark_link[href*='/catalog/']",
+            ".catalog-block__wrapper a.js-popup-title[href*='/catalog/']",
+            ".catalog-block__wrapper a.image-list__link[href*='/catalog/']"
+        ],
+        "pagination_container_selectors": [
+            ".bottom_nav_wrapper .module-pagination",
+            ".bottom_nav .module-pagination__wrapper",
+            ".bottom_nav_wrapper .bottom_nav .module-pagination"
+        ],
+        "pagination_page2_selectors": [
+            ".bottom_nav_wrapper .module-pagination a.module-pagination__item[href*='PAGEN_2=2']",    ".bottom_nav .module-pagination__wrapper 
+      a[href*='PAGEN_2=2'
+            ]",".bottom_nav_wrapper a.arrows-pagination__next[href*='PAGEN_2=2']"
+        ],
+        "pagination_last_page_selectors": [
+            ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item:last-of-type",
+            ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item[href*='PAGEN_2=']",
+            ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item:nth-last-of-type(1)"
+        ],
+        "last_page_number_displayed": true
+    }
+
     """
 
     print("🟦 Завершили первые 3 фазы для parsePage ✅")
@@ -323,9 +407,10 @@ def main_processer(input_url):
     
 
 
-# link = "https://makitaclub.ru"
+link = "https://makitaclub.ru"
 # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
-link = "https://makitatrading.ru"
+# link = "https://makitatrading.ru"
+# link = "https://galleryceramics.ru"
 main_processer(link)
 
 

@@ -391,17 +391,19 @@ def get_total_pages_on_cheerio(selector: str, html_content: str) -> dict[str, st
             pass
 
 
-# Проверка
-url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
-# url = "https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8"
-html_content = get_html_from_cache(url)
-# save_page_html(html_content, filename = "page_html.html")
+# # Проверка
+# url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+# # url = "https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8"
+# # url = "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8"
+# html_content = get_html_from_cache(url)
+# # save_page_html(html_content, filename = "page_html.html")
 
-# selector = "nav.woocommerce-pagination"
-selector = "nav.woocommerce-pagination .page-numbers a, nav.woocommerce-pagination .page-numbers span"
-# selector = "nav#pagination"
-result_get_total_pages_on_cheerio = get_total_pages_on_cheerio(selector, html_content)
-print(f"result_get_total_pages_on_cheerio:\n", result_get_total_pages_on_cheerio)
+# selector = "nav.woocommerce-pagination a"
+# # selector = "nav.woocommerce-pagination .page-numbers a, nav.woocommerce-pagination .page-numbers span"
+# # selector = ".bottom_nav_wrapper .module-pagination a"
+# # selector = "nav#pagination"
+# result_get_total_pages_on_cheerio = get_total_pages_on_cheerio(selector, html_content)
+# print(f"result_get_total_pages_on_cheerio:\n", result_get_total_pages_on_cheerio)
 
 
 

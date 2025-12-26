@@ -95,3 +95,131 @@ SYSTEM_PROMPT =
 - 4. После ответа управление ВСЕГДА возвращается оркестратору.
 - 5. Ты НИКОГДА не выполняешь следующий шаг сам.
 
+
+———————————   Шаг 1   ———————————
+
+🟢 reasoning: В текущей фазе нужно определить рабочий селектор поля поиска. Начинаю с первого селектора из списка и проверяю, что он реально находит input на странице.
+🔵 target: Проверить первый кандидат на селектор поля ввода поиска (#title-search-input) на текущей странице
+🟡 action: find_elements
+   🔶 args: {"selector": "#title-search-input", "only_count": false, "max_results": 3}
+
+🛠️  find_elements({'selector': '#title-search-input', 'only_count': False, 'max_results': 3})
+Инструмент вернул результат: {"status": "ok", "count": 1, "elements": [{"index": 0, "text": "", "html": ""}], "error": null}
+
+———————————   Шаг 2   ———————————
+
+🟢 reasoning: Селектор #title-search-input на странице найден (count=1). Чтобы корректно зафиксировать рабочий селектор поля поиска в result, нужно посмотреть окружающий HTML и убедиться, что это действительно поисковый input, а не другое поле.
+🔵 target: Получить HTML-фрейм вокруг найденного поля #title-search-input и подтвердить, что это именно поле поиска
+🟡 action: get_html_frame_on_current_page
+   🔶 args: {"selector": "#title-search-input", "max_frame_chars": 2500, "ancestor_levels": 4, "sibling_elems": 2}
+
+🛠️  get_html_frame_on_current_page({'selector': '#title-search-input', 'max_frame_chars': 2500, 'ancestor_levels': 4, 'sibling_elems': 2})
+Инструмент вернул результат: "<!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 3056 NODES--><div class=\"search-wrapper relative\"><div id=\"title-search\"><form class=\"search search--hastype\"><!--TRIMMED_BEFORE 1 NODES--><div class=\"search-input-div\"><!--TARGET_START--><input class=\"search-input font_16 banner-light-text form-control\" id=\"title-search-input\"><!--TARGET_END--></div><!--TRIMMED_AFTER 1 NODES--></form><!--TRIMMED_AFTER 1 NODES--></div></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 1137 NODES-->"
+
+———————————   Шаг 3   ———————————
+
+🟢 reasoning: find_elements вернул count=1 по #title-search-input, а HTML-фрейм показывает input внутри form.search search--hastype в контейнере title-search, что соответствует полю поиска. Можно фиксировать селектор как рабочий для текущей фазы.
+🔵 target: Зафиксировать в result рабочий селектор поля ввода поиска (#title-search-input)
+🟡 action: update_result
+   🔶 args: {"field": "used_seletor_search_input", "value": "#title-search-input"}
+
+🛠️  update_result({'field': 'used_seletor_search_input', 'value': '#title-search-input'})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#title-search-input", "used_seletor_search_button": null, "used_search_request": null, "second_html": null}}
+
+———————————   Шаг 4   ———————————
+
+🟢 reasoning: Для завершения текущей фазы нужно заполнить used_search_request. По инструкции берём первый элемент из массива semantics — "плитка" — и фиксируем его в result.
+🔵 target: Зафиксировать поисковый запрос из semantics, который будет введён в поле поиска
+🟡 action: update_result
+   🔶 args: {"field": "used_search_request", "value": "плитка"}
+
+🛠️  update_result({'field': 'used_search_request', 'value': 'плитка'})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#title-search-input", "used_seletor_search_button": null, "used_search_request": "плитка", "second_html": null}}
+
+———————————   Шаг 5   ———————————
+
+🟢 reasoning: Для запуска поиска в текущей фазе сначала нужно обеспечить активный фокус в поле ввода. Используем smart_focus по уже подтверждённому рабочему селектору поля.
+🔵 target: Сфокусироваться на поле поиска, чтобы далее ввести запрос и запустить поиск
+🟡 action: smart_focus
+   🔶 args: {"selector": "#title-search-input", "timeout": 1000}
+
+🛠️  smart_focus({'selector': '#title-search-input', 'timeout': 1000})
+Инструмент вернул результат: {"status": "ok", "selector": "#title-search-input", "attempts": 1, "error": null}
+
+———————————   Шаг 6   ———————————
+
+🟢 reasoning: Для запуска поиска в текущей фазе сначала нужно, чтобы в поле ввода был введён запрос. Поле уже сфокусировано smart_focus, поэтому выполняю human_like_input с used_search_request.
+🔵 target: Ввести поисковый запрос из result ("плитка") в поле поиска #title-search-input
+🟡 action: human_like_input
+   🔶 args: {"selector": "#title-search-input", "text": "плитка", "delay_ms": 80}
+
+🛠️  human_like_input({'selector': '#title-search-input', 'text': 'плитка', 'delay_ms': 80})
+Инструмент вернул результат: {"status": "ok", "selector": "#title-search-input", "text_len": 6, "error": null}
+
+———————————   Шаг 7   ———————————
+
+🟢 reasoning: Для корректного ожидания редиректа после запуска поиска нужен исходный URL (old_url) для wait_for_navigation_or_content. Сейчас поле поиска заполнено, следующий шаг — зафиксировать текущий URL.
+🔵 target: Сохранить текущий URL перед запуском поиска, чтобы затем отследить редирект/изменение контента
+🟡 action: get_current_url
+
+
+🛠️  get_current_url({})
+Инструмент вернул результат: {"status": "ok", "url": "https://galleryceramics.ru/", "error": null}
+
+———————————   Шаг 8   ———————————
+
+🟢 reasoning: Перед нажатием Enter нужно зафиксировать текущий URL, чтобы затем корректно отследить навигацию/изменение контента через wait_for_navigation_or_content.
+🔵 target: Сохранить исходный URL (old_url) в память перед запуском поиска
+🟡 action: update_memory
+   🔶 args: {"value": "old_url_before_search=https://galleryceramics.ru/"}
+
+🛠️  update_memory({'value': 'old_url_before_search=https://galleryceramics.ru/'})
+Инструмент вернул результат: {"status": "ok", "added": 1, "memory_size": 1, "error": null}
+
+———————————   Шаг 9   ———————————
+
+🟢 reasoning: Поле поиска уже сфокусировано и заполнено запросом. Следующий шаг по алгоритму — нажать Enter, после чего будем ждать навигацию/изменение контента и зафиксируем second_html.
+🔵 target: Запустить поиск нажатием Enter в поле ввода и инициировать переход на страницу результатов
+🟡 action: press_enter
+
+
+🛠️  press_enter({})
+Инструмент вернул результат: {"status": "ok", "error": null}
+
+———————————   Шаг 10   ———————————
+
+🟢 reasoning: После ввода запроса и нажатия Enter следующий обязательный шаг алгоритма — дождаться навигации/изменения контента относительно old_url, чтобы затем записать second_html (новый URL) и при необходимости перейти к запуску поиска кнопкой.
+🔵 target: Дождаться редиректа или существенного изменения контента после нажатия Enter, чтобы зафиксировать URL страницы результатов
+🟡 action: wait_for_navigation_or_content
+   🔶 args: {"old_url": "https://galleryceramics.ru/", "timeout": 15000, "change_threshold": 0.2}
+
+🛠️  wait_for_navigation_or_content({'old_url': 'https://galleryceramics.ru/', 'timeout': 15000, 'change_threshold': 0.2})
+Инструмент вернул результат: {"status": "ok", "reason": "url_changed", "new_url": "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8", "change_fraction": null, "error": null}
+
+———————————   Шаг 11   ———————————
+
+🟢 reasoning: В истории последнего шага wait_for_navigation_or_content уже вернул status=ok и reason=url_changed с new_url страницы результатов. Для выполнения fills текущей фазы нужно зафиксировать second_html, поэтому записываю этот URL в result.
+🔵 target: Записать URL страницы результатов поиска после успешного редиректа в поле second_html результата
+🟡 action: update_result
+   🔶 args: {"field": "second_html", "value": "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8"}
+
+🛠️  update_result({'field': 'second_html', 'value': 'https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8'})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#title-search-input", "used_seletor_search_button": null, "used_search_request": "плитка", "second_html": "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8"}}
+
+———————————   Шаг 12   ———————————
+
+🟢 reasoning: Текущая фаза требует заполнить used_seletor_search_button и second_html. second_html уже заполнено после успешного url_changed при нажатии Enter. Чтобы закрыть fills фазы, фиксирую способ запуска поиска: Enter, без клика по кнопке.
+🔵 target: Зафиксировать, что кнопка поиска не использовалась (поиск запущен нажатием Enter) и заполнить used_seletor_search_button для завершения фазы
+🟡 action: update_result
+   🔶 args: {"field": "used_seletor_search_button", "value": "ENTER (кнопка не использовалась)"}
+
+🛠️  update_result({'field': 'used_seletor_search_button', 'value': 'ENTER (кнопка не использовалась)'})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#title-search-input", "used_seletor_search_button": "ENTER (кнопка не использовалась)", "used_search_request": "плитка", "second_html": "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8"}}
+
+———————————   Шаг 13   ———————————
+
+🟢 reasoning: Обе фазы main_plan помечены как completed. В result заполнены все обязательные поля схемы: used_seletor_search_input, used_search_request и second_html; также заполнено used_seletor_search_button. Дополнительных заполнений не требуется.
+🔵 target: Завершить задачу: все фазы main_plan выполнены и result полностью заполнен
+🟡 action: DONE
+
+
