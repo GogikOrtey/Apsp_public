@@ -341,25 +341,30 @@ def get_total_pages_on_cheerio(selector: str, html_content: str) -> dict[str, st
     tmp_path_js = json.dumps(tmp_path)  # безопасно экранируем путь
 
     # ВАЖНО: печатаем строго JSON одним console.log, чтобы Python мог распарсить результат.
+    node_script_template = """
+const cheerio = require('cheerio');
+const fs = require('fs');
+
+function main() {
+  try {
+    const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
+    const $ = cheerio.load(html);
+    const sel = __SELECTOR__;
+
+    const totalPages = Math.max(...$(sel).get().map(item => +$(item).text().trim()).filter(Boolean));
+
+    console.log(JSON.stringify({ status: 'ok', totalPages: String(totalPages), error: null }));
+  } catch (e) {
+    console.log(JSON.stringify({ status: 'error', totalPages: null, error: String(e && e.message ? e.message : e) }));
+  }
+}
+
+main();
+""".strip()
     node_script = (
-        "const cheerio=require('cheerio');"
-        "const fs=require('fs');"
-        "function main(){"
-        "try{"
-        f"const html=fs.readFileSync({tmp_path_js}, 'utf-8');"
-        "const $=cheerio.load(html);"
-        f"const sel={selector_js};"
-
-        # "const totalPages=Math.max(...$(sel).toArray().map(el=>+$(el).text().trim()).filter(Boolean));"
-        "const totalPages = Math.max(...$(sel).get().map(item => +$(item).text().trim()).filter(Boolean));"
-        #  let totalPages = Math.max(...$(sel).get().map(item => +$(item).text().trim()).filter(Boolean))
-
-        "console.log(JSON.stringify({status:'ok', totalPages:String(totalPages), error:null}));"
-        "}catch(e){"
-        "console.log(JSON.stringify({status:'error', totalPages:null, error:String(e&&e.message?e.message:e)}));"
-        "}"
-        "}"
-        "main();"
+        node_script_template
+        .replace("__TMP_PATH__", tmp_path_js)
+        .replace("__SELECTOR__", selector_js)
     )
 
     try:
@@ -474,7 +479,7 @@ vm.runInNewContext(wrappedCode, sandbox, {
     description=(
         "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной totalPages. "
         "Код запускается в песочнице vm (без eval/new Function и wasm). "
-        "Ожидается, что в коде будет присваивание вида `let totalPages = ...`."
+        "Ожидается, что в коде будет присваивание вида `let totalPages = ...` (для проверки корректного извлечения количества максимальных страниц в пагинации)."
     ),
     args=[
         {
@@ -528,48 +533,75 @@ def get_total_pages_on_cheerio_code(user_code: str, html_content: str) -> dict[s
 
     # ВАЖНО: печатаем строго JSON одним console.log, чтобы Python мог распарсить результат.
     # Также глушим console внутри песочницы, чтобы пользовательский код не портил stdout.
+    node_script_template = """
+const fs = require('fs');
+const vm = require('vm');
+const cheerio = require('cheerio');
+
+function main() {
+  try {
+    const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
+    const $ = cheerio.load(html);
+    const userCode = __USER_CODE__;
+
+    // Sandbox: даём только то, что нужно для cheerio-выражений + базовые примитивы.
+    // console глушим, чтобы stdout не ломал JSON-ответ.
+    const sandbox = {
+      $,
+      cheerio,
+      Math,
+      Number,
+      String,
+      Boolean,
+      Array,
+      result: null,
+      console: { log: () => {}, error: () => {}, warn: () => {}, info: () => {}, debug: () => {} },
+    };
+
+    // Чуть-чуть совместимости: некоторые сниппеты ожидают global/globalThis.
+    sandbox.global = sandbox;
+    sandbox.globalThis = sandbox;
+
+    // Доп. урезание окружения
+    sandbox.process = undefined;
+    sandbox.require = undefined;
+    sandbox.Buffer = undefined;
+
+    const prefix = `"use strict";\ntry {\n`;
+    const suffix = `
+  if (typeof totalPages === "undefined") {
+    result = "__ERROR__:totalPages is not defined";
+  } else {
+    result = totalPages;
+  }
+} catch (e) {
+  result = "__ERROR__:" + (e && e.message ? e.message : String(e));
+}
+`;
+
+    const wrappedCode = prefix + userCode + suffix;
+    vm.runInNewContext(wrappedCode, sandbox, {
+      timeout: 1000,
+      codeGeneration: { strings: false, wasm: false },
+    });
+
+    const r = sandbox.result;
+    if (typeof r === 'string' && r.startsWith('__ERROR__:')) {
+      console.log(JSON.stringify({ status: 'error', totalPages: null, error: r.slice(10) }));
+    } else {
+      console.log(JSON.stringify({ status: 'ok', totalPages: String(r), error: null }));
+    }
+  } catch (e) {
+    console.log(JSON.stringify({ status: 'error', totalPages: null, error: String(e && e.message ? e.message : e) }));
+  }
+}
+
+main();
+""".strip()
     node_script = (
-        "const fs=require('fs');"
-        "const vm=require('vm');"
-        "const cheerio=require('cheerio');"
-        "function main(){"
-        "try{"
-        f"const html=fs.readFileSync({tmp_path_js}, 'utf-8');"
-        "const $=cheerio.load(html);"
-        f"const userCode={user_code_js};"
-        "const sandbox={"
-        "  $, cheerio, Math, Number, String, Boolean, Array,"
-        "  result:null,"
-        "  console:{log:()=>{},error:()=>{},warn:()=>{},info:()=>{},debug:()=>{}}"
-        "};"
-        "sandbox.global=sandbox;"
-        "sandbox.globalThis=sandbox;"
-        "sandbox.process=undefined;"
-        "sandbox.require=undefined;"
-        "sandbox.Buffer=undefined;"
-        "const prefix='\"use strict\";\\ntry {\\n';"
-        "const suffix='\\n"
-        "  if (typeof totalPages === \"undefined\") {\\n"
-        "    result = \"__ERROR__:totalPages is not defined\";\\n"
-        "  } else {\\n"
-        "    result = totalPages;\\n"
-        "  }\\n"
-        "} catch (e) {\\n"
-        "  result = \"__ERROR__:\" + (e && e.message ? e.message : String(e));\\n"
-        "}\\n';"
-        "const wrappedCode = prefix + userCode + suffix;"
-        "vm.runInNewContext(wrappedCode, sandbox, {timeout:1000, codeGeneration:{strings:false, wasm:false}});"
-        "const r=sandbox.result;"
-        "if (typeof r==='string' && r.startsWith('__ERROR__:')) {"
-        "  console.log(JSON.stringify({status:'error', totalPages:null, error:r.slice(10)}));"
-        "} else {"
-        "  console.log(JSON.stringify({status:'ok', totalPages:String(r), error:null}));"
-        "}"
-        "}catch(e){"
-        "console.log(JSON.stringify({status:'error', totalPages:null, error:String(e&&e.message?e.message:e)}));"
-        "}"
-        "}"
-        "main();"
+        node_script_template
+        .replace("__TMP_PATH__", tmp_path_js)
+        .replace("__USER_CODE__", user_code_js)
     )
 
     try:
