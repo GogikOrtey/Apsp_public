@@ -231,6 +231,7 @@ def main_processer(input_url):
     """
     Пример ответа:
 
+    https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product
     {
         "status": "ok",
         "error_type": null,
@@ -272,6 +273,47 @@ def main_processer(input_url):
         ],
         "last_page_number_displayed": true
     }
+
+
+    https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8
+    {
+        "status": "ok",
+        "error_type": null,
+        "analysis_message": "Страница с результатами поиска доступна, товары и пагинация найдены.",
+        "search_input_selectors": [
+            "#title-search-input",
+            "form#searchForm input[name='q']",
+            "#searchForm input[type='search']"
+        ],
+        "search_button_selectors": [
+            "#searchForm input[type='submit'][name='s']",
+            "form#searchForm input.btn.btnRed[type='submit']",
+            "#searchForm input[value='Найти']"
+        ],
+        "total_results_count_selectors": null,
+        "product_link_selectors": [
+            ".catalog.catalogCards .itemCard[itemtype='http://schema.org/Product'] > a.image[href^='/catalog/   product/']",
+            ".catalog.catalogCards .itemCard a.item_title[href^='/catalog/product/']",
+            ".catalog.catalogCards a[href^='/catalog/product/']"
+        ],
+        "pagination_container_selectors": [
+            "nav#pagination",
+            "#pagination > ul",
+            "nav#pagination ul"
+        ],
+        "pagination_page2_selectors": [
+            "nav#pagination a[href*='PAGEN_2=2']",
+            "#pagination a[href*='PAGEN_2=2']",
+            "nav#pagination ul li a[href*='PAGEN_2=2']"
+        ],
+        "pagination_last_page_selectors": [
+            "nav#pagination ul li:nth-last-child(2) > a",
+            "#pagination ul li:nth-last-child(2) > a",
+            "nav#pagination li:not(.active):not(:first-child):not(:last-child):nth-last-child(2) > a"
+        ],
+        "last_page_number_displayed": true
+    }
+
     """
 
     print("🟦 Завершили первые 3 фазы для parsePage ✅")
