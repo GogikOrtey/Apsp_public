@@ -756,6 +756,16 @@ def update_main_plan_progress(main_plan: dict[str, Any]) -> dict[str, Any]:
     if main_plan.get("status") in (None, "", "unknown", "not_started"):
         main_plan["status"] = "in_progress"
 
+    # Нормализуем статусы шагов для совместимости со "старыми" планами,
+    # где status мог отсутствовать или быть неизвестным.
+    allowed_step_statuses = {"pending", "in_progress", "done"}
+    for s in steps:
+        if not isinstance(s, dict):
+            continue
+        st = s.get("status")
+        if st not in allowed_step_statuses:
+            s["status"] = "pending"
+
     current_idx = main_plan.get("current_step", 0)
     if not isinstance(current_idx, int) or current_idx < 0:
         current_idx = 0
@@ -766,8 +776,8 @@ def update_main_plan_progress(main_plan: dict[str, Any]) -> dict[str, Any]:
         main_plan["status"] = "completed"
         return main_plan
 
-    # Выставляем статус текущего шага как in_progress, если ещё pending
-    if isinstance(steps[current_idx], dict) and steps[current_idx].get("status") == "pending":
+    # Выставляем статус текущего шага как in_progress, если он ещё не начат
+    if isinstance(steps[current_idx], dict) and steps[current_idx].get("status") in (None, "", "unknown", "not_started", "pending"):
         steps[current_idx]["status"] = "in_progress"
 
     step = steps[current_idx] if isinstance(steps[current_idx], dict) else {}
@@ -798,7 +808,7 @@ def update_main_plan_progress(main_plan: dict[str, Any]) -> dict[str, Any]:
     # Переходим к следующей фазе или закрываем план
     if next_idx < len(steps):
         main_plan["current_step"] = next_idx
-        if isinstance(steps[next_idx], dict) and steps[next_idx].get("status") == "pending":
+        if isinstance(steps[next_idx], dict) and steps[next_idx].get("status") in (None, "", "unknown", "not_started", "pending"):
             steps[next_idx]["status"] = "in_progress"
         main_plan["status"] = "in_progress"
     else:

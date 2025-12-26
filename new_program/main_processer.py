@@ -186,6 +186,13 @@ def main_processer(input_url):
     """ 
     Ответ агента:
 
+    {
+        "used_seletor_search_input": "#woocommerce-product-search-field-0",
+        "used_seletor_search_button": "",
+        "used_search_request": "инструмент",
+        "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+    }
+
     """
     
 
