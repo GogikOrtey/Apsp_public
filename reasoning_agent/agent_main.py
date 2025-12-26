@@ -24,7 +24,10 @@ from reasoning_agent.chat_terminal import init_chat_channel, chat_print
 # Подключаю инструменты
 from reasoning_agent.agent_tools import *
 from reasoning_agent.plan_tools import *
-from reasoning_agent.runtime_state import set_main_plan as _set_runtime_main_plan
+from reasoning_agent.runtime_state import (
+    set_main_plan as _set_runtime_main_plan,
+    set_long_term_memory as _set_runtime_long_term_memory,
+)
 
 
 
@@ -202,14 +205,14 @@ SYSTEM_PROMPT = """
 - history не является надёжным источником фактов и отражает лишь ход выполнения задачи
 - нельзя рассчитывать на сохранность информации в history между шагами
 - любая информация (факт, вывод, наблюдение, результат инструмента), которая может понадобиться для:
-заполнения result, принятия решений на следующих шагах, будущих фаз плана - должна быть сохранена в memory через memory_updates
+заполнения result, принятия решений на следующих шагах, будущих фаз плана - должна быть сохранена в memory через memory_updates или инструмент update_memory(value)
 - не нужно сохранять в memory информацию, которая уже надёжно зафиксирована в result
 
 ДОЛГОВРЕМЕННАЯ ПАМЯТЬ (memory):
 - memory содержит информацию, которую ты ранее сохранил
 - memory передаётся тебе полностью на каждом шаге
 - memory не ограничена HISTORY_WINDOW
-- если информация может понадобиться позже — сохрани её через memory_updates
+- если информация может понадобиться позже — сохрани её через memory_updates или инструмент update_memory(value)
 
 ТЕКУЩИЙ ТАКТИЧЕСКИЙ ПЛАН (steps_future):
 - steps_future — это твоя тактическая гипотеза действий внутри ТЕКУЩЕЙ ФАЗЫ глобального плана
@@ -861,6 +864,12 @@ def orchestrate(
     # Делаем main_plan доступным инструментам (через runtime_state) без циклических импортов
     try:
         _set_runtime_main_plan(main_plan)
+    except Exception:
+        pass
+
+    # Делаем long_term_memory доступной инструментам (через runtime_state) без циклических импортов
+    try:
+        _set_runtime_long_term_memory(long_term_memory)
     except Exception:
         pass
 

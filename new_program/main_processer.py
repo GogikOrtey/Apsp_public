@@ -55,6 +55,8 @@ from new_program.use_agent_for_step_2_gen_parsePage import *
 - Если ты совершил 2 одинаковых действия подряд и delta_text равен 0, ты ОБЯЗАН сменить тактику: попробовать find_elements, сделать scroll, или проверить, нет ли перекрывающих элементов (модальных окон).
 
 
+- Когда в main_plan может указываться статус шага как unknown ?
+
 
 Надо:
 - Протестировать инструмент перехода к ранее выполненному шагу плана
@@ -123,42 +125,42 @@ def main_processer(input_url):
 
     # region Шаг 1 - HGF
 
-    # HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
-    # print(f"\nHGF_result:\n")
-    # print(HGF_result)
+    HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+    print(f"\nHGF_result:\n")
+    print(HGF_result)
 
-    # Временно используем готовый результат HGF для сайта makitaclub.ru
-    HGF_result = r"""{
-        "status": "ok",
-        "error_type": null,
-        "analysis_message": "Страница успешно обработана",
-        "semantics": [
-            "инструмент",
-            "дрель",
-            "шуруповерт",
-            "перфоратор",
-            "болгарка",
-            "пила",
-            "шлифмашина",
-            "пылесос",
-            "аккумулятор",
-            "оснастка"
-        ],
-        "search_input_selectors": [
-            "#woocommerce-product-search-field-0",   
-            "form.woocommerce-product-search input.search-field",
-            ".site-search form.woocommerce-product-search input[type=\"search\"]",
-            "input.search-field[name=\"s\"]",        
-            "form[role=\"search\"] input[type=\"search\"]"
-        ],
-        "search_button_selectors": [
-            "form.woocommerce-product-search button[type=\"submit\"]",
-            ".site-search form.woocommerce-product-search button[type=\"submit\"]",
-            "form[role=\"search\"] button[type=\"submit\"]",
-            ".woocommerce-product-search button[type=\"submit\"]",
-            ".site-search button[type=\"submit\"]"   
-        ]
-    }"""
+    # # Временно используем готовый результат HGF для сайта makitaclub.ru
+    # HGF_result = r"""{
+    #     "status": "ok",
+    #     "error_type": null,
+    #     "analysis_message": "Страница успешно обработана",
+    #     "semantics": [
+    #         "инструмент",
+    #         "дрель",
+    #         "шуруповерт",
+    #         "перфоратор",
+    #         "болгарка",
+    #         "пила",
+    #         "шлифмашина",
+    #         "пылесос",
+    #         "аккумулятор",
+    #         "оснастка"
+    #     ],
+    #     "search_input_selectors": [
+    #         "#woocommerce-product-search-field-0",   
+    #         "form.woocommerce-product-search input.search-field",
+    #         ".site-search form.woocommerce-product-search input[type=\"search\"]",
+    #         "input.search-field[name=\"s\"]",        
+    #         "form[role=\"search\"] input[type=\"search\"]"
+    #     ],
+    #     "search_button_selectors": [
+    #         "form.woocommerce-product-search button[type=\"submit\"]",
+    #         ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+    #         "form[role=\"search\"] button[type=\"submit\"]",
+    #         ".woocommerce-product-search button[type=\"submit\"]",
+    #         ".site-search button[type=\"submit\"]"   
+    #     ]
+    # }"""
 
     # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
     HGF_result = json.loads(HGF_result)

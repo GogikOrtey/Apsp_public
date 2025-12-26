@@ -16,7 +16,10 @@ if str(ROOT_DIR) not in sys.path:
 # Импортируем LLM-клиент для генерации и формализации плана
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
-from reasoning_agent.runtime_state import get_main_plan as _get_runtime_main_plan
+from reasoning_agent.runtime_state import (
+    get_main_plan as _get_runtime_main_plan,
+    get_long_term_memory as _get_runtime_long_term_memory,
+)
 
 """
 
@@ -299,6 +302,48 @@ def update_result(field: str, value: Any):
 
     node[path[-1]] = value
     return {"status": "ok", "result": RESULT}
+
+
+# region update_memory
+@tool(
+    name="update_memory",
+    description=(
+        "Добавляет значение в долговременную память агента (long_term_memory). "
+        "Используй, когда нужно сохранить факт/наблюдение, которое понадобится позже."
+    ),
+    args=[
+        {
+            "name": "value",
+            "type": "any",
+            "required": True,
+            "description": "Значение для сохранения (обычно строка). Если передан массив — будет добавлен целиком (extend)."
+        }
+    ],
+    returns={
+        "status": "ok|error",
+        "added": "int",
+        "memory_size": "int|null",
+        "error": "str|null"
+    },
+    example_args={"value": "old_url=https://makitaclub.ru/"}
+)
+def update_memory(value: Any):
+    memory = _get_runtime_long_term_memory()
+    if memory is None:
+        return {
+            "status": "error",
+            "added": 0,
+            "memory_size": None,
+            "error": "long_term_memory не инициализирован (runtime_state.get_long_term_memory() == None)"
+        }
+
+    # Поддерживаем как одиночное значение, так и список значений
+    if isinstance(value, list):
+        memory.extend(value)
+        return {"status": "ok", "added": len(value), "memory_size": len(memory), "error": None}
+
+    memory.append(value)
+    return {"status": "ok", "added": 1, "memory_size": len(memory), "error": None}
 
 
 # region goto_main_plan_step
