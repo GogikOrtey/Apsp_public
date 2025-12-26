@@ -28,6 +28,7 @@ from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 from new_program.html_toolkit import *
 from new_program.HGF_main_page_selector_and_semantic_handler import *
+from new_program.TNF_extract_data_from_search_page import *
 from new_program.use_agent_for_step_2_gen_parsePage import *
 
 # region Задачи
@@ -192,6 +193,27 @@ def main_processer(input_url):
         "used_search_request": "инструмент",
         "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
     }
+
+    """
+
+    # region Шаг 3 - TNF
+
+    # Получает html страницы результатов поисковой выдачи, и вытаскивает от туда нужные селекторы при помощи TNF
+
+    html_content = get_shared_page().content()
+    html_content_zip = clean_html_universal(html_content)
+
+    #################### закомментировать
+    save_page_html(html_content, filename = "page_html.html")
+    save_page_html(html_content_zip, filename = "page_html_zip.html")
+
+    HGF_result = TNF_extract_data_from_search_page(html_content_zip)
+    print(f"\nTNF_result:\n")
+    print(HGF_result)
+
+    """
+    Пример ответа:
+
 
     """
     
