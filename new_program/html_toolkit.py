@@ -548,34 +548,68 @@ function main() {
     // Это закрывает типичные sandbox-escape цепочки вида:
     //   $.constructor("return process")()
     //   obj.constructor.constructor("return process")()
+    //
+    // ВАЖНО: не ломаем встроенные итераторы/методы (например spread: Math.max(...arr)).
+    // Для этого:
+    // - кэшируем proxy <-> raw (WeakMap)
+    // - при вызове функций "распаковываем" this/args до raw
+    // - при чтении методов у объектов биндим их к raw-объекту (иначе методы с internal slots падают на Proxy receiver)
     const DENY_PROPS = new Set(['constructor', '__proto__', 'prototype']);
+    const RAW_TO_PROXY = new WeakMap();
+    const PROXY_TO_RAW = new WeakMap();
+
+    function unwrap(v) {
+      return PROXY_TO_RAW.get(v) || v;
+    }
+
     function makeSafe(value) {
       if (value === null || value === undefined) return value;
       const t = typeof value;
+      if (t !== 'object' && t !== 'function') return value;
+
+      // Если это уже наш Proxy — возвращаем как есть
+      if (PROXY_TO_RAW.has(value)) return value;
+      // Если raw уже обёрнут — возвращаем тот же Proxy
+      const cached = RAW_TO_PROXY.get(value);
+      if (cached) return cached;
+
       if (t === 'function') {
-        return new Proxy(value, {
+        const p = new Proxy(value, {
           get(target, prop, receiver) {
             if (DENY_PROPS.has(prop)) return undefined;
             const v = Reflect.get(target, prop, receiver);
             return makeSafe(v);
           },
           apply(target, thisArg, args) {
-            const res = Reflect.apply(target, thisArg, args);
+            const realThis = unwrap(thisArg);
+            const realArgs = (args || []).map(unwrap);
+            const res = Reflect.apply(target, realThis, realArgs);
             return makeSafe(res);
           },
         });
+        RAW_TO_PROXY.set(value, p);
+        PROXY_TO_RAW.set(p, value);
+        return p;
       }
-      if (t === 'object') {
-        return new Proxy(value, {
-          get(target, prop, receiver) {
-            if (DENY_PROPS.has(prop)) return undefined;
-            const v = Reflect.get(target, prop, receiver);
-            return makeSafe(v);
-          },
-        });
-      }
-      return value;
+
+      // object
+      const p = new Proxy(value, {
+        get(target, prop, receiver) {
+          if (DENY_PROPS.has(prop)) return undefined;
+          // Берём значение с receiver=target, чтобы не получать Proxy как this в геттерах/методах.
+          const v = Reflect.get(target, prop, target);
+          if (typeof v === 'function') {
+            // Биндим метод к raw-объекту, иначе built-in методы с internal slots могут падать на Proxy receiver
+            return makeSafe(v.bind(target));
+          }
+          return makeSafe(v);
+        },
+      });
+      RAW_TO_PROXY.set(value, p);
+      PROXY_TO_RAW.set(p, value);
+      return p;
     }
+
     const $ = makeSafe($raw);
 
     // Sandbox: даём только то, что нужно для cheerio-выражений.
@@ -681,6 +715,29 @@ main();
 # print(get_total_pages_on_cheerio_code("let totalPages = +$(\"a\").last().text().trim()", "<a>1</a><a>5</a>"))
 
 
+"""
+  "action": "get_total_pages_on_current_page_cheerio_code",
+  "args": {
+    "user_code": "let totalPages = Math.max(...$('nav.woocommerce-pagination a.page-numbers').get().map(item => +$(item).text().trim()).filter(Boolean))"
+  },
+"""
+
+
+
+user_code_test = "let totalPages = Math.max(...$('nav.woocommerce-pagination a.page-numbers').get().map(item => +$(item).text().trim()).filter(Boolean))"
+url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+html_content = get_html_from_cache(url)
+result_get_total_pages_on_cheerio_code = get_total_pages_on_cheerio_code(user_code_test, html_content)
+print("result_get_total_pages_on_cheerio_code:")
+print(result_get_total_pages_on_cheerio_code)
+
+
+
+
+
+
+
+
 
 
 
@@ -781,33 +838,54 @@ function main() {
     //   $.constructor("return process")()
     //   obj.constructor.constructor("return process")()
     const DENY_PROPS = new Set(['constructor', '__proto__', 'prototype']);
+    const RAW_TO_PROXY = new WeakMap();
+    const PROXY_TO_RAW = new WeakMap();
+
+    function unwrap(v) {
+      return PROXY_TO_RAW.get(v) || v;
+    }
+
     function makeSafe(value) {
       if (value === null || value === undefined) return value;
       const t = typeof value;
+      if (t !== 'object' && t !== 'function') return value;
+
+      if (PROXY_TO_RAW.has(value)) return value;
+      const cached = RAW_TO_PROXY.get(value);
+      if (cached) return cached;
+
       if (t === 'function') {
-        return new Proxy(value, {
+        const p = new Proxy(value, {
           get(target, prop, receiver) {
             if (DENY_PROPS.has(prop)) return undefined;
             const v = Reflect.get(target, prop, receiver);
             return makeSafe(v);
           },
           apply(target, thisArg, args) {
-            const res = Reflect.apply(target, thisArg, args);
+            const realThis = unwrap(thisArg);
+            const realArgs = (args || []).map(unwrap);
+            const res = Reflect.apply(target, realThis, realArgs);
             return makeSafe(res);
           },
         });
+        RAW_TO_PROXY.set(value, p);
+        PROXY_TO_RAW.set(p, value);
+        return p;
       }
-      if (t === 'object') {
-        return new Proxy(value, {
-          get(target, prop, receiver) {
-            if (DENY_PROPS.has(prop)) return undefined;
-            const v = Reflect.get(target, prop, receiver);
-            return makeSafe(v);
-          },
-        });
-      }
-      return value;
+
+      const p = new Proxy(value, {
+        get(target, prop, receiver) {
+          if (DENY_PROPS.has(prop)) return undefined;
+          const v = Reflect.get(target, prop, target);
+          if (typeof v === 'function') return makeSafe(v.bind(target));
+          return makeSafe(v);
+        },
+      });
+      RAW_TO_PROXY.set(value, p);
+      PROXY_TO_RAW.set(p, value);
+      return p;
     }
+
     const $ = makeSafe($raw);
 
     const sandbox = {
