@@ -178,25 +178,6 @@ HOST = '""" + host_value + """'
 
 
 
-
-
-
-""" 
-
-
-
-
-
-
-"""
-
-
-
-
-
-
-
-
 # Схема результата
 main_result_schema = {
     "start_page_url": {

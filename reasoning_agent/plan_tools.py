@@ -332,16 +332,19 @@ def _normalize_to_main_plan(raw_plan: dict[str, Any]) -> dict[str, Any]:
 # Собирает схему результатов в формате "имя поля": "описание"
 def get_result_schema_for_planner(schema: dict) -> dict:
     """
-    Будет выглядеть:
+    Будет выглядеть (обогащённо required-флагом, чтобы планировщик не требовал optional-поля):
     {
-        "file_name": "Имя файла",
-        "file_content": "Содержимое файла",
-        "meeting_time": "Время проведения собрания"
+        "file_name": {"description": "Имя файла", "required": true},
+        "file_content": {"description": "Содержимое файла", "required": true},
+        "meeting_time": {"description": "Время проведения собрания", "required": true}
     }
     """
     return {
-        field: meta.get("description", "")
-        for field, meta in schema.items()
+        field: {
+            "description": (meta.get("description", "") if isinstance(meta, dict) else ""),
+            "required": (meta.get("required", True) if isinstance(meta, dict) else True),
+        }
+        for field, meta in (schema.items() if isinstance(schema, dict) else [])
     }
 
 

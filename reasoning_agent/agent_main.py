@@ -278,7 +278,7 @@ SYSTEM_PROMPT = """
 РЕЗУЛЬТАТ (result):
 - Тебе будет дан result_schema и текущий result
 - Заполняй result ПОШАГОВО через инструмент update_result(field, value)
-- Текущая фаза считается завершенной, когда заполнены все поля, указанные в её "fills"
+- Текущая фаза считается завершенной, когда заполнены все обязательные поля, указанные в её "fills"
 - Используй action="DONE" только когда все фазы Глобального Плана выполнены и result полон
 - Используй action="FAILED" только когда ты не можешь продвинуться из-за недостижимости цели; в args обязательно передай reason (строку)
 
@@ -399,10 +399,27 @@ def format_main_plan_for_prompt(main_plan: dict[str, Any]) -> str:
             lines.append(step_desc)
             continue
 
+        # Показываем required/optional fills по текущей схеме результата (если возможно)
+        schema_obj = get_result_schema()
+        fills_all = step.get("fills", [])
+        fills_required_only: list[str] = []
+        fills_optional: list[str] = []
+        if isinstance(fills_all, list):
+            fills_str = [f.strip() for f in fills_all if isinstance(f, str) and f.strip()]
+            required_only = [f for f in fills_str if _is_schema_field_required(schema_obj, f)]
+            if required_only:
+                fills_required_only = required_only
+                fills_optional = [f for f in fills_str if f not in set(required_only)]
+            else:
+                # Фоллбэк: если required не определён/не распознан — считаем все fills обязательными
+                fills_required_only = fills_str
+
+        optional_line = f"   Опционально (required=false): {fills_optional}\n" if fills_optional else ""
         step_desc = (
             f"{marker} [Фаза {step.get('step_id', idx + 1)}]\n"
             f"   Цель (Goal): {step.get('goal', '')}\n"
-            f"   Требует заполнить (Fills): {step.get('fills', [])}\n"
+            f"   Требует заполнить обязательно: {fills_required_only}\n"
+            f"{optional_line}"
             f"   Статус: {step.get('status', 'unknown')}"
         )
         lines.append(step_desc)
@@ -622,12 +639,31 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
     steps_list = main_plan.get("steps", []) if isinstance(main_plan, dict) else []
     current_phase_goal = "Цель не определена"
     current_phase_fills = []
+    current_phase_optional_fills: list[str] = []
 
     if isinstance(steps_list, list) and 0 <= current_idx < len(steps_list) and isinstance(steps_list[current_idx], dict):
         current_phase_goal = steps_list[current_idx].get("goal") or current_phase_goal
         current_phase_fills = steps_list[current_idx].get("fills") or []
 
+    # В промпте фокусируем модель на обязательных полях (required=true), чтобы optional не блокировали прогресс.
+    schema_obj = get_result_schema()
+    if isinstance(current_phase_fills, list):
+        fills_str = [f.strip() for f in current_phase_fills if isinstance(f, str) and f.strip()]
+        required_only = [f for f in fills_str if _is_schema_field_required(schema_obj, f)]
+        if required_only:
+            current_phase_fills = required_only
+            current_phase_optional_fills = [f for f in fills_str if f not in set(required_only)]
+        else:
+            current_phase_fills = fills_str
+            current_phase_optional_fills = []
+
     playwright_context_block = build_playwright_context_block_for_prompt(max_actions=12)
+
+    optional_focus_line = (
+        f"Опциональные поля (required=false, не блокируют завершение фазы): {current_phase_optional_fills}\n"
+        if current_phase_optional_fills
+        else ""
+    )
 
     return f"""
 ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
@@ -647,7 +683,8 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 
 ТВОЙ ФОКУС ПРЯМО СЕЙЧАС (текущая фаза):
 Цель фазы: {current_phase_goal}
-Необходимо заполнить поля в result: {current_phase_fills}
+Необходимо заполнить ОБЯЗАТЕЛЬНЫЕ поля в result (required=true): {current_phase_fills}
+{optional_focus_line}
 
 ТАКТИЧЕСКИЙ ПЛАН (steps_future) должен вести к завершению этой фазы
 {playwright_context_block}
@@ -750,10 +787,65 @@ def _is_result_field_filled(value: Any) -> bool:
     return True
 
 
+def _get_schema_node_by_path(schema: Any, path: str) -> Any:
+    """
+    Best-effort получение узла схемы по dotted-path.
+    Поддерживает 2 распространённых варианта:
+    - "плоская" схема: schema[field] -> meta
+    - JSONSchema-подобная: node["properties"][field] -> meta
+    """
+    node: Any = schema
+    for part in [p for p in str(path).split(".") if p]:
+        if not isinstance(node, dict):
+            return None
+        if part in node:
+            node = node.get(part)
+            continue
+        props = node.get("properties")
+        if isinstance(props, dict) and part in props:
+            node = props.get(part)
+            continue
+        return None
+    return node
+
+
+def _is_schema_field_required(schema: Any, path: str) -> bool:
+    """
+    Определяет обязательность поля по result_schema.
+    По умолчанию (если в схеме нет required) считаем поле обязательным для обратной совместимости.
+    """
+    node = _get_schema_node_by_path(schema, path)
+    if not isinstance(node, dict):
+        return True
+    req = node.get("required")
+    if isinstance(req, bool):
+        return req
+    if isinstance(req, str):
+        v = req.strip().lower()
+        if v in ("true", "1", "yes", "y"):
+            return True
+        if v in ("false", "0", "no", "n"):
+            return False
+    return True
+
+
+def _required_fills_or_all(fills: list[Any], schema: Any) -> list[str]:
+    """
+    Возвращает список fills, которые required=true по схеме.
+    Если не удалось выделить ни одного required fill (или fills некорректен) — возвращаем исходные fills (str-only),
+    чтобы не "закрывать" шаги случайно.
+    """
+    fills_str = [f.strip() for f in fills if isinstance(f, str) and f.strip()]
+    if not fills_str:
+        return []
+    required_only = [f for f in fills_str if _is_schema_field_required(schema, f)]
+    return required_only or fills_str
+
+
 def update_main_plan_progress(main_plan: dict[str, Any]) -> dict[str, Any]:
     """
     Автоматически продвигает main_plan по фазам:
-    - текущая фаза выполнена, когда все её fills заполнены в result
+    - текущая фаза выполнена, когда все REQUIRED (required=true) поля из её fills заполнены в result
     - оркестратор двигает current_step и статусы шагов
 
     Важно: main_plan мутируется in-place, но также возвращается для удобства.
@@ -799,6 +891,7 @@ def update_main_plan_progress(main_plan: dict[str, Any]) -> dict[str, Any]:
         return main_plan
 
     result_obj = get_result()
+    result_schema_obj = get_result_schema()
 
     def _get_by_path(obj: Any, path: str) -> Any:
         node = obj
@@ -808,7 +901,8 @@ def update_main_plan_progress(main_plan: dict[str, Any]) -> dict[str, Any]:
             node = node.get(part)
         return node
 
-    for f in fills:
+    fills_to_check = _required_fills_or_all(fills, result_schema_obj)
+    for f in fills_to_check:
         val = _get_by_path(result_obj, f)
         if not _is_result_field_filled(val):
             return main_plan
