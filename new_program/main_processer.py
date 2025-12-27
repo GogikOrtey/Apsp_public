@@ -40,11 +40,6 @@ from new_program.agent_step_6_URL_construct import *
 
 План на будущее:
 
-- Прокинуть все параметры для 3го запроса
-    - HOST где-то уже извлекался
-- Запустить, протестировать
-- Переименовать запросы, выстроить цепочку в новом формате
-
 - Далее надо будет собрать один запрос (вне агента) на то, что бы он собрал из кусочков целую функцию parsePage
     - Надо будет прописать ему достаточно ограничений, что бы не фантазировал в коде
 - Проверить, что все нужные аргументы корректно извлекаются и прокидываются куда нужно
@@ -80,9 +75,6 @@ from new_program.agent_step_6_URL_construct import *
     (Но сначала проверить, можно ли её контрить параметрами в URL)
 
 
-
-
-- Нужно будет проверить, корректно ли работает вызов одного агента после второго, в одном запуске программы.
 
 
 
@@ -449,14 +441,18 @@ def main_processer(input_url):
 
     search_request = result_agent_answer_from_2_step.get("used_search_request")
 
+    print("Запуск result_agent_step_4_product")
     result_agent_step_4_product = agent_step_4_product(TNF_result, search_request)
 
+
+    print("Запуск result_agent_step_5_pagination")
     result_agent_step_5_pagination = agent_step_5_pagination(TNF_result, search_request)
 
-    # Приводим семантику к формату как в тестах agent_step_6_URL_construct: {"semantics": [...]}
+
     semantics_list = HGF_result.get("semantics") or []
     semantics = {"semantics": semantics_list}
 
+    print("Запуск result_agent_step_6_URL_construct")
     result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)
 
 
