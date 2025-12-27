@@ -414,11 +414,11 @@ def format_main_plan_for_prompt(main_plan: dict[str, Any]) -> str:
                 # Фоллбэк: если required не определён/не распознан — считаем все fills обязательными
                 fills_required_only = fills_str
 
-        optional_line = f"   Опционально (required=false): {fills_optional}\n" if fills_optional else ""
+        optional_line = f"   Необязательные поля (required=false): {fills_optional}\n" if fills_optional else ""
         step_desc = (
             f"{marker} [Фаза {step.get('step_id', idx + 1)}]\n"
             f"   Цель (Goal): {step.get('goal', '')}\n"
-            f"   Требует заполнить обязательно: {fills_required_only}\n"
+            f"   Требует заполнить (Fills): {fills_required_only}\n"
             f"{optional_line}"
             f"   Статус: {step.get('status', 'unknown')}"
         )
@@ -683,7 +683,7 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 
 ТВОЙ ФОКУС ПРЯМО СЕЙЧАС (текущая фаза):
 Цель фазы: {current_phase_goal}
-Необходимо заполнить ОБЯЗАТЕЛЬНЫЕ поля в result (required=true): {current_phase_fills}
+Необходимо заполнить поля в result: {current_phase_fills}
 {optional_focus_line}
 
 ТАКТИЧЕСКИЙ ПЛАН (steps_future) должен вести к завершению этой фазы
