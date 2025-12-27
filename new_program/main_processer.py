@@ -405,6 +405,8 @@ def main_processer(input_url):
     # agent_step_4_state_2
     # agent_step_4_state_3
 
+    # Там у нас тестирование незакомментировано
+
     print("🟦 Завершили первые 3 фазы для parsePage ✅")
     input("Нажмите Enter, чтобы закрыть браузер...")
     

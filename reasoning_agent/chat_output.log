@@ -98,8 +98,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 1   ———————————
 
-🟢 reasoning: Для завершения фазы 1 нужно определить адекватное количество ссылок товаров по предпочтительному (первому) селектору из product_link_selectors и затем записать это число в result.count_of_product_on_this_page.
-🔵 target: Проверить основной селектор ссылки на товар и получить количество найденных товаров на странице
+🟢 reasoning: Текущая фаза требует зафиксировать count_of_product_on_this_page. Начинаю с самого предпочтительного селектора из product_link_selectors и получаю количество совпадений, чтобы оценить адекватность (обычно 10–80).
+🔵 target: Проверить основной селектор ссылок на товары и получить количество найденных элементов на странице
 🟡 action: find_elements
    🔶 args: {"selector": ".products .product-card a.stretched-link[href*='/products/']", "only_count": true}
 
@@ -108,8 +108,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 2   ———————————
 
-🟢 reasoning: По основному селектору product_link_selectors[0] find_elements вернул count=16, что попадает в ожидаемый диапазон (эвристика 10..80). Это число нужно зафиксировать в result для завершения фазы 1.
-🔵 target: Записать в result количество товаров на странице по проверенному рабочему селектору ссылок товаров
+🟢 reasoning: По основному селектору из product_link_selectors найдено 16 элементов, что выглядит адекватным количеством товаров на странице (эвристика 10–80). Для текущей фазы нужно заполнить только count_of_product_on_this_page.
+🔵 target: Зафиксировать в result количество найденных ссылок товаров по рабочему селектору (16) для завершения фазы 1
 🟡 action: update_result
    🔶 args: {"field": "count_of_product_on_this_page", "value": 16}
 
@@ -118,8 +118,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 3   ———————————
 
-🟢 reasoning: Фаза 2 требует подтвердить, что найденные элементы — это ссылки внутри карточек товаров (в блоке есть минимум название), и затем выбрать корректный селектор. Для этого сначала получаю HTML блоков товаров через parse_product_blocks_on_current_page по уже рабочему селектору (16 элементов).
-🔵 target: Извлечь HTML-блоки 2-го и 3-го товаров по текущему селектору ссылки и убедиться, что это полноценные карточки товара
+🟢 reasoning: Фаза 2 требует убедиться, что найденные элементы — это ссылки внутри карточек товаров. Инструмент parse_product_blocks_on_current_page по селектору ссылки вернёт HTML блоков товаров, по которым можно проверить наличие названия/структуры и затем выбрать корректный селектор и сохранить HTML в memory.
+🔵 target: Извлечь HTML-блоки 2-го и 3-го товара по текущему селектору ссылки и проверить, что это полноценные карточки (есть название)
 🟡 action: parse_product_blocks_on_current_page
    🔶 args: {"item_selector": ".products .product-card a.stretched-link[href*='/products/']"}
 
@@ -128,8 +128,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 4   ———————————
 
-🟢 reasoning: Фаза 2 требует сохранить HTML-структуру одной карточки товара в memory. parse_product_blocks_on_current_page вернул полноценный блок с названием (h5.card-title), ценой и кнопкой, поэтому сохраняю этот HTML для будущих фаз.
-🔵 target: Сохранить HTML-структуру карточки товара в memory для дальнейших фаз
+🟢 reasoning: Фаза 2 требует сохранить HTML-структуру одной карточки товара в memory. Инструмент parse_product_blocks_on_current_page уже вернул полноценный блок с названием (h5.card-title), ценой и ссылкой. Сохраняю этот HTML, чтобы использовать в следующих фазах при построении кода/проверках.
+🔵 target: Сохранить HTML-структуру одной карточки товара (из blocks_html) в долговременную память для будущих фаз
 🟡 action: update_memory
    🔶 args: {"value": "product_card_html_sample=<div class=\"col product-card\">\n<div class=\"card h-100 site-hover product type-product post-36949 status-publish instock product_cat-podarochnye-sertifikaty has-post-thumbnail shipping-taxable purchasable product-type-simple\">\n<div class=\"row g-0\">\n<div class=\"col-md-2\">\n<img alt=\"\" class=\"attachment-woocommerce_thumbnail size-woocommerce_thumbnail\" height=\"341\" loading=\"lazy\" sizes=\"(max-width: 264px) 100vw, 264px\" src=\"https://makitaclub.ru/wp-content/uploads/5-years_1.png\" srcset=\"https://makitaclub.ru/wp-content/uploads/5-years_1.png 264w, https://makitaclub.ru/wp-content/uploads/5-years_1-116x150.png 116w, https://makitaclub.ru/wp-content/uploads/5-years_1-232x300.png 232w\" width=\"264\"/> </div>\n<div class=\"col-md-7\">\n<div class=\"card-body\">\n<h5 class=\"card-title\">Сертификат на 5 лет бесплатного ремонта заводского брака на электроинструмент Makita</h5>\n<div class=\"text-muted text-truncate\">\n</div>\n<a class=\"stretched-link\" href=\"https://makitaclub.ru/products/garantiya-5-let/\"></a> </div>\n</div>\n<div class=\"col-md-3 actions p-3\">\n<div class=\"row text-end mb-3\">\n<div class=\"col\">\n<span class=\"price\"><span class=\"woocommerce-Price-amount amount\"><bdi>3 000 <span class=\"woocommerce-Price-currencySymbol\">₽</span></bdi></span></span>\n</div>\n</div>\n<div class=\"row text-end\">\n<div class=\"col\">\n<a aria-label='Добавить \"Сертификат на 5 лет бесплатного ремонта заводского брака на электроинструмент Makita\" в корзину' class=\"button product_type_simple add_to_cart_button ajax_add_to_cart\" data-product_id=\"36949\" data-product_sku=\"garantiya-5-let\" data-quantity=\"1\" href=\"?add-to-cart=36949\" onclick=\"addedToCard(event, 36949, 'Сертификат на 5 лет бесплатного ремонта заводского брака на электроинструмент Makita', 3000, 3000, 0)\" rel=\"nofollow\">В корзину</a> </div>\n</div>\n</div>\n</div>\n</div>\n</div>"}
 
@@ -138,8 +138,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 5   ———————————
 
-🟢 reasoning: Селектор product_link_selectors[0] уже показал адекватное количество элементов (16) и parse_product_blocks_on_current_page вернул полноценные карточки товаров с названием (h5.card-title), ценой и ссылкой a.stretched-link, значит он корректен и должен быть выбран для дальнейших фаз.
-🔵 target: Зафиксировать выбранный корректный селектор ссылки на товар в result.choose_product_selector
+🟢 reasoning: parse_product_blocks_on_current_page по этому селектору вернул полноценные карточки товаров (div.col.product-card) с названием (h5.card-title), ценой и ссылкой a.stretched-link, значит селектор корректен и его нужно зафиксировать в result для завершения фазы 2.
+🔵 target: Записать выбранный корректный селектор ссылки на товар в result.choose_product_selector
 🟡 action: update_result
    🔶 args: {"field": "choose_product_selector", "value": ".products .product-card a.stretched-link[href*='/products/']"}
 
@@ -148,27 +148,17 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 6   ———————————
 
-🟢 reasoning: Чтобы заполнить additional_processing_for_the_link_value, нужно проверить, что именно лежит в href у ссылки товара (абсолютный URL или относительный). Быстрее всего извлечь href через cheerio-код и посмотреть, начинается ли он с https://makitaclub.ru или с /products/.
-🔵 target: Понять, требует ли ссылка на товар дополнительной обработки (относительная или абсолютная) по выбранному селектору
-🟡 action: get_product_link_on_current_page_cheerio_code
-   🔶 args: {"user_code": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)"}
-
-🛠️  get_product_link_on_current_page_cheerio_code({'user_code': 'let products = $(\'.products .product-card a.stretched-link[href*="/products/"]\')\nlet product = products?.eq(0)\nlet link = $(product)?.attr(\'href\')\nconsole.log(\'link = \' + link)'})
-Инструмент вернул результат: {"status": "ok", "link": "https://makitaclub.ru/products/831271-6/", "logs": "link = https://makitaclub.ru/products/831271-6/", "error": null}
-
-———————————   Шаг 7   ———————————
-
-🟢 reasoning: Извлечённый через cheerio href для первого товара уже является абсолютным URL (https://makitaclub.ru/products/831271-6/), значит добавлять HOST или выполнять другую обработку для получения валидной ссылки не требуется.
-🔵 target: Зафиксировать, требуется ли дополнительная обработка значения ссылки на товар (HOST/относительный путь) по выбранному селектору
+🟢 reasoning: В уже извлечённом HTML карточки товара (blocks_html из parse_product_blocks_on_current_page) ссылка имеет вид href="https://makitaclub.ru/products/garantiya-5-let/" — это абсолютный URL с протоколом и доменом. Следовательно, добавлять HOST или выполнять другую доп. обработку для получения валидной ссылки не требуется.
+🔵 target: Определить, требуется ли доп. обработка ссылки товара (абсолютный href или относительный) и зафиксировать в result.additional_processing_for_the_link_value
 🟡 action: update_result
    🔶 args: {"field": "additional_processing_for_the_link_value", "value": false}
 
 🛠️  update_result({'field': 'additional_processing_for_the_link_value', 'value': False})
 Инструмент вернул результат: {"status": "ok", "result": {"count_of_product_on_this_page": 16, "choose_product_selector": ".products .product-card a.stretched-link[href*='/products/']", "additional_processing_for_the_link_value": false, "builded_code_product_processing": null, "check_generated_code_successful": null}}
 
-———————————   Шаг 8   ———————————
+———————————   Шаг 7   ———————————
 
-🟢 reasoning: additional_processing_for_the_link_value=false, т.к. href уже абсолютный (https://makitaclub.ru/products/...). Значит код должен просто взять attr('href') по choose_product_selector и вывести link.
+🟢 reasoning: additional_processing_for_the_link_value=false, т.к. в образце HTML ссылка уже абсолютная (https://makitaclub.ru/products/...). Значит достаточно извлечь href у первого элемента по choose_product_selector без добавления HOST и сохранить минимальный код.
 🔵 target: Сформировать и сохранить JS/cheerio фрагмент кода для извлечения ссылки на первый товар по выбранному селектору
 🟡 action: update_result
    🔶 args: {"field": "builded_code_product_processing", "value": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)"}
@@ -176,10 +166,20 @@ SYSTEM_PROMPT =
 🛠️  update_result({'field': 'builded_code_product_processing', 'value': 'let products = $(\'.products .product-card a.stretched-link[href*="/products/"]\')\nlet product = products?.eq(0)\nlet link = $(product)?.attr(\'href\')\nconsole.log(\'link = \' + link)'})
 Инструмент вернул результат: {"status": "ok", "result": {"count_of_product_on_this_page": 16, "choose_product_selector": ".products .product-card a.stretched-link[href*='/products/']", "additional_processing_for_the_link_value": false, "builded_code_product_processing": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)", "check_generated_code_successful": null}}
 
+———————————   Шаг 8   ———————————
+
+🟢 reasoning: В текущей фазе нужно подтвердить работоспособность кода извлечения ссылки. Код уже сформирован в result.builded_code_product_processing, осталось выполнить проверку через песочницу cheerio и затем (если успешно) записать check_generated_code_successful=true.
+🔵 target: Проверить, что сгенерированный JS/cheerio-код корректно извлекает и печатает ссылку на первый товар
+🟡 action: get_product_link_on_current_page_cheerio_code
+   🔶 args: {"user_code": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)"}
+
+🛠️  get_product_link_on_current_page_cheerio_code({'user_code': 'let products = $(\'.products .product-card a.stretched-link[href*="/products/"]\')\nlet product = products?.eq(0)\nlet link = $(product)?.attr(\'href\')\nconsole.log(\'link = \' + link)'})
+Инструмент вернул результат: {"status": "ok", "link": "https://makitaclub.ru/products/831271-6/", "logs": "link = https://makitaclub.ru/products/831271-6/", "error": null}
+
 ———————————   Шаг 9   ———————————
 
-🟢 reasoning: Фаза 4 требует подтвердить успешность проверки кода. В истории уже есть успешный запуск get_product_link_on_current_page_cheerio_code с тем же фрагментом builded_code_product_processing: он вернул абсолютную ссылку https://makitaclub.ru/products/831271-6/ без ошибок. Значит проверка сгенерированного кода успешна и можно записать true.
-🔵 target: Зафиксировать успешность проверки сгенерированного cheerio-кода (он извлекает валидную ссылку на первый товар)
+🟢 reasoning: Проверка get_product_link_on_current_page_cheerio_code завершилась успешно (status=ok) и вернула валидную ссылку на товар без ошибок, значит нужно записать check_generated_code_successful=true для завершения текущей фазы.
+🔵 target: Зафиксировать успешность проверки сгенерированного JS/cheerio-кода извлечения ссылки на товар
 🟡 action: update_result
    🔶 args: {"field": "check_generated_code_successful", "value": true}
 
@@ -188,8 +188,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 10   ———————————
 
-🟢 reasoning: main_plan отмечен как completed, текущая фаза не требует заполнения полей (fills=[]). В result уже заполнены все обязательные поля schema: count_of_product_on_this_page, choose_product_selector, additional_processing_for_the_link_value, builded_code_product_processing, check_generated_code_successful=true. HTML карточки товара сохранён в memory. Дополнительных действий в браузере не требуется.
-🔵 target: Завершить задачу: все фазы main_plan закрыты, result заполнен
+🟢 reasoning: Все фазы main_plan отмечены как выполненные, текущий result содержит значения для всех обязательных полей схемы (count_of_product_on_this_page, choose_product_selector, additional_processing_for_the_link_value, builded_code_product_processing, check_generated_code_successful=true). Дополнительных действий в браузере не требуется.
+🔵 target: Завершить задачу, так как все поля result заполнены и проверка кода успешна
 🟡 action: DONE
 
 

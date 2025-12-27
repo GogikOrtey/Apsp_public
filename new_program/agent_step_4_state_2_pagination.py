@@ -41,6 +41,188 @@ main_task_all = """
 
 Тебе нужно:
 
+Определить способ, как на этой странице получить значение максимального количества страниц выдачи
+
+Алгоритм:
+
+Сначала просмотри инструментом get_html_frame_on_current_page html код всего блока пагинации (который указан в pagination_container_selectors в input_data). Запиши его в memory.
+
+Шаг 1. Определить, как извлекать значение максимального количества страниц:
+1.1 Если поле last_page_number_displayed в input_data = true, это значит что в элементе пагинации, который выполняет переход на последнюю страницу, был замечен текст, в котором записан номер этой последней страницы.
+
+Попробуй запустить инструмент get_total_pages_on_current_page_cheerio с селектором на элементы пагинации. Но чаще всего, селектора указывающего на весь блок пагинации (pagination_container_selectors) недостаточно для того что бы инструмент get_total_pages_on_current_page_cheerio и код который он запускает, корректно сработал. Я рекомендую тебе попробовать добавить к селектору всего блока пагинации - в конце уточняющие части, так что бы он указывал на элементы, содержащие числа пагинации (посмотри по html коду). Чаще всего достаточно добавить в конец селектора например "a", "span", "li" и подобные. Попробуй запустить get_total_pages_on_current_page_cheerio максимум 2 раза (с разными селекторами). Если он выдаёт -Infinity, 0 или другое некорректное значение, то переходи к шагу 1.2. 
+
+Если инструмент get_total_pages_on_current_page_cheerio выдал корректное значение - максимальное количество страниц пагинации на этом сайте, то запиши селектор в result в поле pagination_max_page_value_selector. Также запиши в result в поле type_struct_extract_max_page значение "simple_max", и переходи к шагу 2 - генерации кода.
+
+1.2 Если last_page_number_displayed в input_data = false, или get_total_pages_on_current_page_cheerio вернул некорректный результат, то значит номер последней страницы не указан явно текстом, но скорее всего его можно извлечь из ссылки, которая находится в элементе перехода на последнюю страницу. Селектор этого элемента лежит в 
+pagination_last_page_selectors в input_data.
+
+Получи этот элемент через инструмент get_html_frame_on_current_page, и если там в ссылке действительно есть номер последней страницы (т.е. например URL имеет часть page=22), то запиши в result в поле type_struct_extract_max_page значение "extract_from_url", и в поле pagination_max_page_value_selector запиши селектор, указывающий на этот элемент перехода на последнюю страницу, и переходи к шагу 2 - генерации кода.
+
+1.3 Если last_page_number_displayed в input_data = null, или предыдущие шаги 1.1 и 1.2 не дали результатов, то значит в блоке пагинации нет номера последней страницы. Проверь, если поле total_results_count_selectors в input_data не равняется null, то значит на странице был найден элемент, в котором в тексте есть число общего количества найденных результатов по этому запросу. Значит, мы сможем найти максимальное количество страниц позже, из значения этого элемента. Проверь его через инструмент get_html_frame_on_current_page. Если там указано число найденных элементов (например "По запросу _ найдено 3442 товара"), значит это нужный элемент. 
+Запиши в result в поле type_struct_extract_max_page значение "use_total_count", и в поле pagination_max_page_value_selector запиши селектор, указывающий на этот элемент, и переходи к шагу 2 - генерации кода.
+
+Если в этом элементе total_results_count_selectors нет нужного подходящего числа, или вообще не указано текста, или например количество найденных результатов указано текстом ("три тысячи четыреста сорок два"), то это не то что нам нужно. В таком случае проверь остальные 2 запасных селектора из поля total_results_count_selectors.
+
+Если шаги 1.1, 1.2 и 1.3 не дали результатов, то верни FAILED, с описанием того что не получилось.
+
+————————————————————————
+
+Шаг 2. Генерация кода
+
+
+
+""" 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+""" 
+
+{
+    "pagination_max_page_value_selector"
+    "type_struct_extract_max_page": simple_max | extract_from_url | use_total_count
+    "builded_code_get_max_page_on_pagination"
+    "check_generated_code_successful"
+}
+
+"""
+
+
+
+
+
+
+# Схема результата
+main_result_schema = {
+    "pagination_max_page_value_selector": {
+        "type": "string",
+        "required": True,
+        "description": "Селектор, указывающий на элемент, из которого мы будем извлекать значение максимального количества страниц для пагинации"
+    },
+    "type_struct_extract_max_page": {
+        "type": "string",
+        "required": True,
+        "description": "Тип структуры кода для извлечения максимального количества страниц для пагинации"
+    },
+    "builded_code_get_max_page_on_pagination": {
+        "type": "string",
+        "required": True,
+        "description": "Сформированный фрагмент кода извлечения максимального количества страниц для пагинации"
+    },
+    "check_generated_code_successful": {
+        "type": "boolean",
+        "required": True,
+        "description": "Была ли проверка сгенерированного фрагмента кода успешна. Ожидает только записи значения true"
+    }
+}
+
+# Шаблон результата, который агент заполняет в процессе работы
+main_result_template = {
+    "count_of_product_on_this_page": None,
+    "choose_product_selector": None,
+    "additional_processing_for_the_link_value": None,
+    "builded_code_product_processing": None,
+    "check_generated_code_successful": None
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+input_data_test = {
+    "search_input_selectors": [
+        "#woocommerce-product-search-field-0",
+        "form.woocommerce-product-search input.search-field[type='search'][name='s']",
+        ".site-search .woocommerce-product-search input.search-field"
+    ],
+    "search_button_selectors": [
+        "form.woocommerce-product-search button[type='submit']",
+        ".site-search form.woocommerce-product-search button",
+        ".widget_product_search form button[type='submit']"
+    ],
+    "total_results_count_selectors": [
+        "p.woocommerce-result-count",
+        ".storefront-sorting > p.woocommerce-result-count",
+        "main#main p.woocommerce-result-count"
+    ],
+    "product_link_selectors": [
+        ".products .product-card a.stretched-link[href*='/products/']",
+        ".products a.stretched-link[href*='/products/']",
+        ".products .card a.stretched-link"
+    ],
+    "pagination_container_selectors": [
+        "nav.woocommerce-pagination",
+        ".storefront-sorting nav.woocommerce-pagination",
+        "ul.page-numbers"
+    ],
+    "pagination_page2_selectors": [
+        "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
+        "ul.page-numbers a.page-numbers[href*='/page/2/']",
+        "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
+    ],
+    "pagination_last_page_selectors": [
+        "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+        "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+        "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
+    ],
+    "last_page_number_displayed": "true"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+main_task_all = """
+Во входных данных (input_data) тебе даны селекторы на элементы этой страницы. Они понадобятся тебе в ходе выполнения проверок и решения задачи. В каждом массиве есть input_data по 3 селектора, из них первый - это самый стабильный и предпочтительный, по умолчанию используй его. Но если вдруг первый окажется по каким-то причинам неподходящим или нерабочим, то есть ещё 2 запасных селектора, которые указывают также на этот элемент.
+
+Тебе нужно:
+
 Проверить и выбрать селектор для ссылки на товар. Селектор лежит в поле product_link_selectors во входных данных.
 Этот селектор указывает не на весь блок товара, с описанием, ценой и прочим - а только на ссылку, которая далее ведёт на страницу с этим товаром.
 
@@ -117,45 +299,6 @@ result_template:
 
 
 
-# Схема результата
-main_result_schema = {
-    "count_of_product_on_this_page": {
-        "type": "number",
-        "required": True,
-        "description": "Количество товаров на странице найденных по выбранному селектору товара"
-    },
-    "choose_product_selector": {
-        "type": "string",
-        "required": True,
-        "description": "Выбранный селектор на ссылку товара"
-    },
-    "additional_processing_for_the_link_value": {
-        "type": "boolean",
-        "required": True,
-        "description": "Нужна ли доп. обработка для значения ссылки, извлекаемой селектором на ссылку товара"
-    },
-    "builded_code_product_processing": {
-        "type": "string",
-        "required": True,
-        "description": "Сформированный фрагмент кода обработки ссылок товаров"
-    },
-    "check_generated_code_successful": {
-        "type": "boolean",
-        "required": True,
-        "description": "Была ли проверка сгенерированного фрагмента кода успешна. Ожидает только записи значения true"
-    }
-}
-
-# Шаблон результата, который агент заполняет в процессе работы
-main_result_template = {
-    "count_of_product_on_this_page": None,
-    "choose_product_selector": None,
-    "additional_processing_for_the_link_value": None,
-    "builded_code_product_processing": None,
-    "check_generated_code_successful": None
-}
-
-
 main_plan = {
     "steps": [
         {
@@ -191,7 +334,7 @@ main_plan = {
 }
 
 
-def agent_step_4_state_1_product(input_data, search_request):
+def use_agent_for_step_2_gen_parsePage(input_data, search_request):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -224,44 +367,6 @@ def agent_step_4_state_1_product(input_data, search_request):
 
 # Проверка:
 
-input_data_test = {
-    "search_input_selectors": [
-        "#woocommerce-product-search-field-0",
-        "form.woocommerce-product-search input.search-field[type='search'][name='s']",
-        ".site-search .woocommerce-product-search input.search-field"
-    ],
-    "search_button_selectors": [
-        "form.woocommerce-product-search button[type='submit']",
-        ".site-search form.woocommerce-product-search button",
-        ".widget_product_search form button[type='submit']"
-    ],
-    "total_results_count_selectors": [
-        "p.woocommerce-result-count",
-        ".storefront-sorting > p.woocommerce-result-count",
-        "main#main p.woocommerce-result-count"
-    ],
-    "product_link_selectors": [
-        ".products .product-card a.stretched-link[href*='/products/']",
-        ".products a.stretched-link[href*='/products/']",
-        ".products .card a.stretched-link"
-    ],
-    "pagination_container_selectors": [
-        "nav.woocommerce-pagination",
-        ".storefront-sorting nav.woocommerce-pagination",
-        "ul.page-numbers"
-    ],
-    "pagination_page2_selectors": [
-        "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
-        "ul.page-numbers a.page-numbers[href*='/page/2/']",
-        "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
-    ],
-    "pagination_last_page_selectors": [
-        "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-        "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-        "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
-    ],
-    "last_page_number_displayed": "true"
-}
 
 search_request_test = "инструмент"
 
@@ -275,7 +380,7 @@ goto_url(
     timeout = 30_000
 )
 
-resilt = agent_step_4_state_1_product(input_data_test, search_request_test)
+resilt = use_agent_for_step_2_gen_parsePage(input_data_test, search_request_test)
 
 print("resilt:")
 print(resilt)
