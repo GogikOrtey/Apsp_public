@@ -54,9 +54,9 @@ def gen_main_task_all(search_request, host_value):
 
 Определить, какой параметр или участок в URL отвечают за указание страницы и указание поискового запроса. И составить код позволяющий задавать произвольный запрос и страницу.
 
-Алгоритм (4 фазы):
+Алгоритм (4 шага):
 
-———————————————————————— ФАЗА 1:
+———————————————————————— Шаг алгоритма 1:
 
 1. Сохрани текущий URL страницы в result в поле start_page_url. Его можно получить инструментом get_current_url
 
@@ -66,7 +66,7 @@ def gen_main_task_all(search_request, host_value):
 
 Когда переход произойдёт, зафиксируй новый URL в result в поле url_for_2_page.
 
-———————————————————————— ФАЗА 2:
+———————————————————————— Шаг алгоритма 2:
 
 На основе значений из result:
 start_page_url = URL первой страницы
@@ -85,7 +85,7 @@ url_for_2_page = URL второй страницы
 
 Когда параметр задания страниц будет найден корректно, зафиксируй эту информацию в свободной форме, в result в поле info_from_page_parameter. На эту информацию ты будешь опираться в будущем, когда будешь собирать код, так что запиши туда нужное достаточное количество информации.
 
-———————————————————————— ФАЗА 3:
+———————————————————————— Шаг алгоритма 3:
 
 На этой фазе тебе нужно будет найти, где и как задаётся поисковый запрос в URL.
 
@@ -97,7 +97,7 @@ url_for_2_page = URL второй страницы
 
 4. На основе различий start_page_url и url_for_second_search_query из result выдели место, где задаётся поисковый запрос. Зафиксируй эту информацию в свободной форме в result в поле info_from_search_query_parameter, запиши туда нужное достаточное количество информации для дальнейшей генерации кода.
 
-———————————————————————— ФАЗА 4:
+———————————————————————— Шаг алгоритма 4:
 
 В конце, тебе нужно будет сформировать фрагмент кода на JS, который позволит задавать произвольный запрос и указывать произвольную страницу. Код на языке JS.
 
@@ -156,7 +156,7 @@ HOST = '""" + host_value + """'
 
 Тебе нужно будет составить только необходимый фрагмент кода на JS, в котором будет формироваться URL с использованием этих параметров. Не добавляй дополнительных строчек в результат кода без необходимости. Помести его в result в поле result_code_url_builder.
 
-Входные данные:
+Входные данные (input_data):
 
 """
     return main_task_all
@@ -178,6 +178,17 @@ HOST = '""" + host_value + """'
 
 
 
+
+
+
+""" 
+
+
+
+
+
+
+"""
 
 
 
@@ -290,25 +301,61 @@ input_data_test = {
 
 
 
-# main_plan = {
-#     "steps": [
-#         {
-#             "step_id": 1,
-#             "goal": "Определить источник/селектор, из которого можно надежно извлечь максимальное количество страниц (числа в элементах пагинации; либо номер в элементе перехода на последнюю страницу; либо totalCount в тексте счетчика результатов). Зафиксировать выбранный тип структуры и селектор.",
-#             "fills": [
-#                 "type_struct_extract_max_page",
-#                 "pagination_max_page_value_selector"
-#             ]
-#         },
-#         {
-#             "step_id": 2,
-#             "goal": "Сформировать итоговый код, который возвращает числовое значение totalPages согласно выбранному типу структуры извлечения. Если выбран тип use_total_count — предварительно определить количество товаров на одной странице. Проверить работоспособность кода инструментом get_total_pages_on_current_page_cheerio_code и зафиксировать результат.",
-#             "fills": [
-#                 "builded_code_get_max_page_on_pagination"
-#             ]
-#         }
-#     ]
-# }
+main_plan = {
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Зафиксировать URL первой страницы выдачи (1 шаг алгоритма)",
+            "fills": [
+                "start_page_url"
+            ]
+        },
+        {
+            "step_id": 2,
+            "goal": "Перейти на 2-ю страницу через пагинацию и зафиксировать новый URL (1 шаг алгоритма)",
+            "fills": [
+                "url_for_2_page",
+                "search_output_set_by_add_query"
+            ]
+        },
+        {
+            "step_id": 3,
+            "goal": "По разнице start_page_url и url_for_2_page определить параметр пагинации и описать его (2 шаг алгоритма)",
+            "fills": [
+                "info_from_page_parameter"
+            ]
+        },
+        {
+            "step_id": 4,
+            "goal": "Выполнить поиск по другому запросу и зафиксировать URL новой страницы (3 шаг алгоритма)",
+            "fills": [
+                "url_for_second_search_query"
+            ]
+        },
+        {
+            "step_id": 5,
+            "goal": "По разнице start_page_url и url_for_second_search_query определить параметр поискового запроса и описать его (3 шаг алгоритма)",
+            "fills": [
+                "info_from_search_query_parameter"
+            ]
+        },
+        {
+            "step_id": 6,
+            "goal": "Сформировать JS-код генерации URL на основе info_from_page_parameter и info_from_search_query_parameter (4 шаг алгоритма)",
+            "fills": [
+                "result_code_url_builder"
+            ]
+        }
+    ]
+}
+
+
+
+
+
+
+
+
 
 ###### Добавить семантику!
 
@@ -322,6 +369,15 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, ho
         except Exception:
             input_data_str = str(input_data)
 
+    # Приводим input_data к строке
+    if isinstance(semantics, str):
+        semantics_str = semantics
+    else:
+        try:
+            semantics_str = json.dumps(semantics, ensure_ascii=False, indent=4, default=str)
+        except Exception:
+            semantics_str = str(semantics)
+
     ###################### semantics
     ###################### Значение для переменной HOST - host_value
 
@@ -329,14 +385,14 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, ho
         f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу '{search_request}'." +
         gen_main_task_all(search_request, host_value) + 
         input_data_str + f"\n\n" +
-        semantics)
+        semantics_str)
 
     resulr_answer = orchestrate(
         task = task,
         max_steps = 40,
         result_schema = main_result_schema,
         result_template = main_result_template,
-        # plan = main_plan,
+        plan = main_plan,
         # step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
@@ -381,7 +437,7 @@ resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test
 
 print("resilt:")
 print(resilt)
-print("result_code_url_builder:")
+print(f"\nresult_code_url_builder:")
 print(resilt.get("result_code_url_builder"))
 
 
