@@ -93,6 +93,35 @@ let totalPages = +$(".page-nav__nums_desktop > a")?.last().text().trim()
 подойдёт код:
 let totalPages = +$('.pagination a')?.eq(-3)?.attr('href')?.match(/[?&]page=(\d+)/)?.at(1);
 
+Проверь что этот код корректно работает через инструмент get_total_pages_on_current_page_cheerio_code, и запиши его в result в поле builded_code_get_max_page_on_pagination.
+
+2.3 Если в result в поле type_struct_extract_max_page указано "use_total_count", значит нам нужно будет сначала получить число найденных товаров из элемента, указанного в result в поле pagination_max_page_value_selector. 
+
+    2.3.1 Сначала получи количество элементов товара, которые отображаются на одной странице. Используй инструмент find_elements с селектором ############################
+    так ты получишь count элементов товара на странице. Запиши это значение в memory
+
+    2.3.2 Собрать фрагмент кода. Сначала получаем totalCount
+    Тут нам нужно будет сначала получить totalCount из элемента pagination_max_page_value_selector, используя регулярку что бы вытащить именно нужное число количества товаров. 
+
+    Текстовое значение этого элемента может быть например "По запросу _ найдено 3442 товара". Тогда валидный код будет:
+    let totalCount = +$("p.result-count").text()?.replace(/\D/g, '');
+
+    Ещё пример:
+    Если строка будет "Отображение 1–16 из 1 944", тогда валидный код будет:
+    let totalCount = +$("p.result-count").text()?.split("из")?.at(1)?.replace(/\D/g, '');
+
+    2.3.3 Затем добавляем строку получения нужного нам totalPages:
+
+    Если количество отображаемых товаров на странице = 36, тогда код будет:
+    let totalPages = Math.ceil(+totalCount / 36)
+    Актуальное количество отображаемых на странице товаров, сохранено у тебя в memory.
+
+    В итоге должно получиться 2 строки кода, например:
+    let totalCount = +$("p.result-count").text()?.replace(/\D/g, '');
+    let totalPages = Math.ceil(+totalCount / 36);
+
+    Проверь что этот код корректно работает через инструмент get_total_pages_on_current_page_cheerio_code, и запиши его в result в поле builded_code_get_max_page_on_pagination. 
+
 
 """ 
 
@@ -141,8 +170,8 @@ let totalPages = Math.ceil(+totalCount / 36)
 {
     "pagination_max_page_value_selector"
     "type_struct_extract_max_page": simple_max | extract_from_last_page_element | use_total_count
+    
     "builded_code_get_max_page_on_pagination"
-    "check_generated_code_successful"
 }
 
 """
@@ -369,7 +398,9 @@ main_plan = {
 }
 
 
-def use_agent_for_step_2_gen_parsePage(input_data, search_request):
+###### selector_product_link - получать и в нужном месте устанавливать
+
+def use_agent_for_step_2_gen_parsePage(input_data, search_request, selector_product_link):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
