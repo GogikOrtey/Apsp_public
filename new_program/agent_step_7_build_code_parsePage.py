@@ -65,6 +65,98 @@ SYSTEM_PROMPT = """
 Ты — инструмент для анализа HTML-страницы интернет-магазина. 
 """
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MAIN_PROMPT = """
+
+
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+""" 
+
+Входные данные (input_data):
+
+###### INPUT_CODE_FRAGMENTS
+
+URL_BLOCK:
+let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
+url.searchParams.set('s', set.query)
+url.searchParams.set('post_type', 'product') 
+
+GET_MAX_PAGE_BLOCK:
+let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item 
+=> +$(item).text().trim()).filter(Boolean))  
+
+GET_PRODUCT_LINK_LINES_CODE:
+let products = $('.products .product-card a.stretched-link[href*="/products/"]')
+let product = products?.eq(0)
+let link = $(product)?.attr('href')
+console.log('link = ' + link)
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 MAIN_PROMPT = """
 ТВОЯ ЗАДАЧА:
 
@@ -331,6 +423,8 @@ def agent_step_7_build_code_parsePage(input_code_fragments):
 
     # # Возвращаем именно текст, чтобы вызывающий код мог сразу парсить JSON
     # return result_text
+
+    ## Поменять SYSTEM_PROMPT (сгенерить на основе задания)
 
 
 
