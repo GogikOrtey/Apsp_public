@@ -205,7 +205,7 @@ def agent_step_4_state_1_product(input_data, search_request):
             input_data_str = str(input_data)
 
     task = (
-        f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу {search_request}." +
+        f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу '{search_request}'." +
         main_task_all + 
         input_data_str)
 
