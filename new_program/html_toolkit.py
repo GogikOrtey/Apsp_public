@@ -711,25 +711,25 @@ main();
 
 
 
-# get_total_pages_on_cheerio_code; 
-# print(get_total_pages_on_cheerio_code("let totalPages = +$(\"a\").last().text().trim()", "<a>1</a><a>5</a>"))
+# # get_total_pages_on_cheerio_code; 
+# # print(get_total_pages_on_cheerio_code("let totalPages = +$(\"a\").last().text().trim()", "<a>1</a><a>5</a>"))
 
 
-"""
-  "action": "get_total_pages_on_current_page_cheerio_code",
-  "args": {
-    "user_code": "let totalPages = Math.max(...$('nav.woocommerce-pagination a.page-numbers').get().map(item => +$(item).text().trim()).filter(Boolean))"
-  },
-"""
+# """
+#   "action": "get_total_pages_on_current_page_cheerio_code",
+#   "args": {
+#     "user_code": "let totalPages = Math.max(...$('nav.woocommerce-pagination a.page-numbers').get().map(item => +$(item).text().trim()).filter(Boolean))"
+#   },
+# """
 
 
 
-user_code_test = "let totalPages = Math.max(...$('nav.woocommerce-pagination a.page-numbers').get().map(item => +$(item).text().trim()).filter(Boolean))"
-url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
-html_content = get_html_from_cache(url)
-result_get_total_pages_on_cheerio_code = get_total_pages_on_cheerio_code(user_code_test, html_content)
-print("result_get_total_pages_on_cheerio_code:")
-print(result_get_total_pages_on_cheerio_code)
+# user_code_test = "let totalPages = Math.max(...$('nav.woocommerce-pagination a.page-numbers').get().map(item => +$(item).text().trim()).filter(Boolean))"
+# url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+# html_content = get_html_from_cache(url)
+# result_get_total_pages_on_cheerio_code = get_total_pages_on_cheerio_code(user_code_test, html_content)
+# print("result_get_total_pages_on_cheerio_code:")
+# print(result_get_total_pages_on_cheerio_code)
 
 
 

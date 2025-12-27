@@ -256,7 +256,7 @@ def agent_step_4_state_2_pagination(input_data, search_request, selector_product
         result_schema = main_result_schema,
         result_template = main_result_template,
         plan = main_plan,
-        # step_by_step_running = False, # Разрешаем агенту работать автоматически
+        step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
     result_task = get_result()
