@@ -140,37 +140,6 @@ let totalPages = +$('.pagination a')?.eq(-3)?.attr('href')?.match(/[?&]page=(\d+
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-""" 
-
-{
-    "pagination_max_page_value_selector"
-    "type_struct_extract_max_page": simple_max | extract_from_last_page_element | use_total_count
-
-    "builded_code_get_max_page_on_pagination"
-}
-
-"""
-
-
-
-
-
-
 # Схема результата
 main_result_schema = {
     "pagination_max_page_value_selector": {
@@ -196,20 +165,6 @@ main_result_template = {
     "type_struct_extract_max_page": None,
     "builded_code_get_max_page_on_pagination": None
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -256,56 +211,44 @@ input_data_test = {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-main_plan = {
-    "steps": [
-        {
-            "step_id": 1,
-            "goal": "Проверить селекторы product_link_selectors на наличие и адекватное количество найденных ссылок товаров на текущей странице; зафиксировать количество найденных элементов по выбранному рабочему селектору.",
-            "fills": [
-                "count_of_product_on_this_page"
-            ]
-        },
-        {
-            "step_id": 2,
-            "goal": "Проверить, что найденные элементы действительно являются ссылками внутри полноценных карточек товаров (в карточке есть как минимум название), выбрать корректный селектор ссылки на товар и сохранить HTML-структуру одной карточки товара в память.",
-            "fills": [
-                "choose_product_selector"
-            ]
-        },
-        {
-            "step_id": 3,
-            "goal": "Определить, требуется ли дополнительная обработка значения ссылки (например, добавление HOST к относительному href или использование другого атрибута) и зафиксировать это в результате. Если требуется, то записать в memory детали.",
-            "fills": [
-                "additional_processing_for_the_link_value"
-            ]
-        },
-        {
-            "step_id": 4,
-            "goal": "Сформировать минимальный JS/cheerio фрагмент кода для извлечения валидной ссылки на первый товар по choose_product_selector с учётом необходимости доп. обработки; сохранить код и подтвердить успешность его проверки в среде выполнения.",
-            "fills": [
-                "builded_code_product_processing",
-                "check_generated_code_successful"
-            ]
-        }
-    ]
-}
+# main_plan = {
+#     "steps": [
+#         {
+#             "step_id": 1,
+#             "goal": "Проверить селекторы product_link_selectors на наличие и адекватное количество найденных ссылок товаров на текущей странице; зафиксировать количество найденных элементов по выбранному рабочему селектору.",
+#             "fills": [
+#                 "count_of_product_on_this_page"
+#             ]
+#         },
+#         {
+#             "step_id": 2,
+#             "goal": "Проверить, что найденные элементы действительно являются ссылками внутри полноценных карточек товаров (в карточке есть как минимум название), выбрать корректный селектор ссылки на товар и сохранить HTML-структуру одной карточки товара в память.",
+#             "fills": [
+#                 "choose_product_selector"
+#             ]
+#         },
+#         {
+#             "step_id": 3,
+#             "goal": "Определить, требуется ли дополнительная обработка значения ссылки (например, добавление HOST к относительному href или использование другого атрибута) и зафиксировать это в результате. Если требуется, то записать в memory детали.",
+#             "fills": [
+#                 "additional_processing_for_the_link_value"
+#             ]
+#         },
+#         {
+#             "step_id": 4,
+#             "goal": "Сформировать минимальный JS/cheerio фрагмент кода для извлечения валидной ссылки на первый товар по choose_product_selector с учётом необходимости доп. обработки; сохранить код и подтвердить успешность его проверки в среде выполнения.",
+#             "fills": [
+#                 "builded_code_product_processing",
+#                 "check_generated_code_successful"
+#             ]
+#         }
+#     ]
+# }
 
 
 ###### selector_product_link - получать и в нужном месте устанавливать
 
-def use_agent_for_step_2_gen_parsePage(input_data, search_request, selector_product_link):
+def agent_step_4_state_2_pagination(input_data, search_request, selector_product_link):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -338,9 +281,7 @@ def use_agent_for_step_2_gen_parsePage(input_data, search_request, selector_prod
 
 # Проверка:
 
-
 search_request_test = "инструмент"
-
 
 # Запускаю браузер с видимым окном
 launch_browser(headless = False)
@@ -351,9 +292,9 @@ goto_url(
     timeout = 30_000
 )
 
-resilt = use_agent_for_step_2_gen_parsePage(input_data_test, search_request_test)
+resilt = agent_step_4_state_2_pagination(input_data_test, search_request_test, ".products .product-card a.stretched-link[href*='/products/']")
 
 print("resilt:")
 print(resilt)
-print("builded_code_product_processing:")
-print(resilt.get("builded_code_product_processing"))
+print("builded_code_get_max_page_on_pagination:")
+print(resilt.get("builded_code_get_max_page_on_pagination"))
