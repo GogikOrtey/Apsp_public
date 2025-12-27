@@ -495,6 +495,17 @@ def main_processer(input_url):
     print(object_for_code_block_parsePage_string)
 
 
+    """
+    Пример результата:
+
+    {
+        "URL_BLOCK": "let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)\nurl.searchParams.set('s', set.query)\nurl.searchParams.set('post_type', 'product')",
+        "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav.woocommerce-pagination .page-numbers\").get().map(item => +$(item).text().trim()).filter(Boolean))",
+        "GET_PRODUCT_LINK_LINES_CODE": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)"       
+    }
+    """
+
+
     # Вот тут добавить вызов функции сборщика кода
 
 
