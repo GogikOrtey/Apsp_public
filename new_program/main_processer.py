@@ -445,7 +445,7 @@ def main_processer(input_url):
 
     """
 
-    # region Шаг 4, 5 6 - Агенты
+    # region Шаг 4, 5, 6 - Агенты
 
     search_request = result_agent_answer_from_2_step.get("used_search_request")
 
@@ -458,6 +458,44 @@ def main_processer(input_url):
     semantics = {"semantics": semantics_list}
 
     result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)
+
+
+
+    # region Шаг 7 - Сборка кода
+
+    if not isinstance(result_agent_step_4_product, dict):
+        raise TypeError(
+            f"agent_step_4_product должен вернуть dict, получили: {type(result_agent_step_4_product).__name__}"
+        )
+    if not isinstance(result_agent_step_5_pagination, dict):
+        raise TypeError(
+            f"agent_step_5_pagination должен вернуть dict, получили: {type(result_agent_step_5_pagination).__name__}"
+        )
+    if not isinstance(result_agent_step_6_URL_construct, dict):
+        raise TypeError(
+            f"agent_step_6_URL_construct должен вернуть dict, получили: {type(result_agent_step_6_URL_construct).__name__}"
+        )
+
+    GET_PRODUCT_LINK_LINES_CODE = result_agent_step_4_product.get("builded_code_product_processing")
+    GET_MAX_PAGE_BLOCK = result_agent_step_5_pagination.get("builded_code_get_max_page_on_pagination")
+    URL_BLOCK = result_agent_step_6_URL_construct.get("result_code_url_builder")
+
+    if not GET_PRODUCT_LINK_LINES_CODE:
+        raise ValueError("Пустой/отсутствует builded_code_product_processing (шаг 4).")
+    if not GET_MAX_PAGE_BLOCK:
+        raise ValueError("Пустой/отсутствует builded_code_get_max_page_on_pagination (шаг 5).")
+    if not URL_BLOCK:
+        raise ValueError("Пустой/отсутствует result_code_url_builder (шаг 6).")
+
+    # Собираю вход для шага сборки всей процедуры parsePage
+    object_for_code_block_parsePage = {
+        "URL_BLOCK": URL_BLOCK,
+        "GET_MAX_PAGE_BLOCK": GET_MAX_PAGE_BLOCK,
+        "GET_PRODUCT_LINK_LINES_CODE": GET_PRODUCT_LINK_LINES_CODE
+    }
+
+
+
 
 
     print("🟦 Завершили все фазы для parsePage ✅")

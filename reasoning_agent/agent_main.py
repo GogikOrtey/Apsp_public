@@ -161,6 +161,32 @@ tools_annotation = get_tools_annotations()
 history = [] # Хранилище всей истории шагов
 count_of_step_on_history = 0 # Текущий номер шага в истории шагов
 
+# region Reset state между запусками
+def reset_agent_state(*, clear_history: bool = True, clear_memory: bool = True, clear_steps_future: bool = True) -> None:
+    """
+    Сбрасывает runtime-состояние reasoning-агента между независимыми запусками.
+
+    Важно:
+    - НЕ трогает состояние Playwright/браузера (страница остаётся открытой).
+    - RESULT/result_schema сбрасываются отдельно через init_result(...) внутри orchestrate().
+    - clear_memory=True очищает long_term_memory in-place (runtime_state хранит ссылку на список).
+    """
+    global count_of_step_on_history, steps_future_value, main_plan
+
+    if clear_history:
+        history.clear()
+        count_of_step_on_history = 0
+
+    if clear_memory:
+        long_term_memory.clear()
+
+    if clear_steps_future:
+        steps_future_value = ""
+
+    # main_plan всё равно будет переопределён внутри orchestrate(),
+    # но на всякий случай сбрасываем ссылку, чтобы не вводить в заблуждение отладку.
+    main_plan = None
+
 # Запускаю второй терминал для кастомного чата
 CHAT_LOG_PATH = init_chat_channel()
 
@@ -948,6 +974,10 @@ def orchestrate(
 ) -> str:
     global steps_future_value, long_term_memory, main_plan, tools_annotation
     start = time.time()
+
+    # Сбрасываем состояние между независимыми запусками orchestrate, чтобы не было "утечек" history/memory.
+    # RESULT/result_schema сбрасываются ниже через init_result(...).
+    reset_agent_state(clear_history=True, clear_memory=True, clear_steps_future=True)
 
     # Обновляем аннотации инструментов перед запуском, чтобы подхватить
     # все модули с @tool, которые могли быть импортированы до вызова orchestrate.
