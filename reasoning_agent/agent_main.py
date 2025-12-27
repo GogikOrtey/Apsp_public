@@ -1281,12 +1281,24 @@ def parse_step_response(raw_text: str, prompt: str, max_retries: int = INVALID_J
 # Принимает название инструмента, находит функцию соответствующую ему
 # в agent_tools.py и вызывает её, с переданными аргументами
 def run_tool(tool_name: str, tool_args: dict[str, Any]) -> dict[str, Any]:
+    def _sanitize_tool_result(result: Any) -> Any:
+        """
+        Убирает визуальный шум из стандартных ответов инструментов.
+        Сейчас: удаляет ключ 'error', если он присутствует и равен None.
+        """
+        if isinstance(result, dict) and "error" in result and result.get("error") is None:
+            cleaned = dict(result)
+            cleaned.pop("error", None)
+            return cleaned
+        return result
+
     tool = TOOLS.get(tool_name)
     if not tool:
         return {"status": "error", "error": f"Неизвестный инструмент: {tool_name}"}
     try:
         # Вызывает функцию из agent_tools.py с заданными аргументами
-        return tool["func"](**(tool_args or {})) 
+        tool_result = tool["func"](**(tool_args or {}))
+        return _sanitize_tool_result(tool_result)
     except Exception as ex:
         return {
             "status": "error",
