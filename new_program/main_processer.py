@@ -30,6 +30,9 @@ from new_program.html_toolkit import *
 from new_program.HGF_main_page_selector_and_semantic_handler import *
 from new_program.TNF_extract_data_from_search_page import *
 from new_program.use_agent_for_step_2_gen_parsePage import *
+from new_program.agent_step_4_product import *
+from new_program.agent_step_5_pagination import *
+from new_program.agent_step_6_URL_construct import *
 
 # region Задачи
 
@@ -100,7 +103,6 @@ from new_program.use_agent_for_step_2_gen_parsePage import *
 - Надо будет добавить скриншоты состояния из браузера, по актуальным шагам
 - Собрать все возможные исключения, которые прописал, и обработать их
 - Ещё есть задачи которые прописаны ниже. В конце их глянуть
-- Хочется убрать строки из результатов инструентов "error": null
 
 
 
@@ -274,6 +276,8 @@ def main_processer(input_url):
         "second_html": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
     }
 
+    
+
     """
 
     # region Шаг 3 - TNF
@@ -441,15 +445,22 @@ def main_processer(input_url):
 
     """
 
-    # region Шаг 4 - Агент
+    # region Шаг 4, 5 6 - Агенты
 
-    # agent_step_4_state_1_product
-    # agent_step_4_state_2
-    # agent_step_4_state_3
+    search_request = result_agent_answer_from_2_step.get("used_search_request")
 
-    # Там у нас тестирование незакомментировано
+    result_agent_step_4_product = agent_step_4_product(TNF_result, search_request)
 
-    print("🟦 Завершили первые 3 фазы для parsePage ✅")
+    result_agent_step_5_pagination = agent_step_5_pagination(TNF_result, search_request)
+
+    # Приводим семантику к формату как в тестах agent_step_6_URL_construct: {"semantics": [...]}
+    semantics_list = HGF_result.get("semantics") or []
+    semantics = {"semantics": semantics_list}
+
+    result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)
+
+
+    print("🟦 Завершили все фазы для parsePage ✅")
     input("Нажмите Enter, чтобы закрыть браузер...")
     
 

@@ -297,12 +297,7 @@ main_plan = {
 
 
 
-
-
-
-###### Добавить семантику!
-
-def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, host_value):
+def agent_step_6_URL_construct(input_data, search_request, semantics, host_value):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -321,9 +316,6 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, ho
         except Exception:
             semantics_str = str(semantics)
 
-    ###################### semantics
-    ###################### Значение для переменной HOST - host_value
-
     task = (
         f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу '{search_request}'." +
         gen_main_task_all(search_request, host_value) + 
@@ -336,7 +328,7 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, ho
         result_schema = main_result_schema,
         result_template = main_result_template,
         plan = main_plan,
-        # step_by_step_running = False, # Разрешаем агенту работать автоматически
+        step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
     result_task = get_result()
@@ -415,7 +407,7 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, ho
 #     timeout = 30_000
 # )
 
-# resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test, semantics_test, host_value_test)
+# resilt = agent_step_6_URL_construct(input_data_test, search_request_test, semantics_test, host_value_test)
 
 # print("resilt:")
 # print(resilt)
@@ -499,7 +491,7 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, ho
 #     timeout = 30_000
 # )
 
-# resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test, semantics_test, host_value_test)
+# resilt = agent_step_6_URL_construct(input_data_test, search_request_test, semantics_test, host_value_test)
 
 # print("resilt:")
 # print(resilt)
@@ -512,81 +504,81 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, ho
 
 
 
-# Проверка 3:
+# # Проверка 3:
 
-input_data_test = {
-    "search_input_selectors": [
-        "#title-search-input",
-        "form.search.search--hastype input[name='q']#title-search-input",
-        "header .search-wrapper #title-search input.search-input[name='q']"
-    ],
-    "search_button_selectors": [
-        "#title-search button.btn-search[type='submit']",
-        "#title-search form.search.search--hastype button[name='s'][type='submit']",
-        "header .search-wrapper #title-search button.btn-search"
-    ],
-    "total_results_count_selectors": [
-        ".topic__heading .element-count-wrapper .element-count",
-        "h1#pagetitle + .element-count-wrapper .element-count",
-        ".topic .topic__heading span.element-count"
-    ],
-    "product_link_selectors": [
-        ".catalog-block .catalog-block__wrapper .catalog-block__info-title > a.dark_link[href*='/catalog/']",
-        ".catalog-block__wrapper a.js-popup-title[href*='/catalog/']",
-        ".catalog-block__wrapper a.image-list__link[href*='/catalog/']"
-    ],
-    "pagination_container_selectors": [
-        ".bottom_nav_wrapper .module-pagination",
-        ".bottom_nav .module-pagination__wrapper",
-        ".bottom_nav_wrapper .bottom_nav .module-pagination"
-    ],
-    "pagination_page2_selectors": [
-        ".bottom_nav_wrapper .module-pagination a.module-pagination__item[href*='PAGEN_2=2']",    
-        ".bottom_nav .module-pagination__wrapper a[href*='PAGEN_2=2']",
-        ".bottom_nav_wrapper a.arrows-pagination__next[href*='PAGEN_2=2']"
-    ],
-    "pagination_last_page_selectors": [
-        ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item:last-of-type",
-        ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item[href*='PAGEN_2=']",
-        ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item:nth-last-of-type(1)"
-    ],
-    "last_page_number_displayed": "true"
-}
+# input_data_test = {
+#     "search_input_selectors": [
+#         "#title-search-input",
+#         "form.search.search--hastype input[name='q']#title-search-input",
+#         "header .search-wrapper #title-search input.search-input[name='q']"
+#     ],
+#     "search_button_selectors": [
+#         "#title-search button.btn-search[type='submit']",
+#         "#title-search form.search.search--hastype button[name='s'][type='submit']",
+#         "header .search-wrapper #title-search button.btn-search"
+#     ],
+#     "total_results_count_selectors": [
+#         ".topic__heading .element-count-wrapper .element-count",
+#         "h1#pagetitle + .element-count-wrapper .element-count",
+#         ".topic .topic__heading span.element-count"
+#     ],
+#     "product_link_selectors": [
+#         ".catalog-block .catalog-block__wrapper .catalog-block__info-title > a.dark_link[href*='/catalog/']",
+#         ".catalog-block__wrapper a.js-popup-title[href*='/catalog/']",
+#         ".catalog-block__wrapper a.image-list__link[href*='/catalog/']"
+#     ],
+#     "pagination_container_selectors": [
+#         ".bottom_nav_wrapper .module-pagination",
+#         ".bottom_nav .module-pagination__wrapper",
+#         ".bottom_nav_wrapper .bottom_nav .module-pagination"
+#     ],
+#     "pagination_page2_selectors": [
+#         ".bottom_nav_wrapper .module-pagination a.module-pagination__item[href*='PAGEN_2=2']",    
+#         ".bottom_nav .module-pagination__wrapper a[href*='PAGEN_2=2']",
+#         ".bottom_nav_wrapper a.arrows-pagination__next[href*='PAGEN_2=2']"
+#     ],
+#     "pagination_last_page_selectors": [
+#         ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item:last-of-type",
+#         ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item[href*='PAGEN_2=']",
+#         ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item:nth-last-of-type(1)"
+#     ],
+#     "last_page_number_displayed": "true"
+# }
 
-search_request_test = "плитка"
+# search_request_test = "плитка"
 
-semantics_test = {
-    "semantics": [
-        "плитка",
-        "керамогранит",
-        "сантехника",
-        "мозаика",
-        "унитаз",
-        "раковина",
-        "смеситель",
-        "душ",
-        "ванна",
-        "мебель"
-    ]
-}
+# semantics_test = {
+#     "semantics": [
+#         "плитка",
+#         "керамогранит",
+#         "сантехника",
+#         "мозаика",
+#         "унитаз",
+#         "раковина",
+#         "смеситель",
+#         "душ",
+#         "ванна",
+#         "мебель"
+#     ]
+# }
 
-host_value_test = "https://galleryceramics.ru"
+# host_value_test = "https://galleryceramics.ru"
 
-# Запускаю браузер с видимым окном
-launch_browser(headless = False)
+# # Запускаю браузер с видимым окном
+# launch_browser(headless = False)
 
-goto_url( 
-    url = "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8",
-    wait_until = "load",
-    timeout = 30_000
-)
+# goto_url( 
+#     url = "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8",
+#     wait_until = "load",
+#     timeout = 30_000
+# )
 
-resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test, semantics_test, host_value_test)
+# resilt = agent_step_6_URL_construct(input_data_test, search_request_test, semantics_test, host_value_test)
 
-print("resilt:")
-print(resilt)
-print(f"\nresult_code_url_builder:")
-print(resilt.get("result_code_url_builder"))
+# print("resilt:")
+# print(resilt)
+# print(f"\nresult_code_url_builder:")
+# print(resilt.get("result_code_url_builder"))
 
 
 

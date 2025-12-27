@@ -35,7 +35,7 @@ from new_program.html_toolkit import *  # регистрирует инстру�
 
 
 
-def gen_main_task_all(selector_product_link):
+def gen_main_task_all():
     main_task_all = """
 Во входных данных (input_data) тебе даны селекторы на элементы этой страницы. Они понадобятся тебе в ходе выполнения проверок и решения задачи. В каждом массиве есть input_data по 3 селектора, из них первый - это самый стабильный и предпочтительный, по умолчанию используй его. Но если вдруг первый окажется по каким-то причинам неподходящим или нерабочим, то есть ещё два запасных селектора, которые указывают также на этот элемент.
 
@@ -101,8 +101,7 @@ let totalPages = +$('.pagination a')?.eq(-3)?.attr('href')?.match(/[?&]page=(\d+
 
 2.3 Если в result в поле type_struct_extract_max_page указано "use_total_count", значит нам нужно будет сначала получить число найденных товаров из элемента, указанного в result в поле pagination_max_page_value_selector. 
 
-    2.3.1 Сначала получи количество элементов товара, которые отображаются на одной странице. Используй инструмент find_elements с селектором """ + selector_product_link + """
-    так ты получишь count элементов товара на странице. Запиши это значение в memory
+    2.3.1 Сначала получи количество элементов товара, которые отображаются на одной странице. Используй инструмент find_elements с селектором product_link_selectors из input_data, так ты получишь count элементов товара на странице. Запиши это значение в memory
 
     2.3.2 Собрать фрагмент кода. Сначала получаем totalCount
     Тут нам нужно будет сначала получить totalCount из элемента pagination_max_page_value_selector, используя регулярку что бы вытащить именно нужное число количества товаров. 
@@ -233,9 +232,8 @@ main_plan = {
     ]
 }
 
-###### selector_product_link - получать и в нужном месте устанавливать
 
-def agent_step_4_state_2_pagination(input_data, search_request, selector_product_link):
+def agent_step_5_pagination(input_data, search_request):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -247,7 +245,7 @@ def agent_step_4_state_2_pagination(input_data, search_request, selector_product
 
     task = (
         f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу '{search_request}'." +
-        gen_main_task_all(selector_product_link) + 
+        gen_main_task_all() + 
         input_data_str)
 
     resulr_answer = orchestrate(
@@ -266,22 +264,22 @@ def agent_step_4_state_2_pagination(input_data, search_request, selector_product
 
 
 
-# Проверка:
+# # Проверка:
 
-search_request_test = "инструмент"
+# search_request_test = "инструмент"
 
-# Запускаю браузер с видимым окном
-launch_browser(headless = False)
+# # Запускаю браузер с видимым окном
+# launch_browser(headless = False)
 
-goto_url( 
-    url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
-    wait_until = "load",
-    timeout = 30_000
-)
+# goto_url( 
+#     url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+#     wait_until = "load",
+#     timeout = 30_000
+# )
 
-resilt = agent_step_4_state_2_pagination(input_data_test, search_request_test, ".products .product-card a.stretched-link[href*='/products/']")
+# resilt = agent_step_5_pagination(input_data_test, search_request_test)
 
-print("resilt:")
-print(resilt)
-print("builded_code_get_max_page_on_pagination:")
-print(resilt.get("builded_code_get_max_page_on_pagination"))
+# print("resilt:")
+# print(resilt)
+# print("builded_code_get_max_page_on_pagination:")
+# print(resilt.get("builded_code_get_max_page_on_pagination"))

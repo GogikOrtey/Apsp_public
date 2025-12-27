@@ -194,7 +194,7 @@ main_plan = {
 }
 
 
-def agent_step_4_state_1_product(input_data, search_request):
+def agent_step_4_product(input_data, search_request):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -225,62 +225,62 @@ def agent_step_4_state_1_product(input_data, search_request):
 
 
 
-# Проверка:
+# # Проверка:
 
-input_data_test = {
-    "search_input_selectors": [
-        "#woocommerce-product-search-field-0",
-        "form.woocommerce-product-search input.search-field[type='search'][name='s']",
-        ".site-search .woocommerce-product-search input.search-field"
-    ],
-    "search_button_selectors": [
-        "form.woocommerce-product-search button[type='submit']",
-        ".site-search form.woocommerce-product-search button",
-        ".widget_product_search form button[type='submit']"
-    ],
-    "total_results_count_selectors": [
-        "p.woocommerce-result-count",
-        ".storefront-sorting > p.woocommerce-result-count",
-        "main#main p.woocommerce-result-count"
-    ],
-    "product_link_selectors": [
-        ".products .product-card a.stretched-link[href*='/products/']",
-        ".products a.stretched-link[href*='/products/']",
-        ".products .card a.stretched-link"
-    ],
-    "pagination_container_selectors": [
-        "nav.woocommerce-pagination",
-        ".storefront-sorting nav.woocommerce-pagination",
-        "ul.page-numbers"
-    ],
-    "pagination_page2_selectors": [
-        "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
-        "ul.page-numbers a.page-numbers[href*='/page/2/']",
-        "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
-    ],
-    "pagination_last_page_selectors": [
-        "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-        "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-        "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
-    ],
-    "last_page_number_displayed": "true"
-}
+# input_data_test = {
+#     "search_input_selectors": [
+#         "#woocommerce-product-search-field-0",
+#         "form.woocommerce-product-search input.search-field[type='search'][name='s']",
+#         ".site-search .woocommerce-product-search input.search-field"
+#     ],
+#     "search_button_selectors": [
+#         "form.woocommerce-product-search button[type='submit']",
+#         ".site-search form.woocommerce-product-search button",
+#         ".widget_product_search form button[type='submit']"
+#     ],
+#     "total_results_count_selectors": [
+#         "p.woocommerce-result-count",
+#         ".storefront-sorting > p.woocommerce-result-count",
+#         "main#main p.woocommerce-result-count"
+#     ],
+#     "product_link_selectors": [
+#         ".products .product-card a.stretched-link[href*='/products/']",
+#         ".products a.stretched-link[href*='/products/']",
+#         ".products .card a.stretched-link"
+#     ],
+#     "pagination_container_selectors": [
+#         "nav.woocommerce-pagination",
+#         ".storefront-sorting nav.woocommerce-pagination",
+#         "ul.page-numbers"
+#     ],
+#     "pagination_page2_selectors": [
+#         "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
+#         "ul.page-numbers a.page-numbers[href*='/page/2/']",
+#         "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
+#     ],
+#     "pagination_last_page_selectors": [
+#         "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+#         "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+#         "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
+#     ],
+#     "last_page_number_displayed": "true"
+# }
 
-search_request_test = "инструмент"
+# search_request_test = "инструмент"
 
 
-# Запускаю браузер с видимым окном
-launch_browser(headless = False)
+# # Запускаю браузер с видимым окном
+# launch_browser(headless = False)
 
-goto_url( 
-    url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
-    wait_until = "load",
-    timeout = 30_000
-)
+# goto_url( 
+#     url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+#     wait_until = "load",
+#     timeout = 30_000
+# )
 
-resilt = agent_step_4_state_1_product(input_data_test, search_request_test)
+# resilt = agent_step_4_product(input_data_test, search_request_test)
 
-print("resilt:")
-print(resilt)
-print("builded_code_product_processing:")
-print(resilt.get("builded_code_product_processing"))
+# print("resilt:")
+# print(resilt)
+# print("builded_code_product_processing:")
+# print(resilt.get("builded_code_product_processing"))
