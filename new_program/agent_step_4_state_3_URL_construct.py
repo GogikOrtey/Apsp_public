@@ -188,28 +188,52 @@ HOST = '""" + host_value + """'
 
 # Схема результата
 main_result_schema = {
-    "pagination_max_page_value_selector": {
-        "type": "simple_max | extract_from_last_page_element | use_total_count",
-        "required": True,
-        "description": "Селектор, указывающий на элемент, из которого мы будем извлекать значение максимального количества страниц для пагинации. Селектор может указывать либо на список элементов пагинации, либо на элемент последней страницы, либо на элемент с totalCount."
-    },
-    "type_struct_extract_max_page": {
+    "start_page_url": {
         "type": "string",
         "required": True,
-        "description": "Тип структуры кода для извлечения максимального количества страниц для пагинации"
+        "description": "URL первой страницы, с которой мы начали."
     },
-    "builded_code_get_max_page_on_pagination": {
+    "url_for_2_page": {
         "type": "string",
         "required": True,
-        "description": "Сформированный фрагмент кода извлечения максимального количества страниц для пагинации"
+        "description": "URL второй страницы, будет получена путём перехода на вторую страницу выдачи со страницы start_page_url."
+    },
+    "info_from_page_parameter": {
+        "type": "string",
+        "required": True,
+        "description": "Информация о том, как задаётся параметр пагинации page в URL"
+    },
+    "info_from_search_query_parameter": {
+        "type": "string",
+        "required": True,
+        "description": "Информация о том, как задаётся параметр поискового запроса в URL"
+    },
+    "url_for_second_search_query": {
+        "type": "string",
+        "required": True,
+        "description": "URL страницы по другому поисковому запросу"
+    },
+    "result_code_url_builder": {
+        "type": "string",
+        "required": True,
+        "description": "Сформированный фрагмент кода который позволяет задать произвольный запрос поиска и страницу пагинации"
+    },
+    "search_output_set_by_add_query": {
+        "type": "string",
+        "required": False,
+        "description": "Примет значение true если товары загружаются доп. запросами, а не через URL (необязательное поле для заполнения)"
     }
 }
 
 # Шаблон результата, который агент заполняет в процессе работы
 main_result_template = {
-    "pagination_max_page_value_selector": None,
-    "type_struct_extract_max_page": None,
-    "builded_code_get_max_page_on_pagination": None
+    "start_page_url": None,
+    "url_for_2_page": None,
+    "info_from_page_parameter": None,
+    "info_from_search_query_parameter": None,
+    "url_for_second_search_query": None,
+    "result_code_url_builder": None,
+    "search_output_set_by_add_query": None
 }
 
 
@@ -266,8 +290,6 @@ input_data_test = {
 
 
 
-
-
 # main_plan = {
 #     "steps": [
 #         {
@@ -306,7 +328,8 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, selector_prod
     task = (
         f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу '{search_request}'." +
         gen_main_task_all(selector_product_link, host_value) + 
-        input_data_str)
+        input_data_str + f"\n\n" +
+        semantics)
 
     resulr_answer = orchestrate(
         task = task,
@@ -328,6 +351,23 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, selector_prod
 
 search_request_test = "инструмент"
 
+semantics_test = {
+    "semantics": [
+        "инструмент",
+        "дрель",
+        "шуруповерт",
+        "перфоратор",
+        "болгарка",
+        "пила",
+        "шлифмашина",
+        "пылесос",
+        "аккумулятор",
+        "оснастка"
+    ]
+}
+
+host_value_test = "https://makitaclub.ru"
+
 # Запускаю браузер с видимым окном
 launch_browser(headless = False)
 
@@ -337,9 +377,22 @@ goto_url(
     timeout = 30_000
 )
 
-resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test, ".products .product-card a.stretched-link[href*='/products/']")
+resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test, ".products .product-card a.stretched-link[href*='/products/']", semantics_test, host_value_test)
 
 print("resilt:")
 print(resilt)
-print("builded_code_get_max_page_on_pagination:")
-print(resilt.get("builded_code_get_max_page_on_pagination"))
+print("result_code_url_builder:")
+print(resilt.get("result_code_url_builder"))
+
+
+
+
+
+
+
+
+
+
+
+
+
