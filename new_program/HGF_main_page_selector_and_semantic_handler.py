@@ -200,7 +200,7 @@ def HGF_main_page_selector_and_semantic_handler(input_html):
 
 # # Для тестов:
 
-# url = "https://www.krason.ru/"
+# url = "https://makitatrading.ru/"
 
 # html_content = get_html_from_cache(url)
 # html_content_zip = clean_html_universal(html_content)
