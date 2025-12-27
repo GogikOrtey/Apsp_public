@@ -1,4 +1,4 @@
-28.12.2025 02:25:50
+28.12.2025 02:33:01
 
 Запускаем agent_step_7_build_code_parsePage
 URL_BLOCK:
@@ -15,6 +15,7 @@ let product = products?.eq(0)
 let link = $(product)?.attr('href')
 console.log('link = ' + link)
 
-esult_agent_step_7_build_code_parsePage:
+
+result_agent_step_7_build_code_parsePage:
 
 None

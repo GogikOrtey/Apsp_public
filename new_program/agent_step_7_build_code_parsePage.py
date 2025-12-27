@@ -287,39 +287,25 @@ MAIN_PROMPT = """
 def agent_step_7_build_code_parsePage(input_code_fragments):
     print("Запускаем agent_step_7_build_code_parsePage")
 
-    def _format_code_fragments_to_sections(fragments: Any) -> str:
-        """
-        Превращает словарь вида {BLOCK_NAME: "line1\\nline2"} в строку:
-
-        BLOCK_NAME:
-        line1
-        line2
-
-        OTHER_BLOCK:
-        ...
+    def _format_code_fragments_to_sections(fragments) -> str:
+        """ 
+        Распаковывает код из JSON построчно, и формирует красиво и более читаемо
         """
         if fragments is None:
             return ""
         if not isinstance(fragments, dict):
-            # на всякий случай — чтобы не падать, а показать, что реально пришло
             return str(fragments)
 
-        sections: list[str] = []
+        sections = []
+
         for block_name, code in fragments.items():
-            block_title = str(block_name).strip()
+            title = str(block_name).strip()
             code_str = "" if code is None else str(code)
 
-            # нормализуем переводы строк
-            code_str = code_str.replace("\r\n", "\n").replace("\r", "\n")
-            # если пришли литералы "\\n" вместо настоящих переносов
-            if "\n" not in code_str and "\\n" in code_str:
-                code_str = code_str.replace("\\n", "\n")
-            code_str = code_str.strip("\n")
+            # Выполняем переводы строк
+            code_str = code_str.replace("\r\n", "\n").replace("\r", "\n").strip("\n")
 
-            if code_str:
-                sections.append(f"{block_title}:\n{code_str}")
-            else:
-                sections.append(f"{block_title}:\n")
+            sections.append(f"{title}:\n{code_str}")
 
         return "\n\n".join(sections).strip() + "\n"
 
