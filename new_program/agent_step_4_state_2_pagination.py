@@ -54,10 +54,9 @@ main_task_all = """
 
 Если инструмент get_total_pages_on_current_page_cheerio выдал корректное значение - максимальное количество страниц пагинации на этом сайте, то запиши селектор в result в поле pagination_max_page_value_selector. Также запиши в result в поле type_struct_extract_max_page значение "simple_max", и переходи к шагу 2 - генерации кода.
 
-1.2 Если last_page_number_displayed в input_data = false, или get_total_pages_on_current_page_cheerio вернул некорректный результат, то значит номер последней страницы не указан явно текстом, но скорее всего его можно извлечь из ссылки, которая находится в элементе перехода на последнюю страницу. Селектор этого элемента лежит в 
-pagination_last_page_selectors в input_data.
+1.2 Если last_page_number_displayed в input_data = false, или get_total_pages_on_current_page_cheerio вернул некорректный результат, то значит номер последней страницы не указан явно текстом, но скорее всего его можно извлечь из ссылки которая находится в элементе перехода на последнюю страницу, либо из другого его атрибута или текста. Селектор этого элемента лежит в pagination_last_page_selectors в input_data.
 
-Получи этот элемент через инструмент get_html_frame_on_current_page, и если там в ссылке действительно есть номер последней страницы (т.е. например URL имеет часть page=22), то запиши в result в поле type_struct_extract_max_page значение "extract_from_url", и в поле pagination_max_page_value_selector запиши селектор, указывающий на этот элемент перехода на последнюю страницу, и переходи к шагу 2 - генерации кода.
+Получи этот элемент через инструмент get_html_frame_on_current_page, и если в нём действительно есть номер последней страницы, то запиши в result в поле type_struct_extract_max_page значение "extract_from_last_page_element", и в поле pagination_max_page_value_selector запиши селектор, указывающий на этот элемент перехода на последнюю страницу, и переходи к шагу 2 - генерации кода.
 
 1.3 Если last_page_number_displayed в input_data = null, или предыдущие шаги 1.1 и 1.2 не дали результатов, то значит в блоке пагинации нет номера последней страницы. Проверь, если поле total_results_count_selectors в input_data не равняется null, то значит на странице был найден элемент, в котором в тексте есть число общего количества найденных результатов по этому запросу. Значит, мы сможем найти максимальное количество страниц позже, из значения этого элемента. Проверь его через инструмент get_html_frame_on_current_page. Если там указано число найденных элементов (например "По запросу _ найдено 3442 товара"), значит это нужный элемент. 
 Запиши в result в поле type_struct_extract_max_page значение "use_total_count", и в поле pagination_max_page_value_selector запиши селектор, указывающий на этот элемент, и переходи к шагу 2 - генерации кода.
@@ -70,6 +69,29 @@ pagination_last_page_selectors в input_data.
 
 Шаг 2. Генерация кода
 
+На этом шаге тебе нужно сформировать код (чаще всего одну строку), который будет задавать значение totalPages. Значение должно быть числовым (не строковым)
+
+2.1 Если в result в поле type_struct_extract_max_page указано "simple_max", значит для итогового кода достаточно использовать код: 
+"let totalPages = Math.max(...$(selector).get().map(item => +$(item).text().trim()).filter(Boolean))", заменив selector на значение из поля pagination_max_page_value_selector записанного в result. Преобразование значения в число уже включено в это выражение. Также, если type_struct_extract_max_page = "simple_max", значит на предыдущем шаге была проведена проверка этого кода, и он оказался рабочим. 
+
+Тогда тебе нужно сформировать одну эту строку, и проверить что она корректно работает, используя инструмент get_total_pages_on_current_page_cheerio_code.
+
+После успешной проверки - записать этот код в result в поле builded_code_get_max_page_on_pagination. 
+Если проверка неуспешна - то переходи к шагу 2.2, где ты соберёшь нужную строку обработки извлечения значения самостоятельно. 
+
+2.2 Если в result в поле type_struct_extract_max_page указано "extract_from_last_page_element", или на шаге 2.1 была неуспешная проверка, тогда твоя задача написать код, который извлекает числовое значение номера последней страницы из элемента перехода на последнюю страницу (который указан в pagination_last_page_selectors в input_data). Приведу несколько примеров, можешь ориентироваться на них:
+
+Если значение текстовое:
+let totalPages = +$("h1 > strong").text().trim()
+let totalPages = +$('.pagination a')?.eq(-3).text().trim()
+let totalPages = +$('.site-main__inner > a[href]')?.eq(-1).text().trim()
+let totalPages = +$('.pagination > span').last()?.find('a').text().trim()
+let totalPages = +$(".page-nav__nums_desktop > a")?.last().text().trim()
+
+Если извлекается из ссылки, то используй регулярное выражение, например:
+Для ссылки "https://kotel-nasos.ru/search/?page=115&query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"
+подойдёт код:
+let totalPages = +$('.pagination a')?.eq(-3)?.attr('href')?.match(/[?&]page=(\d+)/)?.at(1);
 
 
 """ 
@@ -83,9 +105,22 @@ pagination_last_page_selectors в input_data.
 
 
 
+"""
+let totalPages = +$("h1 > strong").text().trim()
+
+let totalPages = +$("h1 > strong").text().trim()
+let totalPages = +$('.pagination a').eq(-3).text().trim()
+let totalPages = +$('.site-main__inner > a[href]').eq(-1).text().trim()
+let totalPages = +$('.pagination > span').last().find('a').text().trim()
+let totalPages = +$(".page-nav__nums_desktop > a").last().text().trim()
+
+let totalPages = Math.ceil(+$("h1 > strong").text().trim() / 20)
 
 
+let totalCount = $("[class*='styled__ProductListSearchCount']").text()?.match(/\d+/)?.at(0)
+let totalPages = Math.ceil(+totalCount / 36)
 
+"""
 
 
 
@@ -105,7 +140,7 @@ pagination_last_page_selectors в input_data.
 
 {
     "pagination_max_page_value_selector"
-    "type_struct_extract_max_page": simple_max | extract_from_url | use_total_count
+    "type_struct_extract_max_page": simple_max | extract_from_last_page_element | use_total_count
     "builded_code_get_max_page_on_pagination"
     "check_generated_code_successful"
 }
