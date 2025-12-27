@@ -287,22 +287,64 @@ MAIN_PROMPT = """
 def agent_step_7_build_code_parsePage(input_code_fragments):
     print("Запускаем agent_step_7_build_code_parsePage")
 
-    #
+    def _format_code_fragments_to_sections(fragments: Any) -> str:
+        """
+        Превращает словарь вида {BLOCK_NAME: "line1\\nline2"} в строку:
 
-    request_from_LLM = MAIN_PROMPT
-    result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.1, system_prompt = SYSTEM_PROMPT)
+        BLOCK_NAME:
+        line1
+        line2
 
-    # send_message_to_ChatGPT возвращает ChatGPTResult; достаём текст ответа
-    result_text = result_request.answer if hasattr(result_request, "answer") else str(result_request)
+        OTHER_BLOCK:
+        ...
+        """
+        if fragments is None:
+            return ""
+        if not isinstance(fragments, dict):
+            # на всякий случай — чтобы не падать, а показать, что реально пришло
+            return str(fragments)
 
-    # Удаляем обертку ``` ``` если модель вернула JSON внутри Markdown
-    if "```" in result_text:
-        match = re.search(r"```(?:json)?\s*(.*?)\s*```", result_text, re.DOTALL)
-        if match:
-            result_text = match.group(1)
+        sections: list[str] = []
+        for block_name, code in fragments.items():
+            block_title = str(block_name).strip()
+            code_str = "" if code is None else str(code)
 
-    # Возвращаем именно текст, чтобы вызывающий код мог сразу парсить JSON
-    return result_text
+            # нормализуем переводы строк
+            code_str = code_str.replace("\r\n", "\n").replace("\r", "\n")
+            # если пришли литералы "\\n" вместо настоящих переносов
+            if "\n" not in code_str and "\\n" in code_str:
+                code_str = code_str.replace("\\n", "\n")
+            code_str = code_str.strip("\n")
+
+            if code_str:
+                sections.append(f"{block_title}:\n{code_str}")
+            else:
+                sections.append(f"{block_title}:\n")
+
+        return "\n\n".join(sections).strip() + "\n"
+
+    input_code_fragments_str = _format_code_fragments_to_sections(input_code_fragments)
+    print(input_code_fragments_str)
+
+    # request_from_LLM = (
+    #     MAIN_PROMPT
+    #     + "\n\n"
+    #     + "INPUT_CODE_FRAGMENTS:\n"
+    #     + input_code_fragments_str
+    # )
+    # result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.1, system_prompt = SYSTEM_PROMPT)
+
+    # # send_message_to_ChatGPT возвращает ChatGPTResult; достаём текст ответа
+    # result_text = result_request.answer if hasattr(result_request, "answer") else str(result_request)
+
+    # # Удаляем обертку ``` ``` если модель вернула JSON внутри Markdown
+    # if "```" in result_text:
+    #     match = re.search(r"```(?:json)?\s*(.*?)\s*```", result_text, re.DOTALL)
+    #     if match:
+    #         result_text = match.group(1)
+
+    # # Возвращаем именно текст, чтобы вызывающий код мог сразу парсить JSON
+    # return result_text
 
 
 
@@ -311,18 +353,6 @@ def agent_step_7_build_code_parsePage(input_code_fragments):
 
 # Для тестов:
 
-# url = "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"
-# url = "https://makitaclub.ru/page/1/?s=шуруповерт&post_type=product"
-# url = "https://www.krason.ru/search"
-
-# html_content = get_html_from_cache(url)
-# html_content_zip = clean_html_universal(html_content)
-
-# save_page_html(html_content, filename = "page_html.html")
-# save_page_html(html_content_zip, filename = "page_html_zip.html")
-
-
-
 input_code_fragments = {
     "URL_BLOCK": "let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)\nurl.searchParams.set('s', set.query)\nurl.searchParams.set('post_type', 'product')",
     "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav.woocommerce-pagination .page-numbers\").get().map(item => +$(item).text().trim()).filter(Boolean))",
@@ -330,7 +360,6 @@ input_code_fragments = {
 }
 
 
-
-HGF_result = agent_step_7_build_code_parsePage(input_code_fragments)
-print(f"\nTNF_result:\n")
-print(HGF_result)
+result_agent_step_7_build_code_parsePage = agent_step_7_build_code_parsePage(input_code_fragments)
+print(f"\nresult_agent_step_7_build_code_parsePage:\n")
+print(result_agent_step_7_build_code_parsePage)
