@@ -494,8 +494,12 @@ def main_processer(input_url):
         "GET_PRODUCT_LINK_LINES_CODE": GET_PRODUCT_LINK_LINES_CODE
     }
 
+    print("object_for_code_block_parsePage:")
+    object_for_code_block_parsePage_string = json.dumps(object_for_code_block_parsePage, ensure_ascii=False, indent=4, default=str)
+    print(object_for_code_block_parsePage_string)
 
 
+    # Вот тут добавить вызов функции сборщика кода
 
 
     print("🟦 Завершили все фазы для parsePage ✅")
