@@ -434,67 +434,149 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, ho
 
 
 
-# Проверка 2:
+# # Проверка 2:
+
+# input_data_test = {
+#     "search_input_selectors": [
+#         "#title-search-input",
+#         "form#searchForm input[name='q']",
+#         "#searchForm input[type='search']"
+#     ],
+#     "search_button_selectors": [
+#         "#searchForm input[type='submit'][name='s']",
+#         "form#searchForm input.btn.btnRed[type='submit']",
+#         "#searchForm input[value='Найти']"
+#     ],
+#     "total_results_count_selectors": "null",
+#     "product_link_selectors": [
+#         ".catalog.catalogCards .itemCard[itemtype='http://schema.org/Product'] > a.image[href^='/catalog/   product/']",
+#         ".catalog.catalogCards .itemCard a.item_title[href^='/catalog/product/']",
+#         ".catalog.catalogCards a[href^='/catalog/product/']"
+#     ],
+#     "pagination_container_selectors": [
+#         "nav#pagination",
+#         "#pagination > ul",
+#         "nav#pagination ul"
+#     ],
+#     "pagination_page2_selectors": [
+#         "nav#pagination a[href*='PAGEN_2=2']",
+#         "#pagination a[href*='PAGEN_2=2']",
+#         "nav#pagination ul li a[href*='PAGEN_2=2']"
+#     ],
+#     "pagination_last_page_selectors": [
+#         "nav#pagination ul li:nth-last-child(2) > a",
+#         "#pagination ul li:nth-last-child(2) > a",
+#         "nav#pagination li:not(.active):not(:first-child):not(:last-child):nth-last-child(2) > a"
+#     ],
+#     "last_page_number_displayed": "true"
+# }
+
+# search_request_test = "инструмент"
+
+# semantics_test = {
+#     "semantics": [
+#         "инструмент",
+#         "дрель",
+#         "шуруповерт",
+#         "перфоратор",
+#         "болгарка",
+#         "пила",
+#         "шлифмашина",
+#         "пылесос",
+#         "аккумулятор",
+#         "оснастка"
+#     ]
+# }
+
+# host_value_test = "https://makitatrading.ru"
+
+# # Запускаю браузер с видимым окном
+# launch_browser(headless = False)
+
+# goto_url( 
+#     url = "https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8",
+#     wait_until = "load",
+#     timeout = 30_000
+# )
+
+# resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test, semantics_test, host_value_test)
+
+# print("resilt:")
+# print(resilt)
+# print(f"\nresult_code_url_builder:")
+# print(resilt.get("result_code_url_builder"))
+
+
+
+
+
+
+
+# Проверка 3:
 
 input_data_test = {
     "search_input_selectors": [
         "#title-search-input",
-        "form#searchForm input[name='q']",
-        "#searchForm input[type='search']"
+        "form.search.search--hastype input[name='q']#title-search-input",
+        "header .search-wrapper #title-search input.search-input[name='q']"
     ],
     "search_button_selectors": [
-        "#searchForm input[type='submit'][name='s']",
-        "form#searchForm input.btn.btnRed[type='submit']",
-        "#searchForm input[value='Найти']"
+        "#title-search button.btn-search[type='submit']",
+        "#title-search form.search.search--hastype button[name='s'][type='submit']",
+        "header .search-wrapper #title-search button.btn-search"
     ],
-    "total_results_count_selectors": "null",
+    "total_results_count_selectors": [
+        ".topic__heading .element-count-wrapper .element-count",
+        "h1#pagetitle + .element-count-wrapper .element-count",
+        ".topic .topic__heading span.element-count"
+    ],
     "product_link_selectors": [
-        ".catalog.catalogCards .itemCard[itemtype='http://schema.org/Product'] > a.image[href^='/catalog/   product/']",
-        ".catalog.catalogCards .itemCard a.item_title[href^='/catalog/product/']",
-        ".catalog.catalogCards a[href^='/catalog/product/']"
+        ".catalog-block .catalog-block__wrapper .catalog-block__info-title > a.dark_link[href*='/catalog/']",
+        ".catalog-block__wrapper a.js-popup-title[href*='/catalog/']",
+        ".catalog-block__wrapper a.image-list__link[href*='/catalog/']"
     ],
     "pagination_container_selectors": [
-        "nav#pagination",
-        "#pagination > ul",
-        "nav#pagination ul"
+        ".bottom_nav_wrapper .module-pagination",
+        ".bottom_nav .module-pagination__wrapper",
+        ".bottom_nav_wrapper .bottom_nav .module-pagination"
     ],
     "pagination_page2_selectors": [
-        "nav#pagination a[href*='PAGEN_2=2']",
-        "#pagination a[href*='PAGEN_2=2']",
-        "nav#pagination ul li a[href*='PAGEN_2=2']"
+        ".bottom_nav_wrapper .module-pagination a.module-pagination__item[href*='PAGEN_2=2']",    
+        ".bottom_nav .module-pagination__wrapper a[href*='PAGEN_2=2']",
+        ".bottom_nav_wrapper a.arrows-pagination__next[href*='PAGEN_2=2']"
     ],
     "pagination_last_page_selectors": [
-        "nav#pagination ul li:nth-last-child(2) > a",
-        "#pagination ul li:nth-last-child(2) > a",
-        "nav#pagination li:not(.active):not(:first-child):not(:last-child):nth-last-child(2) > a"
+        ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item:last-of-type",
+        ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item[href*='PAGEN_2=']",
+        ".bottom_nav_wrapper .module-pagination__wrapper a.module-pagination__item:nth-last-of-type(1)"
     ],
     "last_page_number_displayed": "true"
 }
 
-search_request_test = "инструмент"
+search_request_test = "плитка"
 
 semantics_test = {
     "semantics": [
-        "инструмент",
-        "дрель",
-        "шуруповерт",
-        "перфоратор",
-        "болгарка",
-        "пила",
-        "шлифмашина",
-        "пылесос",
-        "аккумулятор",
-        "оснастка"
+        "плитка",
+        "керамогранит",
+        "сантехника",
+        "мозаика",
+        "унитаз",
+        "раковина",
+        "смеситель",
+        "душ",
+        "ванна",
+        "мебель"
     ]
 }
 
-host_value_test = "https://makitatrading.ru"
+host_value_test = "https://galleryceramics.ru"
 
 # Запускаю браузер с видимым окном
 launch_browser(headless = False)
 
 goto_url( 
-    url = "https://makitatrading.ru/catalog/?q=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8",
+    url = "https://galleryceramics.ru/catalog/?q=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&type=catalog&s=%D0%9D%D0%B0%D0%B9%D1%82%D0%B8",
     wait_until = "load",
     timeout = 30_000
 )
