@@ -507,6 +507,8 @@ def main_processer(input_url):
 
 
     # Вот тут добавить вызов функции сборщика кода
+    print("Запускаем agent_step_7_build_code_parsePage")
+    ########### result_agent_step_7_build_code_parsePage = agent_step_7_build_code_parsePage()
 
 
     print("🟦 Завершили все фазы для parsePage ✅")
