@@ -45,7 +45,7 @@ from new_program.html_toolkit import *  # регистрирует инстру�
 
 
 
-def gen_main_task_all(selector_product_link, host_value):
+def gen_main_task_all(search_request, host_value):
     main_task_all = """
 
 Во входных данных (input_data) тебе даны селекторы на элементы этой страницы. Они понадобятся тебе в ходе выполнения проверок и решения задачи. В каждом массиве есть input_data по 3 селектора, из них первый - это самый стабильный и предпочтительный, по умолчанию используй его. Но если вдруг первый окажется по каким-то причинам неподходящим или нерабочим, то есть ещё два запасных селектора, которые указывают также на этот элемент.
@@ -75,13 +75,13 @@ url_for_2_page = URL второй страницы
 найди закономерность, как задаётся пагинация.
 - Чаще всего она задаётся дополнительным параметром в URL. Пример: https://kotel-nasos.ru/search/?page=2&query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB
 - Реже, она задаётся внутри пути URL. Пример: https://makitaclub.ru/page/2/?s=инструмент&post_type=product
-- Редко пагинация задаётся оффсетом в URL.
+- Редко пагинация задаётся офсетом в URL.
 
 Если ты видишь, что URL первой страницы и URL второй страницы одинаковы, или если ты не можешь выделить явных признаков количества страниц и задания поискового запроса в URL, то запиши в result в поле search_output_set_by_add_query значение true и возвращай FAILED с сообщением, что скорее всего товары загружаются доп. запросами.
 
 В этой фазе тебе нужно найти, как именно задаётся пагинация. Если это доп. параметр - то понять, какой параметр за это отвечает (чаще всего это "page", "p", "PAGEN_1" и подобные). Запиши в memory параметр, который по твоему мнению задаёт пагинацию.
 
-Далее сформируй ссылки на 3ю и 4ю страницы, и проверь их при помощи инструмента check_url_status. Если статус корректен, значит параметр был найден верно. Если нет, то уточняй параметр, и проверь что на странице поиска >= 4 страниц выдачи (просмотрев инструментом get_html_frame_on_current_page по селектору pagination_container_selectors).
+Далее сформируй ссылки на 3ю и 4ю страницы, и проверь их при помощи инструмента check_url_status. Если статус корректен, значит параметр был найден верно. Если нет, то уточняй параметр, и проверь что на странице поиска >= 4 страниц выдачи (просмотрев инструментом get_html_frame_on_current_page по селектору pagination_container_selectors, там посмотри есть ли кнопки 3 и 4, или например число больше 4 внутри кнопки пагинации).
 
 Когда параметр задания страниц будет найден корректно, зафиксируй эту информацию в свободной форме, в result в поле info_from_page_parameter. На эту информацию ты будешь опираться в будущем, когда будешь собирать код, так что запиши туда нужное достаточное количество информации.
 
@@ -91,7 +91,7 @@ url_for_2_page = URL второй страницы
 
 1. Перейди снова на первую страницу (инструмент goto_url). Её URL лежит в result в поле start_page_url
 
-2. Найди на странице поле ввода (это селектор search_input_selectors из input_data). Наведи на него фокус (инструмент smart_focus), и введи второй (или другой) запрос из семантики (объект semantics во входных данных), также проверь, что он отличается от того запроса, по которому был выполнен поиск сейчас: '""" + selector_product_link + """'. Для ввода текста запроса в поле ввода используй инструмент human_like_input. Далее нажми enter (инструмент press_enter) и дождись редиректа (инструмент wait_for_navigation_or_content). Если редиректа не последовало, используй кнопку запуска поиска (селектор search_button_selectors из input_data и инструмент click_element для нажатия).
+2. Найди на странице поле ввода (это селектор search_input_selectors из input_data). Наведи на него фокус (инструмент smart_focus), и введи второй (или другой) запрос из семантики (объект semantics во входных данных), также проверь, что он отличается от того запроса, по которому был выполнен поиск сейчас: '""" + search_request + """'. Для ввода текста запроса в поле ввода используй инструмент human_like_input. Далее нажми enter (инструмент press_enter) и дождись редиректа (инструмент wait_for_navigation_or_content). Если редиректа не последовало, используй кнопку запуска поиска (селектор search_button_selectors из input_data и инструмент click_element для нажатия).
 
 3. Получи текущий URL (инструментом get_current_url). Сравни его с URL первой страницы, который лежит в result в поле start_page_url. Сохрани его в result в поле url_for_second_search_query.
 
@@ -152,7 +152,7 @@ HOST = '""" + host_value + """'
 
     Фрагмент с формированием URL:
     let url = new URL(`${HOST}/search/${set.query}/`)
-    url.searchParams.set('/?page', set.page);
+    url.searchParams.set('page', set.page);
 
 Тебе нужно будет составить только необходимый фрагмент кода на JS, в котором будет формироваться URL с использованием этих параметров. Не добавляй дополнительных строчек в результат кода без необходимости. Помести его в result в поле result_code_url_builder.
 
@@ -219,7 +219,7 @@ main_result_schema = {
         "description": "Сформированный фрагмент кода который позволяет задать произвольный запрос поиска и страницу пагинации"
     },
     "search_output_set_by_add_query": {
-        "type": "string",
+        "type": "boolean",
         "required": False,
         "description": "Примет значение true если товары загружаются доп. запросами, а не через URL (необязательное поле для заполнения)"
     }
@@ -312,7 +312,7 @@ input_data_test = {
 
 ###### Добавить семантику!
 
-def agent_step_4_state_3_URL_construct(input_data, search_request, selector_product_link, semantics, host_value):
+def agent_step_4_state_3_URL_construct(input_data, search_request, semantics, host_value):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -327,7 +327,7 @@ def agent_step_4_state_3_URL_construct(input_data, search_request, selector_prod
 
     task = (
         f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу '{search_request}'." +
-        gen_main_task_all(selector_product_link, host_value) + 
+        gen_main_task_all(search_request, host_value) + 
         input_data_str + f"\n\n" +
         semantics)
 
@@ -377,7 +377,7 @@ goto_url(
     timeout = 30_000
 )
 
-resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test, ".products .product-card a.stretched-link[href*='/products/']", semantics_test, host_value_test)
+resilt = agent_step_4_state_3_URL_construct(input_data_test, search_request_test, semantics_test, host_value_test)
 
 print("resilt:")
 print(resilt)
