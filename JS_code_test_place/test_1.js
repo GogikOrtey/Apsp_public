@@ -22,3 +22,12 @@ let products = $('.products .card a.stretched-link')
 let product = products?.eq(0)
 let link = HOST + $(product)?.attr('href')
 console.log("link = " + link)
+
+
+
+let url = new URL(`${HOST}/catalog/`)        
+url.searchParams.set('type', 'catalog')      
+url.searchParams.set('s', 'Найти')
+url.searchParams.set('q', set.query)
+if (+set.page > 1) url.searchParams.set('PAGEN_2', String(set.page))
+else url.searchParams.delete('PAGEN_2')   
