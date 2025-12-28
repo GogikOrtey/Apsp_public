@@ -19,6 +19,7 @@ from makeRequest_gen import *
 
 
 
+# region Главный шаблон
 
 template_main_code = Template("""
 import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
@@ -67,6 +68,7 @@ export class $parser_name_val extends JS_Base_Custom {
 $subtitle_from_code
 """)
 
+# region Функции заполнения
 
 # Генерирует верхнюю процедуру, которая называется parse и имеет описание "Точка входа"
 def parse_entry_point_gen():
@@ -175,6 +177,28 @@ def set_parser_name():
     return base_name_part
 
 
+
+
+
+# region Запись в файл
+
+ROOT_DIR = Path(__file__).resolve().parent
+RESULT_OUTPUT_DIR = ROOT_DIR / "result_code_gen" / "result"
+RESULT_CODE_TS_PATH = RESULT_OUTPUT_DIR / "result_code.ts"
+
+def result_file_JS(result_code):
+    RESULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    RESULT_CODE_TS_PATH.write_text(result_code, encoding="utf-8")
+    print("📘 result_code успешно записан в result_code.ts")
+
+
+
+
+
+
+
+# region build_final_code
+
 def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment):
     make_request_code_value = simple_makeRequest()    
     parse_entry_point_code_value = parse_entry_point_gen()
@@ -187,7 +211,7 @@ def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment):
         parse_page_code = parse_page_code_fragment,
         parse_entry_point_code = parse_entry_point_code_value,
         # field_val = field,
-        field_val = "🟨 Заглушка 🟨",
+        field_val = "🟨 Заглушка field 🟨",
         host_val = host,
         default_conf = default_conf_value,
         subtitle_from_code = get_cuurent_subtitle(),
@@ -196,6 +220,76 @@ def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment):
     
     print(f"\n📗 Результат:\n")
     print(result)
+    result_file_JS(result) # Записываем результат в файл
+
     return result
 
 
+
+
+
+
+
+
+
+# region Проверка
+
+host_test = ""
+
+parse_card_code_fragment_test = """
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        /* 🟨 Заглушка для parseCard 🟨 */
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const stock = ? "InStock" : "OutOfStock"
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
+"""
+
+parse_page_code_fragment = """
+async parsePage(set: SetType) {
+    let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
+    url.searchParams.set('s', set.query)     
+    url.searchParams.set('post_type', 'product')
+
+    const data = await this.makeRequest(url.href)
+    const $ = cheerio.load(data)
+
+    if (set.page === 1) {
+        let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
+        this.debugger.put(`totalPages = ${totalPages}`)
+        for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) { 
+            this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+        }
+    }
+
+    let items: ResultItem[] = [];
+    let products = $('.products .product-card a.stretched-link[href*="/products/"]')      
+    if (products.length == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    products.slice(0, +this.conf.itemsCount).each((i, product) => {
+        let link = $(product)?.attr('href')  
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+    return items;
+}
+"""
+
+result_final_code = build_final_code(host_test, parse_card_code_fragment_test, parse_page_code_fragment)
+
+# print("result_final_code:")
+# print(result_final_code)
