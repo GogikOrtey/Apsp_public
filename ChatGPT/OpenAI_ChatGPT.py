@@ -353,6 +353,10 @@ def send_message_to_ChatGPT(
         chat_id: str | None = None,         # Идентификатор чата с историей
         system_prompt: str | None = None    # Кастомный системный промпт для нового чата
     ):
+
+    if not system_prompt:
+        print("🟧🟧🟧 system_prompt не был задан 🟧🟧🟧") # Что бы не пропустить если где-то забуду его задать
+
     # Если chat_id не передан — работаем БЕЗ истории:
     # не читаем/не пишем ChatGPT_history.log и не подмешиваем старые сообщения.
     if not chat_id:
