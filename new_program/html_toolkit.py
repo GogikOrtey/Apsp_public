@@ -150,7 +150,7 @@ def get_host_from_link(link: str) -> str:
             "name": "link",
             "type": "str",
             "required": True,
-            "description": "URL страницы (используется для получения HTML из кеша и для вычисления HOST).",
+            "description": "URL страницы",
         },
     ],
     returns={
@@ -200,66 +200,167 @@ def run_cheerio_js_extract_vars_on_html(user_code: str, html_content: str, link:
     host_js = json.dumps(host)
 
     # Печатаем строго JSON последней строкой, чтобы Python мог распарсить результат.
-    # console внутри исполняемого кода глушим (иначе пользовательский console.log может испортить stdout).
+    # Важно: выполняем user_code в vm с таймаутом и без code-generation (eval/new Function/wasm).
     node_script_template = """
 const fs = require('fs');
+const vm = require('vm');
 const cheerio = require('cheerio');
 
 function main() {
   try {
     const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
     const data = html;
-    const $ = cheerio.load(data);
+    const $raw = cheerio.load(data);
     const HOST = __HOST__;
     const userCode = __USER_CODE__;
 
+    // --- minimal hardening to keep flexibility but block common escapes ---
+    // Hide constructor/__proto__/prototype via Proxy to prevent chains like:
+    //   $.constructor.constructor("return process")()
+    const DENY_PROPS = new Set(['constructor', '__proto__', 'prototype']);
+    const RAW_TO_PROXY = new WeakMap();
+    const PROXY_TO_RAW = new WeakMap();
+
+    function unwrap(v) { return PROXY_TO_RAW.get(v) || v; }
+
+    function makeSafe(value) {
+      if (value === null || value === undefined) return value;
+      const t = typeof value;
+      if (t !== 'object' && t !== 'function') return value;
+
+      if (PROXY_TO_RAW.has(value)) return value;
+      const cached = RAW_TO_PROXY.get(value);
+      if (cached) return cached;
+
+      if (t === 'function') {
+        const p = new Proxy(value, {
+          get(target, prop, receiver) {
+            if (DENY_PROPS.has(prop)) return undefined;
+            const v = Reflect.get(target, prop, receiver);
+            return makeSafe(v);
+          },
+          apply(target, thisArg, args) {
+            const realThis = unwrap(thisArg);
+            const realArgs = (args || []).map(unwrap);
+            const res = Reflect.apply(target, realThis, realArgs);
+            return makeSafe(res);
+          },
+        });
+        RAW_TO_PROXY.set(value, p);
+        PROXY_TO_RAW.set(p, value);
+        return p;
+      }
+
+      const p = new Proxy(value, {
+        get(target, prop, receiver) {
+          if (DENY_PROPS.has(prop)) return undefined;
+          // Read with receiver=target to avoid Proxy as 'this' in internal-slot methods
+          const v = Reflect.get(target, prop, target);
+          if (typeof v === 'function') return makeSafe(v.bind(target));
+          return makeSafe(v);
+        },
+      });
+      RAW_TO_PROXY.set(value, p);
+      PROXY_TO_RAW.set(p, value);
+      return p;
+    }
+
+    const $ = makeSafe($raw);
+
     function extractDeclaredVarNames(code) {
+      // Supports:
+      //   const a = 1
+      //   let a = 1, b = 2
+      // Heuristic-based (good enough for our snippets).
       const names = new Set();
-      const re = /(?:^|[;\\n\\r\\t ]+)(?:const|let|var)\\s+([A-Za-z_$][0-9A-Za-z_$]*)\\s*=/g;
+      const re = /(?:^|[;\\n\\r\\t ]+)(?:const|let|var)\\s+([A-Za-z_$][0-9A-Za-z_$]*)(?=\\s*=)|[,\\s]\\s*([A-Za-z_$][0-9A-Za-z_$]*)(?=\\s*=)/g;
       let m;
       while ((m = re.exec(code)) !== null) {
-        if (m[1]) names.add(m[1]);
+        const a = m[1] || m[2];
+        if (a) names.add(a);
       }
       return Array.from(names);
     }
 
-    function safeJsonValue(v) {
-      if (v === undefined) return null;
-      const t = typeof v;
-      if (t === 'bigint') return v.toString();
-      if (t === 'function') return String(v);
-      if (t === 'symbol') return String(v);
-      try {
-        JSON.stringify(v);
-        return v;
-      } catch (e) {
-        try { return String(v); } catch (e2) { return null; }
+    const declared = extractDeclaredVarNames(userCode).filter(n => !['HOST', '$', '$raw', 'data', 'html', 'userCode'].includes(n));
+
+    // Lightweight static guardrails against obvious sandbox-escape attempts.
+    // We keep this intentionally small to preserve "freedom" for data transforms.
+    const FORBIDDEN = [
+      { re: /\\brequire\\s*\\(/, msg: "require(...) is not allowed" },
+      { re: /\\bprocess\\b/, msg: "process is not allowed" },
+      { re: /\\bchild_process\\b/, msg: "child_process is not allowed" },
+      { re: /\\bfs\\b/, msg: "fs is not allowed" },
+      { re: /\\bvm\\b/, msg: "vm is not allowed" },
+      { re: /\\beval\\s*\\(/, msg: "eval(...) is not allowed" },
+      { re: /\\bFunction\\s*\\(/, msg: "Function(...) is not allowed" },
+      { re: /constructor\\s*\\.\\s*constructor/, msg: "constructor.constructor is not allowed" },
+      { re: /\\bimport\\s*\\(/, msg: "dynamic import(...) is not allowed" },
+      { re: /__proto__/, msg: "__proto__ is not allowed" },
+    ];
+    for (const rule of FORBIDDEN) {
+      if (rule.re.test(userCode)) {
+        throw new Error("Forbidden code: " + rule.msg);
       }
     }
 
-    const declared = extractDeclaredVarNames(userCode).filter(n => !['HOST', '$', 'data', 'html', 'userCode'].includes(n));
-
-    const returnObjLiteral = declared.length
+    // Build result snippet as direct identifier references (no eval).
+    const resultSnippet = declared.length
       ? '{' + declared.map(n => JSON.stringify(n) + ': (typeof ' + n + ' === \"undefined\" ? null : ' + n + ')').join(',') + '}'
       : '{}';
 
-    const body = [
-      '\"use strict\";',
-      // глушим console внутри пользовательского кода
-      'const console = { log(){}, error(){}, warn(){}, info(){}, debug(){} };',
-      userCode,
-      'return ' + returnObjLiteral + ';'
-    ].join('\\n');
+    const prefix = '\"use strict\";\\ntry {\\n';
+    const suffix = `\\n\\nconst __safeJsonValue = (v) => {
+  if (v === undefined) return null;
+  const t = typeof v;
+  if (t === 'bigint') return v.toString();
+  if (t === 'function') return String(v);
+  if (t === 'symbol') return String(v);
+  try { JSON.stringify(v); return v; } catch (e) {
+    try { return String(v); } catch (e2) { return null; }
+  }
+};\\n
+const __rawOut = ${resultSnippet};\\n
+const __out = {};\\n
+for (const [k, v] of Object.entries(__rawOut)) { __out[k] = __safeJsonValue(v); }\\n
+result = __out;\\n
+} catch (e) {\\n
+  result = \"__ERROR__:\" + String(e && e.message ? e.message : e);\\n
+}\\n`;
 
-    const fn = new Function('$', 'HOST', body);
-    const rawVars = fn($, HOST) || {};
+    const wrappedCode = prefix + userCode + suffix;
 
-    const vars = {};
-    for (const [k, v] of Object.entries(rawVars)) {
-      vars[k] = safeJsonValue(v);
+    const sandbox = {
+      $,
+      HOST,
+      result: null,
+      // common stdlib things for data transforms
+      Math, Number, String, Boolean, Array, Object, JSON, RegExp, Date,
+      parseInt, parseFloat, isNaN, isFinite,
+      encodeURI, decodeURI, encodeURIComponent, decodeURIComponent,
+      // console is muted to keep stdout strictly JSON
+      console: { log(){}, error(){}, warn(){}, info(){}, debug(){} },
+    };
+
+    // Remove Node-specific capabilities
+    sandbox.process = undefined;
+    sandbox.require = undefined;
+    sandbox.module = undefined;
+    sandbox.Buffer = undefined;
+    sandbox.global = sandbox;
+    sandbox.globalThis = sandbox;
+
+    vm.runInNewContext(wrappedCode, sandbox, {
+      timeout: 1000,
+      codeGeneration: { strings: false, wasm: false },
+    });
+
+    const r = sandbox.result;
+    if (typeof r === 'string' && r.startsWith('__ERROR__:')) {
+      console.log(JSON.stringify({ status: 'error', vars: null, error: r.slice(10) }));
+    } else {
+      console.log(JSON.stringify({ status: 'ok', vars: r || {}, error: null }));
     }
-
-    console.log(JSON.stringify({ status: 'ok', vars, error: null }));
   } catch (e) {
     console.log(JSON.stringify({ status: 'error', vars: null, error: String(e && e.message ? e.message : e) }));
   }
@@ -283,6 +384,7 @@ main();
             capture_output=True,
             text=True,
             check=False,
+            timeout=3,
         )
 
         if result.returncode != 0:
