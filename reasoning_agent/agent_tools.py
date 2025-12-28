@@ -252,21 +252,33 @@ def get_tools_annotations(as_json: bool = True):
 @tool(
     name="update_result",
     description=(
-        "Обновляет поле в объекте результата (result). "
+        "Обновляет поле(я) в объекте результата (result). "
+        "Можно обновлять либо одно поле (field/value), либо сразу несколько через updates. "
         "Используй это, чтобы постепенно собрать финальный ответ по заданной схеме."
     ),
     args=[
         {
             "name": "field",
             "type": "str",
-            "required": True,
-            "description": "Имя поля в result"
+            "required": False,
+            "description": "Имя поля в result (для одиночного обновления). Пример: 'file_name' или 'meta.url'"
         },
         {
             "name": "value",
             "type": "any",
-            "required": True,
-            "description": "Значение, которое нужно записать в указанное поле"
+            "required": False,
+            "description": "Значение, которое нужно записать в указанное поле (для одиночного обновления)"
+        },
+        {
+            "name": "updates",
+            "type": "any",
+            "required": False,
+            "description": (
+                "Пакетное обновление нескольких полей. "
+                "Вариант 1: список объектов [{'field': 'a', 'value': 1}, ...]. "
+                "Вариант 2: словарь {'a': 1, 'b.c': 2}. "
+                "Можно передать вместе с field/value — тогда применятся все обновления."
+            )
         }
     ],
     returns={
@@ -274,34 +286,89 @@ def get_tools_annotations(as_json: bool = True):
         "result": "{...}",
         "error": "str|null"
     },
-    example_args={"field": "file_name", "value": "todo.txt"}
+    example_args={
+        "updates": [
+            {"field": "file_name", "value": "todo.txt"},
+            {"field": "file_content", "value": "Привет!"}
+        ]
+    }
 )
-def update_result(field: str, value: Any):
+def update_result(field: str | None = None, value: Any = None, updates: Any = None):
     global RESULT, RESULT_SCHEMA
 
-    if not isinstance(field, str) or not field.strip():
-        return {"status": "error", "result": RESULT, "error": "field должен быть непустой строкой"}
+    def _apply_one_update(one_field: Any, one_value: Any) -> dict[str, Any]:
+        if not isinstance(one_field, str) or not one_field.strip():
+            return {"status": "error", "result": RESULT, "error": "field должен быть непустой строкой"}
 
-    path = [p for p in field.strip().split(".") if p]
-    if not path:
-        return {"status": "error", "result": RESULT, "error": "Некорректный путь поля"}
+        path = [p for p in one_field.strip().split(".") if p]
+        if not path:
+            return {"status": "error", "result": RESULT, "error": "Некорректный путь поля"}
 
-    # Минимальная валидация: первый сегмент должен существовать в схеме (если схема dict)
-    if isinstance(RESULT_SCHEMA, dict) and path[0] not in RESULT_SCHEMA:
+        # Минимальная валидация: первый сегмент должен существовать в схеме (если схема dict)
+        if isinstance(RESULT_SCHEMA, dict) and path[0] not in RESULT_SCHEMA:
+            return {
+                "status": "error",
+                "result": RESULT,
+                "error": f"Поле '{path[0]}' отсутствует в result_schema"
+            }
+
+        node = RESULT
+        for key in path[:-1]:
+            if key not in node or not isinstance(node.get(key), dict):
+                node[key] = {}
+            node = node[key]
+
+        node[path[-1]] = one_value
+        return {"status": "ok", "result": RESULT, "error": None}
+
+    # Собираем список обновлений из (updates) и/или (field/value)
+    updates_list: list[dict[str, Any]] = []
+
+    if updates is not None:
+        if isinstance(updates, dict):
+            for k, v in updates.items():
+                updates_list.append({"field": k, "value": v})
+        elif isinstance(updates, list):
+            for item in updates:
+                updates_list.append(item)
+        else:
+            return {
+                "status": "error",
+                "result": RESULT,
+                "error": "updates должен быть dict или list"
+            }
+
+    if field is not None or value is not None:
+        updates_list.append({"field": field, "value": value})
+
+    if not updates_list:
         return {
             "status": "error",
             "result": RESULT,
-            "error": f"Поле '{path[0]}' отсутствует в result_schema"
+            "error": "Нужно передать либо (field и value), либо updates"
         }
 
-    node = RESULT
-    for key in path[:-1]:
-        if key not in node or not isinstance(node.get(key), dict):
-            node[key] = {}
-        node = node[key]
+    updated = 0
+    for item in updates_list:
+        if not isinstance(item, dict):
+            return {
+                "status": "error",
+                "result": RESULT,
+                "error": "Каждый элемент updates должен быть объектом вида {'field': ..., 'value': ...}"
+            }
+        one_field = item.get("field")
+        one_value = item.get("value")
+        r = _apply_one_update(one_field, one_value)
+        if r.get("status") != "ok":
+            # Возвращаем текущий RESULT (возможны частичные обновления)
+            return r
+        updated += 1
 
-    node[path[-1]] = value
-    return {"status": "ok", "result": RESULT}
+    return {"status": "ok", "result": RESULT, "updated": updated}
+
+# Примечание: поддерживаются вложенные пути через точку, например "meta.url" или "b.c"
+# Но сейчас не используются в сценариях использования агента
+# И они не протестированы
 
 
 # region update_memory
