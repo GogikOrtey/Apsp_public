@@ -83,6 +83,14 @@ def extract_fields_description(file_path='add_files/Fields_static.ts', json_path
     Returns:
         dict: словарь с полями в формате {"name": "Наименование товара", ...}
     """
+    # Нормализуем относительные пути: считаем их относительно директории этого скрипта,
+    # а не текущей рабочей директории (в Debug/Run она часто другая).
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    if file_path and not os.path.isabs(file_path):
+        file_path = os.path.join(base_dir, file_path)
+    if json_path and not os.path.isabs(json_path):
+        json_path = os.path.join(base_dir, json_path)
+
     # Проверяем существование исходного файла
     if not os.path.exists(file_path):
         print(f"Файл {file_path} не найден")

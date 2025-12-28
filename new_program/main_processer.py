@@ -586,8 +586,15 @@ def main_processer(input_url):
     }
     """
 
+    # region Шаг 8 - Проверка открытия страницы
 
-    # region Шаг 8 - parseCard
+    """ 
+    
+    Тут нужно будет проверить, открывается ли одинаковая страница в Playwright и по прямому запросу. Если между ними есть больше 15% разницы, то кидать ошибку, что "По прямому запросу сайт выдаёт другой контент, чем в браузере"
+
+    """
+
+    # region Шаг 9 - parseCard
 
     # 15 примеров ссылок товаров лежат в result_agent_step_6_1_get_links_for_product
 
@@ -607,7 +614,7 @@ def main_processer(input_url):
 
 
 
-    # region Шаг 9 - Итоговый код
+    # region Шаг 10 - Итоговый код
 
     result_final_code = build_final_code(url_input, parse_card_code_fragment, parse_page_code_fragment)
 
