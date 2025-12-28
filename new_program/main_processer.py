@@ -33,6 +33,7 @@ from new_program.use_agent_for_step_2_gen_parsePage import *
 from new_program.agent_step_4_product import *
 from new_program.agent_step_5_pagination import *
 from new_program.agent_step_6_URL_construct import *
+from new_program.agent_step_6_1_get_links_for_product import *
 from new_program.agent_step_7_build_code_parsePage import *
 from new_program.build_final_code import *
 
@@ -41,7 +42,7 @@ from new_program.build_final_code import *
 """ 
 
 
-- Добавить, что бы он с каждой страницы собирал 5 ссылок на товары, и записывал в result (6й шаг агента)
+- Добавил 6.5 шаг, но не запускал весь алгоритм с ним
 
 
 
@@ -460,16 +461,9 @@ def main_processer(input_url):
     print("Запуск result_agent_step_6_URL_construct")
     result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)
 
-    # region Шаг 6.5 - Собираем ссылки на товары с трёх страниц
+    
 
-    input_data_for_3_links = {
-
-    }
-
-
-
-    # region Шаг 7 - Сборка кода
-
+    # Генерируем кастомные исключения, для понятной отладки в случае ошибок
     if not isinstance(result_agent_step_4_product, dict):
         raise TypeError(
             f"agent_step_4_product должен вернуть dict, получили: {type(result_agent_step_4_product).__name__}"
@@ -483,6 +477,34 @@ def main_processer(input_url):
             f"agent_step_6_URL_construct должен вернуть dict, получили: {type(result_agent_step_6_URL_construct).__name__}"
         )
 
+
+
+    # region Шаг 6.5 - Собираем ссылки на товары с трёх страниц
+
+    product_link_selectors = TNF_result.get("product_link_selectors") or []
+    if not isinstance(product_link_selectors, list) or not product_link_selectors or not product_link_selectors[0]:
+        raise ValueError(
+            "TNF_result.product_link_selectors пустой/отсутствует — не могу выбрать selector_product для шага 6.1"
+        )
+
+    input_data_for_3_links = {
+        "first_url": result_agent_step_6_URL_construct.get("start_page_url"),
+        "second_url": result_agent_step_6_URL_construct.get("url_for_2_page"),
+        "third_url": result_agent_step_6_URL_construct.get("url_for_second_search_query"),
+        "selector_product": product_link_selectors[0],
+        "additional_processing_for_the_link_value": result_agent_step_4_product.get("additional_processing_for_the_link_value"),
+    }
+
+    result_agent_step_6_1_get_links_for_product = agent_step_6_1_get_links_for_product(input_data_for_3_links, search_request)
+
+
+
+
+
+
+
+    # region Шаг 7 - Сборка кода
+
     GET_PRODUCT_LINK_LINES_CODE = result_agent_step_4_product.get("builded_code_product_processing")
     GET_MAX_PAGE_BLOCK = result_agent_step_5_pagination.get("builded_code_get_max_page_on_pagination")
     URL_BLOCK = result_agent_step_6_URL_construct.get("result_code_url_builder")
@@ -493,6 +515,7 @@ def main_processer(input_url):
         raise ValueError("Пустой/отсутствует builded_code_get_max_page_on_pagination (шаг 5).")
     if not URL_BLOCK:
         raise ValueError("Пустой/отсутствует result_code_url_builder (шаг 6).")
+
 
     # Собираю вход для шага сборки всей процедуры parsePage
     object_for_code_block_parsePage = {
@@ -565,6 +588,8 @@ def main_processer(input_url):
 
 
     # region Шаг 8 - parseCard
+
+    # 15 примеров ссылок товаров лежат в result_agent_step_6_1_get_links_for_product
 
     parse_card_code_fragment = "" #########
 

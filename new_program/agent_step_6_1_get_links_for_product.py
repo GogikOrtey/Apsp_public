@@ -221,34 +221,34 @@ def agent_step_6_1_get_links_for_product(input_data, search_request):
 
 
 
-# Проверка 1:
+# # Проверка 1:
 
 
-input_data_test = {
-    "first_url": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
-    "second_url": "https://makitaclub.ru/page/2/?s=инструмент&post_type=product",
-    "third_url": "https://makitaclub.ru/?s=%D0%B4%D1%80%D0%B5%D0%BB%D1%8C&post_type=product",
-    "selector_product": ".products .product-card a.stretched-link[href*='/products/']",
-    "additional_processing_for_the_link_value": "false"
-}
+# input_data_test = {
+#     "first_url": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+#     "second_url": "https://makitaclub.ru/page/2/?s=инструмент&post_type=product",
+#     "third_url": "https://makitaclub.ru/?s=%D0%B4%D1%80%D0%B5%D0%BB%D1%8C&post_type=product",
+#     "selector_product": ".products .product-card a.stretched-link[href*='/products/']",
+#     "additional_processing_for_the_link_value": "false"
+# }
 
 
 
-# Запускаю браузер с видимым окном
-launch_browser(headless = False)
+# # Запускаю браузер с видимым окном
+# launch_browser(headless = False)
 
-goto_url( 
-    url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
-    wait_until = "load",
-    timeout = 30_000
-)
+# goto_url( 
+#     url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+#     wait_until = "load",
+#     timeout = 30_000
+# )
 
-search_request_test = "инструмент"
+# search_request_test = "инструмент"
 
-resilt = agent_step_6_1_get_links_for_product(input_data_test, search_request_test)
+# resilt = agent_step_6_1_get_links_for_product(input_data_test, search_request_test)
 
-print("resilt:")
-print(resilt)
+# print("resilt:")
+# print(resilt)
 
 
 
