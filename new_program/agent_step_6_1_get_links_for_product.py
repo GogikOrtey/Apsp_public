@@ -211,7 +211,7 @@ def agent_step_6_1_get_links_for_product(input_data, search_request):
         max_steps = 40,
         result_schema = main_result_schema,
         result_template = main_result_template,
-        # plan = main_plan,
+        plan = main_plan,
         # step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
@@ -253,7 +253,31 @@ print(resilt)
 
 
 
-
+""" 
+{
+    "five_links_1": [
+        "https://makitaclub.ru/products/831271-6/",
+        "https://makitaclub.ru/products/garantiya-5-let/",
+        "https://makitaclub.ru/products/nabor-rychnyh-instrumentov-i-osnastki-makita-d-42042-103-predmeta/",
+        "https://makitaclub.ru/products/nabor-instrumentov-56-sht-makita-b-53768/",
+        "https://makitaclub.ru/products/akkumulyatornyj-mnogofunktsionalnyj-instrument-makita-tm30dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/"
+    ],
+    "five_links_2": [
+        "https://makitaclub.ru/products/duc204rf/",
+        "https://makitaclub.ru/products/jv002gz/",
+        "https://makitaclub.ru/products/duc353rf2/",
+        "https://makitaclub.ru/products/duc101sf/",
+        "https://makitaclub.ru/products/dtd153sy/"
+    ],
+    "five_links_3": [
+        "https://makitaclub.ru/products/dp4021/",
+        "https://makitaclub.ru/products/df488d002/",
+        "https://makitaclub.ru/products/ddf489z/",
+        "https://makitaclub.ru/products/m0600/",
+        "https://makitaclub.ru/products/hp002gd201/"
+    ]
+}
+"""
 
 
 
