@@ -60,7 +60,7 @@ from new_program.build_final_code import *
 
 
 
-
+После генерации фрагмента кода parseCard нужно будет добавлять туда строки с link и timestamp.
 
 
 
