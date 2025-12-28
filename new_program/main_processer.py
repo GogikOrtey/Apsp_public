@@ -82,6 +82,7 @@ from new_program.agent_step_6_URL_construct import *
 
 
 
+- Надо не забыть задавать хост в шаблоне готового кода
 
 
 Доп:

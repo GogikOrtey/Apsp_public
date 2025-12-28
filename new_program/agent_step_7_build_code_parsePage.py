@@ -88,6 +88,69 @@ SYSTEM_PROMPT = """
 
 MAIN_PROMPT = """
 
+ЗАДАЧА:
+
+В input_data тебе даны 3 фрагмента кода. Их нужно будет встроить в шаблон кода
+
+ИНФОРМАЦИЯ:
+- Код написан на JS
+
+
+
+
+
+ШАБЛОН КОДА:
+
+async parsePage(set: SetType) {
+    /* INSERT_HERE URL_BLOCK */
+
+    const data = await this.makeRequest(url.href)
+    const $ = cheerio.load(data)
+
+    if (set.page === 1) {
+        /* INSERT_HERE GET_MAX_PAGE_BLOCK */
+        this.debugger.put(`totalPages = ${totalPages}`)
+        for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+            this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+        }
+    }
+
+    let items: ResultItem[] = [];
+    /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET PRODUCTS OBGECTS */
+    if (products.length == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    products.slice(0, +this.conf.itemsCount).each((i, product) => {
+        /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET LINK PRODUCT */
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+    return items;
+}
+
+ИНСТРУКЦИЯ: 
+
+В шаблоне кода ты видишь 4 места для вставки фрагментов. Они обозначены комментариями /* INSERT_HERE ... */
+
+1. Вместо комментария /* INSERT_HERE URL_BLOCK */ вставь блок кода из поля URL_BLOCK во входных данных (input_data) - целиком
+2. Вместо комментария /* INSERT_HERE GET_MAX_PAGE_BLOCK */ вставь блок кода из поля GET_MAX_PAGE_BLOCK во входных данных (input_data) - целиком
+
+3. Далее важно: В поле GET_PRODUCT_LINK_LINES_CODE находится блок кода, но его не нужно всталять целиком. Из него нужно извлечь:
+    3.1 Код, который задаёт переменную let products = ... . Чаще всего это одна строка. Помести её вместо комментария /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET PRODUCTS OBGECTS */. Игнорируй код задания хоста в этом фрагменте (let HOST = ...), его не нужно сюда добавлять.
+
+    Далее будет идти строчка похожая на "let product = products?.eq(0);". её также нужно игнорировать
+
+    3.2 Фрагмент кода, который задаёт ссылку (let link =) - нужно поместить вместо комментария  /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET LINK PRODUCT */
+
+    Строку "console.log('link = ' + link)" нужно игнорировать и не добавлять в результат.
+
+
+
+
+
+
+
+
 
 
 """
@@ -112,8 +175,6 @@ MAIN_PROMPT = """
 
 Входные данные (input_data):
 
-###### INPUT_CODE_FRAGMENTS
-
 URL_BLOCK:
 let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
 url.searchParams.set('s', set.query)
@@ -128,6 +189,27 @@ let products = $('.products .product-card a.stretched-link[href*="/products/"]')
 let product = products?.eq(0)
 let link = $(product)?.attr('href')
 console.log('link = ' + link)
+
+
+————————————————————————
+
+URL_BLOCK:
+let url = new URL(`${HOST}/catalog/`)        
+url.searchParams.set("q", set.query)
+url.searchParams.set("s", "Найти")
+url.searchParams.set("PAGEN_2", set.page)    
+
+GET_MAX_PAGE_BLOCK:
+let totalPages = Math.max(...$("nav#pagination a").get().map(item => +$(item).text().trim()).filter(Boolean))
+
+GET_PRODUCT_LINK_LINES_CODE:
+let HOST = "https://makitatrading.ru";       
+let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] a.item_title[href^="/catalog/product/"]');     
+let product = products?.eq(0);
+let link = HOST + $(product)?.attr('href');  
+console.log('link = ' + link);
+
+
 
 """
 
@@ -145,6 +227,41 @@ console.log('link = ' + link)
 
 
 
+
+
+
+""" 
+
+async parsePage(set: SetType) {
+    let url = new URL(`${HOST}/search`)
+    url.searchParams.set("q", set.query)
+    url.searchParams.set("page", set.page)
+
+    const data = await this.makeRequest(url.href)
+    const $ = cheerio.load(data)
+
+    if (set.page === 1) {
+        let totalPages = Math.max(...$("").get().map(item => +$(item).text().trim()).filter(Boolean))
+        this.debugger.put(`totalPages = ${totalPages}`)
+        for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+            this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+        }
+    }
+
+    let items: ResultItem[] = [];
+    let products = $("")
+    if (products.length == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    products.slice(0, +this.conf.itemsCount).each((i, product) => {
+        let link = $(product)?.attr("href")
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+    return items;
+}
+
+"""
 
 
 
