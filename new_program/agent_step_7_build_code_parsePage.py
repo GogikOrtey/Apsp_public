@@ -433,10 +433,16 @@ def agent_step_7_build_code_parsePage(input_code_fragments):
 
 # Для тестов:
 
-input_code_fragments = {
-    "URL_BLOCK": "let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)\nurl.searchParams.set('s', set.query)\nurl.searchParams.set('post_type', 'product')",
-    "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav.woocommerce-pagination .page-numbers\").get().map(item => +$(item).text().trim()).filter(Boolean))",
-    "GET_PRODUCT_LINK_LINES_CODE": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)"       
+# input_code_fragments = {
+#     "URL_BLOCK": "let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)\nurl.searchParams.set('s', set.query)\nurl.searchParams.set('post_type', 'product')",
+#     "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav.woocommerce-pagination .page-numbers\").get().map(item => +$(item).text().trim()).filter(Boolean))",
+#     "GET_PRODUCT_LINK_LINES_CODE": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)"       
+# }
+
+input_code_fragments =     {
+    "URL_BLOCK": "let url = new URL(`${HOST}/catalog/`)\nurl.searchParams.set(\"q\", set.query)\nurl.searchParams.set(\"s\", \"Найти\")\nurl.searchParams.set(\"PAGEN_2\", set.page)",
+    "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav#pagination a\").get().map(item => +$(item).text().trim()).filter(Boolean))",
+    "GET_PRODUCT_LINK_LINES_CODE": "let HOST = \"https://makitatrading.ru\";\nlet products = $('.catalog.catalogCards .itemCard[itemtype=\"http://schema.org/Product\"] a.item_title[href^=\"/catalog/product/\"]');\nlet product = products?.eq(0);\nlet link = HOST + $(product)?.attr('href');\nconsole.log('link = ' + link);"
 }
 
 

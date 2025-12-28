@@ -9,16 +9,16 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-# Подключение всех библиотек
-from import_all_libraries import * 
+# # Подключение всех библиотек
+# from import_all_libraries import * 
 
-from get_html_frame import *
+# from get_html_frame import *
 
 
-link = "https://makitaclub.ru/products/ddf489z/"
-html = get_html_from_cache(link)
-# print(build_html_frame(html, "#main h1.product_title.entry-title"))
-print(build_html_frame(html, ".tagged_as > a"))
+# link = "https://makitaclub.ru/products/ddf489z/"
+# html = get_html_from_cache(link)
+# # print(build_html_frame(html, "#main h1.product_title.entry-title"))
+# print(build_html_frame(html, ".tagged_as > a"))
 
 
 
