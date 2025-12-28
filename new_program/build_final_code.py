@@ -151,7 +151,7 @@ def set_defaultConf():
 
 def get_cuurent_subtitle():
     template_subtitle = Template("""
-// Код сгенерирован Автогенератором парсеров v$current_apsp_version_val
+// Код сгенерирован Auto-gen parsers v$current_apsp_version_val
 // Дата: $current_date
 // © BrandPol
 """)

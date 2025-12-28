@@ -142,6 +142,6 @@ export class JS_Base_cskru extends JS_Base_Custom {
     }
 }
 
-// Код сгенерирован Автогенератором парсеров v1.0
+// Код сгенерирован Auto-gen parsers v1.0
 // Дата: 28 Дек 2025
 // © BrandPol
