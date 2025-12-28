@@ -1015,7 +1015,7 @@ def search_in_page_html(
 
 @tool(
     name="find_elements",
-    description="Возвращает элементы по селектору (max 5) и их количество. Можно запросить только count. На текущей странице открытой в Playwright",
+    description="Возвращает элементы по селектору (max 5) и их количество. Можно запросить только count. Для каждого элемента возвращает inner_text/inner_html и все атрибуты (attrs).",
     args=[
         {
             "name": "selector",
@@ -1075,7 +1075,19 @@ def find_elements(
                     html = el.inner_html(timeout=1_000)
                 except Exception:
                     html = None
-                elements.append({"index": i, "text": text, "html": html})
+                try:
+                    href = el.get_attribute("href", timeout=1_000)
+                except Exception:
+                    href = None
+                # Все атрибуты элемента (включая data-*, aria-*, href, class, id, ...)
+                try:
+                    attrs = el.evaluate(
+                        "e => Object.fromEntries(Array.from(e.attributes).map(a => [a.name, a.value]))",
+                        timeout=1_000,
+                    )
+                except Exception:
+                    attrs = None
+                elements.append({"index": i, "text": text, "html": html, "href": href, "attrs": attrs})
 
         res = {"status": "ok", "count": count, "elements": elements, "error": None}
     except Exception as exc:  # noqa: BLE001
@@ -1126,3 +1138,18 @@ def find_elements(
 #         time.sleep(5)
 #     finally:
 #         close_browser(pw, browser)
+
+
+
+
+# # Запускаю браузер с видимым окном
+# launch_browser(headless = False)
+
+# goto_url( 
+#     url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+#     wait_until = "load",
+#     timeout = 30_000
+# )
+
+# print(find_elements(".products .product-card a.stretched-link[href*='/products/']", False, 5))
+
