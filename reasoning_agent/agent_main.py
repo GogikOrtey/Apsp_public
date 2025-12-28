@@ -800,13 +800,25 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 
 
 # region Продвижение по Main Plan
-def _is_result_field_filled(value: Any) -> bool:
+def _is_result_field_filled(value: Any, field_path: str | None = None) -> bool:
     """
     Эвристика заполненности поля результата:
     - None -> не заполнено
     - str -> непустая после strip
     - остальное -> считаем заполненным (включая 0/False, т.к. это валидные значения)
+
+    Доп. правило для полей-валидаторов:
+    - если имя поля (последний сегмент dotted-path) начинается с "field__"
+      и содержит "__ok_on_", то поле считается заполненным ТОЛЬКО если значение True
     """
+    if field_path:
+        field_name = str(field_path).split(".")[-1]
+        if field_name.startswith("field__") and "__ok_on_" in field_name:
+            if value is True:
+                return True
+            if isinstance(value, str) and value.strip().lower() in ("true", "1", "yes", "y"):
+                return True
+            return False
     if value is None:
         return False
     if isinstance(value, str):
@@ -931,7 +943,7 @@ def update_main_plan_progress(main_plan: dict[str, Any]) -> dict[str, Any]:
     fills_to_check = _required_fills_or_all(fills, result_schema_obj)
     for f in fills_to_check:
         val = _get_by_path(result_obj, f)
-        if not _is_result_field_filled(val):
+        if not _is_result_field_filled(val, f):
             return main_plan
 
     # Закрываем текущую фазу
