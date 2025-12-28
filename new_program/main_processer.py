@@ -33,6 +33,8 @@ from new_program.use_agent_for_step_2_gen_parsePage import *
 from new_program.agent_step_4_product import *
 from new_program.agent_step_5_pagination import *
 from new_program.agent_step_6_URL_construct import *
+from new_program.agent_step_7_build_code_parsePage import *
+from new_program.build_final_code import *
 
 # region Задачи
 
@@ -44,12 +46,6 @@ from new_program.agent_step_6_URL_construct import *
 
 
 План на будущее:
-
-- Далее надо будет собрать один запрос (вне агента) на то, что бы он собрал из кусочков целую функцию parsePage
-    - Надо будет прописать ему достаточно ограничений, что бы не фантазировал в коде
-- Проверить, что все нужные аргументы корректно извлекаются и прокидываются куда нужно
-- Тестовые запуски закомментировать у 1-2-3 шагов
-- Запустить всё вместе и протестиировать где-то на 5 сайтах
 
 - Также нужно будет продумать, где и как на этом этапе я буду собирать ссылки для работы генератора parseCard
     - Собрать код для функции, которая будет собирать ссылки на товары
@@ -128,6 +124,9 @@ https://line-tools.ru
 https://makita-online.ru
 
 Доп. ссылки прописаны внизу этого файла
+
+Дигинетика:
+https://apelsin.ru
 
 """
 
@@ -520,11 +519,74 @@ def main_processer(input_url):
 
     # Вот тут добавить вызов функции сборщика кода
     print("Запускаем agent_step_7_build_code_parsePage")
-    ########### result_agent_step_7_build_code_parsePage = agent_step_7_build_code_parsePage()
+    
+    parse_page_code_fragment = agent_step_7_build_code_parsePage(object_for_code_block_parsePage)
 
+    print("📒 parse_page_code_fragment:")
+    print(parse_page_code_fragment)
+
+
+    """ 
+    async parsePage(set: SetType) {
+        let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
+        url.searchParams.set('s', set.query)     
+        url.searchParams.set('post_type', 'product')
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) { 
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+
+        let items: ResultItem[] = [];
+        let products = $('.products .product-card a.stretched-link[href*="/products/"]')      
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = $(product)?.attr('href')  
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        })
+        return items;
+    }
+    """
+
+
+    # region Шаг 8 - parseCard
+
+    parse_card_code_fragment = "" #########
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # region Шаг 9 - Итоговый код
+
+    result_final_code = build_final_code(url_input, parse_card_code_fragment, parse_page_code_fragment)
+
+    print("result_final_code:")
+    print(result_final_code)
 
     print("🟦 Завершили все фазы для parsePage ✅")
     input("Нажмите Enter, чтобы закрыть браузер...")
+
+    return result_final_code
     
 
 
@@ -546,9 +608,9 @@ def main_processer(input_url):
 
 
 
-# link = "https://makitaclub.ru"
+link = "https://makitaclub.ru"
 # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
-link = "https://makitatrading.ru"
+# link = "https://makitatrading.ru"
 # link = "https://galleryceramics.ru"
 main_processer(link)
 
@@ -1123,6 +1185,8 @@ https://www.krason.ru/search
 
 - Надо будет проверять, как работает get_html_frame, и возможно править её
 
+- Сделать документацию - описание у каждого скрипта
+- Почистить старые
 
 """
 
