@@ -5,6 +5,7 @@
 from pathlib import Path
 import sys
 from typing import Any
+import textwrap
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -182,7 +183,7 @@ def set_parser_name():
 
 # region Запись в файл
 
-ROOT_DIR = Path(__file__).resolve().parent
+# Используем корень проекта (на уровень выше new_program) для вывода
 RESULT_OUTPUT_DIR = ROOT_DIR / "result_code_gen" / "result"
 RESULT_CODE_TS_PATH = RESULT_OUTPUT_DIR / "result_code.ts"
 
@@ -200,6 +201,9 @@ def result_file_JS(result_code):
 # region build_final_code
 
 def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment):
+    # Добавляем 4 пробела в начало каждой строки
+    parse_page_code_fragment = textwrap.indent(parse_page_code_fragment, '    ')
+
     make_request_code_value = simple_makeRequest()    
     parse_entry_point_code_value = parse_entry_point_gen()
     default_conf_value = set_defaultConf()
@@ -211,7 +215,7 @@ def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment):
         parse_page_code = parse_page_code_fragment,
         parse_entry_point_code = parse_entry_point_code_value,
         # field_val = field,
-        field_val = "🟨 Заглушка field 🟨",
+        field_val = "/*🟨 Заглушка field 🟨*/",
         host_val = host,
         default_conf = default_conf_value,
         subtitle_from_code = get_cuurent_subtitle(),
@@ -234,7 +238,7 @@ def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment):
 
 # region Проверка
 
-host_test = ""
+host_test = "https://makitaclub.ru"
 
 parse_card_code_fragment_test = """
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
@@ -245,7 +249,6 @@ parse_card_code_fragment_test = """
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const stock = ? "InStock" : "OutOfStock"
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
@@ -275,7 +278,6 @@ async parsePage(set: SetType) {
         }
     }
 
-    let items: ResultItem[] = [];
     let products = $('.products .product-card a.stretched-link[href*="/products/"]')      
     if (products.length == 0) {
         this.logger.put(`По запросу ${set.query} ничего не найдено`)
@@ -285,7 +287,6 @@ async parsePage(set: SetType) {
         let link = $(product)?.attr('href')  
         this.query.add({ ...set, query: link, type: "card", lvl: 1 })
     })
-    return items;
 }
 """
 

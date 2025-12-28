@@ -72,7 +72,6 @@ async parsePage(set: SetType) {
         }
     }
 
-    let items: ResultItem[] = [];
     /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET PRODUCTS OBGECTS */
     if (products.length == 0) {
         this.logger.put(`По запросу ${set.query} ничего не найдено`)
@@ -82,7 +81,6 @@ async parsePage(set: SetType) {
         /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET LINK PRODUCT */
         this.query.add({ ...set, query: link, type: "card", lvl: 1 })
     })
-    return items;
 }
 
 ————————————————————————
