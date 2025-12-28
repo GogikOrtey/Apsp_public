@@ -1,21 +1,19 @@
-28.12.2025 06:00:09
+28.12.2025 06:03:06
 
 Запускаем agent_step_7_build_code_parsePage
 URL_BLOCK:
-let url = new URL(`${HOST}/catalog/`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("s", "Найти")
-url.searchParams.set("PAGEN_2", set.page)
+let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
+url.searchParams.set('s', set.query)
+url.searchParams.set('post_type', 'product')
 
 GET_MAX_PAGE_BLOCK:
-let totalPages = Math.max(...$("nav#pagination a").get().map(item => +$(item).text().trim()).filter(Boolean))
+let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
 
 GET_PRODUCT_LINK_LINES_CODE:
-let HOST = "https://makitatrading.ru";
-let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] a.item_title[href^="/catalog/product/"]');
-let product = products?.eq(0);
-let link = HOST + $(product)?.attr('href');
-console.log('link = ' + link);
+let products = $('.products .product-card a.stretched-link[href*="/products/"]')
+let product = products?.eq(0)
+let link = $(product)?.attr('href')
+console.log('link = ' + link)
 
 
 💫 Запрос к ChatGPT без истории, модель gpt-5.2. PROMPT:
@@ -131,34 +129,31 @@ async parsePage(set: SetType) {
 ВХОДНЫЕ ДАННЫЕ (input_data):
 
 URL_BLOCK:
-let url = new URL(`${HOST}/catalog/`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("s", "Найти")
-url.searchParams.set("PAGEN_2", set.page)
+let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
+url.searchParams.set('s', set.query)
+url.searchParams.set('post_type', 'product')
 
 GET_MAX_PAGE_BLOCK:
-let totalPages = Math.max(...$("nav#pagination a").get().map(item => +$(item).text().trim()).filter(Boolean))
+let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
 
 GET_PRODUCT_LINK_LINES_CODE:
-let HOST = "https://makitatrading.ru";
-let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] a.item_title[href^="/catalog/product/"]');
-let product = products?.eq(0);
-let link = HOST + $(product)?.attr('href');
-console.log('link = ' + link);
+let products = $('.products .product-card a.stretched-link[href*="/products/"]')
+let product = products?.eq(0)
+let link = $(product)?.attr('href')
+console.log('link = ' + link)
 
 
 💬 AI ANSWER:
 "async parsePage(set: SetType) {
-    let url = new URL(`${HOST}/catalog/`)
-    url.searchParams.set("q", set.query)
-    url.searchParams.set("s", "Найти")
-    url.searchParams.set("PAGEN_2", set.page)
+    let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
+    url.searchParams.set('s', set.query)
+    url.searchParams.set('post_type', 'product')
 
     const data = await this.makeRequest(url.href)
     const $ = cheerio.load(data)
 
     if (set.page === 1) {
-        let totalPages = Math.max(...$("nav#pagination a").get().map(item => +$(item).text().trim()).filter(Boolean))
+        let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
         this.debugger.put(`totalPages = ${totalPages}`)
         for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
             this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
@@ -166,35 +161,34 @@ console.log('link = ' + link);
     }
 
     let items: ResultItem[] = [];
-    let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] a.item_title[href^="/catalog/product/"]');
+    let products = $('.products .product-card a.stretched-link[href*="/products/"]')
     if (products.length == 0) {
         this.logger.put(`По запросу ${set.query} ничего не найдено`)
         throw new NotFoundError()
     }
     products.slice(0, +this.conf.itemsCount).each((i, product) => {
-        let link = HOST + $(product)?.attr('href');
+        let link = $(product)?.attr('href')
         this.query.add({ ...set, query: link, type: "card", lvl: 1 })
     })
     return items;
 }"
 
-Время выполнения: 5.44 секунд
+Время выполнения: 5.08 секунд
 
 
 
 result_agent_step_7_build_code_parsePage:
 
 async parsePage(set: SetType) {
-    let url = new URL(`${HOST}/catalog/`)
-    url.searchParams.set("q", set.query)
-    url.searchParams.set("s", "Найти")
-    url.searchParams.set("PAGEN_2", set.page)
+    let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
+    url.searchParams.set('s', set.query)
+    url.searchParams.set('post_type', 'product')
 
     const data = await this.makeRequest(url.href)
     const $ = cheerio.load(data)
 
     if (set.page === 1) {
-        let totalPages = Math.max(...$("nav#pagination a").get().map(item => +$(item).text().trim()).filter(Boolean))
+        let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
         this.debugger.put(`totalPages = ${totalPages}`)
         for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
             this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
@@ -202,13 +196,13 @@ async parsePage(set: SetType) {
     }
 
     let items: ResultItem[] = [];
-    let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] a.item_title[href^="/catalog/product/"]');
+    let products = $('.products .product-card a.stretched-link[href*="/products/"]')
     if (products.length == 0) {
         this.logger.put(`По запросу ${set.query} ничего не найдено`)
         throw new NotFoundError()
     }
     products.slice(0, +this.conf.itemsCount).each((i, product) => {
-        let link = HOST + $(product)?.attr('href');
+        let link = $(product)?.attr('href')
         this.query.add({ ...set, query: link, type: "card", lvl: 1 })
     })
     return items;
