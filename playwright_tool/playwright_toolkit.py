@@ -65,6 +65,7 @@ scroll_to_bottom:       Прокручивает страницу к низу
 scroll_to_top:          Прокручивает страницу к верху
 scroll_to_selector:     Прокручивает страницу к элементу по селектору (к первому совпадению)
 click_element:          Кликает по элементу с заданным селектором. По умолчанию — по первому, можно выбрать индекс.
+extract_selector_data_from_cached_pages: Возвращает начения по одному селектору и набору ссылок
 
 """
 
@@ -1094,6 +1095,200 @@ def find_elements(
         res = {"status": "error", "count": 0, "elements": None, "error": str(exc)}
     record_playwright_action("find_elements", args=args, result=res)
     return res
+
+
+def _looks_like_xpath(selector: str) -> bool:
+    s = (selector or "").strip()
+    # Достаточно надёжные эвристики для XPath в реальных сценариях.
+    return s.startswith(("/", "./", "../", ".//", "(.//", "//*[", "("))
+
+
+def _extract_element_value(el: Any) -> str:
+    """
+    Универсально извлекает "значение" из элемента.
+
+    Приоритет:
+    - нормализованный text_content / get_text
+    - value/content/href/src (если текст пустой)
+    """
+    text = ""
+    try:
+        # lxml element
+        if hasattr(el, "text_content"):
+            text = " ".join((el.text_content() or "").split())
+    except Exception:
+        text = ""
+
+    if not text:
+        try:
+            # bs4 Tag
+            if hasattr(el, "get_text"):
+                text = " ".join((el.get_text(" ", strip=True) or "").split())
+        except Exception:
+            text = ""
+
+    if text:
+        return text
+
+    # Fallback to common attrs
+    for attr in ("value", "content", "href", "src"):
+        try:
+            if hasattr(el, "get") and callable(el.get):
+                v = el.get(attr)
+            else:
+                v = None
+            if isinstance(v, str) and v.strip():
+                return v.strip()
+        except Exception:
+            continue
+
+    return ""
+
+
+@tool(
+    name="extract_selector_data_from_cached_pages",
+    description=(
+        "Принимает CSS/XPath селектор и массив ссылок, берёт HTML каждой страницы "
+        "и возвращает массив результатов: count найденных элементов, main_result/все результаты (до 30) и "
+        "html_frame_main_result (get_html_frame для первого совпадения; строится только для CSS-селекторов)."
+        "Данный инструмент не взаимодействует с браузером Playwright, а получает html страниц обычным запросом."
+    ),
+    args=[
+        {"name": "selector", "type": "str", "required": True, "description": "CSS или XPath селектор"},
+        {"name": "links", "type": "list[str]", "required": True, "description": "Ссылки на страницы"},
+        {"name": "max_all_results", "type": "int", "required": False, "description": "Лимит для all_results (по умолчанию 30)"},
+        {"name": "print_cache_msgs", "type": "bool", "required": False, "description": "Печатать сообщения cache (по умолчанию False)"},
+    ],
+    returns={
+        "results": "list[dict]: [{link, used_selector, count_of_elements, main_result, all_results, html_frame_main_result}]"
+    },
+    example_args={
+        "selector": ".price",
+        "links": ["https://example.com/a", "https://example.com/b"],
+        "max_all_results": 30,
+        "print_cache_msgs": False,
+    },
+)
+def extract_selector_data_from_cached_pages(
+    selector: str,
+    links: list[str],
+    max_all_results: int = 30,
+    print_cache_msgs: bool = False,
+) -> list[dict[str, Any]]:
+    # Поддержка playwight-like префиксов.
+    raw_selector = selector
+    sel = (selector or "").strip()
+    sel_lower = sel.lower()
+    if sel_lower.startswith("css="):
+        selector = sel[4:].strip()
+    elif sel_lower.startswith("xpath="):
+        selector = sel[6:].strip()
+
+    args = {
+        "selector": selector,
+        "raw_selector": raw_selector,
+        "links_count": (len(links) if isinstance(links, list) else None),
+        "max_all_results": max_all_results,
+        "print_cache_msgs": print_cache_msgs,
+    }
+
+    results: list[dict[str, Any]] = []
+    used_selector = selector
+    is_xpath = _looks_like_xpath(selector)
+
+    # Импортируем лениво, чтобы не тащить тяжёлые зависимости при старте.
+    try:
+        import lxml.html  # type: ignore
+
+        lxml_available = True
+    except Exception:
+        lxml_available = False
+
+    # get_html_frame нужен для html_frame_main_result (только CSS).
+    get_html_frame_fn = None
+    if not is_xpath:
+        try:
+            from new_program.html_toolkit import get_html_frame as _get_html_frame  # noqa: WPS433
+
+            get_html_frame_fn = _get_html_frame
+        except Exception:
+            get_html_frame_fn = None
+
+    for link in (links or []):
+        item: dict[str, Any] = {
+            "link": link,
+            "used_selector": used_selector,
+            "count_of_elements": 0,
+            "main_result": None,
+            "all_results": [],
+            "html_frame_main_result": "",
+        }
+
+        try:
+            html = get_html_from_cache(link, print_msg=print_cache_msgs)
+        except Exception:  # noqa: BLE001
+            # Формат результата без поля error — оставляем значения по умолчанию.
+            results.append(item)
+            continue
+
+        if not html:
+            results.append(item)
+            continue
+
+        try:
+            if lxml_available:
+                doc = lxml.html.fromstring(html)  # type: ignore[attr-defined]
+                if is_xpath:
+                    found = doc.xpath(selector)
+                else:
+                    found = doc.cssselect(selector)
+
+                # Оставляем только элементы (на XPath могут вернуться строки/атрибуты/числа)
+                elements = [x for x in found if hasattr(x, "tag")]
+            else:
+                # Fallback: BeautifulSoup поддерживает только CSS.
+                if is_xpath:
+                    elements = []
+                else:
+                    from bs4 import BeautifulSoup  # noqa: WPS433
+
+                    soup = BeautifulSoup(html, "html.parser")
+                    elements = soup.select(selector) or []
+
+            item["count_of_elements"] = len(elements)
+
+            limit = 30 if max_all_results is None else int(max_all_results)
+            limit = max(0, min(30, limit))
+
+            all_vals: list[str] = []
+            for el in elements[:limit]:
+                all_vals.append(_extract_element_value(el))
+
+            item["all_results"] = all_vals
+            item["main_result"] = (all_vals[0] if all_vals else None)
+
+            if item["count_of_elements"] > 0 and (get_html_frame_fn is not None):
+                try:
+                    item["html_frame_main_result"] = get_html_frame_fn(html=html, selector=selector) or ""
+                except Exception:
+                    item["html_frame_main_result"] = ""
+
+        except Exception:  # noqa: BLE001
+            # Без поля error — оставляем дефолты, но сохраняем link/selector.
+            item["count_of_elements"] = 0
+            item["main_result"] = None
+            item["all_results"] = []
+            item["html_frame_main_result"] = ""
+
+        results.append(item)
+
+    # # Логируем как действие (для единообразия), хотя Playwright page тут не используется.
+    # try:
+    #     record_playwright_action("extract_selector_data_from_cached_pages", args=args, result={"count": len(results)})
+    # except Exception:
+    #     pass
+
+    return results
 
 
 
