@@ -311,25 +311,23 @@ def agent_step_7_build_code_parsePage(input_code_fragments):
     input_code_fragments_str = _format_code_fragments_to_sections(input_code_fragments)
     print(input_code_fragments_str)
 
-    # request_from_LLM = (
-    #     MAIN_PROMPT
-    #     + input_code_fragments_str
-    # )
-    # result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.1, system_prompt = SYSTEM_PROMPT)
+    request_from_LLM = (
+        MAIN_PROMPT
+        + input_code_fragments_str
+    )
+    result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.1, system_prompt = SYSTEM_PROMPT)
 
-    # # send_message_to_ChatGPT возвращает ChatGPTResult; достаём текст ответа
-    # result_text = result_request.answer if hasattr(result_request, "answer") else str(result_request)
+    # send_message_to_ChatGPT возвращает ChatGPTResult; достаём текст ответа
+    result_text = result_request.answer if hasattr(result_request, "answer") else str(result_request)
 
-    # # Удаляем обертку ``` ``` если модель вернула JSON внутри Markdown
-    # if "```" in result_text:
-    #     match = re.search(r"```(?:json)?\s*(.*?)\s*```", result_text, re.DOTALL)
-    #     if match:
-    #         result_text = match.group(1)
+    # Удаляем обертку ``` ``` если модель вернула JSON внутри Markdown
+    if "```" in result_text:
+        match = re.search(r"```(?:json)?\s*(.*?)\s*```", result_text, re.DOTALL)
+        if match:
+            result_text = match.group(1)
 
-    # # Возвращаем именно текст, чтобы вызывающий код мог сразу парсить JSON
-    # return result_text
+    return result_text
 
-    ## Поменять SYSTEM_PROMPT (сгенерить на основе задания)
 
 
 

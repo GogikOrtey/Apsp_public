@@ -1,4 +1,4 @@
-28.12.2025 05:23:35
+28.12.2025 06:00:09
 
 Запускаем agent_step_7_build_code_parsePage
 URL_BLOCK:
@@ -18,6 +18,198 @@ let link = HOST + $(product)?.attr('href');
 console.log('link = ' + link);
 
 
+💫 Запрос к ChatGPT без истории, модель gpt-5.2. PROMPT:
+
+
+ЗАДАЧА:
+
+В input_data тебе даны 3 фрагмента кода. Их нужно будет встроить в шаблон кода.
+Код написан на JS.
+При вставке фрагментов соблюдай вложенность (отступы), соответствующую контексту места вставки в шаблоне.
+
+————————————————————————
+
+ШАБЛОН КОДА:
+
+async parsePage(set: SetType) {
+    /* INSERT_HERE URL_BLOCK */
+
+    const data = await this.makeRequest(url.href)
+    const $ = cheerio.load(data)
+
+    if (set.page === 1) {
+        /* INSERT_HERE GET_MAX_PAGE_BLOCK */
+        this.debugger.put(`totalPages = ${totalPages}`)
+        for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+            this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+        }
+    }
+
+    let items: ResultItem[] = [];
+    /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET PRODUCTS OBGECTS */
+    if (products.length == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    products.slice(0, +this.conf.itemsCount).each((i, product) => {
+        /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET LINK PRODUCT */
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+    return items;
+}
+
+————————————————————————
+
+ИНСТРУКЦИЯ: 
+
+В шаблоне кода ты видишь 4 места для вставки фрагментов. Они обозначены комментариями /* INSERT_HERE ... */
+
+1. Вместо комментария /* INSERT_HERE URL_BLOCK */ вставь блок кода из поля URL_BLOCK во входных данных (input_data) - целиком
+2. Вместо комментария /* INSERT_HERE GET_MAX_PAGE_BLOCK */ вставь блок кода из поля GET_MAX_PAGE_BLOCK во входных данных (input_data) - целиком
+
+3. Далее важно: В поле GET_PRODUCT_LINK_LINES_CODE находится блок кода, но его не нужно всталять целиком. Из него нужно извлечь:
+    3.1 Код, который задаёт переменную let products = ... . Чаще всего это одна строка. Помести её вместо комментария /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET PRODUCTS OBGECTS */. Игнорируй код задания хоста в этом фрагменте (let HOST = ...), его не нужно сюда добавлять.
+
+    Далее будет идти строчка похожая на "let product = products?.eq(0);". её также нужно игнорировать
+
+    3.2 Фрагмент кода, который задаёт ссылку (let link =) - нужно поместить вместо комментария  /* INSERT_HERE GET_PRODUCT_LINK_LINES_CODE - ONLY GET LINK PRODUCT */. Нужно брать всю строку целиком, где происходит присваивание link = ..., не модифицируя её содержимое.
+
+    Строку "console.log('link = ' + link)" нужно игнорировать и не добавлять в результат.
+
+————————————————————————
+
+СТРОГИЕ ПРАВИЛА (ОБЯЗАТЕЛЬНО К ВЫПОЛНЕНИЮ):
+
+1. Ты работаешь как ДЕТЕРМИНИРОВАННЫЙ ТРАНСФОРМЕР КОДА, а не как помощник.
+   Твоя задача — только вставить указанные фрагменты в указанные места.
+
+2. Запрещено:
+   - изменять любой символ, пробел, перевод строки или форматирование в исходном шаблоне кода
+   - переименовывать переменные
+   - менять кавычки, отступы, точки с запятой
+   - переписывать строки кода в исходном шаблоне
+   - оптимизировать, исправлять или "улучшать" код
+   - удалять или добавлять любые строки, кроме тех, которые явно указаны как INSERT_HERE
+
+3. Разрешено ТОЛЬКО:
+   - удалить комментарии вида `/* INSERT_HERE ... */`
+   - и вставить на их место соответствующие фрагменты из input_data по правилам инструкции
+
+4. Весь остальной код шаблона должен быть возвращён БАЙТ-В-БАЙТ идентичным исходному шаблону.
+
+5. Если какой-либо фрагмент из input_data не может быть однозначно сопоставлен правилам (например, не найден `let products =` или `let link =`), ты обязан:
+   - не генерировать никакой код
+   - а вывести слово: ERROR
+
+6. Переменные `products` и `link` обязаны существовать в результирующем коде и быть объявлены через `let`.
+
+7. Переменная `HOST` уже существует во внешнем коде.
+   Запрещено объявлять, переопределять или модифицировать `HOST` внутри результата.
+   Разрешено использовать HOST в выражениях, но запрещено объявлять или изменять его.
+
+————————————————————————
+
+ФОРМАТ ВЫВОДА (КРИТИЧЕСКИ ВАЖНО):
+
+1. В ответе должен быть выведен ТОЛЬКО финальный JS-код.
+2. Запрещено выводить:
+   - пояснения
+   - комментарии
+   - заголовки
+   - markdown
+   - ``` или ```js
+   - любые пояснительные тексты
+   - варианты решений
+   - сообщения вроде "готово", "вот результат" и т.п.
+
+3. Ответ должен начинаться ПРЯМО с первой строки кода и заканчиваться последней строкой кода.
+
+4. Любой текст вне кода считается ошибкой.
+
+————————————————————————
+
+ВХОДНЫЕ ДАННЫЕ (input_data):
+
+URL_BLOCK:
+let url = new URL(`${HOST}/catalog/`)
+url.searchParams.set("q", set.query)
+url.searchParams.set("s", "Найти")
+url.searchParams.set("PAGEN_2", set.page)
+
+GET_MAX_PAGE_BLOCK:
+let totalPages = Math.max(...$("nav#pagination a").get().map(item => +$(item).text().trim()).filter(Boolean))
+
+GET_PRODUCT_LINK_LINES_CODE:
+let HOST = "https://makitatrading.ru";
+let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] a.item_title[href^="/catalog/product/"]');
+let product = products?.eq(0);
+let link = HOST + $(product)?.attr('href');
+console.log('link = ' + link);
+
+
+💬 AI ANSWER:
+"async parsePage(set: SetType) {
+    let url = new URL(`${HOST}/catalog/`)
+    url.searchParams.set("q", set.query)
+    url.searchParams.set("s", "Найти")
+    url.searchParams.set("PAGEN_2", set.page)
+
+    const data = await this.makeRequest(url.href)
+    const $ = cheerio.load(data)
+
+    if (set.page === 1) {
+        let totalPages = Math.max(...$("nav#pagination a").get().map(item => +$(item).text().trim()).filter(Boolean))
+        this.debugger.put(`totalPages = ${totalPages}`)
+        for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+            this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+        }
+    }
+
+    let items: ResultItem[] = [];
+    let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] a.item_title[href^="/catalog/product/"]');
+    if (products.length == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    products.slice(0, +this.conf.itemsCount).each((i, product) => {
+        let link = HOST + $(product)?.attr('href');
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+    return items;
+}"
+
+Время выполнения: 5.44 секунд
+
+
+
 result_agent_step_7_build_code_parsePage:
 
-None
+async parsePage(set: SetType) {
+    let url = new URL(`${HOST}/catalog/`)
+    url.searchParams.set("q", set.query)
+    url.searchParams.set("s", "Найти")
+    url.searchParams.set("PAGEN_2", set.page)
+
+    const data = await this.makeRequest(url.href)
+    const $ = cheerio.load(data)
+
+    if (set.page === 1) {
+        let totalPages = Math.max(...$("nav#pagination a").get().map(item => +$(item).text().trim()).filter(Boolean))
+        this.debugger.put(`totalPages = ${totalPages}`)
+        for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+            this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+        }
+    }
+
+    let items: ResultItem[] = [];
+    let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] a.item_title[href^="/catalog/product/"]');
+    if (products.length == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    products.slice(0, +this.conf.itemsCount).each((i, product) => {
+        let link = HOST + $(product)?.attr('href');
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+    return items;
+}
