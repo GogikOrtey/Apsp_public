@@ -103,6 +103,218 @@ def normalize_url(url: str) -> str:
     return result
 
 
+def get_host_from_link(link: str) -> str:
+    """
+    Возвращает HOST в виде '<scheme>://<domain>' из переданной ссылки.
+
+    Требование из задачи: HOST должен быть равен (протокол + домен) пришедшего URL.
+    """
+    if not isinstance(link, str) or not link.strip():
+        return ""
+
+    url = link.strip()
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+
+    parsed = urlparse(url)
+    scheme = (parsed.scheme or "https").lower()
+    domain = (parsed.netloc or "").lower()
+    if domain.startswith("www."):
+        domain = domain[4:]
+    return f"{scheme}://{domain}" if domain else ""
+
+
+# region cheerio_js_simple_sandbox_extract_vars
+@tool(
+    name="run_cheerio_js_extract_vars",
+    description=(
+        "Простая песочница (без усиленной безопасности): "
+        "берёт HTML через get_html_from_cache(link), инициализирует "
+        "`const $ = cheerio.load(data); let HOST = <protocol+domain>;`, "
+        "выполняет переданный JS-код и возвращает JSON со всеми переменными, "
+        "объявленными в user_code через const/let/var (кроме HOST и служебных)."
+    ),
+    args=[
+        {
+            "name": "user_code",
+            "type": "str",
+            "required": True,
+            "description": (
+                "JS-код (1+ строк), в котором объявляются новые переменные через const/let/var, например:\n"
+                "const name = $('h1').text().trim();\n"
+                "const imageLink = HOST + $('.x a')?.attr('href');\n"
+                "const stock = $('.buy').text().includes('Купить') ? 'InStock' : 'OutOfStock';"
+            ),
+        },
+        {
+            "name": "link",
+            "type": "str",
+            "required": True,
+            "description": "URL страницы (используется для получения HTML из кеша и для вычисления HOST).",
+        },
+    ],
+    returns={
+        "status": "ok|error",
+        "vars": "dict|null — объект {varName: value} со значениями переменных из user_code",
+        "error": "str|null — описание ошибки",
+    },
+    example_args={
+        "link": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+        "user_code": "const name = $('h1').text().trim();",
+    },
+)
+def run_cheerio_js_extract_vars(user_code: str, link: str) -> dict[str, Any]:
+    """
+    Выполняет user_code в Node.js+cheerio и возвращает все объявленные переменные.
+
+    ВАЖНО: это упрощённая реализация (без vm/Proxy/жёсткой изоляции), как просил пользователь.
+    """
+    if not isinstance(user_code, str) or not user_code.strip():
+        return {"status": "error", "vars": None, "error": "user_code должен быть непустой строкой"}
+    if not isinstance(link, str) or not link.strip():
+        return {"status": "error", "vars": None, "error": "link должен быть непустой строкой"}
+
+    try:
+        html_content = get_html_from_cache(link, print_msg=False)
+    except Exception as e:
+        return {"status": "error", "vars": None, "error": f"Не удалось получить HTML из кеша: {e}"}
+
+    return run_cheerio_js_extract_vars_on_html(user_code=user_code, html_content=html_content, link=link)
+
+
+def run_cheerio_js_extract_vars_on_html(user_code: str, html_content: str, link: str) -> dict[str, Any]:
+    """
+    Техническая функция: выполняет user_code на переданном html_content.
+    """
+    host = get_host_from_link(link)
+    if not host:
+        return {"status": "error", "vars": None, "error": "Не удалось вычислить HOST из link"}
+
+    # Записываем HTML во временный файл (удалим после вызова Node)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode="w", encoding="utf-8") as tmp:
+        tmp.write(html_content or "")
+        tmp_path = tmp.name
+
+    tmp_path_js = json.dumps(tmp_path)
+    user_code_js = json.dumps(user_code)
+    host_js = json.dumps(host)
+
+    # Печатаем строго JSON последней строкой, чтобы Python мог распарсить результат.
+    # console внутри исполняемого кода глушим (иначе пользовательский console.log может испортить stdout).
+    node_script_template = """
+const fs = require('fs');
+const cheerio = require('cheerio');
+
+function main() {
+  try {
+    const html = fs.readFileSync(__TMP_PATH__, 'utf-8');
+    const data = html;
+    const $ = cheerio.load(data);
+    const HOST = __HOST__;
+    const userCode = __USER_CODE__;
+
+    function extractDeclaredVarNames(code) {
+      const names = new Set();
+      const re = /(?:^|[;\\n\\r\\t ]+)(?:const|let|var)\\s+([A-Za-z_$][0-9A-Za-z_$]*)\\s*=/g;
+      let m;
+      while ((m = re.exec(code)) !== null) {
+        if (m[1]) names.add(m[1]);
+      }
+      return Array.from(names);
+    }
+
+    function safeJsonValue(v) {
+      if (v === undefined) return null;
+      const t = typeof v;
+      if (t === 'bigint') return v.toString();
+      if (t === 'function') return String(v);
+      if (t === 'symbol') return String(v);
+      try {
+        JSON.stringify(v);
+        return v;
+      } catch (e) {
+        try { return String(v); } catch (e2) { return null; }
+      }
+    }
+
+    const declared = extractDeclaredVarNames(userCode).filter(n => !['HOST', '$', 'data', 'html', 'userCode'].includes(n));
+
+    const returnObjLiteral = declared.length
+      ? '{' + declared.map(n => JSON.stringify(n) + ': (typeof ' + n + ' === \"undefined\" ? null : ' + n + ')').join(',') + '}'
+      : '{}';
+
+    const body = [
+      '\"use strict\";',
+      // глушим console внутри пользовательского кода
+      'const console = { log(){}, error(){}, warn(){}, info(){}, debug(){} };',
+      userCode,
+      'return ' + returnObjLiteral + ';'
+    ].join('\\n');
+
+    const fn = new Function('$', 'HOST', body);
+    const rawVars = fn($, HOST) || {};
+
+    const vars = {};
+    for (const [k, v] of Object.entries(rawVars)) {
+      vars[k] = safeJsonValue(v);
+    }
+
+    console.log(JSON.stringify({ status: 'ok', vars, error: null }));
+  } catch (e) {
+    console.log(JSON.stringify({ status: 'error', vars: null, error: String(e && e.message ? e.message : e) }));
+  }
+}
+
+main();
+""".strip()
+
+    # IMPORTANT: node_script_template выше — raw-string, но нам нужно реально подставить JS-литералы.
+    # Поэтому делаем простую подстановку на уровне Python для трёх placeholder.
+    node_script = (
+        node_script_template
+        .replace("__TMP_PATH__", tmp_path_js)
+        .replace("__HOST__", host_js)
+        .replace("__USER_CODE__", user_code_js)
+    )
+
+    try:
+        result = subprocess.run(
+            ["node", "-e", node_script],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode != 0:
+            err = (result.stderr or "").strip() or f"Node.js exited with code {result.returncode}"
+            return {"status": "error", "vars": None, "error": err}
+
+        output = (result.stdout or "").strip()
+        last_line = ""
+        for line in reversed(output.splitlines()):
+            if line.strip():
+                last_line = line.strip()
+                break
+        if not last_line:
+            return {"status": "error", "vars": None, "error": "Empty Node.js output"}
+
+        try:
+            parsed = json.loads(last_line)
+        except Exception:
+            return {"status": "error", "vars": None, "error": f"Unexpected Node.js output: {output!r}"}
+
+        status = parsed.get("status")
+        if status == "ok":
+            return {"status": "ok", "vars": parsed.get("vars") or {}, "error": None}
+        return {"status": "error", "vars": None, "error": parsed.get("error") or "Unknown error"}
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+# endregion cheerio_js_simple_sandbox_extract_vars
+
+
 # Очищает html перед отправкой в LLM
 def clean_html_universal(html_content: str) -> str:
     """
