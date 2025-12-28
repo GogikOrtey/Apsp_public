@@ -128,11 +128,8 @@ def get_host_from_link(link: str) -> str:
 @tool(
     name="run_cheerio_js_extract_vars",
     description=(
-        "Простая песочница (без усиленной безопасности): "
-        "берёт HTML через get_html_from_cache(link), инициализирует "
-        "`const $ = cheerio.load(data); let HOST = <protocol+domain>;`, "
-        "выполняет переданный JS-код и возвращает JSON со всеми переменными, "
-        "объявленными в user_code через const/let/var (кроме HOST и служебных)."
+        "Выполняет переданный JS-код, выполняет его и возвращает JSON со всеми переменными, "
+        "объявленными в user_code через const/let/var и их значениями после выполненя. Значение для переменной HOST и объект cheerio с контентом переданной ссылки страницы уже будут инициализированы в песочнице."
     ),
     args=[
         {
