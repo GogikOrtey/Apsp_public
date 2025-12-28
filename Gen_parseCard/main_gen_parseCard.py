@@ -221,13 +221,15 @@ host = ""https://makitaclub.ru"
 Пример result: 
 {
     "code_for_extract_field__name"
+    "code_for_extract_field__name__is_correct"
     "code_for_extract_field__price"
+    "code_for_extract_field__price__is_correct"
     "code_for_extract_field__oldprice"
+    "code_for_extract_field__oldprice__is_correct"
     "code_for_extract_field__article"
+    "code_for_extract_field__article__is_correct"
     ...
-    "selectors_on_1_stite_correct"
-    "selectors_on_2_stite_correct"
-    "selectors_on_3_stite_correct"
+    И больше кроме полей, полей не нужно будет
 }
 
 
