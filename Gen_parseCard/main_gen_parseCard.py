@@ -19,7 +19,67 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 # Подключение всех библиотек и функций
+from Gen_parseCard.extract_selectors_parseCard_from_GPT import *
 from import_all_libraries import *
+
+def _normalize_selector_value(value: Any) -> Optional[str]:
+    """
+    Нормализует значения селекторов из JSON-ответа LLM.
+    Возвращает строку или None.
+    """
+    if value is None:
+        return None
+
+    # Иногда модель может вернуть "null"/"None" строкой
+    if isinstance(value, str):
+        v = value.strip()
+        if not v:
+            return None
+        if v.lower() in {"null", "none"}:
+            return None
+        return v
+
+    # На всякий случай: приводим простые типы к строке
+    try:
+        return str(value).strip() or None
+    except Exception:
+        return None
+
+
+def merge_selectors_from_multiple_pages(results: List[Dict[str, Any]]) -> Dict[str, List[str]]:
+    """
+    Сливает несколько объектов вида {field: selector_or_null} в один:
+    - значения становятся массивами строк
+    - поля, которые во всех результатах None/null/пустые — удаляются
+    - одинаковые значения схлопываются до массива из одного элемента
+    - разные значения -> массив уникальных значений (в порядке появления)
+    """
+    # Сохраняем порядок ключей (как в первом появлении)
+    keys_in_order: List[str] = []
+    seen_keys = set()
+    for d in results:
+        if not isinstance(d, dict):
+            continue
+        for k in d.keys():
+            if k not in seen_keys:
+                seen_keys.add(k)
+                keys_in_order.append(k)
+
+    merged: Dict[str, List[str]] = {}
+    for key in keys_in_order:
+        uniq_values: List[str] = []
+        for d in results:
+            if not isinstance(d, dict):
+                continue
+            normalized = _normalize_selector_value(d.get(key))
+            if normalized is None:
+                continue
+            if normalized not in uniq_values:
+                uniq_values.append(normalized)
+        if uniq_values:
+            merged[key] = uniq_values
+
+    return merged
 
 
 
@@ -537,8 +597,46 @@ def main_gen_parseCard(input_15_links, host):
     # 1. Получаем 3 случайные ссылки
     (all_links, random_3_links) = merge_links_and_pick_random(input_15_links)
 
+    print("Выбрали такие 3 случайные ссылки на товары:")
+    for input_url in random_3_links:
+        print(input_url)
+
     # Извлекем селекторы на этих трёх ссылках
+    results_extract_selectors_parseCard_from_GPT: List[Dict[str, Any]] = []
+    for input_url in random_3_links:
+        result_text = extract_selectors_parseCard_from_GPT(input_url)
+
+        # extract_selectors_parseCard_from_GPT возвращает строку с JSON
+        try:
+            result_obj = json.loads(result_text)
+        except Exception:
+            # Фоллбек: пытаемся вырезать первый JSON-объект из строки
+            s = str(result_text)
+            start = s.find("{")
+            end = s.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                result_obj = json.loads(s[start : end + 1])
+            else:
+                raise
+
+        if not isinstance(result_obj, dict):
+            raise ValueError(f"extract_selectors_parseCard_from_GPT вернул не dict: {type(result_obj)}")
+
+        results_extract_selectors_parseCard_from_GPT.append(result_obj)
+
+    # Сливаем 3 ответа в один объект (значения -> массивы, пустые поля удаляем)
+    result_extract_selectors_parseCard_from_GPT = merge_selectors_from_multiple_pages(
+        results_extract_selectors_parseCard_from_GPT
+    )
+
     
+
+    result_extract_selectors_parseCard_from_GPT_str = json.dumps(result_extract_selectors_parseCard_from_GPT, ensure_ascii=False, indent=4, default=str)
+
+    print(f"\nresult_extract_selectors_parseCard_from_GPT:\n")
+    print(result_extract_selectors_parseCard_from_GPT_str)
+    
+
 
 
 
