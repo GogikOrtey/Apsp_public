@@ -177,14 +177,14 @@ def get_fields_description(used_fields_and_selectors_test):
 
 
 def build_all_code_parseCard(result_build_parseCard, result_get_fields_description):
-    result = """
-    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+    result = """    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
         let items: ResultItem[] = []
 
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
 """ + result_build_parseCard + """
+        const link = set.query;
         const timestamp = getTimestamp()
 
         const item: ResultItem = {

@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    /*🟨 Заглушка field 🟨*/
+    name, imageLink, article, product_id, category, description, price, currency, link, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    /*🟨 Заглушка field 🟨*/
+    name, imageLink, article, product_id, category, description, price, currency, link, timestamp
 }
 
 const HOST = "https://makitaclub.ru"
 
-export class JS_Base_cskru extends JS_Base_Custom {
+export class JS_Base_makitaclubru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -72,11 +72,11 @@ export class JS_Base_cskru extends JS_Base_Custom {
     }
 
     //#region Парсинг поиска
-    
-    async parsePage(set: SetType) {
-        let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)
-        url.searchParams.set('s', set.query)     
-        url.searchParams.set('post_type', 'product')
+        async parsePage(set: SetType) {
+        let basePath = set.page && +set.page > 1 ? `/page/${set.page}/` : `/`;
+        let url = new URL(`${HOST}${basePath}`);
+        url.searchParams.set('s', set.query);
+        url.searchParams.set('post_type', 'product');
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
@@ -84,44 +84,50 @@ export class JS_Base_cskru extends JS_Base_Custom {
         if (set.page === 1) {
             let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
-            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) { 
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
 
-        let products = $('.products .product-card a.stretched-link[href*="/products/"]')      
+        let products = $('.products .product-card a.stretched-link[href*="/products/"]')
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr('href')  
+            let link = $(product)?.attr('href')
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         })
     }
-
 
     //#region Парсинг товара
     
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
         let items: ResultItem[] = []
 
-        /* 🟨 Заглушка для parseCard 🟨 */
-
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
+        const name = $("h1.product_title.entry-title").first().text().trim()
+        const imageLink = $(".woocommerce-product-gallery__image img.wp-post-image").first()?.attr("src") || $(".woocommerce-product-gallery__image img.wp-post-image").first()?.attr("data-src") || $(".woocommerce-product-gallery__image img.wp-post-image").first()?.attr("data-large_image") || ""
+        const article = $(".product_meta .sku_wrapper .sku").first().text().trim()
+        const product_id = $("a.ajax_add_to_cart[data-product_id], a.add_to_cart_button[data-product_id]").first()?.attr("data-product_id")?.trim() || ""
+        const category = $(".breadcrumbs .woocommerce-breadcrumb a:last-of-type").first().text().trim()
+        const description = $("#tab-description").first().text().trim()
+        const price = $(".product .summary p.price .woocommerce-Price-amount, .summary .price .woocommerce-Price-amount.amount, #product-81348 .summary .price .woocommerce-Price-amount").first().text().trim()?.replace(/,/g, ".")?.replace(/[^\d.]/g, "") || ""
+        const currency = $(".product .summary p.price .woocommerce-Price-currencySymbol, .summary .price .woocommerce-Price-currencySymbol, #product-81348 .summary .price .woocommerce-Price-currencySymbol").first().text().trim() || ""
+        const link = set.query;
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            timestamp
+            name, imageLink, article, product_id, category, description, price, currency, link, timestamp
         }
         items.push(item);
 
         cacher.cache = items
         return items;
     }
-
+    
 
     //#region Выполнение запроса
     async makeRequest(url: string) {
@@ -143,5 +149,5 @@ export class JS_Base_cskru extends JS_Base_Custom {
 }
 
 // Код сгенерирован Auto-gen parsers v1.0
-// Дата: 28 Дек 2025
+// Дата: 29 Дек 2025
 // © BrandPol

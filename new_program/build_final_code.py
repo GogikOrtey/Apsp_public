@@ -164,8 +164,7 @@ def get_cuurent_subtitle():
     return result.strip()
 
 # Собирает название парсера из хоста
-def set_parser_name():
-    host = data_input_table["host"]
+def set_parser_name(host):
     # Как нужно чистим домен
     parser_file_name = host.split("://")[1].split("/")[0]
     parser_file_name = parser_file_name.replace("www.", "")
@@ -207,7 +206,7 @@ def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment, f
     make_request_code_value = simple_makeRequest()    
     parse_entry_point_code_value = parse_entry_point_gen()
     default_conf_value = set_defaultConf()
-    parser_name = set_parser_name()
+    parser_name = set_parser_name(host)
 
     result = template_main_code.substitute(
         make_request_code = make_request_code_value,

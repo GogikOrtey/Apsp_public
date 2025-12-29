@@ -212,7 +212,7 @@ def agent_step_6_1_get_links_for_product(input_data, search_request):
         result_schema = main_result_schema,
         result_template = main_result_template,
         plan = main_plan,
-        # step_by_step_running = False, # Разрешаем агенту работать автоматически
+        step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
     result_task = get_result()

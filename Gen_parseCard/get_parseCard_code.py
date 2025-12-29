@@ -759,7 +759,7 @@ def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links):
         result_schema = dynamic_result_schema,
         result_template = dynamic_result_template,
         plan = dynamic_main_plan,
-        # step_by_step_running = False, # Разрешаем агенту работать автоматически
+        step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
     result_task = get_result()
@@ -810,21 +810,21 @@ random_3_links_test = [
 
 
 
-host_value_test = "https://makitaclub.ru"
+# host_value_test = "https://makitaclub.ru"
 
-# Запускаю браузер с видимым окном
-launch_browser(headless = False)
+# # Запускаю браузер с видимым окном
+# launch_browser(headless = False)
 
-goto_url( 
-    url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
-    wait_until = "load",
-    timeout = 30_000
-)
+# goto_url( 
+#     url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+#     wait_until = "load",
+#     timeout = 30_000
+# )
 
-resilt = get_parseCard_code(used_fields_and_selectors_test, host_value_test, random_3_links_test)
+# resilt = get_parseCard_code(used_fields_and_selectors_test, host_value_test, random_3_links_test)
 
-print("resilt:")
-print(resilt)
+# print("resilt:")
+# print(resilt)
 
 
 """ 

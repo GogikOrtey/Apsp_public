@@ -45,10 +45,8 @@ from new_program.build_final_code import *
 План на будущее:
 
 - Догенерить описание для полей
-- Дописать всю логику в gen_parseCard
-- Сделать сборку в один финальный шаблон
-    - После генерации фрагмента кода parseCard нужно будет добавлять туда строки с link и timestamp
 - И попробовать запустить
+- Сделать шаг 8 - Проверка открытия страницы
 
 - Тестирование, и запуск кода в А-Парсере
 
@@ -137,6 +135,7 @@ https://apelsin.ru
 
 
 def main_processer(input_url):
+    start_time = time.time()
     # 0. Чистим URL, запускам браузер и переходим на него
 
     # Чистим входящий url - до host, что бы получить ссылку на главную страницы
@@ -608,9 +607,8 @@ def main_processer(input_url):
         const price = $("p.price .woocommerce-Price-amount").first().text().trim()?.replace(/\s+/g, " ")?.replace(/,/g, ".")?.replace(/[^\d.]/g, "")
         const imageLink = $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("data-large_image") || $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("data-src") || $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("src") || ""
         const article = $(".product_meta .sku_wrapper .sku").first().text().trim()        
-        const addToCartText = $("form.cart .single_add_to_cart_button, form.cart button.single_add_to_cart_button, button.single_add_to_cart_button")?.first().text().trim(); const 
-stock = addToCartText?.includes("В корзину") 
-? "InStock" : "OutOfStock";
+        const addToCartText = $("form.cart .single_add_to_cart_button, form.cart button.single_add_to_cart_button, button.single_add_to_cart_button")?.first().text().trim(); 
+        const stock = addToCartText?.includes("В корзину") ? "InStock" : "OutOfStock";
         const timestamp = getTimestamp()     
 
         const item: ResultItem = {
@@ -631,8 +629,11 @@ stock, link, timestamp
     print("result_final_code:")
     print(result_final_code)
 
-    print("🟦 Завершили все фазы для parsePage ✅")
-    input("Нажмите Enter, чтобы закрыть браузер...")
+    # print("🟦 Завершили все фазы для parsePage ✅")
+    # input("Нажмите Enter, чтобы закрыть браузер...")
+
+    print(f"\n")
+    emit_execution_time(start_time, emit=print, print_time_smile=True)
 
     return result_final_code
     
