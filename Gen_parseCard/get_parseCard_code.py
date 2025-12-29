@@ -209,13 +209,13 @@ const brand = $(".c-value:contains('Бренд') > .c-value__value-text")?.first
     "name": "Раковина 12d"
 }
 
-Пошагово проверь сначала на первой ссылке, затем на второй, затем на третьей.
+Можешь проверить сразу на всех трёх ссылках.
 
 Тебе нужно будет проанализировать вывод, полностью ли он корректен, нет ли там пустого значения, или нет ли там склейки текста из нескольких элементов, и т.п.
 
-Если ты увидишь, что на одной из ссылок написанный тобой код извлекает неверное значение, то пометь ячейку field__[название поля]__ok_on_[номер ссылки]_link в result как false, а в остальные 2 ячейки других страниц - запиши None, вне зависимости от их текущих значений (что бы не забыть потом проверить код на них снова). Значения других ячеек из result не меняй. 
+Если ты увидишь, что на каких-то ссылках написанный тобой код извлекает неверные значения, то пометь ячейки field__[название поля]__ok_on_[номер ссылки]_link в result как false, а в остальные ячейки других страниц - запиши None, вне зависимости от их текущих значений (что бы не забыть потом проверить код на них снова). Значения других ячеек из result не меняй. 
 
-Если значение, извлекаемое инструментом run_cheerio_js_extract_vars из рассматриваемой страницы корректно, то запиши для этой страницы в ячейке field__[название поля]__ok_on_[номер ссылки]_link значение true.
+Если значение, извлекаемое инструментом run_cheerio_js_extract_vars из рассматриваемой страницы (или нескольких страниц) корректно, то запиши для них в field__[название поля]__ok_on_[номер ссылки]_link значения true.
 
 ВАЖНО:
 - Не оборачивай код, который ты будешь записывать в ячейки result в обратные кавычки, такие как ``` и `. 
@@ -821,3 +821,34 @@ resilt = get_parseCard_code(used_fields_and_selectors_test, host_value_test, ran
 
 print("resilt:")
 print(resilt)
+
+
+""" 
+{
+    "choosed_selector_field_name": "h1.product_title.entry-title",
+    "field__name__code": "const name = $(\"h1.product_title.entry-title\").first().text().trim()",
+    "field__name__code_gen_completed": true, 
+    "field__name__ok_on_1_link": true,       
+    "field__name__ok_on_2_link": true,       
+    "field__name__ok_on_3_link": true,       
+    "choosed_selector_field_price": "p.price 
+.woocommerce-Price-amount",
+    "field__price__code": "const price = $(\"p.price .woocommerce-Price-amount\").first().text().trim()?.replace(/\\s+/g, \" \")?.replace(/,/g, \".\")?.replace(/[^\\d.]/g, \"\")", 
+    "field__price__code_gen_completed": true,    "field__price__ok_on_1_link": true,      
+    "field__price__ok_on_2_link": true,      
+    "field__price__ok_on_3_link": true,      
+    "choosed_selector_field_imageLink": ".woocommerce-product-gallery img.wp-post-image", 
+    "field__imageLink__code": "const imageLink = $(\".woocommerce-product-gallery img.wp-post-image\").first()?.attr(\"data-large_image\") || $(\".woocommerce-product-gallery img.wp-post-image\").first()?.attr(\"data-src\") || $(\".woocommerce-product-gallery img.wp-post-image\").first()?.attr(\"src\") || \"\"",  
+    "field__imageLink__code_gen_completed": true,
+    "field__imageLink__ok_on_1_link": true,  
+    "field__imageLink__ok_on_2_link": true,  
+    "field__imageLink__ok_on_3_link": true,  
+    "choosed_selector_field_article": ".product_meta .sku_wrapper .sku",
+    "field__article__code": "const article = 
+$(\".product_meta .sku_wrapper .sku\").first().text().trim()",
+    "field__article__code_gen_completed": true,
+    "field__article__ok_on_1_link": true,    
+    "field__article__ok_on_2_link": true,    
+    "field__article__ok_on_3_link": true     
+}
+"""

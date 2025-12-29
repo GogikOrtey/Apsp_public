@@ -438,7 +438,7 @@ main();
 
         status = parsed.get("status")
         if status == "ok":
-            return {"status": "ok", "vars": parsed.get("vars") or {}, "error": None}
+            return {"status": "ok", "vars": parsed.get("vars") or {}}
         return {"status": "error", "vars": None, "error": parsed.get("error") or "Unknown error"}
     finally:
         try:
