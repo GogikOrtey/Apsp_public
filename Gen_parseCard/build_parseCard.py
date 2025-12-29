@@ -165,12 +165,20 @@ def get_fields_description(used_fields_and_selectors_test):
       {"name": [...], "price": [...]} -> "name, price"
       ["name", "price"] -> "name, price"
     """
+    excluded_fields = {"in_stock_trigger", "out_of_stock_trigger"}
     fields = (
         used_fields_and_selectors_test.keys()
         if hasattr(used_fields_and_selectors_test, "keys")
         else used_fields_and_selectors_test
     )
-    result = ", ".join(map(str, fields))
+    filtered_fields = []
+    for f in fields:
+        # keys почти всегда строки, но на всякий случай фильтруем и по str()
+        if f in excluded_fields or str(f) in excluded_fields:
+            continue
+        filtered_fields.append(f)
+
+    result = ", ".join(map(str, filtered_fields))
     result = result + ", link, timestamp"
     return result
 

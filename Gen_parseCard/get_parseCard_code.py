@@ -295,7 +295,10 @@ def build_main_result_schema_and_template(input_data: Dict[str, Any], num_links:
     main_result_schema: Dict[str, Any] = {}
     main_result_template: Dict[str, Any] = {}
 
+    excluded_fields = {"in_stock_trigger", "out_of_stock_trigger"}
     for field_name in input_data.keys():
+        if field_name in excluded_fields or str(field_name) in excluded_fields:
+            continue
         # 1) выбранный селектор
         key_selector = f"choosed_selector_field_{field_name}"
         main_result_schema[key_selector] = {
@@ -374,7 +377,10 @@ def build_main_plan_for_parse_card(input_data: Dict[str, Any], num_links: int = 
     steps: List[Dict[str, Any]] = []
     step_id = 1
 
+    excluded_fields = {"in_stock_trigger", "out_of_stock_trigger"}
     for field_name in input_data.keys():
+        if field_name in excluded_fields or str(field_name) in excluded_fields:
+            continue
         steps.append(
             {
                 "step_id": step_id,

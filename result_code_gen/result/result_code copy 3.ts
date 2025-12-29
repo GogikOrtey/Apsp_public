@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, imageLink, product_id, category, brand, in_stock_trigger, link, timestamp
+    name, stock, imageLink, product_id, category, brand, link, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,7 +16,7 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, imageLink, product_id, category, brand, in_stock_trigger, link, timestamp
+    name, stock, imageLink, product_id, category, brand, link, timestamp
 }
 
 const HOST = "https://makitatrading.ru"
@@ -118,7 +118,7 @@ export class JS_Base_makitatradingru extends JS_Base_Custom {
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, imageLink, product_id, category, brand, in_stock_trigger, link, timestamp
+            name, stock, imageLink, product_id, category, brand, link, timestamp
         }
         items.push(item);
 
