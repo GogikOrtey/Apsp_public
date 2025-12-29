@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, imageLink, article, product_id, category, link, timestamp
+    name, imageLink, article, product_id, category, description, price, currency, link, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,7 +16,7 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, imageLink, article, product_id, category, link, timestamp
+    name, imageLink, article, product_id, category, description, price, currency, link, timestamp
 }
 
 const HOST = "https://makitaclub.ru"
@@ -73,20 +73,16 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
 
     //#region Парсинг поиска
         async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/`)
-        url.searchParams.set('s', set.query)
-        url.searchParams.set('post_type', 'product')
-        if (+set.page > 1) {
-          url = new URL(`${HOST}/page/${set.page}/`)
-          url.searchParams.set('s', set.query)
-          url.searchParams.set('post_type', 'product')
-        }
+        let basePath = set.page && +set.page > 1 ? `/page/${set.page}/` : `/`;
+        let url = new URL(`${HOST}${basePath}`);
+        url.searchParams.set('s', set.query);
+        url.searchParams.set('post_type', 'product');
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$('nav.woocommerce-pagination .page-numbers').get().map(item => +$(item).text().trim()).filter(Boolean))
+            let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
@@ -105,22 +101,26 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
     }
 
     //#region Парсинг товара
-        async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+    
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
         let items: ResultItem[] = []
 
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.product_title.entry-title").text().trim()
-        const imageLink = $(".woocommerce-product-gallery img.wp-post-image, .woocommerce-product-gallery__image img.wp-post-image")?.first()?.attr("data-src") || $(".woocommerce-product-gallery img.wp-post-image, .woocommerce-product-gallery__image img.wp-post-image")?.first()?.attr("data-large_image") || $(".woocommerce-product-gallery img.wp-post-image, .woocommerce-product-gallery__image img.wp-post-image")?.first()?.attr("src") || ""
-        const article = $(".product_meta .sku_wrapper .sku")?.first().text().trim()
-        const product_id = $(".product[id^=\"product-\"]")?.first()?.attr("id")?.replace(/^product-/, "")?.trim() || ""
-        const category = $(".breadcrumbs .woocommerce-breadcrumb a:last-of-type")?.first().text().trim()
+        const name = $("h1.product_title.entry-title").first().text().trim()
+        const imageLink = $(".woocommerce-product-gallery__image img.wp-post-image").first()?.attr("src") || $(".woocommerce-product-gallery__image img.wp-post-image").first()?.attr("data-src") || $(".woocommerce-product-gallery__image img.wp-post-image").first()?.attr("data-large_image") || ""
+        const article = $(".product_meta .sku_wrapper .sku").first().text().trim()
+        const product_id = $("a.ajax_add_to_cart[data-product_id], a.add_to_cart_button[data-product_id]").first()?.attr("data-product_id")?.trim() || ""
+        const category = $(".breadcrumbs .woocommerce-breadcrumb a:last-of-type").first().text().trim()
+        const description = $("#tab-description").first().text().trim()
+        const price = $(".product .summary p.price .woocommerce-Price-amount, .summary .price .woocommerce-Price-amount.amount, #product-81348 .summary .price .woocommerce-Price-amount").first().text().trim()?.replace(/,/g, ".")?.replace(/[^\d.]/g, "") || ""
+        const currency = $(".product .summary p.price .woocommerce-Price-currencySymbol, .summary .price .woocommerce-Price-currencySymbol, #product-81348 .summary .price .woocommerce-Price-currencySymbol").first().text().trim() || ""
         const link = set.query;
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, imageLink, article, product_id, category, link, timestamp
+            name, imageLink, article, product_id, category, description, price, currency, link, timestamp
         }
         items.push(item);
 

@@ -45,7 +45,6 @@ from new_program.build_final_code import *
 План на будущее:
 
 - Догенерить описание для полей
-- И попробовать запустить
 - Сделать шаг 8 - Проверка открытия страницы
 
 - Тестирование, и запуск кода в А-Парсере
@@ -54,31 +53,12 @@ from new_program.build_final_code import *
 
 - В конце - фронт
 
+Не забыть:
+- Сделать headles = True для Playwright
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Нужно найти хороший пример
 
 
 
@@ -87,14 +67,15 @@ from new_program.build_final_code import *
 
 Доп: 
 
-- Добавил 6.5 шаг, но не запускал весь алгоритм с ним
-- Надо не забыть задавать хост в шаблоне готового кода
 - Потом надо будет добавить инструменты:
     - Для отправки curl запросов, простых и с параметрами
     - Для получения данных из запросов на странице Playwright, поиск и работу с ними
         - Для примера, можно например взять avon.ru и detmir.ru
 - Добавить проверку на то, такая же страница открывается вне браузера по прямому curl запросу, или нет
 - Надо будет добавить скриншоты состояния из браузера, по актуальным шагам
+
+
+
 - Собрать все возможные исключения, которые прописал, и обработать их
 - Ещё есть задачи которые прописаны ниже. В конце их глянуть
 
@@ -656,12 +637,12 @@ stock, link, timestamp
 
 
 
-
-link = "https://makitaclub.ru"
-# link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
-# link = "https://makitatrading.ru"
-# link = "https://galleryceramics.ru"
-main_processer(link)
+if __name__ == "__main__":
+    link = "https://makitaclub.ru"
+    # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
+    # link = "https://makitatrading.ru"
+    # link = "https://galleryceramics.ru"
+    main_processer(link)
 
 
 
