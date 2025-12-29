@@ -1,4 +1,4 @@
-29.12.2025 10:01:32
+29.12.2025 10:21:55
 
 SYSTEM_PROMPT = 
 Ты — reasoning-агент, который решает задачи пошагово, строго следуя Глобальному Плану (main_plan).
@@ -100,4 +100,30 @@ SYSTEM_PROMPT =
 - 4. После ответа управление ВСЕГДА возвращается оркестратору.
 - 5. Ты НИКОГДА не выполняешь следующий шаг сам.
 
-name, price, imageLink, article
+
+📗 Результат генерации parseCard 📗
+
+
+    //#region Парсинг товара
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $("h1.product_title.entry-title").first().text().trim()
+        const price = $("p.price .woocommerce-Price-amount").first().text().trim()?.replace(/\s+/g, " ")?.replace(/,/g, ".")?.replace(/[^\d.]/g, "")
+        const imageLink = $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("data-large_image") || $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("data-src") || $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("src") || ""
+        const article = $(".product_meta .sku_wrapper .sku").first().text().trim()
+        const addToCartText = $("form.cart .single_add_to_cart_button, form.cart button.single_add_to_cart_button, button.single_add_to_cart_button")?.first().text().trim(); const stock = addToCartText?.includes("В корзину") ? "InStock" : "OutOfStock";
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, price, imageLink, article, stock, link, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }
+    

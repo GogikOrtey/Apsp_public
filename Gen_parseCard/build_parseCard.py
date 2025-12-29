@@ -121,7 +121,13 @@ input_data_test = {
     "field__article__code_gen_completed": True,
     "field__article__ok_on_1_link": True,    
     "field__article__ok_on_2_link": True,    
-    "field__article__ok_on_3_link": True     
+    "field__article__ok_on_3_link": True,
+    "choosed_selector_field_stock": "form.cart .single_add_to_cart_button, form.cart button.single_add_to_cart_button, button.single_add_to_cart_button",
+    "field__stock__code": "const addToCartText = $(\"form.cart .single_add_to_cart_button, form.cart button.single_add_to_cart_button, button.single_add_to_cart_button\")?.first().text().trim(); const stock = addToCartText?.includes(\"В корзину\") ? \"InStock\" : \"OutOfStock\";",
+    "field__stock__code_gen_completed": True,    
+    "field__stock__ok_on_1_link": True,      
+    "field__stock__ok_on_2_link": True,      
+    "field__stock__ok_on_3_link": True      
 }
 
 
@@ -144,7 +150,8 @@ used_fields_and_selectors_test = {
         "div#product-65416 .product_meta .sku_wrapper .sku",
         "#product-81354 .product_meta .sku_wrapper .sku",
         "#product-65494 .product_meta .sku_wrapper .sku"
-    ]
+    ],
+    "stock": []
 }
 
 
@@ -170,7 +177,7 @@ def get_fields_description(used_fields_and_selectors_test):
 
 
 def build_all_code_parseCard(result_build_parseCard, result_get_fields_description):
-    """
+    result = """
     //#region Парсинг товара
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
         let items: ResultItem[] = []
@@ -191,8 +198,10 @@ def build_all_code_parseCard(result_build_parseCard, result_get_fields_descripti
     }
     """
 
+    return result
 
-#         const stock = ? "InStock" : "OutOfStock"
+
+
 
 
 
@@ -215,17 +224,23 @@ def build_all_code_parseCard(result_build_parseCard, result_get_fields_descripti
 
 def build_parseCard(input_data, used_fields_and_selectors):
     # Строки кода
-    result_build_parseCard = build_parseCard(input_data_test, used_fields_and_selectors_test)
+    result_build_parseCard = build_parseCard_get_all_generated_code_str(
+        input_data=input_data,
+        used_fields_and_selectors=used_fields_and_selectors,
+    )
     # Добавляем 4 пробела в начало каждой строки
-    result_build_parseCard = textwrap.indent(result_build_parseCard, '    ')
+    result_build_parseCard = textwrap.indent(result_build_parseCard, '        ')
 
     # Ключи ипользованных полей
-    result_get_fields_description = get_fields_description(used_fields_and_selectors_test)
+    result_get_fields_description = get_fields_description(used_fields_and_selectors)
 
     # Весь код parseCard
     result_build_all_code_parseCard = build_all_code_parseCard(result_build_parseCard, result_get_fields_description)
 
-    return build_all_code_parseCard
+    print(f"\n📗 Результат генерации parseCard 📗\n")
+    print(result_build_all_code_parseCard)
+
+    return result_build_all_code_parseCard
 
 
 
@@ -239,7 +254,7 @@ def build_parseCard(input_data, used_fields_and_selectors):
 
 
 if __name__ == "__main__":
-    build_parseCard(input_data_test, get_fields_description)
+    build_parseCard(input_data_test, used_fields_and_selectors_test)
 
 
 

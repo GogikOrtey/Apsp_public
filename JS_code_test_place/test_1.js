@@ -44,3 +44,30 @@ let products = $('.products .product-card a.stretched-link[href*="/products/"]')
 let product = products?.eq(0)
 let link = $(product)?.attr('href')
 console.log('link = ' + link)
+
+
+    //#region Парсинг товара
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);        
+
+        const name = $("h1.product_title.entry-title").first().text().trim()
+        const price = $("p.price .woocommerce-Price-amount").first().text().trim()?.replace(/\s+/g, " ")?.replace(/,/g, ".")?.replace(/[^\d.]/g, "")
+        const imageLink = $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("data-large_image") || $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("data-src") || $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("src") || ""
+        const article = $(".product_meta .sku_wrapper .sku").first().text().trim()        
+        const addToCartText = $("form.cart .single_add_to_cart_button, form.cart button.single_add_to_cart_button, button.single_add_to_cart_button")?.first().text().trim(); const 
+stock = addToCartText?.includes("В корзину") 
+? "InStock" : "OutOfStock";
+        const timestamp = getTimestamp()     
+
+        const item: ResultItem = {
+            name, price, imageLink, article, 
+stock, link, timestamp
+        }
+        items.push(item);
+
+        cacher.cache = items
+        return items;
+    }

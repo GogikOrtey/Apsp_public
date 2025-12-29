@@ -447,7 +447,7 @@ def main_gen_parseCard(input_15_links, host):
             "#product-81354 .product_meta .sku_wrapper .sku",
             "#product-65494 .product_meta .sku_wrapper .sku"
         ],
-        "stock" = []
+        "stock": []
     }
 
     """
