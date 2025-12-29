@@ -614,19 +614,286 @@ def scroll_to_bottom() -> dict[str, str | None]:
         record_playwright_action("scroll_to_bottom", args=args, result=err)
         return err
     try:
-        page.evaluate(
-            """
-            () => {
+        js_scroll = r"""
+        () => {
+            // Некоторые сайты "отключают" прокрутку окна (overflow:hidden на html/body)
+            // и прокручиваются внутри контейнера (div). Поэтому ищем лучший scrollable container.
+
+            const isVisible = (el) => {
+                if (!el) return false;
+                const cs = window.getComputedStyle(el);
+                if (!cs) return false;
+                if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") return false;
+                const r = el.getBoundingClientRect();
+                // Слишком маленькие элементы почти никогда не являются главным контейнером прокрутки.
+                return (r.width >= 100 && r.height >= 100);
+            };
+
+            const overflowAllowsScroll = (el) => {
+                const cs = window.getComputedStyle(el);
+                if (!cs) return false;
+                const oy = (cs.overflowY || "").toLowerCase();
+                return (oy === "auto" || oy === "scroll" || oy === "overlay");
+            };
+
+            const scrollRange = (el) => {
+                try {
+                    return Math.max(0, (el.scrollHeight || 0) - (el.clientHeight || 0));
+                } catch (e) {
+                    return 0;
+                }
+            };
+
+            const signature = (el) => {
+                try {
+                    const tag = (el.tagName || "unknown").toLowerCase();
+                    const id = el.id ? `#${el.id}` : "";
+                    const cls = (typeof el.className === "string" && el.className.trim())
+                        ? "." + el.className.trim().split(/\s+/).slice(0, 3).join(".")
+                        : "";
+                    return `${tag}${id}${cls}`;
+                } catch (e) {
+                    return "unknown";
+                }
+            };
+
+            const scrollElToBottom = (el) => {
+                const before = (typeof el.scrollTop === "number") ? el.scrollTop : 0;
+                try {
+                    // scrollTo есть не у всех элементов, поэтому делаем fallback на scrollTop.
+                    if (typeof el.scrollTo === "function") {
+                        el.scrollTo(0, el.scrollHeight || 0);
+                    }
+                    el.scrollTop = el.scrollHeight || 0;
+                } catch (e) {
+                    // ignore
+                }
+                const after = (typeof el.scrollTop === "number") ? el.scrollTop : before;
+                return { before, after, moved: Math.abs(after - before) };
+            };
+
+            const candidates = [];
+
+            // 1) Документ как кандидат (если реально скроллится).
+            const docEl = document.scrollingElement || document.documentElement;
+            if (docEl && isVisible(docEl) && scrollRange(docEl) > 1 && !((window.getComputedStyle(docEl).overflowY || "").toLowerCase() === "hidden")) {
+                candidates.push({ el: docEl, why: "document", range: scrollRange(docEl) });
+            }
+            const body = document.body;
+            if (body && isVisible(body) && scrollRange(body) > 1 && overflowAllowsScroll(body)) {
+                candidates.push({ el: body, why: "body", range: scrollRange(body) });
+            }
+
+            // 2) Скроллящиеся контейнеры внутри body.
+            // Ограничиваем объём перебора: берем только первые N элементов с потенциальным скроллом.
+            const all = document.querySelectorAll("body *");
+            const limit = Math.min(all.length, 5000);
+            for (let i = 0; i < limit; i++) {
+                const el = all[i];
+                if (!el || el === body || el === docEl) continue;
+                if (!isVisible(el)) continue;
+                if (!overflowAllowsScroll(el)) continue;
+                const range = scrollRange(el);
+                if (range < 80) continue;
+                candidates.push({ el, why: "container", range });
+            }
+
+            // Если не нашли кандидатов — fallback: попробуем всё равно проскроллить окно.
+            if (candidates.length === 0) {
+                const before = window.scrollY || 0;
                 const el = document.scrollingElement || document.documentElement || document.body;
-                window.scrollTo(0, el.scrollHeight);
+                try { window.scrollTo(0, (el && el.scrollHeight) ? el.scrollHeight : 10000000); } catch (e) {}
+                const after = window.scrollY || before;
+                return { used: "window", target: "window", moved: Math.abs(after - before), range: 0 };
+            }
+
+            // Берём "главный" контейнер по максимальному scrollRange.
+            candidates.sort((a, b) => (b.range - a.range));
+            const best = candidates[0];
+
+            const sc = scrollElToBottom(best.el);
+            return {
+                used: best.why,
+                target: signature(best.el),
+                moved: sc.moved,
+                range: best.range,
+            };
+        }
+        """
+
+        # Несколько итераций на случай infinite scroll / догрузки контента в процессе прокрутки.
+        any_moved = False
+        last_info: Any = None
+        for _ in range(6):
+            last_info = page.evaluate(js_scroll)
+            page.wait_for_timeout(150)
+            if isinstance(last_info, dict) and isinstance(last_info.get("moved"), (int, float)):
+                moved = float(last_info["moved"])
+                if moved > 1:
+                    any_moved = True
+                if moved < 1:
+                    break
+
+        # Fallback: если scrollTop/scrollTo не дали эффекта (виртуальный/кастомный скролл),
+        # прокручиваем к "последнему" DOM-элементу через scrollIntoView — это скроллит ближайшего
+        # scrollable-родителя (окно или контейнер).
+        page.evaluate(
+            r"""
+            () => {
+                const body = document.body || document.documentElement;
+                if (!body) return { ok: false, reason: "no_body" };
+
+                // Находим "последний" элемент в DOM-дереве.
+                const tw = document.createTreeWalker(body, NodeFilter.SHOW_ELEMENT);
+                let last = null;
+                while (tw.nextNode()) last = tw.currentNode;
+                if (!last) last = body;
+
+                try {
+                    last.scrollIntoView({ block: "end", inline: "nearest" });
+                } catch (e) {
+                    try { last.scrollIntoView(false); } catch (_) {}
+                }
+
+                // Лёгкий focus (не кликаем, чтобы не триггерить действия на странице).
+                try {
+                    if (last && typeof last.focus === "function") {
+                        if (!last.hasAttribute("tabindex")) last.setAttribute("tabindex", "-1");
+                        last.focus({ preventScroll: true });
+                    }
+                } catch (e) {}
+
+                return { ok: true };
             }
             """
         )
+        page.wait_for_timeout(150)
+        try:
+            page.keyboard.press("End")
+        except Exception:
+            pass
+
+        # Fallback №2: "виртуальная мышь" + wheel. Часто срабатывает там, где scrollTop не работает,
+        # потому что скролл реализован кастомным JS и слушает wheel-события.
+        try:
+            js_probe_scroll = r"""
+            () => {
+                const isVisible = (el) => {
+                    if (!el) return false;
+                    const cs = window.getComputedStyle(el);
+                    if (!cs) return false;
+                    if (cs.display === "none" || cs.visibility === "hidden" || cs.opacity === "0") return false;
+                    const r = el.getBoundingClientRect();
+                    return (r.width >= 100 && r.height >= 100);
+                };
+
+                const overflowAllowsScroll = (el) => {
+                    const cs = window.getComputedStyle(el);
+                    if (!cs) return false;
+                    const oy = (cs.overflowY || "").toLowerCase();
+                    return (oy === "auto" || oy === "scroll" || oy === "overlay");
+                };
+
+                const scrollRange = (el) => {
+                    try { return Math.max(0, (el.scrollHeight || 0) - (el.clientHeight || 0)); } catch (e) { return 0; }
+                };
+
+                const docEl = document.scrollingElement || document.documentElement;
+                const body = document.body;
+                const candidates = [];
+
+                if (docEl && isVisible(docEl) && scrollRange(docEl) > 1 && !((window.getComputedStyle(docEl).overflowY || "").toLowerCase() === "hidden")) {
+                    candidates.push({ el: docEl, range: scrollRange(docEl) });
+                }
+                if (body && isVisible(body) && scrollRange(body) > 1 && overflowAllowsScroll(body)) {
+                    candidates.push({ el: body, range: scrollRange(body) });
+                }
+
+                const all = document.querySelectorAll("body *");
+                const limit = Math.min(all.length, 5000);
+                for (let i = 0; i < limit; i++) {
+                    const el = all[i];
+                    if (!el || el === body || el === docEl) continue;
+                    if (!isVisible(el)) continue;
+                    if (!overflowAllowsScroll(el)) continue;
+                    const range = scrollRange(el);
+                    if (range < 80) continue;
+                    candidates.push({ el, range });
+                }
+
+                if (candidates.length === 0) {
+                    return { mode: "window", top: (window.scrollY || 0), range: 0 };
+                }
+
+                candidates.sort((a, b) => (b.range - a.range));
+                const best = candidates[0].el;
+                const top = (typeof best.scrollTop === "number") ? best.scrollTop : 0;
+                return { mode: "element", top, range: candidates[0].range };
+            }
+            """
+
+            # Берём размеры viewport, чтобы поставить мышь в центр.
+            vp = page.viewport_size
+            if not vp or "width" not in vp or "height" not in vp:
+                vp = page.evaluate("() => ({ width: window.innerWidth, height: window.innerHeight })")
+            cx = int(max(1, (vp.get("width") or 1) // 2))
+            cy = int(max(1, (vp.get("height") or 1) // 2))
+
+            before = page.evaluate(js_probe_scroll)
+            stale = 0
+            for _ in range(30):
+                page.mouse.move(cx, cy)
+                # click для фокуса, иначе wheel иногда уходит "в никуда"
+                page.mouse.click(cx, cy)
+                page.mouse.wheel(0, 1200)
+                page.wait_for_timeout(120)
+                after = page.evaluate(js_probe_scroll)
+
+                btop = before.get("top") if isinstance(before, dict) else None
+                atop = after.get("top") if isinstance(after, dict) else None
+                if isinstance(btop, (int, float)) and isinstance(atop, (int, float)) and float(atop) <= float(btop) + 0.5:
+                    stale += 1
+                else:
+                    stale = 0
+                before = after
+
+                # Если несколько раз подряд нет прогресса — считаем, что дошли до низа/упёрлись.
+                if stale >= 3:
+                    break
+        except Exception:
+            pass
         res = {"status": "ok", "position": "bottom", "error": None}
     except Exception as exc:  # noqa: BLE001
         res = {"status": "error", "position": "bottom", "error": str(exc)}
     record_playwright_action("scroll_to_bottom", args=args, result=res)
     return res
+
+
+
+
+
+if __name__ == "__main__":
+    # Запускаю браузер с видимым окном
+    launch_browser(headless = False)
+
+    goto_url( 
+        url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
+        wait_until = "load",
+        timeout = 30_000
+    )
+
+    wait_ms(5000)
+
+    scroll_to_bottom()
+    input("__")
+
+
+
+
+
+
+
+
 
 
 # region scroll_to_top
@@ -1567,20 +1834,20 @@ def search_in_page_network_requests(
     return res
 
 
-if __name__ == "__main__":
-    # Запускаю браузер с видимым окном
-    launch_browser(headless = False)
+# if __name__ == "__main__":
+#     # Запускаю браузер с видимым окном
+#     launch_browser(headless = False)
 
-    goto_url( 
-        url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
-        wait_until = "load",
-        timeout = 30_000
-    )
+#     goto_url( 
+#         url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
+#         wait_until = "load",
+#         timeout = 30_000
+#     )
 
-    wait_ms(5000)
+#     wait_ms(5000)
 
-    result = search_in_page_network_requests("Плитка базовая CERSANIT Mont blanc Белый 29,7*59,8 см")
-    print_json(result)
+#     result = search_in_page_network_requests("Плитка базовая CERSANIT Mont blanc Белый 29,7*59,8 см")
+#     print_json(result)
 
 
 

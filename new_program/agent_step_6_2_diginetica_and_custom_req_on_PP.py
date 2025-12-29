@@ -368,61 +368,6 @@ main_plan = {
 
 
 
-
-
-# main_plan = {
-#     "steps": [
-#         {
-#             "step_id": 1,
-#             "goal": "Зафиксировать URL первой страницы выдачи (1 шаг алгоритма)",
-#             "fills": [
-#                 "start_page_url"
-#             ]
-#         },
-#         {
-#             "step_id": 2,
-#             "goal": "Перейти на 2-ю страницу через пагинацию и зафиксировать новый URL (1 шаг алгоритма)",
-#             "fills": [
-#                 "url_for_2_page",
-#                 "search_output_set_by_add_query"
-#             ]
-#         },
-#         {
-#             "step_id": 3,
-#             "goal": "По разнице start_page_url и url_for_2_page определить параметр пагинации и описать его (2 шаг алгоритма)",
-#             "fills": [
-#                 "info_from_page_parameter"
-#             ]
-#         },
-#         {
-#             "step_id": 4,
-#             "goal": "Выполнить поиск по другому запросу и зафиксировать URL новой страницы (3 шаг алгоритма)",
-#             "fills": [
-#                 "url_for_second_search_query"
-#             ]
-#         },
-#         {
-#             "step_id": 5,
-#             "goal": "По разнице start_page_url и url_for_second_search_query определить параметр поискового запроса и описать его (3 шаг алгоритма)",
-#             "fills": [
-#                 "info_from_search_query_parameter"
-#             ]
-#         },
-#         {
-#             "step_id": 6,
-#             "goal": "Сформировать JS-код генерации URL на основе info_from_page_parameter и info_from_search_query_parameter (4 шаг алгоритма)",
-#             "fills": [
-#                 "result_code_url_builder"
-#             ]
-#         }
-#     ]
-# }
-
-
-
-
-
-
 def agent_step_6_2_diginetica_and_custom_req_on_PP(input_data, search_request, semantics, link):
     # Приводим input_data к строке
     if isinstance(input_data, str):
@@ -452,7 +397,7 @@ def agent_step_6_2_diginetica_and_custom_req_on_PP(input_data, search_request, s
         max_steps = 40,
         result_schema = main_result_schema,
         result_template = main_result_template,
-        # plan = main_plan,
+        plan = main_plan,
         # step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
