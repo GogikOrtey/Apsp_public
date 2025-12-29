@@ -57,28 +57,114 @@ print(f"Стоимость input: ${input_cost:.6f}")
 """
 
 
-# # Считаем кол-во токенов
-# import importlib
-# tiktoken = importlib.import_module("tiktoken")
-# try:
-#     enc = tiktoken.encoding_for_model("gpt-5.2")
-# except KeyError:
-#     # Fallback for models unknown to the current tiktoken version
-#     enc = tiktoken.get_encoding("cl100k_base")
+MAIN_PROMPT = """
+ТВОЯ ЗАДАЧА:
+...
+"""
 
-# # Рассчитываем стоимость ввода:
-# def calc_cost(tokens: int, price_per_m: float) -> float:
-#     return tokens * price_per_m / 1_000_000
 
-# # count_tokens = len(enc.encode(html_content_zip))
-# # print("count_tokens =", count_tokens)
 
-# INPUT_PRICE_PER_M = 1.75
-# # input_cost = calc_cost(count_tokens, INPUT_PRICE_PER_M)
-# input_cost = calc_cost(57364, INPUT_PRICE_PER_M)
+# Считаем кол-во токенов
+import importlib
 
-# print(f"Стоимость input: ${input_cost:.6f}")
-# # Получается порядка 7-12 рублей за обработку 1 html страницы полностью 
+from pathlib import Path
+import sys
+import os
+import json
+import copy
+import traceback
+import time
+import re
+from typing import Any
+
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from import_all_libraries import get_html_from_cache
+from new_program.html_toolkit import clean_html_universal
+
+
+
+
+
+
+
+
+
+
+def get_tocken_value_and_pricing(input_text, model = "gpt-5.2", INPUT_PRICE_PER_M = 1.75):
+    """
+    Рассчитывает и печатет
+    - Количество токенов в input_text
+    - Цена, сколько будет стоить отправка такого количества токенов
+
+    model - Используемая модель LLM
+    INPUT_PRICE_PER_M - Стоимость за 1 миллион токенов, в долларах
+    """
+    tiktoken = importlib.import_module("tiktoken")
+    try:
+        enc = tiktoken.encoding_for_model(model)
+    except KeyError:
+        # Fallback for models unknown to the current tiktoken version
+        enc = tiktoken.get_encoding("cl100k_base")
+
+    # Рассчитываем стоимость ввода:
+    def calc_cost(tokens: int, price_per_m: float) -> float:
+        return tokens * price_per_m / 1_000_000
+
+    count_tokens = len(enc.encode(input_text))
+    print("count_tokens =", count_tokens)
+
+    input_cost = calc_cost(count_tokens, INPUT_PRICE_PER_M)
+
+    print(f"Стоимость input: {input_cost:.6f} $")
+    input_cost_rub = input_cost * 78
+    print(f"Стоимость input: {input_cost_rub:.2f} ₽")
+    # Получается порядка 7-10 рублей за обработку 1 html страницы полностью 
+
+
+
+if __name__ == "__main__":
+    # Получаем количество токенов и цену за пересылку html
+    url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT"
+    html_content = get_html_from_cache(url)
+    html_content_zip = clean_html_universal(html_content)
+    result_tockens = get_tocken_value_and_pricing(html_content_zip)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

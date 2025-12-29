@@ -36,3 +36,13 @@ from new_program.html_toolkit import *  # регистрирует инстру�
 
 """
 
+
+
+
+MAIN_TASK = """
+
+ЗАДАЧА:
+
+Нужно проверить, 
+
+"""

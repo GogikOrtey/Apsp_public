@@ -475,11 +475,15 @@ main();
 
 
 # Очищает html перед отправкой в LLM
-def clean_html_universal(html_content: str) -> str:
+def clean_html_universal(html_content: str, trim: bool = True) -> str:
     """
     Универсальная очистка HTML для LLM (Black-list подход).
     Удаляет скрипты и стили, но сохраняет структуру, мета-теги и контент.
     Длинные тексты и Base64-изображения обрезаются.
+
+    Args:
+        html_content: исходный HTML
+        trim: если True — дополнительно обрезает итоговый HTML "по середине" до 200000 символов
     """
     print(f"\nСжимаем страницу\n")
 
@@ -554,6 +558,19 @@ def clean_html_universal(html_content: str) -> str:
     content = str(soup)
     # Удаляем лишние пустые строки, которые могли остаться после decompose()
     cleaned_html = "\n".join([line.strip() for line in content.splitlines() if line.strip()])
+
+    # 7. Финальная обрезка всего HTML по середине (страховка от переполнения контекста LLM)
+    if trim and len(cleaned_html) > 200_000:
+        marker = "\n<!-- APSP: CONTENT TRIMMED IN THE MIDDLE (removed to fit LLM context) -->\n"
+        budget = 200_000 - len(marker)
+        if budget <= 0:
+            cleaned_html = marker[:200_000]
+        else:
+            target_half = 100_000
+            head_len = min(target_half, budget // 2)
+            tail_len = budget - head_len
+            cleaned_html = cleaned_html[:head_len] + marker + cleaned_html[-tail_len:]
+        print(f"🟨 Страницу обрезали по середине до {len(cleaned_html)} символов (лимит 200 000).")
 
     # Вычисление и вывод статистики
     original_len = len(html_content)

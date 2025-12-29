@@ -1,39 +1,13 @@
-29.12.2025 23:18:11
+30.12.2025 00:13:12
 
-Запускаем браузер
-Браузер успешно запущен
-{
-    "status": "ok",
-    "url": "https://www.detmir.ru/product/index/id/7056516/?variant_id=7056516",
-    "request_ok": true,
-    "metrics": {
-        "playwright": {
-            "node_count": 1106,
-            "text_length": 2949,
-            "div_count": 292,
-            "a_count": 133,
-            "img_count": 9,
-            "button_count": 30,
-            "input_count": 10,
-            "max_depth": 20
-        },
-        "request": {
-            "node_count": 1110,
-            "text_length": 183912,
-            "div_count": 294,
-            "a_count": 133,
-            "img_count": 12,
-            "button_count": 30,
-            "input_count": 10,
-            "max_depth": 20
-        }
-    },
-    "ratios": {
-        "node_ratio": 0.9963963963963964,
-        "text_ratio": 0.016034842750880855,
-        "a_ratio": 1.0,
-        "img_ratio": 0.75,
-        "depth_diff": 0
-    },
-    "thresholds_triggered": []
-}
+
+Сжимаем страницу
+
+🟨 Страницу обрезали по середине до 200000 символов (лимит 200 000).
+Исходное количество символов: 1028816
+После сжатия: 200000
+Страница сжалась на 80.56%
+
+count_tokens = 70109
+Стоимость input: 0.122691 $
+Стоимость input: 9.57 ₽
