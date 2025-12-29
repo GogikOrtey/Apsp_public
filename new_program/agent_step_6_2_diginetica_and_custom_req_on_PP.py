@@ -234,6 +234,8 @@ async parsePage(set) {
 
 Далее, тебе нужно будет составить валидный код, в котором будет отправляться этот запрос, с нужными рабочими параметрами, и параметром, которым задаётся поисковый запрос = set.query (это важно). Записать его также в result в поле result_code, проверить, и при необходимости изменить, что бы он работал корректно - при проверке возвращал первые 10 ссылок на товары с указанного запроса поиска.
 
+Если что, в search_input_selectors указан селектор поля ввода. При необходимости, ты сможешь выполнить поиск на этом сайте по другому запросу из семантики.
+
 ———————————————————————— Шаг алгоритма 4: Проверка написанного кода
 
 Далее тебе нужно будет запустить код, записанный в result в поле result_code, используя инструмент ____________.
@@ -247,10 +249,10 @@ async parsePage(set) {
 Когда рабочий код будет написан и проверен - запиши в result в поле check_code_ok значение true. Важно: не записывай в это поле значение false, если при проверке код окажется не рабочим. Это поле ожидает только записи значения true.
 
 
+Входные данные (input_data):
 
-
-
-
+"""
+    return MAIN_TASK
 
 
 
@@ -258,22 +260,16 @@ async parsePage(set) {
 
 
 """
-
-
-
-
-
-
-"""
+Схема результата:
 
 {
-    "count_of_products_first"
-    "is_site_used_add_request"
-    "name_second_ptoduct"
-    "price_second_ptoduct"
-    "search_type"
-    "result_code"
-    "check_code_ok"
+    "count_of_products_first": number
+    "is_site_used_add_request": boolean
+    "name_second_ptoduct": string
+    "price_second_ptoduct": string
+    "search_type": "diginetica" | "custom"
+    "result_code": string
+    "check_code_ok": boolean
 }
 
 """
@@ -306,7 +302,166 @@ async parsePage(set) {
 
 
 
-if __name__ == "__main__":        
+   
+   
+
+
+
+
+
+
+
+
+
+
+# # Схема результата
+# main_result_schema = {
+#     "start_page_url": {
+#         "type": "string",
+#         "required": True,
+#         "description": "URL первой страницы, с которой мы начали."
+#     },
+#     "url_for_2_page": {
+#         "type": "string",
+#         "required": True,
+#         "description": "URL второй страницы, будет получена путём перехода на вторую страницу выдачи со страницы start_page_url."
+#     },
+#     "info_from_page_parameter": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Информация о том, как задаётся параметр пагинации page в URL"
+#     },
+#     "info_from_search_query_parameter": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Информация о том, как задаётся параметр поискового запроса в URL"
+#     },
+#     "url_for_second_search_query": {
+#         "type": "string",
+#         "required": True,
+#         "description": "URL страницы по другому поисковому запросу"
+#     },
+#     "result_code_url_builder": {
+#         "type": "string",
+#         "required": True,
+#         "description": "Сформированный фрагмент кода который позволяет задать произвольный запрос поиска и страницу пагинации"
+#     },
+#     "search_output_set_by_add_query": {
+#         "type": "boolean",
+#         "required": False,
+#         "description": "Примет значение true если товары загружаются доп. запросами, а не через URL (необязательное поле для заполнения)"
+#     }
+# }
+
+# # Шаблон результата, который агент заполняет в процессе работы
+# main_result_template = {
+#     "start_page_url": None,
+#     "url_for_2_page": None,
+#     "info_from_page_parameter": None,
+#     "info_from_search_query_parameter": None,
+#     "url_for_second_search_query": None,
+#     "result_code_url_builder": None,
+#     "search_output_set_by_add_query": None
+# }
+
+
+
+# main_plan = {
+#     "steps": [
+#         {
+#             "step_id": 1,
+#             "goal": "Зафиксировать URL первой страницы выдачи (1 шаг алгоритма)",
+#             "fills": [
+#                 "start_page_url"
+#             ]
+#         },
+#         {
+#             "step_id": 2,
+#             "goal": "Перейти на 2-ю страницу через пагинацию и зафиксировать новый URL (1 шаг алгоритма)",
+#             "fills": [
+#                 "url_for_2_page",
+#                 "search_output_set_by_add_query"
+#             ]
+#         },
+#         {
+#             "step_id": 3,
+#             "goal": "По разнице start_page_url и url_for_2_page определить параметр пагинации и описать его (2 шаг алгоритма)",
+#             "fills": [
+#                 "info_from_page_parameter"
+#             ]
+#         },
+#         {
+#             "step_id": 4,
+#             "goal": "Выполнить поиск по другому запросу и зафиксировать URL новой страницы (3 шаг алгоритма)",
+#             "fills": [
+#                 "url_for_second_search_query"
+#             ]
+#         },
+#         {
+#             "step_id": 5,
+#             "goal": "По разнице start_page_url и url_for_second_search_query определить параметр поискового запроса и описать его (3 шаг алгоритма)",
+#             "fills": [
+#                 "info_from_search_query_parameter"
+#             ]
+#         },
+#         {
+#             "step_id": 6,
+#             "goal": "Сформировать JS-код генерации URL на основе info_from_page_parameter и info_from_search_query_parameter (4 шаг алгоритма)",
+#             "fills": [
+#                 "result_code_url_builder"
+#             ]
+#         }
+#     ]
+# }
+
+
+
+
+
+
+def agent_step_6_2_diginetica_and_custom_req_on_PP(input_data, search_request, semantics, link):
+    # Приводим input_data к строке
+    if isinstance(input_data, str):
+        input_data_str = input_data
+    else:
+        try:
+            input_data_str = json.dumps(input_data, ensure_ascii=False, indent=4, default=str)
+        except Exception:
+            input_data_str = str(input_data)
+
+    # Приводим input_data к строке
+    if isinstance(semantics, str):
+        semantics_str = semantics
+    else:
+        try:
+            semantics_str = json.dumps(semantics, ensure_ascii=False, indent=4, default=str)
+        except Exception:
+            semantics_str = str(semantics)
+
+    task = (
+        f"Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу '{search_request}'." +
+        gen_MAIN_TASK(link, search_request, semantics_str) + 
+        input_data_str)
+
+    resulr_answer = orchestrate(
+        task = task,
+        max_steps = 40,
+        result_schema = main_result_schema,
+        result_template = main_result_template,
+        # plan = main_plan,
+        # step_by_step_running = False, # Разрешаем агенту работать автоматически
+    ) 
+
+    result_task = get_result()
+    return result_task
+
+
+
+
+
+#  Проверка:
+
+if __name__ == "__main__":     
     input_data_test = {
         "search_input_selectors": [
             "#woocommerce-product-search-field-0",
@@ -346,6 +501,43 @@ if __name__ == "__main__":
         "last_page_number_displayed": "true"
     }
 
-    # Из шага 2 из поля second_html:
+    search_request_test = "инструмент"
 
+    semantics_test = {
+        "semantics": [
+            "инструмент",
+            "дрель",
+            "шуруповерт",
+            "перфоратор",
+            "болгарка",
+            "пила",
+            "шлифмашина",
+            "пылесос",
+            "аккумулятор",
+            "оснастка"
+        ]
+    }
+
+    # Из шага 2 из поля second_html:
     link = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+
+
+    # Запускаю браузер с видимым окном
+    launch_browser(headless = False)
+
+    goto_url( 
+        url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+        wait_until = "load",
+        timeout = 30_000
+    )
+
+
+    resilt = agent_step_6_2_diginetica_and_custom_req_on_PP(input_data_test, search_request_test, semantics_test, link)
+
+    print("resilt:")
+    print(resilt)
+    print(f"\result_code:")
+    print(resilt.get("result_code"))
+
+
+
