@@ -247,27 +247,37 @@ def _ensure_listeners(page: Page) -> None:
             if isinstance(rid, int):
                 _network_req_map_since_load[rid] = rec
 
+    def _val(x: Any) -> Any:
+        # В sync Playwright часть атрибутов — свойства, часть — методы.
+        # Нам нужны значения, а не bound-method объекты.
+        try:
+            return x() if callable(x) else x
+        except Exception:
+            return None
+
     def _mk_request_record(req: Request) -> dict[str, Any]:
         try:
-            parsed = urlparse(req.url)
+            req_url = _val(getattr(req, "url", None))
+            parsed = urlparse(req_url if isinstance(req_url, str) else "")
             query = parse_qs(parsed.query, keep_blank_values=True)
         except Exception:
+            req_url = _val(getattr(req, "url", None))
             parsed = None
             query = {}
 
         post_data = None
         try:
-            post_data = req.post_data
+            post_data = _val(getattr(req, "post_data", None))
         except Exception:
             post_data = None
 
         return {
             "ts": time.time(),
             "request_id": id(req),
-            "resource_type": getattr(req, "resource_type", None),
-            "is_navigation_request": getattr(req, "is_navigation_request", None),
-            "method": getattr(req, "method", None),
-            "url": getattr(req, "url", None),
+            "resource_type": _val(getattr(req, "resource_type", None)),
+            "is_navigation_request": _val(getattr(req, "is_navigation_request", None)),
+            "method": _val(getattr(req, "method", None)),
+            "url": req_url,
             "url_parsed": {
                 "scheme": getattr(parsed, "scheme", None),
                 "netloc": getattr(parsed, "netloc", None),
@@ -280,7 +290,7 @@ def _ensure_listeners(page: Page) -> None:
             if parsed is not None
             else None,
             "request": {
-                "headers": getattr(req, "headers", None),
+                "headers": _val(getattr(req, "headers", None)),
                 "post_data": post_data,
             },
             "response": None,
@@ -343,7 +353,7 @@ def _ensure_listeners(page: Page) -> None:
             rec = _upsert_request(req)
             failure = None
             try:
-                failure = req.failure
+                failure = _val(getattr(req, "failure", None))
             except Exception:
                 failure = None
             rec["failure"] = failure
@@ -386,9 +396,9 @@ def _ensure_listeners(page: Page) -> None:
             rec["response"] = {
                 "url": url,
                 "status": status,
-                "ok": getattr(resp, "ok", None),
-                "headers": getattr(resp, "headers", None),
-                "from_service_worker": getattr(resp, "from_service_worker", None),
+                "ok": _val(getattr(resp, "ok", None)),
+                "headers": _val(getattr(resp, "headers", None)),
+                "from_service_worker": _val(getattr(resp, "from_service_worker", None)),
                 "body_text": body_text,
                 "body_meta": body_meta,
             }

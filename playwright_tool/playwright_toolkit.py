@@ -1514,7 +1514,29 @@ def search_in_page_network_requests(
         if needle and (needle not in hay):
             continue
 
-        out = copy.deepcopy(entry) if isinstance(entry, dict) else {"value": entry}
+        def _json_safe(obj: Any, _depth: int = 0) -> Any:
+            # Защита от странных объектов Playwright/asyncio в логах: всё приводим к JSON-friendly структуре.
+            if _depth > 20:
+                return str(obj)
+            if obj is None or isinstance(obj, (str, int, float, bool)):
+                return obj
+            if isinstance(obj, dict):
+                out_d: dict[str, Any] = {}
+                for k, v in obj.items():
+                    try:
+                        key = k if isinstance(k, str) else str(k)
+                    except Exception:
+                        key = "key"
+                    out_d[key] = _json_safe(v, _depth + 1)
+                return out_d
+            if isinstance(obj, (list, tuple)):
+                return [_json_safe(x, _depth + 1) for x in obj]
+            try:
+                return str(obj)
+            except Exception:
+                return "<unserializable>"
+
+        out = _json_safe(entry) if isinstance(entry, dict) else {"value": _json_safe(entry)}
 
         # Усечение body ответа в выдаче
         try:
@@ -1543,8 +1565,22 @@ def search_in_page_network_requests(
     }
     record_playwright_action("search_in_page_network_requests", args=args, result={"count": len(results)})
     return res
-# endregion search_in_page_network_requests
 
+
+if __name__ == "__main__":
+    # Запускаю браузер с видимым окном
+    launch_browser(headless = False)
+
+    goto_url( 
+        url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
+        wait_until = "load",
+        timeout = 30_000
+    )
+
+    wait_ms(5000)
+
+    result = search_in_page_network_requests("Плитка базовая CERSANIT Mont blanc Белый 29,7*59,8 см")
+    print_json(result)
 
 
 
