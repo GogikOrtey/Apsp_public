@@ -55,8 +55,9 @@ from new_program.build_final_code import *
 
 Не забыть:
 - Сделать headles = True для Playwright
+- Проверить что product_id не генерится
 
-
+В среднем - 15 минут на генерацию
 
 Нужно найти хороший пример
 

@@ -142,7 +142,6 @@ def get_MAIN_PROMPT(all_fields):
     "stock": string | null,
     "imageLink": string | null,
     "article": string | null,
-    "product_id": string | null,
     "category": string | null,
     "brand": string | null,
     /* Все остальные поля, которые были переданы модели, включаются здесь точно с таким же названием, типом string или null. Не оставляй этот комментарий в ответе JSON */
