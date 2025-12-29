@@ -194,6 +194,38 @@ def _extract_hrefs_from_cached_page_html(selector: str, page_url: str) -> list[s
         return []
 
 
+def _cycle_to_len(values: list[str], target_len: int) -> list[str]:
+    """
+    Возвращает список длины target_len.
+    Если элементов меньше — циклически повторяет их: a,b,c -> a,b,c,a,b,...
+    """
+    if not isinstance(values, list):
+        return []
+    src = [x for x in values if isinstance(x, str) and x.strip()]
+    if target_len <= 0:
+        return []
+    if not src:
+        return []
+    if len(src) >= target_len:
+        return src[:target_len]
+    out: list[str] = []
+    i = 0
+    while len(out) < target_len:
+        out.append(src[i % len(src)])
+        i += 1
+    return out
+
+
+def _split_15_to_3x5(values: list[str]) -> dict[str, Any]:
+    v = [x for x in (values or []) if isinstance(x, str) and x.strip()]
+    v15 = _cycle_to_len(v, 15)
+    return {
+        "five_links_1": v15[0:5],
+        "five_links_2": v15[5:10],
+        "five_links_3": v15[10:15],
+    }
+
+
 def _try_get_links_without_agent(input_data: Any) -> dict[str, Any] | None:
     input_obj = _parse_input_data_obj(input_data)
     if not input_obj:
@@ -204,17 +236,19 @@ def _try_get_links_without_agent(input_data: Any) -> dict[str, Any] | None:
     third_url = input_obj.get("third_url")
     selector_product = input_obj.get("selector_product")
 
-    if not all(isinstance(x, str) and x.strip() for x in (first_url, second_url, third_url, selector_product)):
+    # Режим “одна страница”: second_url/third_url могут отсутствовать/быть пустыми.
+    if not (isinstance(first_url, str) and first_url.strip() and isinstance(selector_product, str) and selector_product.strip()):
         return None
 
-    pages = [first_url.strip(), second_url.strip(), third_url.strip()]
+    one_url_mode = not (isinstance(second_url, str) and second_url.strip() and isinstance(third_url, str) and third_url.strip())
+    pages = [first_url.strip()] if one_url_mode else [first_url.strip(), second_url.strip(), third_url.strip()]
     selector = selector_product.strip()
 
     try:
         extracted = extract_selector_data_from_cached_pages(  # type: ignore[name-defined]
             selector=selector,
             links=pages,
-            max_all_results=30,
+            max_all_results=80 if one_url_mode else 30,
             print_cache_msgs=False,
         )
     except Exception:
@@ -234,6 +268,7 @@ def _try_get_links_without_agent(input_data: Any) -> dict[str, Any] | None:
 
         normalized: list[str] = []
         seen: set[str] = set()
+        max_norm = 80 if one_url_mode else 30
         for raw in (vals or []):
             cand = _normalize_candidate_link(raw, page_url=page_url)
             if not cand:
@@ -242,21 +277,22 @@ def _try_get_links_without_agent(input_data: Any) -> dict[str, Any] | None:
                 continue
             seen.add(cand)
             normalized.append(cand)
-            if len(normalized) >= 30:
+            if len(normalized) >= max_norm:
                 break
         by_page_candidates.append(normalized)
 
     out_lists: list[list[str]] = []
     for candidates in by_page_candidates:
-        top5 = (candidates or [])[:5]
-        if not top5:
+        if not candidates:
             return None
 
+        topN = (candidates or [])[: (30 if one_url_mode else 5)]
+
         # По “нормальному” сценарию проверяем только 1 ссылку (как в ТЗ).
-        status = _check_url_status_any(top5[0], timeout_ms=10_000)
+        status = _check_url_status_any(topN[0], timeout_ms=10_000)
         code = status.get("code")
         if status.get("status") == "ok" and isinstance(code, int) and 200 <= code < 400:
-            out_lists.append(top5)
+            out_lists.append(topN)
             continue
 
         # Если первая не валидна — пробуем найти валидные (дороже, но редкий случай).
@@ -266,16 +302,20 @@ def _try_get_links_without_agent(input_data: Any) -> dict[str, Any] | None:
             c = st.get("code")
             if st.get("status") == "ok" and isinstance(c, int) and 200 <= c < 400:
                 good.append(cand)
-            if len(good) >= 5:
+            if len(good) >= (30 if one_url_mode else 5):
                 break
         if not good:
             return None
-        out_lists.append(good[:5])
+        out_lists.append(good[: (30 if one_url_mode else 5)])
+
+    if one_url_mode:
+        all_links = out_lists[0] if out_lists else []
+        return _split_15_to_3x5(all_links)
 
     return {
-        "five_links_1": out_lists[0] if len(out_lists) > 0 else [],
-        "five_links_2": out_lists[1] if len(out_lists) > 1 else [],
-        "five_links_3": out_lists[2] if len(out_lists) > 2 else [],
+        "five_links_1": (out_lists[0] if len(out_lists) > 0 else [])[:5],
+        "five_links_2": (out_lists[1] if len(out_lists) > 1 else [])[:5],
+        "five_links_3": (out_lists[2] if len(out_lists) > 2 else [])[:5],
     }
 
 
@@ -451,10 +491,35 @@ def agent_step_6_1_get_links_for_product(input_data, search_request):
     - сначала пытаемся собрать ссылки без LLM (через обычные запросы + парсинг html + проверка URL),
     - если не получилось — запускаем LLM-агента (как было раньше).
     """
+    # Если пришёл “1 URL режим”, гарантируем что даже LLM увидит корректные поля,
+    # и после получения результата приведём к формату “15 ссылок”.
+    input_obj = _parse_input_data_obj(input_data) or {}
+    first_url = input_obj.get("first_url")
+    second_url = input_obj.get("second_url")
+    third_url = input_obj.get("third_url")
+    one_url_mode = bool(isinstance(first_url, str) and first_url.strip()) and not (
+        isinstance(second_url, str) and second_url.strip() and isinstance(third_url, str) and third_url.strip()
+    )
     fast = _try_get_links_without_agent(input_data=input_data)
     if isinstance(fast, dict):
         return fast
-    return agent_step_6_1_get_links_for_product_agent(input_data=input_data, search_request=search_request)
+
+    agent_input_data = input_data
+    if one_url_mode and isinstance(first_url, str) and first_url.strip():
+        patched = dict(input_obj)
+        patched["second_url"] = first_url
+        patched["third_url"] = first_url
+        agent_input_data = patched
+
+    agent_res = agent_step_6_1_get_links_for_product_agent(input_data=agent_input_data, search_request=search_request)
+    if one_url_mode and isinstance(agent_res, dict):
+        merged: list[str] = []
+        for k in ("five_links_1", "five_links_2", "five_links_3"):
+            v = agent_res.get(k) or []
+            if isinstance(v, list):
+                merged.extend([x for x in v if isinstance(x, str) and x.strip()])
+        return _split_15_to_3x5(merged)
+    return agent_res
 
 
 

@@ -398,7 +398,7 @@ def agent_step_6_2_diginetica_and_custom_req_on_PP(input_data, search_request, s
         result_schema = main_result_schema,
         result_template = main_result_template,
         plan = main_plan,
-        # step_by_step_running = False, # Разрешаем агенту работать автоматически
+        step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
     result_task = get_result()

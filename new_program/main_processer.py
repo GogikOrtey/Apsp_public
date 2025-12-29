@@ -50,7 +50,6 @@ from new_program.check_request_this_site_ok import *
 Глобальный план:
 
 
-- Выписать запрос к агенту на формирование PP с дигинетикой
 - Для 6_1 нужны 15 ссылок - будем брать с 1й страницы все что есть (сделать ветку в логике)
 - Протестировать суммарно на 10 простых сайтах
     - И на 3х со сложной генерацией PP, два из которых будут с дигинетикой
@@ -377,51 +376,61 @@ def main_processer(input_url):
 
     search_request = result_agent_answer_from_2_step.get("used_search_request")
 
-    print("Запуск result_agent_step_4_product")
-    result_agent_step_4_product = agent_step_4_product(TNF_result, search_request)
-    """ 
-    Формируент фрагмент кода для вставки в PC - обработка извлечения ссылки на товар
+    # region Шаг 6_2 - Кастомные запросы
 
-    let HOST = "https://example.com"
-    let products = $('.products-selector')
-    let product = products?.eq(0)
-    let link = HOST + $(product)?.attr('href')
-    console.log("link = " + link)
-    """
-
-    print("Запуск result_agent_step_5_pagination")
-    result_agent_step_5_pagination = agent_step_5_pagination(TNF_result, search_request)
-    """ 
-    Формируент фрагмент кода для вставки в PC - обработка извлечения максимального количества страниц пагинации
-
-    let totalPages = Math.max(...$(selector).get().map(item => +$(item).text().trim()).filter(Boolean))
-    или
-    let totalPages = +$('.pagination a')?.eq(-3)?.attr('href')?.match(/[?&]page=(\d+)/)?.at(1);
-    """
+    
+    parse_page_code_fragment = None
+    result_agent_step_4_product = None
+    result_agent_step_5_pagination = None
+    result_agent_step_6_URL_construct = None
 
     semantics_list = HGF_result.get("semantics") or []
     semantics = {"semantics": semantics_list}
 
-    print("Запуск result_agent_step_6_URL_construct")
-    result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)    
-    """ 
-    Формируент фрагмент кода для вставки в PC - обработка создания URL на основе кастомного запроса и номера страницы выдачи
-
-    let url = new URL(`${HOST}/content/search/`)
-    url.searchParams.set("s", "")
-    url.searchParams.set("q", set.query)
-    url.searchParams.set("PAGEN_1", set.page)
-    """
-
-
-    # region Шаг 6_2 - Кастомные запросы
-
-    # Генерация PP для дигинетики
-    parse_page_code_fragment = None
-
     if not TNF_result.get("pagination_container_selectors") or not TNF_result.get("pagination_page2_selectors"):
         
+        # Генерация PP для дигинетики
+
         parse_page_code_fragment = agent_step_6_2_diginetica_and_custom_req_on_PP(TNF_result, search_request, semantics, result_agent_answer_from_2_step.get("second_html")).get("result_code")
+    
+    else:
+
+        # Генерация PP по кусочкам, в обычном формате
+
+        print("Запуск result_agent_step_4_product")
+        result_agent_step_4_product = agent_step_4_product(TNF_result, search_request)
+        """ 
+        Формируент фрагмент кода для вставки в PC - обработка извлечения ссылки на товар
+
+        let HOST = "https://example.com"
+        let products = $('.products-selector')
+        let product = products?.eq(0)
+        let link = HOST + $(product)?.attr('href')
+        console.log("link = " + link)
+        """
+
+        print("Запуск result_agent_step_5_pagination")
+        result_agent_step_5_pagination = agent_step_5_pagination(TNF_result, search_request)
+        """ 
+        Формируент фрагмент кода для вставки в PC - обработка извлечения максимального количества страниц пагинации
+
+        let totalPages = Math.max(...$(selector).get().map(item => +$(item).text().trim()).filter(Boolean))
+        или
+        let totalPages = +$('.pagination a')?.eq(-3)?.attr('href')?.match(/[?&]page=(\d+)/)?.at(1);
+        """
+
+        print("Запуск result_agent_step_6_URL_construct")
+        result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)    
+        """ 
+        Формируент фрагмент кода для вставки в PC - обработка создания URL на основе кастомного запроса и номера страницы выдачи
+
+        let url = new URL(`${HOST}/content/search/`)
+        url.searchParams.set("s", "")
+        url.searchParams.set("q", set.query)
+        url.searchParams.set("PAGEN_1", set.page)
+        """
+
+
 
 
 
@@ -429,18 +438,20 @@ def main_processer(input_url):
 
 
     # Генерируем кастомные исключения, для понятной отладки в случае ошибок
-    if not isinstance(result_agent_step_4_product, dict):
-        raise TypeError(
-            f"agent_step_4_product должен вернуть dict, получили: {type(result_agent_step_4_product).__name__}"
-        )
-    if not isinstance(result_agent_step_5_pagination, dict):
-        raise TypeError(
-            f"agent_step_5_pagination должен вернуть dict, получили: {type(result_agent_step_5_pagination).__name__}"
-        )
-    if not isinstance(result_agent_step_6_URL_construct, dict):
-        raise TypeError(
-            f"agent_step_6_URL_construct должен вернуть dict, получили: {type(result_agent_step_6_URL_construct).__name__}"
-        )
+    # (актуально только для “обычного” сценария, когда PP ещё не сгенерен)
+    if parse_page_code_fragment is None:
+        if not isinstance(result_agent_step_4_product, dict):
+            raise TypeError(
+                f"agent_step_4_product должен вернуть dict, получили: {type(result_agent_step_4_product).__name__}"
+            )
+        if not isinstance(result_agent_step_5_pagination, dict):
+            raise TypeError(
+                f"agent_step_5_pagination должен вернуть dict, получили: {type(result_agent_step_5_pagination).__name__}"
+            )
+        if not isinstance(result_agent_step_6_URL_construct, dict):
+            raise TypeError(
+                f"agent_step_6_URL_construct должен вернуть dict, получили: {type(result_agent_step_6_URL_construct).__name__}"
+            )
 
 
 
@@ -456,13 +467,22 @@ def main_processer(input_url):
             "TNF_result.product_link_selectors пустой/отсутствует — не могу выбрать selector_product для шага 6.1"
         )
 
-    input_data_for_3_links = {
-        "first_url": result_agent_step_6_URL_construct.get("start_page_url"),
-        "second_url": result_agent_step_6_URL_construct.get("url_for_2_page"),
-        "third_url": result_agent_step_6_URL_construct.get("url_for_second_search_query"),
-        "selector_product": product_link_selectors[0],
-        "additional_processing_for_the_link_value": result_agent_step_4_product.get("additional_processing_for_the_link_value"),
-    }
+    # В “кастомной” ветке пагинации может не быть, и тогда у нас реально есть только 1 URL (second_html).
+    # В этом случае step 6_1 соберёт 15 ссылок с одной страницы (с повторением, если ссылок < 15).
+    if isinstance(result_agent_step_6_URL_construct, dict) and result_agent_step_6_URL_construct.get("start_page_url"):
+        input_data_for_3_links = {
+            "first_url": result_agent_step_6_URL_construct.get("start_page_url"),
+            "second_url": result_agent_step_6_URL_construct.get("url_for_2_page"),
+            "third_url": result_agent_step_6_URL_construct.get("url_for_second_search_query"),
+            "selector_product": product_link_selectors[0],
+            "additional_processing_for_the_link_value": (result_agent_step_4_product or {}).get("additional_processing_for_the_link_value"),
+        }
+    else:
+        input_data_for_3_links = {
+            "first_url": result_agent_answer_from_2_step.get("second_html"),
+            "selector_product": product_link_selectors[0],
+            "additional_processing_for_the_link_value": None,
+        }
 
     result_agent_step_6_1_get_links_for_product = agent_step_6_1_get_links_for_product(input_data_for_3_links, search_request)
 
@@ -638,8 +658,7 @@ def main_processer(input_url):
         const timestamp = getTimestamp()     
 
         const item: ResultItem = {
-            name, price, imageLink, article, 
-stock, link, timestamp
+            name, price, imageLink, article, stock, link, timestamp
         }
         items.push(item);
 
@@ -673,7 +692,7 @@ stock, link, timestamp
 
 # region Тестовый запуск
 if __name__ == "__main__":
-    link = "https://makitaclub.ru"
+    # link = "https://makitaclub.ru"
     # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
     # link = "https://makitatrading.ru"
     # link = "https://galleryceramics.ru"
