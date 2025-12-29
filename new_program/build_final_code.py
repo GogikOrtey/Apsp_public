@@ -200,7 +200,7 @@ def result_file_JS(result_code):
 
 # region build_final_code
 
-def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment):
+def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment, fields_descr):
     # Добавляем 4 пробела в начало каждой строки
     parse_page_code_fragment = textwrap.indent(parse_page_code_fragment, '    ')
 
@@ -214,8 +214,7 @@ def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment):
         parse_card_code = parse_card_code_fragment,
         parse_page_code = parse_page_code_fragment,
         parse_entry_point_code = parse_entry_point_code_value,
-        # field_val = field,
-        field_val = "/*🟨 Заглушка field 🟨*/",
+        field_val = fields_descr,
         host_val = host,
         default_conf = default_conf_value,
         subtitle_from_code = get_cuurent_subtitle(),
@@ -289,8 +288,8 @@ async parsePage(set: SetType) {
     })
 }
 """
-
-result_final_code = build_final_code(host_test, parse_card_code_fragment_test, parse_page_code_fragment)
+if __name__ == "__main__":    
+    result_final_code = build_final_code(host_test, parse_card_code_fragment_test, parse_page_code_fragment)
 
 # print("result_final_code:")
 # print(result_final_code)

@@ -23,6 +23,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 # Подключение всех библиотек и функций
+from Gen_parseCard.main_gen_parseCard import *
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
@@ -594,25 +595,38 @@ def main_processer(input_url):
 
     # 15 примеров ссылок товаров лежат в result_agent_step_6_1_get_links_for_product
 
-    parse_card_code_fragment = "" #########
+    (parse_card_code_fragment, fields_descr)  = main_gen_parseCard(result_agent_step_6_1_get_links_for_product, url_input)
 
+    """ 
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
 
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);        
 
+        const name = $("h1.product_title.entry-title").first().text().trim()
+        const price = $("p.price .woocommerce-Price-amount").first().text().trim()?.replace(/\s+/g, " ")?.replace(/,/g, ".")?.replace(/[^\d.]/g, "")
+        const imageLink = $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("data-large_image") || $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("data-src") || $(".woocommerce-product-gallery img.wp-post-image").first()?.attr("src") || ""
+        const article = $(".product_meta .sku_wrapper .sku").first().text().trim()        
+        const addToCartText = $("form.cart .single_add_to_cart_button, form.cart button.single_add_to_cart_button, button.single_add_to_cart_button")?.first().text().trim(); const 
+stock = addToCartText?.includes("В корзину") 
+? "InStock" : "OutOfStock";
+        const timestamp = getTimestamp()     
 
+        const item: ResultItem = {
+            name, price, imageLink, article, 
+stock, link, timestamp
+        }
+        items.push(item);
 
-
-
-
-
-
-
-
-
-
+        cacher.cache = items
+        return items;
+    }
+    """
 
     # region Шаг 10 - Итоговый код
 
-    result_final_code = build_final_code(url_input, parse_card_code_fragment, parse_page_code_fragment)
+    result_final_code = build_final_code(url_input, parse_card_code_fragment, parse_page_code_fragment, fields_descr)
 
     print("result_final_code:")
     print(result_final_code)

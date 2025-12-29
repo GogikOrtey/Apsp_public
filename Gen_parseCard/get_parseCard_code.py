@@ -775,30 +775,30 @@ def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links):
 
 # Проверка:
 
-# used_fields_and_selectors_test = {
-#     "name": [
-#         "h1.product_title.entry-title"       
-#     ],
-#     "price": [
-#         "div#product-65416 .summary.entry-summary p.price .woocommerce-Price-amount",     
-#         "#product-81354 .summary.entry-summary p.price .woocommerce-Price-amount",        
-#         "#product-65494 .summary.entry-summary p.price .woocommerce-Price-amount"
-#     ],
-#     "imageLink": [
-#         "div#product-65416 .woocommerce-product-gallery img.wp-post-image",
-#         "#product-81354 .woocommerce-product-gallery__wrapper .woocommerce-product-gallery__image:first-child img.wp-post-image",      
-#         "#product-65494 .woocommerce-product-gallery img.wp-post-image"
-#     ],
-#     "article": [
-#         "div#product-65416 .product_meta .sku_wrapper .sku",
-#         "#product-81354 .product_meta .sku_wrapper .sku",
-#         "#product-65494 .product_meta .sku_wrapper .sku"
-#     ]
-# }
-
 used_fields_and_selectors_test = {
-    "stock": []
+    "name": [
+        "h1.product_title.entry-title"       
+    ],
+    "price": [
+        "div#product-65416 .summary.entry-summary p.price .woocommerce-Price-amount",     
+        "#product-81354 .summary.entry-summary p.price .woocommerce-Price-amount",        
+        "#product-65494 .summary.entry-summary p.price .woocommerce-Price-amount"
+    ],
+    "imageLink": [
+        "div#product-65416 .woocommerce-product-gallery img.wp-post-image",
+        "#product-81354 .woocommerce-product-gallery__wrapper .woocommerce-product-gallery__image:first-child img.wp-post-image",      
+        "#product-65494 .woocommerce-product-gallery img.wp-post-image"
+    ],
+    "article": [
+        "div#product-65416 .product_meta .sku_wrapper .sku",
+        "#product-81354 .product_meta .sku_wrapper .sku",
+        "#product-65494 .product_meta .sku_wrapper .sku"
+    ]
 }
+
+# used_fields_and_selectors_test = {
+#     "stock": []
+# }
 
 
 random_3_links_test = [

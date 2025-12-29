@@ -14,12 +14,16 @@ import sys
 import json
 import copy
 from typing import Any
+
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 # Подключение всех библиотек и функций
+from Gen_parseCard.build_parseCard import *
 from Gen_parseCard.extract_selectors_parseCard_from_GPT import *
+from Gen_parseCard.get_parseCard_code import *
 from import_all_libraries import *
 
 def _normalize_selector_value(value: Any) -> Optional[str]:
@@ -457,17 +461,14 @@ def main_gen_parseCard(input_15_links, host):
     print(f"\nresult_extract_selectors_parseCard_from_GPT:\n")
     print(result_extract_selectors_parseCard_from_GPT_str)
 
-
-
     # Валидирую селекторы через агента
-    # get_parseCard_code(used_fields_and_selectors, host_value, random_3_links)
-
+    result_get_parseCard_code = get_parseCard_code(result_extract_selectors_parseCard_from_GPT, host, random_3_links)
 
     # Собираю провалидированные поля в функцию parseCard
-    # 
-
+    (result, fields_descr) = build_parseCard(result_get_parseCard_code, result_extract_selectors_parseCard_from_GPT)
 
     # Возвращаю её как строку
+    return (result, fields_descr)
     
 
 

@@ -178,7 +178,6 @@ def get_fields_description(used_fields_and_selectors_test):
 
 def build_all_code_parseCard(result_build_parseCard, result_get_fields_description):
     result = """
-    //#region Парсинг товара
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
         let items: ResultItem[] = []
 
@@ -223,7 +222,7 @@ def build_all_code_parseCard(result_build_parseCard, result_get_fields_descripti
 
 
 def build_parseCard(input_data, used_fields_and_selectors):
-    # Строки кода
+    # Обрабатываю строки кода
     result_build_parseCard = build_parseCard_get_all_generated_code_str(
         input_data=input_data,
         used_fields_and_selectors=used_fields_and_selectors,
@@ -240,7 +239,7 @@ def build_parseCard(input_data, used_fields_and_selectors):
     print(f"\n📗 Результат генерации parseCard 📗\n")
     print(result_build_all_code_parseCard)
 
-    return result_build_all_code_parseCard
+    return (result_build_all_code_parseCard, result_get_fields_description)
 
 
 
