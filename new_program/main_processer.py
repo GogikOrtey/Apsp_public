@@ -113,7 +113,7 @@ from new_program.check_request_this_site_ok import *
 
 - Собрать все возможные исключения, которые прописал, и обработать их
 - Ещё есть задачи которые прописаны ниже. В конце их глянуть
-
+- Для run_js_parsePage_get_card_links добавить обёртку безопасности
 
 В среднем - 15 минут на генерацию
 
@@ -370,7 +370,7 @@ def main_processer(input_url):
         ],
         "last_page_number_displayed": true
     }
-    
+
     """
 
     # region Шаг 4, 5, 6 - Агенты

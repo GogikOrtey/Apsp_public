@@ -1312,6 +1312,199 @@ def extract_selector_data_from_cached_pages(
 
 
 
+
+
+
+
+# region search_in_page_network_requests
+@tool(
+    name="search_in_page_network_requests",
+    description=(
+        "Ищет подстроку по всем сетевым запросам (request/response), которые были выполнены "
+        "на текущей странице Playwright с момента последней перезагрузки/навигации (top-level document). "
+        "Ищет вхождения подстроки в URL/методе/параметрах/заголовках/теле запроса и в ответе."
+    ),
+    args=[
+        {
+            "name": "substring",
+            "type": "str",
+            "required": True,
+            "description": "Подстрока для поиска по истории запросов",
+        },
+        {
+            "name": "max_results",
+            "type": "int",
+            "required": False,
+            "description": "Максимум результатов (всё равно будет ограничено 5)",
+        },
+        {
+            "name": "response_head_chars",
+            "type": "int",
+            "required": False,
+            "description": "Сколько символов брать с начала body ответа (по умолчанию 300)",
+        },
+        {
+            "name": "response_tail_chars",
+            "type": "int",
+            "required": False,
+            "description": "Сколько символов брать с конца body ответа (по умолчанию 100)",
+        },
+        {
+            "name": "case_sensitive",
+            "type": "bool",
+            "required": False,
+            "description": "Искать с учётом регистра (по умолчанию False)",
+        },
+    ],
+    returns={
+        "status": "ok|error",
+        "count": "int",
+        "results": "array[json]",
+        "scanned": "int",
+        "error": "str|null",
+    },
+    example_args={
+        "substring": "diginetica",
+        "max_results": 5,
+        "response_head_chars": 300,
+        "response_tail_chars": 100,
+        "case_sensitive": False,
+    },
+)
+def search_in_page_network_requests(
+    substring: str,
+    max_results: int = 5,
+    response_head_chars: int = 300,
+    response_tail_chars: int = 100,
+    case_sensitive: bool = False,
+) -> dict[str, Any]:
+    """
+    Возвращает первые совпадения по истории сетевых запросов со страницы (с момента последнего reload/навигации).
+
+    Важно: для ответа возвращается усечённый body (head+tail), границы задаются параметрами.
+    """
+    args = {
+        "substring": substring,
+        "max_results": max_results,
+        "response_head_chars": response_head_chars,
+        "response_tail_chars": response_tail_chars,
+        "case_sensitive": case_sensitive,
+    }
+
+    page, err = _require_page_or_error({"count": 0, "results": None, "scanned": 0})
+    if err:
+        record_playwright_action("search_in_page_network_requests", args=args, result=err)
+        return err
+
+    # Импортируем лениво, чтобы избежать циклических импортов на старте.
+    from playwright_tool.shared_page import get_network_requests_since_load  # noqa: WPS433
+
+    try:
+        entries = get_network_requests_since_load()
+    except Exception as exc:  # noqa: BLE001
+        res = {"status": "error", "count": 0, "results": None, "scanned": 0, "error": str(exc)}
+        record_playwright_action("search_in_page_network_requests", args=args, result=res)
+        return res
+
+    try:
+        limit = int(max_results)
+    except Exception:
+        limit = 5
+    limit = max(0, min(5, limit))
+
+    try:
+        head_n = int(response_head_chars)
+    except Exception:
+        head_n = 300
+    try:
+        tail_n = int(response_tail_chars)
+    except Exception:
+        tail_n = 100
+    head_n = max(0, head_n)
+    tail_n = max(0, tail_n)
+
+    needle = substring if case_sensitive else substring.lower()
+
+    def _to_text(obj: Any) -> str:
+        try:
+            return json.dumps(obj, ensure_ascii=False, default=str)
+        except Exception:
+            try:
+                return str(obj)
+            except Exception:
+                return ""
+
+    def _trim_body(text: str | None) -> str | None:
+        if text is None:
+            return None
+        if not isinstance(text, str):
+            try:
+                text = str(text)
+            except Exception:
+                return None
+        if head_n == 0 and tail_n == 0:
+            return ""
+        if len(text) <= head_n + tail_n:
+            return text
+        head_part = text[:head_n] if head_n > 0 else ""
+        tail_part = text[-tail_n:] if tail_n > 0 else ""
+        return f"{head_part}\n...<trimmed>...\n{tail_part}"
+
+    results: list[dict[str, Any]] = []
+    scanned = 0
+
+    for entry in entries:
+        scanned += 1
+        hay = _to_text(entry)
+        if not case_sensitive:
+            hay = hay.lower()
+
+        if needle and (needle not in hay):
+            continue
+
+        out = copy.deepcopy(entry) if isinstance(entry, dict) else {"value": entry}
+
+        # Усечение body ответа в выдаче
+        try:
+            resp = out.get("response") if isinstance(out, dict) else None
+            if isinstance(resp, dict) and ("body_text" in resp):
+                original = resp.get("body_text")
+                if isinstance(original, str):
+                    resp["body_len"] = len(original)
+                resp["body_text"] = _trim_body(original if isinstance(original, str) else None)
+                resp["body_preview"] = {
+                    "head_chars": head_n,
+                    "tail_chars": tail_n,
+                }
+        except Exception:
+            pass
+
+        results.append(out)
+        if len(results) >= limit:
+            break
+
+    res = {
+        "status": "ok",
+        "count": len(results),
+        "results": results,
+        "scanned": scanned,
+        "error": None,
+        "page_url": getattr(page, "url", None),
+    }
+    record_playwright_action("search_in_page_network_requests", args=args, result={"count": len(results)})
+    return res
+# endregion search_in_page_network_requests
+
+
+
+
+
+
+
+
+
+
+
 ###### Надо установить страницу 1 раз через
 # set_shared_page(page)
 # Иначе инструменты вернут ошибку

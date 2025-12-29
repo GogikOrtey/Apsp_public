@@ -12,10 +12,17 @@ from dataclasses import dataclass, field
 import time
 from typing import Any, Literal
 
-from playwright.sync_api import Page, Response
+from playwright.sync_api import Page, Response, Request
+from urllib.parse import urlparse, parse_qs
+import copy
 
 _current_page: Page | None = None
 _listeners_page: Page | None = None
+
+_network_records_since_load: list[dict[str, Any]] = []
+_network_req_map_since_load: dict[int, dict[str, Any]] = {}
+_NETWORK_MAX_RECORDS: int = 2000
+_NETWORK_BODY_STORE_LIMIT: int = 1_000_000  # символов текста (best-effort), чтобы не раздувать память
 
 
 def set_shared_page(page: Page) -> None:
@@ -223,34 +230,188 @@ def _ensure_listeners(page: Page) -> None:
     if _listeners_page is page:
         return
 
+    # Новая Page (новый контекст) — начинаем с чистого сетевого буфера.
+    _network_records_since_load.clear()
+    _network_req_map_since_load.clear()
+
+    def _cap_network_size() -> None:
+        # Защита от бесконечного роста. Редко используется, но лучше иметь.
+        if len(_network_records_since_load) <= _NETWORK_MAX_RECORDS:
+            return
+        # Оставляем хвост (последние записи)
+        keep = _network_records_since_load[-_NETWORK_MAX_RECORDS:]
+        _network_records_since_load[:] = keep
+        _network_req_map_since_load.clear()
+        for rec in _network_records_since_load:
+            rid = rec.get("request_id")
+            if isinstance(rid, int):
+                _network_req_map_since_load[rid] = rec
+
+    def _mk_request_record(req: Request) -> dict[str, Any]:
+        try:
+            parsed = urlparse(req.url)
+            query = parse_qs(parsed.query, keep_blank_values=True)
+        except Exception:
+            parsed = None
+            query = {}
+
+        post_data = None
+        try:
+            post_data = req.post_data
+        except Exception:
+            post_data = None
+
+        return {
+            "ts": time.time(),
+            "request_id": id(req),
+            "resource_type": getattr(req, "resource_type", None),
+            "is_navigation_request": getattr(req, "is_navigation_request", None),
+            "method": getattr(req, "method", None),
+            "url": getattr(req, "url", None),
+            "url_parsed": {
+                "scheme": getattr(parsed, "scheme", None),
+                "netloc": getattr(parsed, "netloc", None),
+                "path": getattr(parsed, "path", None),
+                "params": getattr(parsed, "params", None),
+                "query": getattr(parsed, "query", None),
+                "fragment": getattr(parsed, "fragment", None),
+                "query_params": query,
+            }
+            if parsed is not None
+            else None,
+            "request": {
+                "headers": getattr(req, "headers", None),
+                "post_data": post_data,
+            },
+            "response": None,
+            "failure": None,
+        }
+
+    def _upsert_request(req: Request) -> dict[str, Any]:
+        rid = id(req)
+        rec = _network_req_map_since_load.get(rid)
+        if rec is None:
+            rec = _mk_request_record(req)
+            _network_records_since_load.append(rec)
+            _network_req_map_since_load[rid] = rec
+            _cap_network_size()
+        return rec
+
+    def _try_read_response_text(resp: Response) -> tuple[str | None, dict[str, Any] | None]:
+        """
+        Возвращает текст ответа (best-effort) и метаданные.
+
+        Важно: некоторые ответы бинарные/очень большие — тогда вернём укороченный текст и флаг truncated.
+        """
+        meta: dict[str, Any] = {"truncated": False, "store_limit": _NETWORK_BODY_STORE_LIMIT}
+        try:
+            txt = resp.text()
+            if not isinstance(txt, str):
+                txt = str(txt)
+        except Exception as exc:
+            # Fallback: попробуем body() и декодирование.
+            try:
+                raw = resp.body()
+                if isinstance(raw, (bytes, bytearray)):
+                    txt = raw.decode("utf-8", errors="replace")
+                    meta["decoded_from_bytes"] = True
+                else:
+                    txt = str(raw)
+            except Exception:
+                return None, {"error": str(exc)}
+
+        if txt is None:
+            return None, None
+
+        if len(txt) > _NETWORK_BODY_STORE_LIMIT:
+            meta["truncated"] = True
+            meta["original_len"] = len(txt)
+            txt = txt[:_NETWORK_BODY_STORE_LIMIT]
+        else:
+            meta["original_len"] = len(txt)
+
+        return txt, meta
+
+    def _on_request(req: Request) -> None:
+        try:
+            _upsert_request(req)
+        except Exception:
+            return
+
+    def _on_request_failed(req: Request) -> None:
+        try:
+            rec = _upsert_request(req)
+            failure = None
+            try:
+                failure = req.failure
+            except Exception:
+                failure = None
+            rec["failure"] = failure
+        except Exception:
+            return
+
     def _on_response(resp: Response) -> None:
         try:
             req = resp.request
-            # Интересуют только document-ответы главного фрейма (top-level навигации).
-            if req.resource_type != "document":
-                return
-            if req.frame != page.main_frame:
-                return
+
+            is_document_main_frame = False
+            try:
+                is_document_main_frame = (req.resource_type == "document") and (req.frame == page.main_frame)
+            except Exception:
+                is_document_main_frame = False
 
             url = resp.url
             status = resp.status
 
             # Любой document-ответ главного фрейма = новая версия страницы.
-            _state.page_version += 1
-            _state.nav_count += 1
+            if is_document_main_frame:
+                _state.page_version += 1
+                _state.nav_count += 1
 
-            # Сбрасываем историю "since load" на каждую новую версию (включая reload/переход на тот же URL).
-            _state.actions_since_load = []
-            _state._last_trigger_candidate = None
-            _state._last_document_url = url
+                # Сбрасываем историю "since load" на каждую новую версию (включая reload/переход на тот же URL).
+                _state.actions_since_load = []
+                _state._last_trigger_candidate = None
+                _state._last_document_url = url
 
-            _state._last_document_ts = time.time()
-            _state.current_url = url
-            _state.http_status = status
+                _state._last_document_ts = time.time()
+                _state.current_url = url
+                _state.http_status = status
+
+                # С момента "перезагрузки страницы" начинаем новый сетевой буфер.
+                _network_records_since_load.clear()
+                _network_req_map_since_load.clear()
+
+            rec = _upsert_request(req)
+            body_text, body_meta = _try_read_response_text(resp)
+            rec["response"] = {
+                "url": url,
+                "status": status,
+                "ok": getattr(resp, "ok", None),
+                "headers": getattr(resp, "headers", None),
+                "from_service_worker": getattr(resp, "from_service_worker", None),
+                "body_text": body_text,
+                "body_meta": body_meta,
+            }
         except Exception:
             # Контекстный лог — не должен ломать работу.
             return
 
+    page.on("request", _on_request)
+    page.on("requestfailed", _on_request_failed)
     page.on("response", _on_response)
     _listeners_page = page
+
+
+def get_network_requests_since_load() -> list[dict[str, Any]]:
+    """
+    Возвращает список сетевых записей (request/response/failure) с момента
+    последней top-level навигации/перезагрузки (document response главного фрейма).
+
+    Возвращаем копию, чтобы потребители не могли случайно испортить внутренний буфер.
+    """
+    try:
+        return copy.deepcopy(_network_records_since_load)
+    except Exception:
+        # Fallback: лучше вернуть хоть что-то, чем упасть.
+        return list(_network_records_since_load)
 
