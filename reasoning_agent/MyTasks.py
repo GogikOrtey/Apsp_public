@@ -55,3 +55,27 @@ print(f"Стоимость input: ${input_cost:.6f}")
 Просмотри его, и скажи, достаточно ли всё понятно? Хорошая ли структура у запроса? Всё ли в порядке со структурой запроса и правилами - нет ли непонятных, неточных или некорректных правил? Нет ли избыточных или неполных правил? Хорошо ли читаются и интерпритируются данные в запросе? Достаточно ли понятна задача, которую нужно выполнить, и набор инструментов, которые можно для этого использовать? Нет ли логических ошибок и нестыковок?
 
 """
+
+
+# # Считаем кол-во токенов
+# import importlib
+# tiktoken = importlib.import_module("tiktoken")
+# try:
+#     enc = tiktoken.encoding_for_model("gpt-5.2")
+# except KeyError:
+#     # Fallback for models unknown to the current tiktoken version
+#     enc = tiktoken.get_encoding("cl100k_base")
+
+# # Рассчитываем стоимость ввода:
+# def calc_cost(tokens: int, price_per_m: float) -> float:
+#     return tokens * price_per_m / 1_000_000
+
+# # count_tokens = len(enc.encode(html_content_zip))
+# # print("count_tokens =", count_tokens)
+
+# INPUT_PRICE_PER_M = 1.75
+# # input_cost = calc_cost(count_tokens, INPUT_PRICE_PER_M)
+# input_cost = calc_cost(57364, INPUT_PRICE_PER_M)
+
+# print(f"Стоимость input: ${input_cost:.6f}")
+# # Получается порядка 7-12 рублей за обработку 1 html страницы полностью 

@@ -274,9 +274,17 @@ def extract_selectors_parseCard_from_GPT(input_url):
 
     print("Отправляем запрос к extract_selectors_parseCard_from_GPT")
 
+    if isinstance(all_fields, str):
+        all_fields_str = all_fields
+    else:
+        try:
+            all_fields_str = json.dumps(all_fields, ensure_ascii=False, indent=4, default=str)
+        except Exception:
+            all_fields_str = str(all_fields)
+
     request_from_LLM = f"""
     Инструкции:
-    {get_MAIN_PROMPT(all_fields)}
+    {get_MAIN_PROMPT(all_fields_str)}
 
     HTML ниже является входными данными
 
@@ -306,13 +314,13 @@ def extract_selectors_parseCard_from_GPT(input_url):
 
 
 
-# # Тестирование:
+# Тестирование:
 
-# url = "https://makitaclub.ru/products/831271-6/"
-# resilt = extract_selectors_parseCard_from_GPT(url)
+url = "https://makitaclub.ru/products/831271-6/"
+resilt = extract_selectors_parseCard_from_GPT(url)
 
-# print(f"\nresilt:\n")
-# print(resilt)
+print(f"\nresilt:\n")
+print(resilt)
 
 
 
@@ -332,4 +340,46 @@ resilt:
     "out_of_stock_trigger": null
 }
 
+
+
+
+{
+    "name": "h1.product_title.entry-title",    
+    "stock": null,
+    "imageLink": ".woocommerce-product-gallery__image img.wp-post-image",
+    "article": ".product_meta .sku_wrapper .sku",
+    "product_id": ".single_add_to_cart_button[name='add-to-cart'][value]",
+    "category": ".product_meta .posted_in a[rel='tag']",
+    "brand": null,
+    "manufacturer": null,
+    "model": null,
+    "description": ".woocommerce-product-details__short-description",
+    "price": ".summary.entry-summary p.price .woocommerce-Price-amount",
+    "oldprice": null,
+    "price_discount": null,
+    "card_price": null,
+    "cashback": null,
+    "currency": ".summary.entry-summary p.price .woocommerce-Price-currencySymbol",
+    "vat": null,
+    "promotionDate": null,
+    "availibility": null,
+    "availableCount": null,
+    "barcode": null,
+    "ean": null,
+    "oem": null,
+    "partNumber": null,
+    "in_stock_trigger": null,
+    "out_of_stock_trigger": null
+}
+
+
 """
+
+# try:
+#     import global_variable
+#     print(
+#         f"🔢 Использовано токенов — input: {global_variable.total_input_tokens}, "
+#         f"output: {global_variable.total_output_tokens}"
+#     )
+# except Exception as ex:
+#     print(f"Не удалось вывести статистику токенов: {ex}")

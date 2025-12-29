@@ -675,13 +675,13 @@ FIELDS:
 """
 
 
-result_request = send_message_to_ChatGPT(
-        prompt = my_prompt,
-        is_print = True,
-        # model = "gpt-4o",
-        model = "gpt-5.2",
-        temperature = 0.15
-    )
+# result_request = send_message_to_ChatGPT(
+#         prompt = my_prompt,
+#         is_print = True,
+#         # model = "gpt-4o",
+#         model = "gpt-5.2",
+#         temperature = 0.15
+#     )
 
 
 
