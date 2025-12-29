@@ -844,7 +844,7 @@ def scroll_to_bottom() -> dict[str, str | None]:
             for _ in range(30):
                 page.mouse.move(cx, cy)
                 # click для фокуса, иначе wheel иногда уходит "в никуда"
-                page.mouse.click(cx, cy)
+                # page.mouse.click(cx, cy)
                 page.mouse.wheel(0, 1200)
                 page.wait_for_timeout(120)
                 after = page.evaluate(js_probe_scroll)

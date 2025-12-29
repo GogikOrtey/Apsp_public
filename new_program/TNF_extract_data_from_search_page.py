@@ -321,7 +321,8 @@ if __name__ == "__main__":
     # url = "https://kotel-nasos.ru/search/?query=%D0%BA%D0%BE%D1%82%D0%B5%D0%BB"
     # url = "https://makitaclub.ru/page/1/?s=шуруповерт&post_type=product"
     # url = "https://www.krason.ru/search"
-    url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT"
+    # url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT"
+    url = "https://elemis.ru/?digiSearch=true&term=крем&params=%7Csort%3DDEFAULT"
 
     html_content = get_html_from_cache(url)
     html_content_zip = clean_html_universal(html_content)
@@ -498,5 +499,27 @@ https://apelsin.ru
     "pagination_last_page_selectors": null,
     "last_page_number_displayed": null
 }
+
+Дигинетика 2:
+
+{
+    "search_input_selectors": [
+        "#title-search-input",
+        "form.header-search__form input[name=\"q\"]",
+        ".header-search__field > input.js-search-input"
+    ],
+    "search_button_selectors": null,
+    "total_results_count_selectors": null,
+    "product_link_selectors": [
+        ".product-card a.product-card__picture[href]",
+        ".product-card__title > a[href]",
+        ".product-card a[href*=\"/catalog/\"]"
+    ],
+    "pagination_container_selectors": null,
+    "pagination_page2_selectors": null,
+    "pagination_last_page_selectors": null,
+    "last_page_number_displayed": null
+}
+
 
 """

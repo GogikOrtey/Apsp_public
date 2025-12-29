@@ -54,6 +54,14 @@ def gen_MAIN_TASK(link, search_request, semantics):
 
 1. Перейди на страницу поиска для первого запроса: """ + link + """
 
+Если URL страницы имеет в себе параметр "digiSearch" - то сразу запиши в result три значения:
+count_of_products_first = 1
+is_site_used_add_request = true
+search_type = "diginetica"
+(если что, можно устаналивать значения и для других фаз, не только для текущей. Но это только в данном случае)
+
+Если нет, то далее:
+
 2. Посчитай количество результатов по селектору, указанному в product_link_selectors. Запиши количество в result в поле count_of_products_first.
 
 3. Пролистни страницу в самый низ, используя инструмент scroll_to_bottom. Если количество не изменилось, попробуй проскроллить еще 1-2 раза, так как подгрузка может срабатывать не мгновенно или порционно.
@@ -410,62 +418,83 @@ def agent_step_6_2_diginetica_and_custom_req_on_PP(input_data, search_request, s
 
 #  Проверка:
 
-if __name__ == "__main__":     
-    # input_data_test = {
-    #     "search_input_selectors": [
-    #         "#woocommerce-product-search-field-0",
-    #         "form.woocommerce-product-search input.search-field[type='search'][name='s']",
-    #         ".site-search .woocommerce-product-search input.search-field"
-    #     ],
-    #     "search_button_selectors": [
-    #         "form.woocommerce-product-search button[type='submit']",
-    #         ".site-search form.woocommerce-product-search button",
-    #         ".widget_product_search form button[type='submit']"
-    #     ],
-    #     "total_results_count_selectors": [
-    #         "p.woocommerce-result-count",
-    #         ".storefront-sorting > p.woocommerce-result-count",
-    #         "main#main p.woocommerce-result-count"
-    #     ],
-    #     "product_link_selectors": [
-    #         ".products .product-card a.stretched-link[href*='/products/']",
-    #         ".products a.stretched-link[href*='/products/']",
-    #         ".products .card a.stretched-link"
-    #     ],
-    #     "pagination_container_selectors": [
-    #         "nav.woocommerce-pagination",
-    #         ".storefront-sorting nav.woocommerce-pagination",
-    #         "ul.page-numbers"
-    #     ],
-    #     "pagination_page2_selectors": [
-    #         "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
-    #         "ul.page-numbers a.page-numbers[href*='/page/2/']",
-    #         "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
-    #     ],
-    #     "pagination_last_page_selectors": [
-    #         "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-    #         "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-    #         "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
-    #     ],
-    #     "last_page_number_displayed": "true"
-    # }
+# if __name__ == "__main__":     
+#     input_data_test = {
+#         "search_input_selectors": [
+#             "input#title-search-input_fixed",
+#             "form.search input.search-input[name=\"q\"]#title-search-input_fixed",
+#             "#title-search_fixed input.search-input"
+#         ],
+#         "search_button_selectors": [
+#             "#title-search_fixed button.btn.btn-search[type=\"submit\"]",
+#             "form.search button[name=\"s\"][type=\"submit\"]",
+#             "#title-search_fixed .search-button-div > button"
+#         ],
+#         "total_results_count_selectors": None,
+#         "product_link_selectors": [
+#             "a.cp_catalog-item__title[href]",
+#             "div.cp_catalog-item a.cp_catalog-item__title[href]",
+#             "a.cp_catalog-item__image[href]"
+#         ],
+#         "pagination_container_selectors": None,
+#         "pagination_page2_selectors": None,
+#         "pagination_last_page_selectors": None,
+#         "last_page_number_displayed": None
+#     }
 
+#     search_request_test = "инструмент"
+
+#     semantics_test = {
+#         "semantics": [
+#             "инструмент",
+#             "дрель",
+#             "шуруповерт",
+#             "перфоратор",
+#             "болгарка",
+#             "пила",
+#             "шлифмашина",
+#             "пылесос",
+#             "аккумулятор",
+#             "оснастка"
+#         ]
+#     }
+
+#     # Из шага 2 из поля second_html:
+#     link = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT"
+
+
+#     # Запускаю браузер с видимым окном
+#     launch_browser(headless = False)
+
+#     goto_url( 
+#         url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
+#         wait_until = "load",
+#         timeout = 30_000
+#     )
+
+#     # Поля похожи на те, что есть в 6
+#     resilt = agent_step_6_2_diginetica_and_custom_req_on_PP(input_data_test, search_request_test, semantics_test, link)
+
+#     print("resilt:")
+#     print(resilt)
+#     print(f"\result_code:")
+#     print(resilt.get("result_code"))
+
+
+
+if __name__ == "__main__":     
     input_data_test = {
         "search_input_selectors": [
-            "input#title-search-input_fixed",
-            "form.search input.search-input[name=\"q\"]#title-search-input_fixed",
-            "#title-search_fixed input.search-input"
+            "#title-search-input",
+            "form.header-search__form input[name=\"q\"]",
+            ".header-search__field > input.js-search-input"
         ],
-        "search_button_selectors": [
-            "#title-search_fixed button.btn.btn-search[type=\"submit\"]",
-            "form.search button[name=\"s\"][type=\"submit\"]",
-            "#title-search_fixed .search-button-div > button"
-        ],
+        "search_button_selectors": None,
         "total_results_count_selectors": None,
         "product_link_selectors": [
-            "a.cp_catalog-item__title[href]",
-            "div.cp_catalog-item a.cp_catalog-item__title[href]",
-            "a.cp_catalog-item__image[href]"
+            ".product-card a.product-card__picture[href]",
+            ".product-card__title > a[href]",
+            ".product-card a[href*=\"/catalog/\"]"
         ],
         "pagination_container_selectors": None,
         "pagination_page2_selectors": None,
@@ -473,32 +502,25 @@ if __name__ == "__main__":
         "last_page_number_displayed": None
     }
 
-    search_request_test = "инструмент"
+    search_request_test = "крем"
 
     semantics_test = {
         "semantics": [
-            "инструмент",
-            "дрель",
-            "шуруповерт",
-            "перфоратор",
-            "болгарка",
-            "пила",
-            "шлифмашина",
-            "пылесос",
-            "аккумулятор",
-            "оснастка"
+            "крем",
+            "для",
+            "лица"
         ]
     }
 
     # Из шага 2 из поля second_html:
-    link = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT"
+    link = "https://elemis.ru/?digiSearch=true&term=крем&params=%7Csort%3DDEFAULT"
 
 
     # Запускаю браузер с видимым окном
     launch_browser(headless = False)
 
     goto_url( 
-        url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
+        url = "https://elemis.ru/?digiSearch=true&term=крем&params=%7Csort%3DDEFAULT",
         wait_until = "load",
         timeout = 30_000
     )

@@ -101,53 +101,18 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 1   ———————————
 
-🟢 reasoning: В текущей фазе нужно заполнить count_of_products_first. Для этого считаю количество элементов по основному селектору ссылок товаров из input_data.
-🔵 target: Посчитать начальное количество товаров в выдаче по селектору ссылок товара
-🟡 action: find_elements
-   🔶 args: {"selector": "a.cp_catalog-item__title[href]", "only_count": true}
+🟢 reasoning: Текущий URL содержит параметр digiSearch=true, поэтому по алгоритму сразу фиксируем count_of_products_first=1, is_site_used_add_request=true и search_type='diginetica', что закрывает текущую фазу.
+🔵 target: Зафиксировать count_of_products_first по алгоритму для страницы с параметром digiSearch
+🟡 action: update_result
+   🔶 args: {"updates": {"count_of_products_first": 1, "is_site_used_add_request": true, "search_type": "diginetica"}}
 
-🛠️  find_elements({'selector': 'a.cp_catalog-item__title[href]', 'only_count': True})
-Инструмент вернул результат: {"status": "ok", "count": 175, "elements": null}
+🛠️  update_result({'updates': {'count_of_products_first': 1, 'is_site_used_add_request': True, 'search_type': 'diginetica'}})
+Инструмент вернул результат: {"status": "ok", "result": {"count_of_products_first": 1, "is_site_used_add_request": true, "name_second_product": null, "price_second_product": null, "search_type": "diginetica", "result_code": null, "check_code_ok": null}, "updated": 3}
 
 ———————————   Шаг 2   ———————————
 
-🟢 reasoning: В истории уже получено количество товаров по основному селектору product_link_selectors[0] (a.cp_catalog-item__title[href]) = 175. Это и есть требуемое поле текущей фазы.
-🔵 target: Зафиксировать начальное количество товаров в выдаче в result.count_of_products_first
-🟡 action: update_result
-   🔶 args: {"field": "count_of_products_first", "value": 175}
-
-🛠️  update_result({'field': 'count_of_products_first', 'value': 175})
-Инструмент вернул результат: {"status": "ok", "result": {"count_of_products_first": 175, "is_site_used_add_request": null, "name_second_product": null, "price_second_product": null, "search_type": null, "result_code": null, "check_code_ok": null}, "updated": 1}
-
-———————————   Шаг 3   ———————————
-
-🟢 reasoning: Для фазы 2 нужно проверить, увеличится ли число товарных ссылок после прокрутки вниз. Сначала прокручиваю страницу в самый низ, чтобы инициировать возможную подгрузку.
-🔵 target: Прокрутить страницу в самый низ, чтобы спровоцировать подгрузку дополнительных товаров (если она есть)
-🟡 action: scroll_to_bottom
-
-
-🛠️  scroll_to_bottom({})
-Инструмент вернул результат: {"status": "ok", "position": "bottom"}
-
-———————————   Шаг 4   ———————————
-
-🟢 reasoning: Для проверки подгрузки нужно сравнить количество товаров до и после прокрутки. После scroll_to_bottom подгрузка может происходить асинхронно, поэтому делаю паузу перед повторным подсчётом элементов.
-🔵 target: Подождать немного после прокрутки вниз, чтобы возможная подгрузка товаров успела выполниться
-🟡 action: wait_ms
-   🔶 args: {"ms": 5000}
-
-🛠️  wait_ms({'ms': 5000})
-Инструмент вернул результат: {"status": "ok", "ms": 5000}
-
-———————————   Шаг 5   ———————————
-
-🟢 reasoning: Для фазы 2 нужно сравнить текущее количество товарных ссылок с исходным count_of_products_first=175. После scroll_to_bottom и ожидания делаю повторный подсчёт по основному селектору product_link_selectors[0].
-🔵 target: Повторно посчитать количество товаров после прокрутки вниз, чтобы определить была ли подгрузка
-🟡 action: find_elements
-   🔶 args: {"selector": "a.cp_catalog-item__title[href]", "only_count": true}
-
-🛠️  find_elements({'selector': 'a.cp_catalog-item__title[href]', 'only_count': True})
-Инструмент вернул результат: {"status": "ok", "count": 175, "elements": null}
-
-———————————   Шаг 6   ———————————
+🟢 reasoning: Фаза 2 уже фактически закрыта: is_site_used_add_request=true выставлено по правилу наличия digiSearch в URL. Для выполнения следующей фазы нужно получить блоки товаров и извлечь название/цену 2-го товара, поэтому вызываю парсер блоков по основному селектору ссылки товара.
+🔵 target: Перейти к следующей фазе: извлечь данные 2-го товара и затем использовать их для проверки типа запросов подгрузки
+🟡 action: parse_product_blocks_on_current_page
+   🔶 args: {"item_selector": ".product-card a.product-card__picture[href]"}
 
