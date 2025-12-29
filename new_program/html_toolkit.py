@@ -1407,6 +1407,540 @@ main();
 
 
 
+
+
+# region send_curl_request
+@tool(
+    name="send_curl_request",
+    description=(
+        "Принимает описание HTTP-запроса в формате curl и выполняет запрос. "
+        "Возвращает код ответа, заголовки, финальный URL (с учётом редиректов), историю редиректов и обрезанный текст ответа."
+    ),
+    args=[
+        {
+            "name": "curl_command",
+            "type": "str",
+            "required": True,
+            "description": "Полная команда curl одной строкой (можно с переносами строк и продолжением через \\).",
+        },
+        {
+            "name": "trim_head_chars",
+            "type": "int",
+            "required": False,
+            "description": "Сколько первых символов ответа показывать при обрезке (по умолчанию 300).",
+        },
+        {
+            "name": "trim_tail_chars",
+            "type": "int",
+            "required": False,
+            "description": "Сколько последних символов ответа показывать при обрезке (по умолчанию 100).",
+        },
+        {
+            "name": "trim_if_longer_than",
+            "type": "int",
+            "required": False,
+            "description": "Обрезать ответ, только если длина ответа больше этого значения (по умолчанию 400).",
+        },
+        {
+            "name": "default_timeout_seconds",
+            "type": "float",
+            "required": False,
+            "description": "Таймаут по умолчанию (сек), если в curl не задан --max-time/--connect-timeout (по умолчанию 30).",
+        },
+    ],
+    returns={
+        "error": "str|None — текст ошибки (если произошла), иначе None",
+        "request": "dict|None — разобранные параметры запроса (method/url/headers/timeout/verify и т.п.)",
+        "response": (
+            "dict|None — параметры ответа (status_code/headers/url/history/elapsed_ms) + "
+            "body_preview (обрезанный текст) / body_length (полная длина)"
+        ),
+    },
+    example_args={
+        "curl_command": "curl -X POST 'https://httpbin.org/post' -H 'Content-Type: application/json' -d '{\"a\":1}'",
+        "trim_head_chars": 300,
+        "trim_tail_chars": 100,
+        "trim_if_longer_than": 400,
+        "default_timeout_seconds": 30,
+    },
+)
+def send_curl_request(
+    curl_command: str,
+    *,
+    trim_head_chars: int = 300,
+    trim_tail_chars: int = 100,
+    trim_if_longer_than: int = 400,
+    default_timeout_seconds: float = 30.0,
+) -> dict:
+    """
+    Выполняет HTTP-запрос, заданный в формате curl.
+
+    Поддерживаемые опции (основные):
+    - URL: 'https://...' или через --url
+    - Метод: -X/--request, а также -I/--head, -G/--get
+    - Заголовки: -H/--header, -A/--user-agent, -e/--referer, -b/--cookie, --compressed
+    - Тело: -d/--data/--data-raw/--data-binary/--data-urlencode (в т.ч. @file), -F/--form (базово)
+    - Редиректы: -L/--location (curl по умолчанию НЕ следует редиректам)
+    - SSL: -k/--insecure, --cacert
+    - Auth: -u/--user (basic)
+    - Proxy: --proxy
+    - Таймауты: --max-time, --connect-timeout
+    """
+    import re
+    import shlex
+    from urllib.parse import parse_qsl, quote_plus
+
+    try:
+        import requests
+    except Exception as e:
+        return {"error": f"requests import failed: {e}", "request": None, "response": None}
+
+    def _truncate_text(text: str) -> dict:
+        if text is None:
+            return {"body_preview": None, "body_length": None, "trimmed": False}
+        n = len(text)
+        if trim_if_longer_than is None or trim_if_longer_than < 0:
+            return {"body_preview": text, "body_length": n, "trimmed": False}
+        if n <= trim_if_longer_than:
+            return {"body_preview": text, "body_length": n, "trimmed": False}
+        head = max(int(trim_head_chars or 0), 0)
+        tail = max(int(trim_tail_chars or 0), 0)
+        if head + tail >= n:
+            return {"body_preview": text, "body_length": n, "trimmed": False}
+        middle = n - head - tail
+        preview = (
+            text[:head]
+            + f"\n...TRIMMED {middle} chars...\n"
+            + text[-tail:]
+        )
+        return {"body_preview": preview, "body_length": n, "trimmed": True}
+
+    def _parse_header_line(header_line: str) -> tuple:
+        if header_line is None:
+            return None, None
+        if ":" not in header_line:
+            return header_line.strip(), ""
+        k, v = header_line.split(":", 1)
+        return k.strip(), v.lstrip()
+
+    def _maybe_read_at_file(value: str, *, binary: bool) -> object:
+        """
+        curl allows -d @file or --data-binary @file.
+        Возвращаем bytes (если binary=True) или str (utf-8) если binary=False.
+        """
+        if not isinstance(value, str):
+            return value
+        v = value.strip()
+        if not v.startswith("@") or len(v) < 2:
+            return value
+        path = v[1:].strip()
+        try:
+            if binary:
+                with open(path, "rb") as f:
+                    return f.read()
+            with open(path, "rb") as f:
+                return f.read().decode("utf-8", errors="replace")
+        except Exception:
+            # если файл не прочитался — отправим строку как есть
+            return value
+
+    def _smart_split(cmd: str) -> list:
+        if cmd is None:
+            return []
+        s = cmd.strip()
+        # curl \ + newline
+        s = re.sub(r"\\\\\r?\n", " ", s)
+        s = re.sub(r"\r?\n", " ", s)
+        # пробуем posix=True (типичный curl), затем posix=False (windows-стиль)
+        try:
+            return shlex.split(s, posix=True)
+        except Exception:
+            try:
+                return shlex.split(s, posix=False)
+            except Exception:
+                # самый грубый fallback
+                return s.split()
+
+    def _parse_form_part(part: str) -> dict:
+        """
+        Очень базовая поддержка -F/--form:
+        - name=value
+        - name=@file
+        - name=@file;type=mime/type
+        """
+        out = {"name": None, "value": None, "file_path": None, "content_type": None}
+        if not part:
+            return out
+        # отделяем ;type=... и т.п.
+        pieces = part.split(";")
+        kv = pieces[0]
+        if "=" not in kv:
+            out["name"] = kv
+            out["value"] = ""
+            return out
+        name, val = kv.split("=", 1)
+        out["name"] = name
+        if val.startswith("@"):
+            out["file_path"] = val[1:]
+        else:
+            out["value"] = val
+        for p in pieces[1:]:
+            if p.startswith("type="):
+                out["content_type"] = p.split("=", 1)[1]
+        return out
+
+    tokens = _smart_split(curl_command)
+    if not tokens:
+        return {"error": "Empty curl_command", "request": None, "response": None}
+
+    if tokens[0].lower() in ("curl", "curl.exe"):
+        tokens = tokens[1:]
+
+    method = None
+    url = None
+    headers = {}
+    allow_redirects = False  # curl default
+    verify = True
+    proxies = {}
+    auth = None
+    timeout_total = None
+    timeout_connect = None
+    cacert = None
+
+    use_get = False
+    data_parts = []          # list[str|bytes]
+    data_urlencode_parts = []  # list[str]
+    form_parts = []          # list[str]
+
+    i = 0
+    while i < len(tokens):
+        t = tokens[i]
+
+        # short combined forms like -XPOST, -HHeader: v, -ddata
+        if isinstance(t, str) and t.startswith("-X") and len(t) > 2 and t not in ("-X",):
+            method = t[2:]
+            i += 1
+            continue
+        if isinstance(t, str) and t.startswith("-H") and len(t) > 2 and t not in ("-H",):
+            k, v = _parse_header_line(t[2:])
+            if k:
+                headers[k] = v
+            i += 1
+            continue
+        if isinstance(t, str) and t.startswith("-d") and len(t) > 2 and t not in ("-d",):
+            data_parts.append(t[2:])
+            i += 1
+            continue
+
+        if t in ("-X", "--request"):
+            method = tokens[i + 1] if i + 1 < len(tokens) else method
+            i += 2
+            continue
+        if t in ("--url",):
+            url = tokens[i + 1] if i + 1 < len(tokens) else url
+            i += 2
+            continue
+
+        if t in ("-H", "--header"):
+            header_line = tokens[i + 1] if i + 1 < len(tokens) else ""
+            k, v = _parse_header_line(header_line)
+            if k:
+                headers[k] = v
+            i += 2
+            continue
+
+        if t in ("-A", "--user-agent"):
+            headers["User-Agent"] = tokens[i + 1] if i + 1 < len(tokens) else ""
+            i += 2
+            continue
+        if t in ("-e", "--referer", "--referrer"):
+            headers["Referer"] = tokens[i + 1] if i + 1 < len(tokens) else ""
+            i += 2
+            continue
+        if t in ("-b", "--cookie"):
+            headers["Cookie"] = tokens[i + 1] if i + 1 < len(tokens) else ""
+            i += 2
+            continue
+        if t in ("--compressed",):
+            headers.setdefault("Accept-Encoding", "gzip, deflate")
+            i += 1
+            continue
+
+        if t in ("-d", "--data", "--data-raw", "--data-ascii"):
+            val = tokens[i + 1] if i + 1 < len(tokens) else ""
+            data_parts.append(_maybe_read_at_file(val, binary=False))
+            i += 2
+            continue
+        if t in ("--data-binary",):
+            val = tokens[i + 1] if i + 1 < len(tokens) else b""
+            data_parts.append(_maybe_read_at_file(val, binary=True))
+            i += 2
+            continue
+        if t in ("--data-urlencode",):
+            val = tokens[i + 1] if i + 1 < len(tokens) else ""
+            # базовая совместимость: name=value -> name=ENC(value)
+            if isinstance(val, str) and val.startswith("@"):
+                read_val = _maybe_read_at_file(val, binary=False)
+                val = read_val if isinstance(read_val, str) else str(read_val)
+            if isinstance(val, str) and "=" in val:
+                k, v = val.split("=", 1)
+                data_urlencode_parts.append(f"{quote_plus(k)}={quote_plus(v)}")
+            else:
+                data_urlencode_parts.append(quote_plus(str(val)))
+            i += 2
+            continue
+
+        if t in ("-F", "--form"):
+            form_parts.append(tokens[i + 1] if i + 1 < len(tokens) else "")
+            i += 2
+            continue
+
+        if t in ("-G", "--get"):
+            use_get = True
+            i += 1
+            continue
+        if t in ("-L", "--location"):
+            allow_redirects = True
+            i += 1
+            continue
+        if t in ("-I", "--head"):
+            method = "HEAD"
+            i += 1
+            continue
+
+        if t in ("-k", "--insecure"):
+            verify = False
+            i += 1
+            continue
+        if t in ("--cacert",):
+            cacert = tokens[i + 1] if i + 1 < len(tokens) else None
+            i += 2
+            continue
+
+        if t in ("--proxy",):
+            px = tokens[i + 1] if i + 1 < len(tokens) else ""
+            if px:
+                proxies["http"] = px
+                proxies["https"] = px
+            i += 2
+            continue
+
+        if t in ("-u", "--user"):
+            userpass = tokens[i + 1] if i + 1 < len(tokens) else ""
+            if ":" in userpass:
+                u, p = userpass.split(":", 1)
+            else:
+                u, p = userpass, ""
+            auth = (u, p)
+            i += 2
+            continue
+
+        if t in ("--max-time",):
+            try:
+                timeout_total = float(tokens[i + 1])
+            except Exception:
+                timeout_total = None
+            i += 2
+            continue
+        if t in ("--connect-timeout",):
+            try:
+                timeout_connect = float(tokens[i + 1])
+            except Exception:
+                timeout_connect = None
+            i += 2
+            continue
+
+        # URL as a bare token
+        if url is None and isinstance(t, str) and (t.startswith("http://") or t.startswith("https://")):
+            url = t
+            i += 1
+            continue
+
+        i += 1
+
+    if not url:
+        return {"error": "URL not found in curl_command", "request": {"curl_command": curl_command}, "response": None}
+
+    # decide method like curl: if -G then GET; else if method explicitly set keep; else if data/form exists -> POST else GET
+    if use_get:
+        method = "GET"
+    if not method:
+        method = "POST" if (data_parts or data_urlencode_parts or form_parts) else "GET"
+
+    # timeout mapping
+    timeout_final = default_timeout_seconds
+    if timeout_total is not None:
+        timeout_final = timeout_total
+    if timeout_connect is not None:
+        # requests supports (connect, read)
+        timeout_final = (timeout_connect, timeout_total if timeout_total is not None else default_timeout_seconds)
+
+    verify_final = verify
+    if cacert:
+        verify_final = cacert
+
+    # prepare body / params
+    params = None
+    data = None
+    files = None
+
+    urlencode_joined = "&".join([p for p in data_urlencode_parts if p is not None and p != ""])
+
+    if form_parts:
+        # multipart/form-data
+        form_data = {}
+        form_files = {}
+        for p in form_parts:
+            info = _parse_form_part(p)
+            name = info.get("name")
+            if not name:
+                continue
+            if info.get("file_path"):
+                fp = info["file_path"]
+                try:
+                    with open(fp, "rb") as f:
+                        content = f.read()
+                    filename = fp.split("/")[-1].split("\\")[-1]
+                    ctype = info.get("content_type")
+                    form_files[name] = (filename, content, ctype) if ctype else (filename, content)
+                except Exception:
+                    # если файл не прочитался — отправим как строку
+                    form_data[name] = "@" + fp
+            else:
+                form_data[name] = info.get("value") or ""
+        data = form_data if form_data else None
+        files = form_files if form_files else None
+    else:
+        # regular -d body
+        if data_parts:
+            # если есть bytes и str — приведём к bytes, чтобы не сломать join
+            has_bytes = any(isinstance(p, (bytes, bytearray)) for p in data_parts)
+            if has_bytes:
+                joined = b"&".join(
+                    p if isinstance(p, (bytes, bytearray)) else str(p).encode("utf-8", errors="replace")
+                    for p in data_parts
+                )
+                if urlencode_joined:
+                    joined = joined + (b"&" if joined else b"") + urlencode_joined.encode("utf-8", errors="replace")
+                data = joined
+            else:
+                joined = "&".join(str(p) for p in data_parts)
+                if urlencode_joined:
+                    joined = joined + ("&" if joined else "") + urlencode_joined
+                data = joined
+        else:
+            data = urlencode_joined if urlencode_joined else None
+
+    if use_get:
+        # move data to query params (like curl -G)
+        # best effort: parse a=b&c=d
+        q = ""
+        if isinstance(data, (bytes, bytearray)):
+            try:
+                q = data.decode("utf-8", errors="replace")
+            except Exception:
+                q = ""
+        elif isinstance(data, str):
+            q = data
+        if q:
+            params = parse_qsl(q, keep_blank_values=True)
+        data = None
+
+    request_summary = {
+        "method": method,
+        "url": url,
+        "headers": dict(headers),
+        "allow_redirects": bool(allow_redirects),
+        "verify": verify_final if isinstance(verify_final, bool) else str(verify_final),
+        "timeout": timeout_final if isinstance(timeout_final, (int, float)) else list(timeout_final),
+        "has_body": data is not None or files is not None,
+        "has_files": files is not None,
+        "proxies": dict(proxies) if proxies else None,
+        "auth": {"username": auth[0], "password": "***"} if auth else None,
+        "params_from_data": params if params is not None else None,
+    }
+
+    try:
+        resp = requests.request(
+            method=method,
+            url=url,
+            headers=headers if headers else None,
+            params=params,
+            data=data,
+            files=files,
+            allow_redirects=allow_redirects,
+            verify=verify_final,
+            timeout=timeout_final,
+            auth=auth,
+            proxies=proxies if proxies else None,
+        )
+
+        # response text can be huge; we always preview-trim
+        text = resp.text
+        trimmed = _truncate_text(text)
+
+        history = []
+        try:
+            for r in (resp.history or []):
+                history.append(
+                    {
+                        "status_code": r.status_code,
+                        "reason": getattr(r, "reason", None),
+                        "url": str(getattr(r, "url", None)),
+                        "headers": dict(getattr(r, "headers", {}) or {}),
+                    }
+                )
+        except Exception:
+            history = []
+
+        response_summary = {
+            "status_code": resp.status_code,
+            "reason": getattr(resp, "reason", None),
+            "url": str(getattr(resp, "url", None)),
+            "elapsed_ms": int(resp.elapsed.total_seconds() * 1000) if getattr(resp, "elapsed", None) else None,
+            "headers": dict(resp.headers or {}),
+            "encoding": getattr(resp, "encoding", None),
+            "content_type": resp.headers.get("Content-Type") if getattr(resp, "headers", None) else None,
+            "history": history,
+            **trimmed,
+        }
+        return {"error": None, "request": request_summary, "response": response_summary}
+    except Exception as e:
+        return {
+            "error": f"{type(e).__name__}: {e}",
+            "request": request_summary,
+            "response": None,
+        }
+
+
+
+
+# if __name__ == "__main__":
+    # # Пример быстрой проверки send_curl_request (можно скопировать в TEMP.py)
+    # # Пример 1: простой GET
+    # res = send_curl_request(
+    #     "curl 'https://httpbin.org/get?x=1' -H 'Accept: application/json' -H 'User-Agent: APSP-test'",
+    # )
+    # print(json.dumps(res, ensure_ascii=False, indent=2))
+    
+    # # Пример 2: POST с JSON + проверка обрезки ответа
+    # res = send_curl_request(
+    #     "curl -X POST 'https://httpbin.org/post' "
+    #     "-H 'Content-Type: application/json' "
+    #     "-d '{\"hello\":\"world\",\"n\":123}'",
+    #     trim_head_chars=120,
+    #     trim_tail_chars=60,
+    #     trim_if_longer_than=180,
+    # )
+    # print(res.get('response', {}).get('status_code'))
+    # print(res.get('response', {}).get('body_preview'))
+
+
+
+
+
+
+
 # region check_selector_on_cheerio
 
 # Обёртка для агента, с использованием локального html из открытой Page
