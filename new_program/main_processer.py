@@ -18,6 +18,8 @@ import traceback
 import time
 from typing import Any
 
+from new_program.agent_step_6_2_diginetica_and_custom_req_on_PP import *
+
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -418,6 +420,10 @@ def main_processer(input_url):
 
     # Вот здесь надо отловить момент, когда один из агентов понял что не получается ходить по страницам обычным изменением URL
 
+    if TNF_result.get("pagination_container_selectors") == None or TNF_result.get("pagination_page2_selectors"):
+        
+        parse_page_code_fragment = agent_step_6_2_diginetica_and_custom_req_on_PP(TNF_result, search_request, semantics, result_agent_answer_from_2_step.get("second_html")).get("result_code")
+
     """ 
 
     - Надо запускать проверку, если pagination_container_selectors пуст или если пуст pagination_page2_selectors. Это после выполнения 4го шага
@@ -512,51 +518,53 @@ def main_processer(input_url):
 
     # region Шаг 7 - Сборка кода
 
-    GET_PRODUCT_LINK_LINES_CODE = result_agent_step_4_product.get("builded_code_product_processing")
-    GET_MAX_PAGE_BLOCK = result_agent_step_5_pagination.get("builded_code_get_max_page_on_pagination")
-    URL_BLOCK = result_agent_step_6_URL_construct.get("result_code_url_builder")
+    if parse_page_code_fragment == None:
 
-    if not GET_PRODUCT_LINK_LINES_CODE:
-        raise ValueError("Пустой/отсутствует builded_code_product_processing (шаг 4).")
-    if not GET_MAX_PAGE_BLOCK:
-        raise ValueError("Пустой/отсутствует builded_code_get_max_page_on_pagination (шаг 5).")
-    if not URL_BLOCK:
-        raise ValueError("Пустой/отсутствует result_code_url_builder (шаг 6).")
+        GET_PRODUCT_LINK_LINES_CODE = result_agent_step_4_product.get("builded_code_product_processing")
+        GET_MAX_PAGE_BLOCK = result_agent_step_5_pagination.get("builded_code_get_max_page_on_pagination")
+        URL_BLOCK = result_agent_step_6_URL_construct.get("result_code_url_builder")
 
-
-    # Собираю вход для шага сборки всей процедуры parsePage
-    object_for_code_block_parsePage = {
-        "URL_BLOCK": URL_BLOCK,
-        "GET_MAX_PAGE_BLOCK": GET_MAX_PAGE_BLOCK,
-        "GET_PRODUCT_LINK_LINES_CODE": GET_PRODUCT_LINK_LINES_CODE
-    }
-
-    print("object_for_code_block_parsePage:")
-    object_for_code_block_parsePage_string = json.dumps(object_for_code_block_parsePage, ensure_ascii=False, indent=4, default=str)
-    print(object_for_code_block_parsePage_string)
+        if not GET_PRODUCT_LINK_LINES_CODE:
+            raise ValueError("Пустой/отсутствует builded_code_product_processing (шаг 4).")
+        if not GET_MAX_PAGE_BLOCK:
+            raise ValueError("Пустой/отсутствует builded_code_get_max_page_on_pagination (шаг 5).")
+        if not URL_BLOCK:
+            raise ValueError("Пустой/отсутствует result_code_url_builder (шаг 6).")
 
 
-    """
-    Пример результата:
+        # Собираю вход для шага сборки всей процедуры parsePage
+        object_for_code_block_parsePage = {
+            "URL_BLOCK": URL_BLOCK,
+            "GET_MAX_PAGE_BLOCK": GET_MAX_PAGE_BLOCK,
+            "GET_PRODUCT_LINK_LINES_CODE": GET_PRODUCT_LINK_LINES_CODE
+        }
 
-    {
-        "URL_BLOCK": "let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)\nurl.searchParams.set('s', set.query)\nurl.searchParams.set('post_type', 'product')",
-        "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav.woocommerce-pagination .page-numbers\").get().map(item => +$(item).text().trim()).filter(Boolean))",
-        "GET_PRODUCT_LINK_LINES_CODE": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)"       
-    }
-
-    {
-        "URL_BLOCK": "let url = new URL(`${HOST}/catalog/`)\nurl.searchParams.set(\"q\", set.query)\nurl.searchParams.set(\"s\", \"Найти\")\nurl.searchParams.set(\"PAGEN_2\", set.page)",
-        "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav#pagination a\").get().map(item => +$(item).text().trim()).filter(Boolean))",
-        "GET_PRODUCT_LINK_LINES_CODE": "let HOST = \"https://makitatrading.ru\";\nlet products = $('.catalog.catalogCards .itemCard[itemtype=\"http://schema.org/Product\"] a.item_title[href^=\"/catalog/product/\"]');\nlet product = products?.eq(0);\nlet link = HOST + $(product)?.attr('href');\nconsole.log('link = ' + link);"
-    }
-    """
+        print("object_for_code_block_parsePage:")
+        object_for_code_block_parsePage_string = json.dumps(object_for_code_block_parsePage, ensure_ascii=False, indent=4, default=str)
+        print(object_for_code_block_parsePage_string)
 
 
-    # Вот тут добавить вызов функции сборщика кода
-    print("Запускаем agent_step_7_build_code_parsePage")
-    
-    parse_page_code_fragment = agent_step_7_build_code_parsePage(object_for_code_block_parsePage)
+        """
+        Пример результата:
+
+        {
+            "URL_BLOCK": "let url = set.page && +set.page > 1 ? new URL(`${HOST}/page/${set.page}/`) : new URL(`${HOST}/`)\nurl.searchParams.set('s', set.query)\nurl.searchParams.set('post_type', 'product')",
+            "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav.woocommerce-pagination .page-numbers\").get().map(item => +$(item).text().trim()).filter(Boolean))",
+            "GET_PRODUCT_LINK_LINES_CODE": "let products = $('.products .product-card a.stretched-link[href*=\"/products/\"]')\nlet product = products?.eq(0)\nlet link = $(product)?.attr('href')\nconsole.log('link = ' + link)"       
+        }
+
+        {
+            "URL_BLOCK": "let url = new URL(`${HOST}/catalog/`)\nurl.searchParams.set(\"q\", set.query)\nurl.searchParams.set(\"s\", \"Найти\")\nurl.searchParams.set(\"PAGEN_2\", set.page)",
+            "GET_MAX_PAGE_BLOCK": "let totalPages = Math.max(...$(\"nav#pagination a\").get().map(item => +$(item).text().trim()).filter(Boolean))",
+            "GET_PRODUCT_LINK_LINES_CODE": "let HOST = \"https://makitatrading.ru\";\nlet products = $('.catalog.catalogCards .itemCard[itemtype=\"http://schema.org/Product\"] a.item_title[href^=\"/catalog/product/\"]');\nlet product = products?.eq(0);\nlet link = HOST + $(product)?.attr('href');\nconsole.log('link = ' + link);"
+        }
+        """
+
+
+        # Вот тут добавить вызов функции сборщика кода
+        print("Запускаем agent_step_7_build_code_parsePage")
+        
+        parse_page_code_fragment = agent_step_7_build_code_parsePage(object_for_code_block_parsePage)
 
     print("📒 parse_page_code_fragment:")
     print(parse_page_code_fragment)
