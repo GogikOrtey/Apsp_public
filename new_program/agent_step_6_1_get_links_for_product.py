@@ -13,6 +13,7 @@ import copy
 import traceback
 import time
 from typing import Any
+from urllib.parse import urljoin, urlparse
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -144,10 +145,241 @@ main_result_template = {
     "five_links_3": None
 }
 
+def _parse_input_data_obj(input_data: Any) -> dict[str, Any] | None:
+    if isinstance(input_data, dict):
+        return input_data
+    if isinstance(input_data, str) and input_data.strip():
+        try:
+            obj = json.loads(input_data)
+            return obj if isinstance(obj, dict) else None
+        except Exception:
+            return None
+    return None
 
 
+def _looks_like_xpath_selector(selector: str) -> bool:
+    s = (selector or "").strip()
+    return s.startswith(("/", "./", "../", ".//", "(.//", "//*[", "("))
 
 
+def _normalize_candidate_link(raw: str, page_url: str) -> str:
+    if not isinstance(raw, str):
+        return ""
+    s = raw.strip()
+    if not s:
+        return ""
+
+    if s.startswith(("http://", "https://")):
+        return s
+
+    if s.startswith("//"):
+        try:
+            parsed = urlparse(page_url or "")
+            scheme = parsed.scheme or "https"
+        except Exception:
+            scheme = "https"
+        return f"{scheme}:{s}"
+
+    try:
+        return urljoin(page_url or "", s)
+    except Exception:
+        return s
+
+
+def _is_probably_link(s: str) -> bool:
+    if not isinstance(s, str):
+        return False
+    t = s.strip()
+    return bool(t) and t.startswith(("http://", "https://", "/", "//"))
+
+
+def _check_url_status_any(url: str, timeout_ms: int = 10_000) -> dict[str, Any]:
+    """
+    Проверяет URL через Playwright `check_url_status`, а если Playwright не готов — через requests.
+    Возвращает dict в формате {status, code, url, error}.
+    """
+    try:
+        res_head = check_url_status(url=url, method="HEAD", timeout=timeout_ms)  # type: ignore[name-defined]
+        if isinstance(res_head, dict) and res_head.get("status") == "ok":
+            code = res_head.get("code")
+            if isinstance(code, int) and 200 <= code < 400:
+                return res_head
+
+        res_get = check_url_status(url=url, method="GET", timeout=timeout_ms)  # type: ignore[name-defined]
+        if isinstance(res_get, dict) and res_get.get("status") == "ok":
+            code = res_get.get("code")
+            if isinstance(code, int):
+                return res_get
+    except Exception:
+        pass
+
+    try:
+        import requests  # noqa: WPS433
+
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+        timeout_s = max(1, int(timeout_ms / 1000))
+        r_head = None
+        try:
+            r_head = requests.head(url, allow_redirects=True, timeout=timeout_s, headers=headers)
+            code = int(getattr(r_head, "status_code", 0) or 0)
+            if 200 <= code < 400:
+                return {"status": "ok", "code": code, "url": url, "error": None}
+        except Exception:
+            r_head = None
+
+        r = requests.get(url, allow_redirects=True, timeout=timeout_s, headers=headers, stream=True)
+        return {"status": "ok", "code": int(getattr(r, "status_code", 0) or 0), "url": url, "error": None}
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "code": None, "url": url, "error": str(exc)}
+
+
+def _extract_hrefs_from_cached_page_html(selector: str, page_url: str) -> list[str]:
+    """
+    Извлекает href'ы по CSS/XPath селектору из HTML страницы (через get_html_from_cache).
+    Нужен как fallback, когда extract_selector_data_from_cached_pages вернул текст вместо href.
+    """
+    try:
+        html = get_html_from_cache(page_url, print_msg=False)  # type: ignore[name-defined]
+    except Exception:
+        return []
+
+    if not html:
+        return []
+
+    sel = (selector or "").strip()
+    if not sel:
+        return []
+
+    sel_lower = sel.lower()
+    if sel_lower.startswith("css="):
+        sel = sel[4:].strip()
+    elif sel_lower.startswith("xpath="):
+        sel = sel[6:].strip()
+
+    try:
+        if _looks_like_xpath_selector(sel):
+            import lxml.html  # type: ignore  # noqa: WPS433
+
+            doc = lxml.html.fromstring(html)  # type: ignore[attr-defined]
+            found = doc.xpath(sel)
+            elements = [x for x in found if hasattr(x, "tag")]
+            out: list[str] = []
+            for el in elements:
+                try:
+                    href = el.get("href")  # type: ignore[attr-defined]
+                except Exception:
+                    href = None
+                if isinstance(href, str) and href.strip():
+                    out.append(href.strip())
+            return out
+
+        from bs4 import BeautifulSoup  # noqa: WPS433
+
+        soup = BeautifulSoup(html, "html.parser")
+        found = soup.select(sel) or []
+        out2: list[str] = []
+        for el in found:
+            href = None
+            try:
+                href = el.get("href")
+            except Exception:
+                href = None
+            if not href:
+                try:
+                    a = el.find("a", href=True)
+                    href = a.get("href") if a else None
+                except Exception:
+                    href = None
+            if isinstance(href, str) and href.strip():
+                out2.append(href.strip())
+        return out2
+    except Exception:
+        return []
+
+
+def _try_get_links_without_agent(input_data: Any) -> dict[str, Any] | None:
+    input_obj = _parse_input_data_obj(input_data)
+    if not input_obj:
+        return None
+
+    first_url = input_obj.get("first_url")
+    second_url = input_obj.get("second_url")
+    third_url = input_obj.get("third_url")
+    selector_product = input_obj.get("selector_product")
+
+    if not all(isinstance(x, str) and x.strip() for x in (first_url, second_url, third_url, selector_product)):
+        return None
+
+    pages = [first_url.strip(), second_url.strip(), third_url.strip()]
+    selector = selector_product.strip()
+
+    try:
+        extracted = extract_selector_data_from_cached_pages(  # type: ignore[name-defined]
+            selector=selector,
+            links=pages,
+            max_all_results=30,
+            print_cache_msgs=False,
+        )
+    except Exception:
+        extracted = []
+
+    by_page_candidates: list[list[str]] = []
+    for i, page_url in enumerate(pages):
+        vals: list[str] = []
+        if isinstance(extracted, list) and i < len(extracted) and isinstance(extracted[i], dict):
+            ar = extracted[i].get("all_results")
+            if isinstance(ar, list):
+                vals = [x for x in ar if isinstance(x, str)]
+
+        good_linkish = [v for v in vals if _is_probably_link(v)]
+        if not good_linkish:
+            vals = _extract_hrefs_from_cached_page_html(selector=selector, page_url=page_url)
+
+        normalized: list[str] = []
+        seen: set[str] = set()
+        for raw in (vals or []):
+            cand = _normalize_candidate_link(raw, page_url=page_url)
+            if not cand:
+                continue
+            if cand in seen:
+                continue
+            seen.add(cand)
+            normalized.append(cand)
+            if len(normalized) >= 30:
+                break
+        by_page_candidates.append(normalized)
+
+    out_lists: list[list[str]] = []
+    for candidates in by_page_candidates:
+        top5 = (candidates or [])[:5]
+        if not top5:
+            return None
+
+        # По “нормальному” сценарию проверяем только 1 ссылку (как в ТЗ).
+        status = _check_url_status_any(top5[0], timeout_ms=10_000)
+        code = status.get("code")
+        if status.get("status") == "ok" and isinstance(code, int) and 200 <= code < 400:
+            out_lists.append(top5)
+            continue
+
+        # Если первая не валидна — пробуем найти валидные (дороже, но редкий случай).
+        good: list[str] = []
+        for cand in (candidates or []):
+            st = _check_url_status_any(cand, timeout_ms=10_000)
+            c = st.get("code")
+            if st.get("status") == "ok" and isinstance(c, int) and 200 <= c < 400:
+                good.append(cand)
+            if len(good) >= 5:
+                break
+        if not good:
+            return None
+        out_lists.append(good[:5])
+
+    return {
+        "five_links_1": out_lists[0] if len(out_lists) > 0 else [],
+        "five_links_2": out_lists[1] if len(out_lists) > 1 else [],
+        "five_links_3": out_lists[2] if len(out_lists) > 2 else [],
+    }
 
 
 
@@ -191,7 +423,7 @@ main_plan = {
 
 
 
-def agent_step_6_1_get_links_for_product(input_data, search_request):
+def agent_step_6_1_get_links_for_product_agent(input_data, search_request):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -219,6 +451,16 @@ def agent_step_6_1_get_links_for_product(input_data, search_request):
     return result_task
 
 
+def agent_step_6_1_get_links_for_product(input_data, search_request):
+    """
+    Обёртка над агентом:
+    - сначала пытаемся собрать ссылки без LLM (через обычные запросы + парсинг html + проверка URL),
+    - если не получилось — запускаем LLM-агента (как было раньше).
+    """
+    fast = _try_get_links_without_agent(input_data=input_data)
+    if isinstance(fast, dict):
+        return fast
+    return agent_step_6_1_get_links_for_product_agent(input_data=input_data, search_request=search_request)
 
 
 # # Проверка 1:

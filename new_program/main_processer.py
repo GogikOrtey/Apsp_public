@@ -509,6 +509,10 @@ def main_processer(input_url):
 
     # region Шаг 6.5 - Собираем ссылки на товары с трёх страниц
 
+    """ 
+    Собираю 15 примеров ссылок с тех URL которые у нас уже есть
+    """
+
     product_link_selectors = TNF_result.get("product_link_selectors") or []
     if not isinstance(product_link_selectors, list) or not product_link_selectors or not product_link_selectors[0]:
         raise ValueError(
