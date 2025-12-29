@@ -1350,6 +1350,15 @@ def extract_selector_data_from_cached_pages(
             "description": "Сколько символов брать с конца body ответа (по умолчанию 100)",
         },
         {
+            "name": "response_match_context_chars",
+            "type": "int",
+            "required": False,
+            "description": (
+                "Если подстрока найдена в body ответа и находится в середине (не попадает в head/tail), "
+                "то добавляем окно вокруг вхождения: N символов до и N символов после (по умолчанию 200)"
+            ),
+        },
+        {
             "name": "case_sensitive",
             "type": "bool",
             "required": False,
@@ -1368,6 +1377,7 @@ def extract_selector_data_from_cached_pages(
         "max_results": 5,
         "response_head_chars": 300,
         "response_tail_chars": 100,
+        "response_match_context_chars": 200,
         "case_sensitive": False,
     },
 )
@@ -1376,6 +1386,7 @@ def search_in_page_network_requests(
     max_results: int = 5,
     response_head_chars: int = 300,
     response_tail_chars: int = 100,
+    response_match_context_chars: int = 200,
     case_sensitive: bool = False,
 ) -> dict[str, Any]:
     """
@@ -1388,6 +1399,7 @@ def search_in_page_network_requests(
         "max_results": max_results,
         "response_head_chars": response_head_chars,
         "response_tail_chars": response_tail_chars,
+        "response_match_context_chars": response_match_context_chars,
         "case_sensitive": case_sensitive,
     }
 
@@ -1420,8 +1432,13 @@ def search_in_page_network_requests(
         tail_n = int(response_tail_chars)
     except Exception:
         tail_n = 100
+    try:
+        ctx_n = int(response_match_context_chars)
+    except Exception:
+        ctx_n = 200
     head_n = max(0, head_n)
     tail_n = max(0, tail_n)
+    ctx_n = max(0, ctx_n)
 
     needle = substring if case_sensitive else substring.lower()
 
@@ -1434,21 +1451,56 @@ def search_in_page_network_requests(
             except Exception:
                 return ""
 
-    def _trim_body(text: str | None) -> str | None:
+    def _trim_body(text: str | None, *, needle_raw: str) -> tuple[str | None, dict[str, Any]]:
         if text is None:
-            return None
+            return None, {"mode": "none"}
         if not isinstance(text, str):
             try:
                 text = str(text)
             except Exception:
-                return None
+                return None, {"mode": "none"}
         if head_n == 0 and tail_n == 0:
-            return ""
-        if len(text) <= head_n + tail_n:
-            return text
+            return "", {"mode": "head_tail", "match_in_body": False}
+
+        n = len(text)
+        if n <= head_n + tail_n:
+            return text, {"mode": "full", "match_in_body": (needle_raw != "" and (needle_raw in (text if case_sensitive else text.lower())))}
+
+        # Ищем подстроку внутри body (если задана)
+        match_idx = -1
+        if needle_raw:
+            try:
+                hay_for_match = text if case_sensitive else text.lower()
+                ndl_for_match = needle_raw if case_sensitive else needle_raw.lower()
+                match_idx = hay_for_match.find(ndl_for_match)
+            except Exception:
+                match_idx = -1
+
+        # Базовый вариант: только head/tail
         head_part = text[:head_n] if head_n > 0 else ""
         tail_part = text[-tail_n:] if tail_n > 0 else ""
-        return f"{head_part}\n...<trimmed>...\n{tail_part}"
+
+        if match_idx < 0 or ctx_n == 0 or not needle_raw:
+            return f"{head_part}\n...<trimmed>...\n{tail_part}", {"mode": "head_tail", "match_in_body": False}
+
+        match_end = match_idx + len(needle_raw)
+        tail_start = max(0, n - tail_n)
+        in_head = match_end <= head_n
+        in_tail = match_idx >= tail_start
+
+        # Если совпадение уже попадает в head или tail — дополнительных вставок не нужно
+        if in_head or in_tail:
+            return f"{head_part}\n...<trimmed>...\n{tail_part}", {"mode": "head_tail", "match_in_body": True, "match_index": match_idx}
+
+        # Совпадение "в середине" — вставляем контекстное окно вокруг него
+        ctx_start = max(0, match_idx - ctx_n)
+        ctx_end = min(n, match_end + ctx_n)
+        mid_part = text[ctx_start:ctx_end]
+
+        return (
+            f"{head_part}\n...<trimmed>...\n{mid_part}\n...<trimmed>...\n{tail_part}",
+            {"mode": "head_mid_tail", "match_in_body": True, "match_index": match_idx, "context_chars": ctx_n, "context_range": [ctx_start, ctx_end]},
+        )
 
     results: list[dict[str, Any]] = []
     scanned = 0
@@ -1471,11 +1523,9 @@ def search_in_page_network_requests(
                 original = resp.get("body_text")
                 if isinstance(original, str):
                     resp["body_len"] = len(original)
-                resp["body_text"] = _trim_body(original if isinstance(original, str) else None)
-                resp["body_preview"] = {
-                    "head_chars": head_n,
-                    "tail_chars": tail_n,
-                }
+                trimmed, meta = _trim_body(original if isinstance(original, str) else None, needle_raw=substring)
+                resp["body_text"] = trimmed
+                resp["body_preview"] = {"head_chars": head_n, "tail_chars": tail_n, "match_context_chars": ctx_n, **meta}
         except Exception:
             pass
 
