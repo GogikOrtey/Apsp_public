@@ -113,7 +113,6 @@ export class JS_Base_makitatradingru extends JS_Base_Custom {
         const product_id = $(".bx_stars_bg[id^=\"bx_vo_3_\"]")?.first()?.attr("id")?.match(/bx_vo_3_(\d+)_/)?.at(1) || ""
         const category = $("#breadcrumbs ul li a[title]")?.last()?.text()?.trim() || ""
         const brand = $("#product_cloth_manuf span[itemprop=\"brand\"], #product_cloth_manuf [itemprop=\"brand\"]")?.first()?.text()?.trim() || ""
-        const in_stock_trigger = $(".cardPrice .availability, .cardPrice [itemprop=\"offers\"] .availability")?.first()?.text()?.trim() || ""
         const link = set.query;
         const timestamp = getTimestamp()
 

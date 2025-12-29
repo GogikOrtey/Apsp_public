@@ -142,7 +142,8 @@ def set_defaultConf():
 
     #TODO Подставлять сюда параметры, которые будут рассчитаны в makeRequest_gen
     result = template_default_conf.substitute(
-        proxy_checker_val = "tor.proxy.ru",
+        # proxy_checker_val = "tor.proxy.ru",
+        proxy_checker_val = "fineproxy.org",
         engine_val = "a-parser",
         mode_val = "normal",
     )
