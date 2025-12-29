@@ -1,3 +1,22 @@
-30.12.2025 02:41:00
+30.12.2025 02:43:50
 
-{'status': 'ok', 'links': ['https://example.com/p/test-query/1', 'https://example.com/p/test-query/2', 'https://example.com/p/test-query/3', 'https://example.com/p/test-query/4', 'https://example.com/p/test-query/5', 'https://example.com/p/test-query/6', 'https://example.com/p/test-query/7', 'https://example.com/p/test-query/8', 'https://example.com/p/test-query/9', 'https://example.com/p/test-query/10'], 'error': None, 'debug': {'addedCount': 15, 'cardCount': 15}}
+{
+    "status": "ok",
+    "links": [
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_cersanit_mont_blanc_belyy_29_7_59_8_sm/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_cersanit_faro_seryy_18_5_59_8_sm/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_cersanit_infinity_seryy_29_7_59_8_sm_1/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_gracia_ceramica_alita_belyy_verkh_01_20_30_sm/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_gracia_ceramica_albus_cv_ser_01_40_40_sm/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_lavit_tile_vally_onyx_natural_60_120_sm/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_cersanit_urbano_seryy_20_44_sm/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_cersanit_raven_seryy_42_42_sm/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_gracia_ceramica_sapfir_sv_01_20_30_sm/",
+        "https://apelsin.ru/catalog/plitka_keramicheskaya_keramogranit/plitka_bazovaya_cersanit_siena_uzory_belyy_relef_42_42_sm/"
+    ],
+    "error": null,
+    "debug": {
+        "addedCount": 11,
+        "cardCount": 10
+    }
+}

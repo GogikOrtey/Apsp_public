@@ -1047,7 +1047,61 @@ main();
     return {"status": "error", "links": None, "error": parsed.get("error") or "Unknown error", "debug": parsed.get("debug")}
 
 
-# endregion js_sandbox_run_parsePage_get_card_links
+
+
+
+
+if __name__ == "__main__":
+    code = """
+async parsePage(set: SetType) {
+    const url = new URL("https://sort.diginetica.net/search")
+    const pageSize = 500;
+    const urlParam = {
+        st: set.query,
+        apiKey: "TW6F7714EE", // CHANGE_HERE: В большинстве случаев меняется только этот параметр
+        strategy: "advanced_xname,zero_queries",
+        fullData: true,
+        withCorrection: true,
+        withFacets: true,
+        treeFacets: true,
+        regionId: global,
+        useCategoryPrediction: false,
+        size: pageSize,
+        offset: set.offset,
+        showUnavailable: true,
+        unavailableMultiplier: 0.2,
+        preview: false,
+        withSku: false,
+        sort: "DEFAULT",
+    };
+
+    const data = await this.makeRequest(url.href, set.region, urlParam)
+    const json = JSON.parse(data);
+
+    if (json.totalHits == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    if (set.offset === 0) {
+        const totalPages = Math.ceil(json.totalHits / pageSize);
+        for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagesCount); shift++) {
+            this.query.add(({ ...set, query: set.query, type: "page", offset: shift * pageSize, lvl: 1 }));
+        }
+    }
+    json.products.slice(0, +this.conf.itemsCount).forEach(product => {
+        let link = `https://apelsin.ru${product?.link_url}` // CHANGE_HERE: Вот тут надо будет подставить верный хост текущего сайта
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+}
+    """
+
+    result = run_js_parsePage_get_card_links(code, "плитка")
+    print_json(result)
+
+
+
+
+
 
 
 
