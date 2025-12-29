@@ -1,2 +1,570 @@
 29.12.2025 07:41:52
 
+🟧🟧🟧 system_prompt не был задан 🟧🟧🟧
+
+💫 Запрос к ChatGPT без истории, модель gpt-5.2. PROMPT:
+
+You are an information-structuring agent.
+
+You receive a list of product fields grouped by sections.
+Each field is provided as: 
+"field_key": "short russian description"
+
+Your task is to convert this list into a structured JSON object with the following format:
+
+{
+  "main": { ... },
+  "additional": { ... },
+  ...
+}
+
+You must preserve all group names and the grouping order exactly as provided.
+Fields must be placed inside the same group where they were originally listed.
+
+For each field you must generate an object with the following properties:
+
+- title  
+  Use the original short description exactly as provided.
+
+- description  
+  Write a more detailed explanation of what this field represents in an online shop product page.
+  Include, when possible:
+  • what the value means  
+  • how it usually looks  
+  • where it is typically located on the page (for example: title, h1, product card, near buy button, etc.)
+
+- examples  
+  Provide 3–6 realistic example values that could appear in this field on real product pages.
+
+- negative_examples  
+  Provide 3–6 realistic values that may appear on the page but should NOT be treated as this field.
+
+- selector_hint  
+  Provide 3–5 CSS selector patterns that are commonly used on real sites for this type of data.
+  These must be short, generic and reusable (for example: ".price", ".product-title", "[itemprop=name]").
+
+- relations (optional)  
+  If this field has logical or semantic relations to other fields (for example price vs oldprice, stock vs availableCount, etc),
+  describe them in natural language here.
+  If no clear relations exist, omit this property.
+
+Rules:
+
+1. Do NOT invent or rename any field keys.
+2. Do NOT move fields between groups.
+3. Do NOT remove any fields.
+4. Do NOT add new fields that were not provided.
+5. Do NOT include type, unit, currency, priority or any technical metadata.
+6. Use concise, clear, technical Russian.
+7. Output ONLY valid JSON. No comments, no explanations, no markdown.
+
+The goal is to produce a compact but semantically rich schema that allows an LLM-based parser to locate and validate these fields on real product pages.
+
+FIELDS:
+
+
+
+Основные параметры:
+"name": "Наименование товара",
+"stock": "Наличие товара",
+"imageLink": "Ссылка на фото товара",
+"article": "Артикул",
+"product_id": "Код товара",
+"category": "Категория",
+"brand": "Бренд",
+"manufacturer": "Производитель",
+"model": "Модель",
+"description": "Описание товара",
+
+Цены и скидки:
+"price": "Цена",
+"oldprice": "Старая цена",
+"price_discount": "Акционная цена",
+"card_price": "Цена по дисконтной карте",
+"cashback": "Кешбек \ Бонусы",
+"currency": "Валюта",
+"vat": "Признак включен ли НДС в указанную цену",
+"promotionDate": "Дата окончания действия акции",
+
+
+
+
+💬 AI ANSWER:
+"{
+  "Основные параметры": {
+    "name": {
+      "title": "Наименование товара",
+      "description": "Основное название товара, как оно показано пользователю. Обычно это самый заметный текст на странице: заголовок (H1) вверху карточки товара, также может дублироваться в title страницы и в хлебных крошках. Значение часто включает тип товара, ключевую характеристику и/или бренд/модель.",
+      "examples": [
+        "Смартфон Apple iPhone 15 128GB Black",
+        "Пылесос Samsung VC18M21A0SB/EV",
+        "Кофемашина De'Longhi Magnifica S ECAM 22.110.B",
+        "Кроссовки Nike Air Max 90, размер 42",
+        "SSD Samsung 970 EVO Plus 1TB M.2 NVMe"
+      ],
+      "negative_examples": [
+        "Описание",
+        "Характеристики",
+        "Отзывы (24)",
+        "С этим товаром покупают",
+        "Главная / Каталог / Смартфоны"
+      ],
+      "selector_hint": [
+        "h1",
+        ".product-title",
+        ".product__title",
+        "[itemprop=name]",
+        ".page-title"
+      ],
+      "relations": "Часто логически связано с brand и model: название может включать бренд и модель. Может совпадать/частично совпадать с manufacturer."
+    },
+    "stock": {
+      "title": "Наличие товара",
+      "description": "Статус доступности товара для покупки. Обычно отображается рядом с ценой и кнопкой «Купить», может быть текстом («В наличии», «Нет в наличии») или уточнением по складам/магазинам («Осталось 3 шт.»). Иногда включает срок доставки.",
+      "examples": [
+        "В наличии",
+        "Нет в наличии",
+        "Осталось 5 шт.",
+        "Под заказ, 2–3 дня",
+        "В наличии в 3 магазинах"
+      ],
+      "negative_examples": [
+        "Бесплатная доставка",
+        "Гарантия 12 месяцев",
+        "Скидка 10%",
+        "Оплата картой",
+        "Добавить в избранное"
+      ],
+      "selector_hint": [
+        ".stock",
+        ".availability",
+        ".product-availability",
+        "[itemprop=availability]",
+        ".in-stock"
+      ],
+      "relations": "Связано с price/price_discount: при отсутствии товара цена может скрываться или быть неактивной. Может влиять на доступность кнопки покупки."
+    },
+    "imageLink": {
+      "title": "Ссылка на фото товара",
+      "description": "URL основного изображения товара (главное фото в галерее). Обычно это src у главной картинки в блоке галереи или ссылка в meta-тегах (og:image). На странице находится в зоне фото/слайдера товара.",
+      "examples": [
+        "https://example.com/images/products/iphone15-black-128.jpg",
+        "https://cdn.shop.ru/upload/iblock/3a1/3a1c2d_main.png",
+        "https://static.site.com/product/12345/photo1.webp",
+        "https://img.marketplace.ru/p/987654/main.jpeg",
+        "https://example.com/media/catalog/product/a/b/ab123.jpg"
+      ],
+      "negative_examples": [
+        "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...",
+        "/images/icons/cart.svg",
+        "https://example.com/banners/newyear.jpg",
+        "https://example.com/images/brand/logo.png",
+        "#"
+      ],
+      "selector_hint": [
+        ".product-gallery img",
+        ".product__image img",
+        "[itemprop=image]",
+        "meta[property='og:image']",
+        ".swiper-slide img"
+      ],
+      "relations": "Может дополнять description и name (визуальная идентификация товара). Часто есть несколько изображений, но поле обычно подразумевает главное."
+    },
+    "article": {
+      "title": "Артикул",
+      "description": "Артикул (внутренний или поставщика) — короткий идентификатор товара, часто буквенно-цифровой. Обычно расположен рядом с названием или в блоке «Код/Артикул», иногда в характеристиках. Может называться «Артикул», «SKU».",
+      "examples": [
+        "ART-104928",
+        "SKU-55821",
+        "VC18M21A0SB",
+        "A-00034567",
+        "ECAM22110B"
+      ],
+      "negative_examples": [
+        "Код товара: 123456",
+        "EAN: 8806091234567",
+        "Серийный номер",
+        "Модель: SM-G991B",
+        "Категория: Пылесосы"
+      ],
+      "selector_hint": [
+        ".sku",
+        ".product-sku",
+        ".article",
+        "[itemprop=sku]",
+        ".product__article"
+      ],
+      "relations": "Близко связано с product_id: оба идентификаторы, но article чаще отображаемый SKU/артикул, а product_id — внутренний код в системе магазина."
+    },
+    "product_id": {
+      "title": "Код товара",
+      "description": "Внутренний код товара в системе магазина (ID). Обычно отображается как «Код товара», «ID», «Код» рядом с артикулом или в характеристиках. Часто чисто числовой, иногда с префиксом.",
+      "examples": [
+        "123456",
+        "ID: 987654",
+        "Код: 4500123",
+        "Товар № 77190",
+        "Product ID 100045"
+      ],
+      "negative_examples": [
+        "Артикул: VC18M21A0SB",
+        "Штрихкод: 4601234567890",
+        "Номер заказа: 00012345",
+        "Модель: ECAM 22.110.B",
+        "Серийный номер: SN12345678"
+      ],
+      "selector_hint": [
+        ".product-id",
+        ".product__id",
+        ".code",
+        ".product-code",
+        "[data-product-id]"
+      ],
+      "relations": "Связано с article: оба идентификаторы товара, часто выводятся рядом. Может использоваться для формирования ссылок/вариантов, но на странице обычно показан как справочная информация."
+    },
+    "category": {
+      "title": "Категория",
+      "description": "Категория товара в каталоге магазина. Обычно видна в хлебных крошках, в заголовке раздела или в блоке характеристик («Категория»). Значение — название раздела/подраздела, иногда цепочка категорий.",
+      "examples": [
+        "Смартфоны",
+        "Бытовая техника / Пылесосы",
+        "Компьютерные комплектующие / SSD",
+        "Обувь / Кроссовки",
+        "Кофемашины"
+      ],
+      "negative_examples": [
+        "Apple",
+        "iPhone 15",
+        "В наличии",
+        "1 299 ₽",
+        "Описание товара"
+      ],
+      "selector_hint": [
+        ".breadcrumbs a",
+        ".breadcrumb a",
+        ".category",
+        ".product-category",
+        "[itemprop=category]"
+      ],
+      "relations": "Связано с name и description: категория задает контекст товара. Может косвенно влиять на набор характеристик и отображение блоков."
+    },
+    "brand": {
+      "title": "Бренд",
+      "description": "Торговая марка товара, под которой он продается. Обычно отображается рядом с названием, в характеристиках или как ссылка на страницу бренда. Значение — короткое имя бренда.",
+      "examples": [
+        "Apple",
+        "Samsung",
+        "Nike",
+        "De'Longhi",
+        "Bosch"
+      ],
+      "negative_examples": [
+        "Китай",
+        "ООО «Ромашка»",
+        "Смартфоны",
+        "Черный",
+        "Гарантия 12 месяцев"
+      ],
+      "selector_hint": [
+        ".brand",
+        ".product-brand",
+        "[itemprop=brand]",
+        ".manufacturer a",
+        ".product__brand"
+      ],
+      "relations": "Связано с manufacturer: бренд может отличаться от производителя. Часто входит в name и сочетается с model."
+    },
+    "manufacturer": {
+      "title": "Производитель",
+      "description": "Компания-изготовитель товара (юридический/фактический производитель). Обычно находится в характеристиках, блоке «О товаре», иногда рядом с брендом. Может совпадать с брендом или отличаться (например, бренд — торговая марка, производитель — юридическое лицо).",
+      "examples": [
+        "Samsung Electronics",
+        "Apple Inc.",
+        "Bosch GmbH",
+        "Nike, Inc.",
+        "De’Longhi S.p.A."
+      ],
+      "negative_examples": [
+        "Официальная гарантия",
+        "Страна: Германия",
+        "Бренд: Bosch",
+        "Поставщик",
+        "Категория: Кофемашины"
+      ],
+      "selector_hint": [
+        ".manufacturer",
+        ".product-manufacturer",
+        ".specs .manufacturer",
+        "[itemprop=manufacturer]",
+        ".product__manufacturer"
+      ],
+      "relations": "Связано с brand: может совпадать или различаться. Может дополняться данными в description (например, страна производства)."
+    },
+    "model": {
+      "title": "Модель",
+      "description": "Модель/модельный индекс товара — обозначение линейки или конкретной версии. Обычно указана в названии и/или в характеристиках как «Модель». Часто буквенно-цифровая строка, иногда с пробелами и точками.",
+      "examples": [
+        "iPhone 15",
+        "VC18M21A0SB/EV",
+        "ECAM 22.110.B",
+        "Air Max 90",
+        "970 EVO Plus"
+      ],
+      "negative_examples": [
+        "Артикул: ART-104928",
+        "Код товара: 123456",
+        "Бренд: Samsung",
+        "Цвет: Черный",
+        "В наличии"
+      ],
+      "selector_hint": [
+        ".model",
+        ".product-model",
+        ".specs .model",
+        "[itemprop=model]",
+        ".product__model"
+      ],
+      "relations": "Связано с brand и name: модель часто идет вместе с брендом и может быть частью наименования. Может пересекаться с article, но модель обычно более «человеческая»."
+    },
+    "description": {
+      "title": "Описание товара",
+      "description": "Текстовое описание товара: назначение, особенности, преимущества, комплектация, сценарии использования. Обычно находится в отдельной вкладке/блоке «Описание», ниже основной информации, иногда содержит списки и форматирование. Может включать HTML-разметку.",
+      "examples": [
+        "Смартфон с OLED‑дисплеем 6.1\", поддержкой 5G и двойной камерой. В комплекте кабель USB‑C.",
+        "Компактная кофемашина с автоматическим капучинатором, регулировкой крепости и объема напитка.",
+        "Пылесос с контейнером 1.5 л, мощность 1800 Вт, фильтр HEPA для тонкой очистки.",
+        "Кроссовки для повседневной носки, амортизация Air, верх из кожи и текстиля.",
+        "Высокоскоростной NVMe SSD для ПК и ноутбуков, ресурс TBW 600, поддержка PCIe 3.0."
+      ],
+      "negative_examples": [
+        "Характеристики",
+        "Отзывы покупателей",
+        "Условия доставки и оплаты",
+        "Гарантия и возврат",
+        "Сопутствующие товары"
+      ],
+      "selector_hint": [
+        ".description",
+        ".product-description",
+        "#description",
+        "[itemprop=description]",
+        ".tab-content .description"
+      ],
+      "relations": "Дополняет name, brand, model и category: раскрывает детали, которые не помещаются в краткие поля. Может содержать упоминания акций, но это не price_discount/promotionDate."
+    }
+  },
+  "Цены и скидки": {
+    "price": {
+      "title": "Цена",
+      "description": "Текущая базовая цена товара, отображаемая на карточке товара рядом с кнопкой покупки. Обычно представлена числом с разделителями и символом валюты, может быть выделена крупным шрифтом. Если есть скидка, может показываться вместе с oldprice и/или price_discount.",
+      "examples": [
+        "19 990 ₽",
+        "1 299 грн",
+        "249.00 BYN",
+        "€79,90",
+        "12 499 тг"
+      ],
+      "negative_examples": [
+        "Старая цена: 24 990 ₽",
+        "Кешбек 5%",
+        "Цена по карте: 18 990 ₽",
+        "Доставка 0 ₽",
+        "В наличии"
+      ],
+      "selector_hint": [
+        ".price",
+        ".product-price",
+        "[itemprop=price]",
+        ".current-price",
+        ".price__value"
+      ],
+      "relations": "Связано с oldprice и price_discount: при акции текущая цена может быть акционной, а старая — зачеркнутой. Связано с currency и vat (как интерпретировать сумму)."
+    },
+    "oldprice": {
+      "title": "Старая цена",
+      "description": "Цена до скидки (перечеркнутая/уменьшенная), показывается при наличии акции. Обычно расположена рядом с текущей ценой и визуально оформлена как «старая» (зачеркнута, серым цветом).",
+      "examples": [
+        "24 990 ₽",
+        "1 599 грн",
+        "€99,90",
+        "299.00 BYN",
+        "14 990 тг"
+      ],
+      "negative_examples": [
+        "Цена: 19 990 ₽",
+        "Экономия 5 000 ₽",
+        "Кешбек 500 ₽",
+        "Цена по карте: 18 990 ₽",
+        "НДС включен"
+      ],
+      "selector_hint": [
+        ".old-price",
+        ".price-old",
+        ".was-price",
+        ".price__old",
+        "del"
+      ],
+      "relations": "Логически сравнивается с price или price_discount: старая цена обычно выше текущей. Используется для расчета скидки/экономии."
+    },
+    "price_discount": {
+      "title": "Акционная цена",
+      "description": "Цена по акции/скидке, действующая в рамках промо. Обычно отображается как основная цена в период акции и сопровождается отметкой «Акция», «Скидка», «Промо». Может быть выделена цветом и показываться рядом со старой ценой.",
+      "examples": [
+        "17 990 ₽ по акции",
+        "1 199 грн (акционная цена)",
+        "€69,90",
+        "219.00 BYN",
+        "11 990 тг"
+      ],
+      "negative_examples": [
+        "Старая цена: 24 990 ₽",
+        "Цена по карте: 18 990 ₽",
+        "Кешбек 10%",
+        "Промокод: SALE10",
+        "Скидка 20%"
+      ],
+      "selector_hint": [
+        ".discount-price",
+        ".promo-price",
+        ".special-price",
+        ".price--sale",
+        ".product__price--discount"
+      ],
+      "relations": "Связано с oldprice и promotionDate: акционная цена обычно действует до указанной даты и сопоставляется со старой ценой. Может совпадать с price, если магазин не разделяет поля."
+    },
+    "card_price": {
+      "title": "Цена по дисконтной карте",
+      "description": "Специальная цена для владельцев дисконтной/клубной карты или при авторизации. Обычно показывается рядом с обычной ценой с подписью «по карте», «для участников», «с картой». Может требовать условий (карта/статус).",
+      "examples": [
+        "18 990 ₽ по карте",
+        "1 249 грн с картой лояльности",
+        "€74,90 для участников клуба",
+        "239.00 BYN по дисконтной карте",
+        "12 199 тг по карте"
+      ],
+      "negative_examples": [
+        "Цена: 19 990 ₽",
+        "Старая цена: 24 990 ₽",
+        "Кешбек 500 ₽",
+        "Рассрочка 0-0-12",
+        "Доставка бесплатно"
+      ],
+      "selector_hint": [
+        ".card-price",
+        ".loyalty-price",
+        ".member-price",
+        ".price--card",
+        ".club-price"
+      ],
+      "relations": "Связано с price/price_discount: цена по карте может быть ниже базовой или акционной. Может зависеть от наличия программы лояльности."
+    },
+    "cashback": {
+      "title": "Кешбек \\ Бонусы",
+      "description": "Размер кешбека/бонусов, начисляемых за покупку товара. Обычно отображается рядом с ценой или под ней, как сумма или процент, иногда с иконкой бонусной программы. Может быть указан как «начислим X бонусов» или «кешбек X%».",
+      "examples": [
+        "Кешбек 5%",
+        "Начислим 500 бонусов",
+        "Кешбек 300 ₽",
+        "+1 200 баллов на карту",
+        "Бонусы: 3% от суммы"
+      ],
+      "negative_examples": [
+        "Скидка 5%",
+        "Экономия 2 000 ₽",
+        "Цена по карте: 18 990 ₽",
+        "НДС 20%",
+        "Промокод: BONUS"
+      ],
+      "selector_hint": [
+        ".cashback",
+        ".bonus",
+        ".loyalty-bonus",
+        ".reward",
+        ".product__cashback"
+      ],
+      "relations": "Связано с price/price_discount: бонусы часто рассчитываются от итоговой цены. Может зависеть от условий программы лояльности."
+    },
+    "currency": {
+      "title": "Валюта",
+      "description": "Валюта, в которой указаны цены на странице. Обычно видна как символ/код рядом с ценой (₽, грн, BYN, KZT, €, USD) или в переключателе валюты. Значение может быть символом или буквенным кодом.",
+      "examples": [
+        "₽",
+        "грн",
+        "BYN",
+        "KZT",
+        "EUR"
+      ],
+      "negative_examples": [
+        "19 990",
+        "НДС включен",
+        "В наличии",
+        "Скидка 10%",
+        "Бесплатная доставка"
+      ],
+      "selector_hint": [
+        ".currency",
+        ".price-currency",
+        ".currency-switcher",
+        ".price__currency",
+        "[data-currency]"
+      ],
+      "relations": "Связано с price/oldprice/price_discount/card_price: валюта определяет интерпретацию всех ценовых значений на странице."
+    },
+    "vat": {
+      "title": "Признак включен ли НДС в указанную цену",
+      "description": "Указание, включен ли НДС в отображаемую цену (например, «НДС включен» или «без НДС»). Обычно находится рядом с ценой, в блоке условий оплаты, в подвале ценового блока или в юридической информации.",
+      "examples": [
+        "Цена с НДС",
+        "НДС включен",
+        "Без НДС",
+        "НДС 20% включен в стоимость",
+        "Цена указана без НДС"
+      ],
+      "negative_examples": [
+        "НДС 20%",
+        "Скидка 20%",
+        "Кешбек 5%",
+        "Итого к оплате",
+        "Доставка 0 ₽"
+      ],
+      "selector_hint": [
+        ".vat",
+        ".tax",
+        ".price-tax",
+        ".includes-vat",
+        ".product__vat"
+      ],
+      "relations": "Связано с price и currency: определяет, является ли цена конечной для покупателя. Может быть важно при сравнении цен и формировании итоговой суммы."
+    },
+    "promotionDate": {
+      "title": "Дата окончания действия акции",
+      "description": "Дата/время, до которых действует акция или специальная цена. Обычно отображается рядом с акционной ценой, в промо-блоке («Акция до …»), в таймере или в условиях предложения. Значение может быть датой или датой+временем.",
+      "examples": [
+        "Акция до 31.12.2025",
+        "Действует до 15.01.2026 23:59",
+        "До 10.02.2026",
+        "Предложение действительно до 05.03.2026",
+        "Скидка действует до 30.01.2026 включительно"
+      ],
+      "negative_examples": [
+        "Дата доставки: 12.01.2026",
+        "Гарантия до 31.12.2026",
+        "Обновлено: 01.12.2025",
+        "Срок службы: 5 лет",
+        "Дата производства: 2025"
+      ],
+      "selector_hint": [
+        ".promo-date",
+        ".promotion-end",
+        ".sale-until",
+        ".countdown",
+        ".product__promo"
+      ],
+      "relations": "Связано с price_discount и oldprice: дата ограничивает действие акционной цены/скидки. Может сопровождаться таймером обратного отсчета."
+    }
+  }
+}"
+
+Время выполнения: 4.6 минут
+
+
