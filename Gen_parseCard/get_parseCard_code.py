@@ -427,6 +427,69 @@ main_result_template = {
 
 
 
+""" 
+
+n + 1: Проверить и выбрать селектор для извлечения значений для поля _
+n + 2: Сгенерировать код извлечения значений для поля _
+n + 3: Проверить сгенерированный код извлечения значений для поля _ на трёх страницах
+
+"""
+
+
+
+
+
+main_plan = {
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Проверить и выбрать селектор для извлечения значений для поля name",
+            "fills": [
+                "choosed_selector_field_name"
+            ]
+        },
+        {
+            "step_id": 2,
+            "goal": "Сгенерировать код извлечения значений для поля name",
+            "fills": [
+                "field__name__code",
+                "field__name__code_gen_completed"
+            ]
+        },
+        {
+            "step_id": 3,
+            "goal": "Проверить сгенерированный код извлечения значений для поля name на трёх страницах",
+            "fills": [
+                "field__name__ok_on_1_link",
+                "field__name__ok_on_2_link",
+                "field__name__ok_on_3_link"
+            ]
+        },
+        {
+            "step_id": 4,
+            "goal": "Проверить и выбрать селектор для извлечения значений для поля price",
+            "fills": [
+                "choosed_selector_field_price"
+            ]
+        },
+        {
+            "step_id": 5,
+            "goal": "Сгенерировать код извлечения значений для поля price",
+            "fills": [
+                "field__price__code",
+                "field__price__code_gen_completed"
+            ]
+        }
+        ...
+    ]
+}
+
+
+
+
+
+
+
 
 
 
