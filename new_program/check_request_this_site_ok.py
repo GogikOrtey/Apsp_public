@@ -372,5 +372,7 @@ if __name__ == "__main__":
         timeout = 30_000
     )
 
-    result = check_request_this_site_ok("https://makitaclub.ru/products/831271-6/")
+    # result = check_request_this_site_ok("https://makitaclub.ru/products/831271-6/")
+    # result = check_request_this_site_ok("https://www.wildberries.ru/catalog/463000312/detail.aspx")
+    result = check_request_this_site_ok("https://www.detmir.ru/product/index/id/7056516/?variant_id=7056516")
     print_json(result)

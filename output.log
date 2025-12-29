@@ -1,38 +1,38 @@
-29.12.2025 23:02:17
+29.12.2025 23:18:11
 
 Запускаем браузер
 Браузер успешно запущен
 {
     "status": "ok",
-    "url": "https://makitaclub.ru/products/831271-6/",
+    "url": "https://www.detmir.ru/product/index/id/7056516/?variant_id=7056516",
     "request_ok": true,
     "metrics": {
         "playwright": {
-            "node_count": 1390,
-            "text_length": 2958,
-            "div_count": 163,
-            "a_count": 436,
-            "img_count": 22,
-            "button_count": 13,
-            "input_count": 3,
+            "node_count": 1106,
+            "text_length": 2949,
+            "div_count": 292,
+            "a_count": 133,
+            "img_count": 9,
+            "button_count": 30,
+            "input_count": 10,
             "max_depth": 20
         },
         "request": {
-            "node_count": 1370,
-            "text_length": 28650,
-            "div_count": 159,
-            "a_count": 435,
-            "img_count": 18,
-            "button_count": 11,
-            "input_count": 3,
+            "node_count": 1110,
+            "text_length": 183912,
+            "div_count": 294,
+            "a_count": 133,
+            "img_count": 12,
+            "button_count": 30,
+            "input_count": 10,
             "max_depth": 20
         }
     },
     "ratios": {
-        "node_ratio": 1.0145985401459854,
-        "text_ratio": 0.10324607329842932,
-        "a_ratio": 1.0022988505747126,
-        "img_ratio": 1.2222222222222223,
+        "node_ratio": 0.9963963963963964,
+        "text_ratio": 0.016034842750880855,
+        "a_ratio": 1.0,
+        "img_ratio": 0.75,
         "depth_diff": 0
     },
     "thresholds_triggered": []

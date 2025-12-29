@@ -56,6 +56,8 @@ from new_program.check_request_this_site_ok import *
 - Выписать запрос к агенту на формирование PP с дигинетикой
 - Добавить инструменты для исследования запросов браузера
     - [прописать какие]
+- Обернуть обработку всех raise внутри main_processer, и выводить их как ошибки в окне вывода кода  
+    - У нас вообще будет только один вывод результата, и при корректном завершении, и при ошибке (всё в окне кода)
 
 
 
@@ -654,19 +656,25 @@ def main_processer(input_url):
 
     """
 
-    check_url_t = result_agent_step_6_1_get_links_for_product.get("five_links_1")[0]
+    five_links_1 = (result_agent_step_6_1_get_links_for_product or {}).get("five_links_1") or []
+    if not isinstance(five_links_1, list) or not five_links_1 or not five_links_1[0]:
+        raise ValueError(
+            "Шаг 6.1 вернул пустой/некорректный five_links_1 — не могу проверить доступность сайта простыми запросами."
+        )
+    check_url_t = five_links_1[0]
     # Проверяем на первой странице товара
     result_check_simple_request_on_this_site = check_request_this_site_ok(check_url_t)
     result_check_simple_request_on_this_site_status = result_check_simple_request_on_this_site.get("request_ok")
 
-    print(f"\Проверка, можно ли будет получать контент с сайта обычными запросами\n")
+    print(f"\nПроверка, можно ли будет получать контент с сайта обычными запросами\n")
     print_json(result_check_simple_request_on_this_site)
 
     if result_check_simple_request_on_this_site_status == False:
         error_text = """
         
         🟡 Данные с текущего сайта нельзя будет корректно получать простыми http request запросами.
-        Нужно подключать логику решалки
+        По прямому запросу сайт выдаёт другой контент, чем в браузере.
+        📘 Нужно подключать логику решалки
 
         Данный функционал не реализован на текущий момент 🟡
 
