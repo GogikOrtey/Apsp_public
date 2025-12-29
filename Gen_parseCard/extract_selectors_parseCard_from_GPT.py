@@ -314,13 +314,13 @@ def extract_selectors_parseCard_from_GPT(input_url):
 
 
 
-# Тестирование:
+# # Тестирование:
 
-url = "https://makitaclub.ru/products/831271-6/"
-resilt = extract_selectors_parseCard_from_GPT(url)
+# url = "https://makitaclub.ru/products/831271-6/"
+# resilt = extract_selectors_parseCard_from_GPT(url)
 
-print(f"\nresilt:\n")
-print(resilt)
+# print(f"\nresilt:\n")
+# print(resilt)
 
 
 

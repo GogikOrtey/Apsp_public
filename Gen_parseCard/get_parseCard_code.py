@@ -14,6 +14,7 @@ import sys
 import json
 import copy
 from typing import Any
+import ast
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -460,9 +461,74 @@ def extract_only_used_fields(all_fields, used_fields_and_selectors):
     """
     Фильтрует поля из all_fields, и возвращает объект только с теми, которые есть в used_fields_and_selectors
     """
-    # Это заглушка
 
+    # 1) Нормализуем used_fields_and_selectors к python-объекту
+    used_obj = used_fields_and_selectors
+    if isinstance(used_obj, str):
+        s = used_obj.strip()
+        if s:
+            try:
+                used_obj = json.loads(s)
+            except Exception:
+                # fallback на python-подобные строки
+                try:
+                    used_obj = ast.literal_eval(s)
+                except Exception:
+                    used_obj = {}
+        else:
+            used_obj = {}
 
+    # 2) Достаём список имён полей в стабильном порядке
+    used_field_names: List[str] = []
+
+    def _add_name(name: Any) -> None:
+        if name is None:
+            return
+        n = str(name).strip()
+        if not n:
+            return
+        if n not in used_field_names:
+            used_field_names.append(n)
+
+    if isinstance(used_obj, dict):
+        # Поддержка формата {"fields": {...}} или {"fields": [..]}
+        if "fields" in used_obj:
+            f = used_obj.get("fields")
+            if isinstance(f, dict):
+                for k in f.keys():
+                    _add_name(k)
+            elif isinstance(f, (list, tuple, set)):
+                for k in f:
+                    _add_name(k)
+
+        # Наиболее частый формат: {"name": [селекторы], "price": [селекторы], ...}
+        for k in used_obj.keys():
+            if k == "fields":
+                continue
+            _add_name(k)
+
+    elif isinstance(used_obj, (list, tuple, set)):
+        for k in used_obj:
+            _add_name(k)
+
+    # 3) Плоско собираем все поля из all_fields (оно разбито по разделам)
+    all_fields_flat: Dict[str, Any] = {}
+    if isinstance(all_fields, dict):
+        for _section_name, section_fields in all_fields.items():
+            if isinstance(section_fields, dict):
+                for field_name, meta in section_fields.items():
+                    all_fields_flat[str(field_name)] = meta
+
+    # 4) Возвращаем JSON-строку только по использованным полям
+    result: Dict[str, Any] = {}
+    for field_name in used_field_names:
+        if field_name in all_fields_flat:
+            result[field_name] = all_fields_flat[field_name]
+        else:
+            # Если поле пришло во входе, но отсутствует в справочнике описаний
+            result[field_name] = {"_missing_in_all_fields": True}
+
+    return json.dumps(result, ensure_ascii=False, indent=4, default=str)
 
 
 
@@ -530,28 +596,33 @@ def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links):
 
     input_data_value = (
         used_fields_and_selectors_str + f"\n\n" + 
+        "ТРИ ВХОДНЫЕ ССЫЛКИ:" + f"\n\n" + 
         used_3_links + f"\n\n" + 
+        "ОПИСАНИЕ ИСПОЛЬЗУЕМЫХ ПОЛЕЙ:" + f"\n\n" + 
         used_fields + f"\n\n"
     )
 
     task = (
         gen_main_prompt(host_value) + 
-        input_data_value)
+        input_data_value
+        )
 
-    # Генерирую схему и шаблон динамически, на основе входных полей
-    dynamic_result_schema, dynamic_result_template = build_main_result_schema_and_template(used_fields_and_selectors, num_links=3)
+    print(task)
 
-    resulr_answer = orchestrate(
-        task = task,
-        max_steps = 100,
-        result_schema = dynamic_result_schema,
-        result_template = dynamic_result_template,
-        # plan = main_plan,                 ###### Также прописать, что бц генерился динамически
-        # step_by_step_running = False, # Разрешаем агенту работать автоматически
-    ) 
+    # # Генерирую схему и шаблон динамически, на основе входных полей
+    # dynamic_result_schema, dynamic_result_template = build_main_result_schema_and_template(used_fields_and_selectors, num_links=3)
 
-    result_task = get_result()
-    return result_task
+    # resulr_answer = orchestrate(
+    #     task = task,
+    #     max_steps = 100,
+    #     result_schema = dynamic_result_schema,
+    #     result_template = dynamic_result_template,
+    #     # plan = main_plan,                 ###### Также прописать, что бц генерился динамически
+    #     # step_by_step_running = False, # Разрешаем агенту работать автоматически
+    # ) 
+
+    # result_task = get_result()
+    # return result_task
 
 
 
