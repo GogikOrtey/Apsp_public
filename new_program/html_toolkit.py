@@ -376,19 +376,23 @@ main();
     )
 
     try:
+        # IMPORTANT (Windows): Node prints UTF-8 to stdout, but `text=True` decodes using
+        # the current console codepage (cp866/cp1251), producing mojibake for Cyrillic.
+        # So we capture bytes and decode explicitly as UTF-8.
         result = subprocess.run(
             ["node", "-e", node_script],
             capture_output=True,
-            text=True,
+            text=False,
             check=False,
             timeout=3,
         )
 
         if result.returncode != 0:
-            err = (result.stderr or "").strip() or f"Node.js exited with code {result.returncode}"
+            stderr_text = (result.stderr or b"").decode("utf-8", errors="replace").strip()
+            err = stderr_text or f"Node.js exited with code {result.returncode}"
             return {"status": "error", "vars": None, "error": err}
 
-        output = (result.stdout or "").strip()
+        output = (result.stdout or b"").decode("utf-8", errors="replace").strip()
         last_line = ""
         for line in reversed(output.splitlines()):
             if line.strip():
@@ -412,6 +416,32 @@ main();
         except OSError:
             pass
 # endregion cheerio_js_simple_sandbox_extract_vars
+
+
+
+# # Проверка (ручной запуск файла)
+# result = run_cheerio_js_extract_vars(
+#     'const name = $("h1.product_title.entry-title")?.first().text().trim()',
+#     "https://makitaclub.ru/products/831271-6/",
+# )
+# print(result)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Очищает html перед отправкой в LLM
@@ -1963,11 +1993,12 @@ def get_html_frame(
 
 
 # # Проверка
-# url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+# # url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+# url = "https://makitaclub.ru/products/831271-6/"
 # html_content = get_html_from_cache(url)
 # # save_page_html(html_content, filename = "page_html.html")
 
-# selector = ".products .product-card a.stretched-link[href*='/products/']"
+# selector = "h1.product_title.entry-title"
 # # selector = ".col-sm-6 .woocommerce-Price-amount.amount"
 # # result_get_html_frame = get_html_frame(html_content, selector)
 # result_get_html_frame = get_html_frame(html_content, selector, ancestor_levels = 5)
