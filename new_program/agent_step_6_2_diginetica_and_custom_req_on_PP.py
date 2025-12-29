@@ -280,91 +280,93 @@ async parsePage(set) {
 
 
 
+# Схема результата
+main_result_schema = {
+    "count_of_products_first": {
+        "type": "number",
+        "description": "Количество товаров на странице, при первой проверке"
+    },
+    "is_site_used_add_request": {
+        "type": "boolean",
+        "description": "Использует ли сайт дополнительные запросы для загрузки данных поисковой выдачи"
+    },
+    "name_second_product": {
+        "type": "string",
+        "description": "Имя второго продукта"
+    },
+    "price_second_product": {
+        "type": "string",
+        "description": "Цена второго продукта"
+    },
+    "search_type": {
+        "type": "diginetica | custom",
+        "description": "Обозначенный тип дополнительных запросов"
+    },
+    "result_code": {
+        "type": "string",
+        "description": "Сформированный фрагмент кода процедуры parsePage"
+    },
+    "check_code_ok": {
+        "type": "string",
+        "description": "Корректен ли написанный код"
+    }
+}
+
+# Шаблон результата, который агент заполняет в процессе работы
+main_result_template = {
+    "count_of_products_first": None,
+    "is_site_used_add_request": None,
+    "name_second_product": None,
+    "price_second_product": None,
+    "search_type": None,
+    "result_code": None,
+    "check_code_ok": None
+}
 
 
 
 
 
+main_plan = {
+    "steps": [
+        {
+            "step_id": 1,
+            "goal": "Определить начальное количество товаров на странице, и зафиксировать его.",
+            "fills": [
+                "count_of_products_first"
+            ]
+        },
+        {
+            "step_id": 2,
+            "goal": "Установить, происходит ли увеличение количества товаров после прокрутки вниз (т.е. есть ли подгрузка через дополнительные запросы). Если нет - то завершить задание.",
+            "fills": [
+                "is_site_used_add_request"
+            ]
+        },
+        {
+            "step_id": 3,
+            "goal": "Извлечь название и цену 2-го товара и определить тип запросов подгрузки (diginetica или custom) по совпадениям в сетевых запросах.",
+            "fills": [
+                "name_second_product",
+                "price_second_product",
+                "search_type"
+            ]
+        },
+        {
+            "step_id": 4,
+            "goal": "Сформировать код процедуры parsePage для получения ссылок товаров из поиска согласно определённому типу запросов. Затем проверить написанный код parsePage на двух запросах из семантики, и подтвердить его работоспособность валидными ссылками.",
+            "fills": [
+                "result_code", 
+                "check_code_ok"
+            ]
+        }
+    ]
+}
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-   
-
-
-
-
-
-
-
-
-
-
-# # Схема результата
-# main_result_schema = {
-#     "start_page_url": {
-#         "type": "string",
-#         "required": True,
-#         "description": "URL первой страницы, с которой мы начали."
-#     },
-#     "url_for_2_page": {
-#         "type": "string",
-#         "required": True,
-#         "description": "URL второй страницы, будет получена путём перехода на вторую страницу выдачи со страницы start_page_url."
-#     },
-#     "info_from_page_parameter": {
-#         "type": "string",
-#         "required": True,
-#         "description": "Информация о том, как задаётся параметр пагинации page в URL"
-#     },
-#     "info_from_search_query_parameter": {
-#         "type": "string",
-#         "required": True,
-#         "description": "Информация о том, как задаётся параметр поискового запроса в URL"
-#     },
-#     "url_for_second_search_query": {
-#         "type": "string",
-#         "required": True,
-#         "description": "URL страницы по другому поисковому запросу"
-#     },
-#     "result_code_url_builder": {
-#         "type": "string",
-#         "required": True,
-#         "description": "Сформированный фрагмент кода который позволяет задать произвольный запрос поиска и страницу пагинации"
-#     },
-#     "search_output_set_by_add_query": {
-#         "type": "boolean",
-#         "required": False,
-#         "description": "Примет значение true если товары загружаются доп. запросами, а не через URL (необязательное поле для заполнения)"
-#     }
-# }
-
-# # Шаблон результата, который агент заполняет в процессе работы
-# main_result_template = {
-#     "start_page_url": None,
-#     "url_for_2_page": None,
-#     "info_from_page_parameter": None,
-#     "info_from_search_query_parameter": None,
-#     "url_for_second_search_query": None,
-#     "result_code_url_builder": None,
-#     "search_output_set_by_add_query": None
-# }
 
 
 
@@ -464,43 +466,66 @@ def agent_step_6_2_diginetica_and_custom_req_on_PP(input_data, search_request, s
 #  Проверка:
 
 if __name__ == "__main__":     
+    # input_data_test = {
+    #     "search_input_selectors": [
+    #         "#woocommerce-product-search-field-0",
+    #         "form.woocommerce-product-search input.search-field[type='search'][name='s']",
+    #         ".site-search .woocommerce-product-search input.search-field"
+    #     ],
+    #     "search_button_selectors": [
+    #         "form.woocommerce-product-search button[type='submit']",
+    #         ".site-search form.woocommerce-product-search button",
+    #         ".widget_product_search form button[type='submit']"
+    #     ],
+    #     "total_results_count_selectors": [
+    #         "p.woocommerce-result-count",
+    #         ".storefront-sorting > p.woocommerce-result-count",
+    #         "main#main p.woocommerce-result-count"
+    #     ],
+    #     "product_link_selectors": [
+    #         ".products .product-card a.stretched-link[href*='/products/']",
+    #         ".products a.stretched-link[href*='/products/']",
+    #         ".products .card a.stretched-link"
+    #     ],
+    #     "pagination_container_selectors": [
+    #         "nav.woocommerce-pagination",
+    #         ".storefront-sorting nav.woocommerce-pagination",
+    #         "ul.page-numbers"
+    #     ],
+    #     "pagination_page2_selectors": [
+    #         "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
+    #         "ul.page-numbers a.page-numbers[href*='/page/2/']",
+    #         "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
+    #     ],
+    #     "pagination_last_page_selectors": [
+    #         "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+    #         "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
+    #         "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
+    #     ],
+    #     "last_page_number_displayed": "true"
+    # }
+
     input_data_test = {
         "search_input_selectors": [
-            "#woocommerce-product-search-field-0",
-            "form.woocommerce-product-search input.search-field[type='search'][name='s']",
-            ".site-search .woocommerce-product-search input.search-field"
+            "input#title-search-input_fixed",
+            "form.search input.search-input[name=\"q\"]#title-search-input_fixed",
+            "#title-search_fixed input.search-input"
         ],
         "search_button_selectors": [
-            "form.woocommerce-product-search button[type='submit']",
-            ".site-search form.woocommerce-product-search button",
-            ".widget_product_search form button[type='submit']"
+            "#title-search_fixed button.btn.btn-search[type=\"submit\"]",
+            "form.search button[name=\"s\"][type=\"submit\"]",
+            "#title-search_fixed .search-button-div > button"
         ],
-        "total_results_count_selectors": [
-            "p.woocommerce-result-count",
-            ".storefront-sorting > p.woocommerce-result-count",
-            "main#main p.woocommerce-result-count"
-        ],
+        "total_results_count_selectors": None,
         "product_link_selectors": [
-            ".products .product-card a.stretched-link[href*='/products/']",
-            ".products a.stretched-link[href*='/products/']",
-            ".products .card a.stretched-link"
+            "a.cp_catalog-item__title[href]",
+            "div.cp_catalog-item a.cp_catalog-item__title[href]",
+            "a.cp_catalog-item__image[href]"
         ],
-        "pagination_container_selectors": [
-            "nav.woocommerce-pagination",
-            ".storefront-sorting nav.woocommerce-pagination",
-            "ul.page-numbers"
-        ],
-        "pagination_page2_selectors": [
-            "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
-            "ul.page-numbers a.page-numbers[href*='/page/2/']",
-            "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
-        ],
-        "pagination_last_page_selectors": [
-            "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-            "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-            "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
-        ],
-        "last_page_number_displayed": "true"
+        "pagination_container_selectors": None,
+        "pagination_page2_selectors": None,
+        "pagination_last_page_selectors": None,
+        "last_page_number_displayed": None
     }
 
     search_request_test = "инструмент"
@@ -521,14 +546,14 @@ if __name__ == "__main__":
     }
 
     # Из шага 2 из поля second_html:
-    link = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product"
+    link = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT"
 
 
     # Запускаю браузер с видимым окном
     launch_browser(headless = False)
 
     goto_url( 
-        url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+        url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
         wait_until = "load",
         timeout = 30_000
     )

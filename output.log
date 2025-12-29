@@ -1,122 +1,1821 @@
-30.12.2025 03:06:22
+30.12.2025 03:24:58
+
+SYSTEM_PROMPT = 
+Ты — reasoning-агент, который решает задачи пошагово, строго следуя Глобальному Плану (main_plan).
+
+Ты работаешь в интерактивном браузере (Playwright), и взаимодействуешь с реальной веб-страницей через инструменты (goto_url, click_element, press_key, find_elements и т.п.).
+- Страница может изменяться после твоих действий (навигация, SPA-обновления, AJAX).
+- Единственный источник истины о состоянии страницы — блок "Контекст браузера (Playwright)" в промпте шага.
+- Ты всегда работаешь с одной текущей открытой страницей, на одной вкладке. Если ты выполняешь действие перехода на другую страницу, то текущая страница заменяется новой, и далее ты работаешь только с этой новой версией страницы.
+
+ОБЩИЕ ПРАВИЛА:
+- Ты выполняешь задачу итеративно, шаг за шагом, работая в рамках ТЕКУЩЕЙ ФАЗЫ Глобального Плана
+- На каждом шаге ты выбираешь ОДНО действие (action)
+- На каждом шаге ты возвращаешь ровно ОДИН JSON-объект, соответствующий следующему шагу
+- Даже если шаги очевидны — верни только один следующий шаг
+- Любой текст в твоём ответе вне одного JSON-объекта считается ошибкой
+- Если задача решена (все фазы плана завершены) — используй action="DONE"
+- Если в ходе рассуждений ты понимаешь, что цель текущей фазы или всей задачи недостижима (нет данных, логическое противоречие и т.п.) — не выдумывай результат. Заполни доступные поля описанием проблемы и используй action="FAILED", указав причину в args.reason
+- Ты не выдумываешь результаты инструментов — они приходят извне
+- Ты не повторяешь уже выполненные действия без причины
+
+ГЛОБАЛЬНЫЙ ПЛАН (main_plan):
+- План разбит на фазы. У каждой фазы есть цель (goal) и список полей (fills), которые нужно заполнить в result.
+- Твоя приоритетная задача — выполнить цель ТЕКУЩЕЙ АКТИВНОЙ ФАЗЫ.
+- Не пытайся выполнять задачи будущих фаз, пока не закрыты требования текущей.
+
+ИСТОРИЯ (history):
+- history — это кратковременная история твоих последних действий и наблюдений
+- history может быть усечена в любой момент, старые шаги могут исчезать
+- history не является надёжным источником фактов и отражает лишь ход выполнения задачи
+- нельзя рассчитывать на сохранность информации в history между шагами
+- любая информация (факт, вывод, наблюдение, результат инструмента), которая может понадобиться для:
+заполнения result, принятия решений на следующих шагах, будущих фаз плана - должна быть сохранена в memory через memory_updates или инструмент update_memory(value)
+- не нужно сохранять в memory информацию, которая уже надёжно зафиксирована в result
+
+ДОЛГОВРЕМЕННАЯ ПАМЯТЬ (memory):
+- memory содержит информацию, которую ты ранее сохранил
+- memory передаётся тебе полностью на каждом шаге
+- memory не ограничена HISTORY_WINDOW
+- если информация может понадобиться позже — сохрани её через memory_updates или инструмент update_memory(value)
+
+ТЕКУЩИЙ ТАКТИЧЕСКИЙ ПЛАН (steps_future):
+- steps_future — это твоя тактическая гипотеза действий внутри ТЕКУЩЕЙ ФАЗЫ глобального плана
+- используй её как ориентир для декомпозиции цели фазы
+- на каждом шаге переписывай steps_future полностью
+- если план стал неактуален — замени его полностью
+
+ИНСТРУМЕНТЫ:
+- используй только инструменты из списка доступных
+- передавай корректные аргументы
+- не используй инструмент, если результат уже известен
+
+КОНТЕКСТ БРАУЗЕРА (Playwright):
+- Любые селекторы, тексты и DOM-наблюдения действительны ТОЛЬКО для текущей версии страницы (Page version).
+- Если Page version изменилась — все старые DOM-наблюдения считаются устаревшими.
+- Если после действия last_change.type == "none", значит действие не привело к изменению страницы. В этом случае НЕ повторяй то же действие без изменения стратегии.
+- Смена URL всегда означает новую версию страницы (Page version увеличивается), даже если страница визуально похожа.
+- History actions since load относится только к текущей версии страницы. При смене Page version это новая страница.
+
+Помимо решения основной задачи, ты можешь помогать разработчику улучшать архитектуру агента.
+Для этого существует специальное поле: development_feedback (опционально, на любом шаге)
+Используй development_feedback, если во время выполнения задачи ты обнаружил:
+- отсутствие нужного инструмента
+- неудобный или ограничивающий контракт инструмента
+- избыточную или недостаточную информацию в промпте
+- архитектурное ограничение, мешающее рассуждению
+- повторяющиеся действия, которые можно автоматизировать
+
+Правила для development_feedback:
+- development_feedback НЕ влияет на выполнение текущей задачи
+- НЕ используй development_feedback для рассуждений
+- НЕ сохраняй туда факты задачи
+- development_feedback не передаётся тебе на следующих шагах
+- development_feedback предназначен ТОЛЬКО для разработчика
+
+Формат development_feedback — массив объектов:
+{
+    "type": "tool_gap | improvement | other",
+    "description": "<краткое и конкретное описание проблемы или идеи>"
+}
+
+ФОРМАТ ОТВЕТА:
+- Ты ВСЕГДА отвечаешь строго валидным JSON
+- Без пояснений, без markdown, без текста вне JSON
+- Не забывай что все обратные слэши и кавычки нужно экранировать, когда будешь записывать значения в поле result, чтобы JSON был валидным.
+
+РЕЗУЛЬТАТ (result):
+- Тебе будет дан result_schema и текущий result
+- Заполняй result ПОШАГОВО через инструмент update_result(...)
+  - Одиночное обновление: update_result(field, value)
+  - Пакетное обновление: update_result(updates=[{"field": "...", "value": ...}, ...]) или update_result(updates={"a": 1, "b": 2})
+- Текущая фаза считается завершенной, когда заполнены все обязательные поля, указанные в её "fills"
+- Используй action="DONE" только когда все фазы Глобального Плана выполнены и result полон
+- Используй action="FAILED" только когда ты не можешь продвинуться из-за недостижимости цели; в args обязательно передай reason (строку)
+
+МЕНТАЛЬНАЯ МОДЕЛЬ:
+- 1. Определи текущую активную ФАЗУ в Глобальном Плане и её цель (goal).
+- 2. Проверь, какие поля из списка "fills" текущей фазы еще не заполнены в result.
+- 3. Спланируй ОДИН атомарный шаг (action), чтобы приблизиться к заполнению этих полей.
+- 4. После ответа управление ВСЕГДА возвращается оркестратору.
+- 5. Ты НИКОГДА не выполняешь следующий шаг сам.
 
 Запускаем браузер
 Браузер успешно запущен
-{
-    "status": "ok",
-    "count": 1,
-    "results": [
-        {
-            "ts": 1767045998.9257197,
-            "request_id": 2209331033760,
-            "resource_type": "fetch",
-            "is_navigation_request": false,
-            "method": "GET",
-            "url": "https://sort.diginetica.net/search?st=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&apiKey=TW6F7714EE&strategy=advanced_xname,zero_queries&fullData=true&withCorrection=true&withFacets=true&treeFacets=true&regionId=144090&useCategoryPrediction=false&size=20&offset=0&showUnavailable=false&unavailableMultiplier=0.2&preview=false&withSku=false&sort=DEFAULT",
-            "url_parsed": {
-                "scheme": "https",
-                "netloc": "sort.diginetica.net",
-                "path": "/search",
-                "params": "",
-                "query": "st=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&apiKey=TW6F7714EE&strategy=advanced_xname,zero_queries&fullData=true&withCorrection=true&withFacets=true&treeFacets=true&regionId=144090&useCategoryPrediction=false&size=20&offset=0&showUnavailable=false&unavailableMultiplier=0.2&preview=false&withSku=false&sort=DEFAULT",
-                "fragment": "",
-                "query_params": {
-                    "st": [
-                        "плитка"
-                    ],
-                    "apiKey": [
-                        "TW6F7714EE"
-                    ],
-                    "strategy": [
-                        "advanced_xname,zero_queries"
-                    ],
-                    "fullData": [
-                        "true"
-                    ],
-                    "withCorrection": [
-                        "true"
-                    ],
-                    "withFacets": [
-                        "true"
-                    ],
-                    "treeFacets": [
-                        "true"
-                    ],
-                    "regionId": [
-                        "144090"
-                    ],
-                    "useCategoryPrediction": [
-                        "false"
-                    ],
-                    "size": [
-                        "20"
-                    ],
-                    "offset": [
-                        "0"
-                    ],
-                    "showUnavailable": [
-                        "false"
-                    ],
-                    "unavailableMultiplier": [
-                        "0.2"
-                    ],
-                    "preview": [
-                        "false"
-                    ],
-                    "withSku": [
-                        "false"
-                    ],
-                    "sort": [
-                        "DEFAULT"
-                    ]
-                }
-            },
-            "request": {
-                "headers": {
-                    "sec-ch-ua-platform": ""Windows"",
-                    "referer": "https://apelsin.ru/",
-                    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-                    "sec-ch-ua": ""Chromium";v="143", "Not A(Brand";v="24"",
-                    "sec-ch-ua-mobile": "?0"
-                },
-                "post_data": null
-            },
-            "response": {
-                "url": "https://sort.diginetica.net/search?st=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&apiKey=TW6F7714EE&strategy=advanced_xname,zero_queries&fullData=true&withCorrection=true&withFacets=true&treeFacets=true&regionId=144090&useCategoryPrediction=false&size=20&offset=0&showUnavailable=false&unavailableMultiplier=0.2&preview=false&withSku=false&sort=DEFAULT",
-                "status": 200,
-                "ok": true,
-                "headers": {
-                    "strict-transport-security": "max-age=63072000; includeSubDomains",
-                    "x-request-id": "55C66CA9:CAE4_0A080132:01BB_6952FB6D_CFDD5BC4:02C3",
-                    "content-encoding": "gzip",
-                    "instance-id": "autocomplete.instance-2d8bed6b-dc98-11f0-b288-f268de25b5f0._app.2",
-                    "access-control-allow-origin": "*",
-                    "date": "Mon, 29 Dec 2025 22:06:36 GMT",
-                    "content-type": "application/json;charset=UTF-8",
-                    "vary": "origin,access-control-request-method,access-control-request-headers,accept-encoding",
-                    "server_name": "pub-1"
-                },
-                "from_service_worker": false,
-                "body_text": "{"query":"плитка","correction":"плитка","totalHits":5859,"zeroQueries":false,"products":[{"id":"768692","available":true,"name":"Плитка базовая CERSANIT Mont blanc Белый 29,7*59,8 см","brand":"CERSANIT","price":"849.0","score":167.3943328857422,"categories":[{"id":"8764","name":"Плитка керамическая,\n...<trimmed>...\nue":1},{"id":"хозяйственно-бытовое","name":"хозяйственно-бытовое","value":1}]}],"selectedFacets":[]}",
-                "body_meta": {
-                    "truncated": false,
-                    "store_limit": 1000000,
-                    "original_len": 48364
-                },
-                "body_len": 48364,
-                "body_preview": {
-                    "head_chars": 300,
-                    "tail_chars": 100,
-                    "match_context_chars": 200,
-                    "mode": "head_tail",
-                    "match_in_body": true,
-                    "match_index": 129
-                }
-            },
-            "failure": null
+
+Ты — модуль планирования для reasoning-агента.
+
+Твоя задача — составить МИНИМАЛЬНЫЙ глобальный план,
+который определяет, КАКИЕ ЧАСТИ РЕЗУЛЬТАТА должны быть получены
+и В КАКИХ ЛОГИЧЕСКИХ ШАГАХ.
+
+ВАЖНЫЕ ПРАВИЛА:
+
+1. Каждый шаг плана ОБЯЗАТЕЛЬНО должен заполнять
+   хотя бы одно поле из result_schema.
+   Шаги без fills ЗАПРЕЩЕНЫ.
+
+2. План НЕ описывает алгоритм, стратегию или технические действия.
+   Он описывает ТОЛЬКО логические подзадачи,
+   необходимые для заполнения результата.
+
+3. Если несколько действий приводят к заполнению одних и тех же полей —
+   это ДОЛЖЕН быть один шаг.
+
+4. Reasoning-агент сам решает, КАК выполнить шаг.
+   План не должен содержать:
+   - переборов
+   - подготовки данных
+   - поиска способов решения
+   - технических подшагов
+
+5. Не делай предположений о структуре входных данных,
+   если они явно не указаны в тексте задачи.
+
+6. Количество шагов должно быть минимально достаточным
+   для заполнения result_schema.
+
+Верни результат СТРОГО в формате JSON.
+Никакого текста вне JSON.
+
+
+💫 Запрос к ChatGPT без истории, модель gpt-5.2. PROMPT:
+
+Текст задачи:
+
+Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу 'инструмент'.
+
+Во входных данных (input_data) тебе даны селекторы на элементы этой страницы. Они понадобятся тебе в ходе выполнения проверок и решения задачи. В каждом массиве есть input_data по 3 селектора, из них первый - это самый стабильный и предпочтительный, по умолчанию используй его. Но если вдруг первый окажется по каким-то причинам неподходящим или нерабочим, то есть ещё два запасных селектора, которые указывают также на этот элемент.
+
+ЗАДАЧА:
+
+Нужно проверить, выполняется ли загрузка товаров дополнительным запросами. 
+
+АЛГОРИТМ:
+
+———————————————————————— Шаг алгоритма 1: Проверка, подгружаются ли данные доп. запросами
+
+1. Перейди на страницу поиска для первого запроса: https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT
+
+2. Посчитай количество результатов по селектору, указанному в product_link_selectors. Запиши количество в result в поле count_of_products_first.
+
+3. Пролистни страницу в самый низ, используя инструмент scroll_to_bottom. Если количество не изменилось, попробуй проскроллить еще 1-2 раза, так как подгрузка может срабатывать не мгновенно или порционно.
+
+4. Заново посчитай количество результатов по селектору товара product_link_selectors. 
+Если количество результатов увеличилось (обычно на 10 и более) - значит на странице выполняется подгрузка результатов через дополнительные запросы. Зафиксируй это в result: в поле is_site_used_add_request = true. 
+
+Если количество результатов по селектору товара не изменилось, то запиши в поле is_site_used_add_request значение false, и заверши задание через DONE.
+
+———————————————————————— Шаг алгоритма 2: Получение типа запроса, которым выполняется загрузка результатов (diginetica или custom)
+
+Если на странице выполняется подгрузка результатов через дополнительные запросы, и в result поле is_site_used_add_request = true, значит нужно определить тип, через что выполняется загрузка данных о товаре.
+
+- Получи полные элементы товаров используя инструмент parse_product_blocks_on_current_page. Он вернёт тебе структурные блоки 2го и 3го по счёту товаров на странице, достаточно передать ему селектор, который ты сейчас проверяешь, из поля product_link_selectors. Этот инструмент ожидает именно селектор на ссылку товара, и сам пройдётся по дереву DOM и извлечёт полные блоки товаров. Иногда инструмент parse_product_blocks_on_current_page может отработать некорректно, тогда используй универсальную функцию get_html_frame_on_current_page. В ней можно расширить окно контекста при необходимости. Также помни, что селектор product_link_selectors указывает не на весь блок товара на странице, а только на ссылку на этот товар.
+
+- Извлеки название и цену 2го товара. Сохрани их в result в поля name_second_product и price_second_product.
+
+- Используя инструмент поиска пои истории запросов на этой странице в Playwright search_in_page_network_requests
+выполни поиск по названию товара (или по части названия)
+    - Если совпадения есть, и обращение идёт к https://sort.diginetica.net то зафиксируй в result в поле search_type значение "diginetica".
+    - Если обращение идёт не к https://sort.diginetica.net, и в результатах с инструмента search_in_page_network_requests по поиску по названию есть результаты, но в них нет того, который обращался бы к diginetica, то зафиксируй в result в поле search_type значение "custom".
+    - Если поиск по истории запросов по названию второго товара не дал результатов, то повтори поиск с ценой (значение записано в result в поле price_second_product)
+        - Если и он не дал результатов, то попробуй произвести поиск по названию и цене последнего товара, которых находится селектором product_link_selectors (используя инструмент get_html_frame_on_current_page и указав в селекторе что бы он вернул последний элемент).
+        - Русские буквы могут кодироваться, если нет результатов, то попробуй искать английские слова из названий, или другие части (например с числами). Также помни, что на странице цена может быть например с пробелом, отделяющим тысячи, и запятой, например отделяющей копейки, а в api оно может приходить без пробелов и точек/запятых
+        - Если поиск по названию и цене товара не дал результатов в истории запросов, то верни FAILED с текстом, что не удалось обнаружить как товары загружаются на страницу
+
+Переходи на следующий шаг алгоритма, когда значение search_type будет зафиксировано.
+
+———————————————————————— Шаг алгоритма 3: Написание кода процедуры получения результатов поиска
+
+Здесь тебе нужно будет написать и проверить код процедуры, на вход которой будут подаваться значения поискового запроса (set.query). В set.query будет содержаться строка поиска (например "Кусачки" или "Плитка").
+
+ПРИМЕРЫ для search_type = "diginetica":
+
+async parsePage(set: SetType) {
+    const url = new URL("https://sort.diginetica.net/search")
+    const pageSize = 500;
+    const urlParam = {
+        st: set.query,
+        apiKey: "TW6F7714EE", // CHANGE_HERE: В большинстве случаев меняется только этот параметр
+        strategy: "advanced_xname,zero_queries",
+        fullData: true,
+        withCorrection: true,
+        withFacets: true,
+        treeFacets: true,
+        regionId: "global",
+        useCategoryPrediction: false,
+        size: pageSize,
+        offset: set.offset,
+        showUnavailable: true,
+        unavailableMultiplier: 0.2,
+        preview: false,
+        withSku: false,
+        sort: "DEFAULT",
+    };
+
+    const data = await this.makeRequest(url.href, set.region, urlParam)
+    const json = JSON.parse(data);
+
+    if (json.totalHits == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    if (set.offset === 0) {
+        const totalPages = Math.ceil(json.totalHits / pageSize);
+        for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagesCount); shift++) {
+            this.query.add(({ ...set, query: set.query, type: "page", offset: shift * pageSize, lvl: 1 }));
         }
-    ],
-    "scanned": 406,
-    "error": null,
-    "page_url": "https://apelsin.ru/?digiSearch=true&term=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&params=%7Csort%3DDEFAULT"
+    }
+    json.products.slice(0, +this.conf.itemsCount).forEach(product => {
+        let link = `https://apelsin.ru${product?.link_url}` // CHANGE_HERE: Вот тут надо будет подставить верный хост текущего сайта
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
 }
+
+Пример 2:
+
+async parsePage(set) {
+    let url = "https://sort.diginetica.net/search"
+    const pageSize = 500;
+    const urlParam = {
+        st: set.query,
+        apiKey: '28429CHU1K',
+        strategy: "advanced,zero_queries",
+        fullData: true,
+        withCorrection: true,
+        withFacets: true,
+        treeFacets: true,
+        regionId: "global",
+        useCategoryPrediction: false,
+        size: pageSize,
+        offset: set.offset,
+        showUnavailable: true,
+        unavailableMultiplier: 0.2,
+        preview: false,
+        withSku: false,
+        sort: "DEFAULT",
+    };
+    const data = await this.makeRequest(url, urlParam)
+    const json = JSON.parse(data);
+
+    let items = [];
+    if (json.totalHits > 0) {
+        if (set.offset === 0) {
+            const totalPages = Math.ceil(json.totalHits / pageSize);
+            for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagescount); shift++) {
+                this.query.add(({...set, query: set.query, type: "page", offset: shift * pageSize, lvl: 1}));
+            }
+        }
+        json.products.slice(0, +this.conf.itemscount).forEach(product => {
+            let link = 'https://www.antica.su' + product.link_url
+            this.query.add({...set, query: link, type: "card", lvl: 1})
+        })
+    } else {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    return items;
+}
+
+Пример 3:
+
+async parsePage(set) {
+    let url = "https://sort.diginetica.net/search"
+    const pageSize = 500;
+    const urlParam = {
+        st: set.query,
+        apiKey: "NY2D9562L7",
+        strategy: "advanced_xname,zero_queries",
+        fullData: true,
+        withCorrection: true,
+        withFacets: true,
+        treeFacets: true,
+        regionId: "global",
+        useCategoryPrediction: false,
+        size: pageSize,
+        offset: set.offset,
+        showUnavailable: true,
+        unavailableMultiplier: 0.2,
+        preview: false,
+        withSku: false,
+        sort: "DEFAULT",
+    };
+    const data = await this.makeRequest(url, urlParam)
+    const json = JSON.parse(data);
+
+    let items = [];
+    if (json.totalHits == 0){
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    if (set.offset === 0) {
+        const totalPages = Math.ceil(json.totalHits / pageSize);
+        for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagesCount); shift++) {
+            this.query.add(({...set, query: set.query, type: "page", offset: shift * pageSize, lvl: 1}));
+        }
+    }
+    json.products.slice(0, +this.conf.itemscount).forEach(product => {
+        let link = "https://elemis.ru" + product?.link_url
+        this.query.add({...set, query: link, type: "card", lvl: 1})
+    })
+    return items;
+}
+
+Как ты видишь, структура всегда практически одинаковая.
+Нужно будет подставить apiKey
+И верный host, где мы задаём let link = ... 
+
+ВАЖНО: НЕ меняй сигнатуру метода, структуру и названия переменных. Код должен получиться похожим на шаблон, и изменения должны затронуть только некоторые элементы.
+
+Подобранные запросы можно проверить, используя инструмент send_curl_request, отправляя в него запросы в формате curl.
+
+Запиши полученный код процедуры parsePage в result в поле result_code
+
+———————————————————————— Если не diginetica:
+
+Если is_site_used_add_request = true И search_type = "custom", то пример с diginetica уже не подойдёт. В таком случае тебе нужно будет самостоятельно проанализировать запросы страницы, и выделить тот запрос, в ответе которого приходят результаты поиска, включая ссылки на товары. 
+
+Далее, тебе нужно будет составить валидный код, в котором будет отправляться этот запрос, с нужными рабочими параметрами, и параметром, которым задаётся поисковый запрос = set.query (это важно). Записать его также в result в поле result_code, проверить, и при необходимости изменить, что бы он работал корректно - при проверке возвращал первые 10 ссылок на товары с указанного запроса поиска.
+
+Если search_type = custom, код должен тоже реализовывать интерфейс parsePage(set).
+
+Если что, в search_input_selectors указан селектор поля ввода. При необходимости, ты сможешь выполнить поиск на этом сайте по другому запросу из семантики.
+
+———————————————————————— Шаг алгоритма 4: Проверка написанного кода
+
+Далее тебе нужно будет запустить код, записанный в result в поле result_code, используя инструмент run_js_parsePage_get_card_links.
+
+Т.е. передай в него код ровно из result_code. Также, нужно будет передать запрос на поиск, во втором аргументе. Выполни две проверки - сначала с тем запросом который сейчас открыт на странице Playwright: 'инструмент', а затем следующим запросом из семантики: {
+    "semantics": [
+        "инструмент",
+        "дрель",
+        "шуруповерт",
+        "перфоратор",
+        "болгарка",
+        "пила",
+        "шлифмашина",
+        "пылесос",
+        "аккумулятор",
+        "оснастка"
+    ]
+}
+
+Этот инструмент вернёт тебе первые 10 ссылок на товары. Убедись что они валидные (используя инструмент check_url_status)
+
+Если код не работает, падает с ошибкой, или возвращает не рабочие ссылки, то нужно будет его изменить, и обновить значение поля result_code в result.
+
+Когда рабочий код будет написан и проверен - запиши в result в поле check_code_ok значение true. Важно: не записывай в это поле значение false, если при проверке код окажется не рабочим. Это поле ожидает только записи значения true.
+
+
+Входные данные (input_data):
+
+{
+    "search_input_selectors": [
+        "input#title-search-input_fixed",
+        "form.search input.search-input[name=\"q\"]#title-search-input_fixed",
+        "#title-search_fixed input.search-input"
+    ],
+    "search_button_selectors": [
+        "#title-search_fixed button.btn.btn-search[type=\"submit\"]",
+        "form.search button[name=\"s\"][type=\"submit\"]",
+        "#title-search_fixed .search-button-div > button"
+    ],
+    "total_results_count_selectors": null,
+    "product_link_selectors": [
+        "a.cp_catalog-item__title[href]",
+        "div.cp_catalog-item a.cp_catalog-item__title[href]",
+        "a.cp_catalog-item__image[href]"
+    ],
+    "pagination_container_selectors": null,
+    "pagination_page2_selectors": null,
+    "pagination_last_page_selectors": null,
+    "last_page_number_displayed": null
+}
+
+—————————————————————————————————
+
+Схема результата (result_schema):
+
+{'count_of_products_first': {'description': 'Количество товаров на странице, при первой проверке', 'required': True}, 'is_site_used_add_request': {'description': 'Использует ли сайт дополнительные запросы для загрузки данных поисковой выдачи', 'required': True}, 'name_second_product': {'description': 'Имя второго продукта', 'required': True}, 'price_second_product': {'description': 'Цена второго продукта', 'required': True}, 'search_type': {'description': 'Обозначенный тип дополнительных запросов', 'required': True}, 'result_code': {'description': 'Сформированный фрагмент кода процедуры parsePage', 'required': True}, 'check_code_ok': {'description': 'Корректен ли написанный код', 'required': True}}
+
+—————————————————————————————————
+
+Составь глобальный план в формате:
+
+{
+  "steps": [
+    {
+      "step_id": number,
+      "goal": string,
+      "fills": array of strings
+    }
+  ]
+}
+
+—————————————————————————————————
+
+Правила:
+- каждый шаг должен заполнять хотя бы одно поле result
+- шагов должно быть минимально возможное количество
+- не описывай технические действия
+
+Верни только JSON.
+
+
+💬 AI ANSWER:
+"{
+  "steps": [
+    {
+      "step_id": 1,
+      "goal": "Определить начальное количество товаров на странице поиска по запросу «плитка» и зафиксировать его.",
+      "fills": [
+        "count_of_products_first"
+      ]
+    },
+    {
+      "step_id": 2,
+      "goal": "Установить, происходит ли увеличение количества товаров после прокрутки вниз (т.е. есть ли подгрузка через дополнительные запросы).",
+      "fills": [
+        "is_site_used_add_request"
+      ]
+    },
+    {
+      "step_id": 3,
+      "goal": "Если подгрузка есть: извлечь название и цену 2-го товара и определить тип запросов подгрузки (diginetica или custom) по совпадениям в сетевых запросах.",
+      "fills": [
+        "name_second_product",
+        "price_second_product",
+        "search_type"
+      ]
+    },
+    {
+      "step_id": 4,
+      "goal": "Сформировать код процедуры parsePage(set) для получения ссылок товаров из поиска согласно определённому типу запросов.",
+      "fills": [
+        "result_code"
+      ]
+    },
+    {
+      "step_id": 5,
+      "goal": "Проверить написанный код parsePage на двух запросах («инструмент» и «дрель») и подтвердить его работоспособность валидными ссылками.",
+      "fills": [
+        "check_code_ok"
+      ]
+    }
+  ]
+}"
+
+Время выполнения: 6.65 секунд
+
+
+
+———————————   Шаг 1   ———————————
+
+
+💫 Запрос к ChatGPT без истории, модель gpt-5.2. PROMPT:
+
+ДОСТУПНЫЕ ИНСТРУМЕНТЫ (аннотации):
+{
+    "update_result": {
+        "name": "update_result",
+        "description": "Обновляет поле(я) в объекте результата (result). Можно обновлять либо одно поле (field/value), либо сразу несколько через updates. Используй это, чтобы постепенно собрать финальный ответ по заданной схеме.",
+        "args": [
+            {
+                "name": "field",
+                "type": "str",
+                "required": false,
+                "description": "Имя поля в result (для одиночного обновления). Пример: 'file_name' или 'meta.url'"
+            },
+            {
+                "name": "value",
+                "type": "any",
+                "required": false,
+                "description": "Значение, которое нужно записать в указанное поле (для одиночного обновления)"
+            },
+            {
+                "name": "updates",
+                "type": "any",
+                "required": false,
+                "description": "Пакетное обновление нескольких полей. Вариант 1: список объектов [{'field': 'a', 'value': 1}, ...]. Вариант 2: словарь {'a': 1, 'b.c': 2}. Можно передать вместе с field/value — тогда применятся все обновления."
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "result": "{...}",
+            "error": "str|null"
+        },
+        "example_args": {
+            "updates": [
+                {
+                    "field": "file_name",
+                    "value": "todo.txt"
+                },
+                {
+                    "field": "file_content",
+                    "value": "Привет!"
+                }
+            ]
+        }
+    },
+    "update_memory": {
+        "name": "update_memory",
+        "description": "Добавляет значение в долговременную память агента (long_term_memory). Используй, когда нужно сохранить факт/наблюдение, которое понадобится позже.",
+        "args": [
+            {
+                "name": "value",
+                "type": "any",
+                "required": true,
+                "description": "Значение для сохранения (обычно строка). Если передан массив — будет добавлен целиком (extend)."
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "added": "int",
+            "memory_size": "int|null",
+            "error": "str|null"
+        },
+        "example_args": {
+            "value": "old_url=https://makitaclub.ru/"
+        }
+    },
+    "goto_main_plan_step": {
+        "name": "goto_main_plan_step",
+        "description": "Перемещает main_plan на указанный РАНЕЕ выполненный шаг (назад относительно текущего). Используй, когда нужно переиграть/уточнить уже закрытую фазу плана. По умолчанию очищает поля result из fills выбранного шага, чтобы оркестратор не продвинул план вперёд сразу же.",
+        "args": [
+            {
+                "name": "step_index",
+                "type": "int",
+                "required": false,
+                "description": "Индекс шага в main_plan.steps (0..N-1). Можно не задавать, если задан step_id."
+            },
+            {
+                "name": "step_id",
+                "type": "int",
+                "required": false,
+                "description": "Идентификатор шага step_id (обычно 1..N). Можно не задавать, если задан step_index."
+            },
+            {
+                "name": "clear_fills",
+                "type": "bool",
+                "required": false,
+                "description": "Очищать ли поля result, указанные в fills выбранного шага (по умолчанию True)."
+            },
+            {
+                "name": "reset_following_steps",
+                "type": "bool",
+                "required": false,
+                "description": "Сбросить ли статусы всех последующих шагов в pending (по умолчанию True)."
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "error": "str|null",
+            "from_step": "int",
+            "to_step": "int",
+            "cleared_fields": "array",
+            "steps_status": "array"
+        },
+        "example_args": {
+            "step_id": 1,
+            "clear_fills": true,
+            "reset_following_steps": true
+        }
+    },
+    "page_restart": {
+        "name": "page_restart",
+        "description": "Перезагружает текущую страницу и возвращает код ответа. Этот инструмент взаимодействует с текущей страницей открытой в Playwright",
+        "args": [
+            {
+                "name": "wait_until",
+                "type": "str",
+                "required": false,
+                "description": "Событие завершения перезагрузки (load|domcontentloaded|networkidle)"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут операции в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "code": "HTTP-код ответа или null",
+            "url": "str",
+            "error": "Описание ошибки, если она была"
+        },
+        "example_args": {
+            "wait_until": "load",
+            "timeout": 30000
+        }
+    },
+    "goto_url": {
+        "name": "goto_url",
+        "description": "Открывает указанную страницу по URL в текущей вкладке Playwright и возвращает код ответа",
+        "args": [
+            {
+                "name": "url",
+                "type": "str",
+                "required": true,
+                "description": "Адрес страницы для перехода"
+            },
+            {
+                "name": "wait_until",
+                "type": "str",
+                "required": false,
+                "description": "Событие завершения загрузки (load|domcontentloaded|networkidle)"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут операции в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "code": "HTTP-код ответа или null",
+            "url": "str",
+            "error": "Описание ошибки, если она была"
+        },
+        "example_args": {
+            "url": "https://example.com",
+            "wait_until": "load",
+            "timeout": 30000
+        }
+    },
+    "get_current_url": {
+        "name": "get_current_url",
+        "description": "Возвращает текущий URL открытой страницы, открытой в Playwright",
+        "args": [],
+        "returns": {
+            "status": "ok|error",
+            "url": "str|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {}
+    },
+    "wait_ms": {
+        "name": "wait_ms",
+        "description": "Ожидание указанное количество миллисекунд (по умолчанию 10 секунд) на текущей странице, открытой в Playwright",
+        "args": [
+            {
+                "name": "ms",
+                "type": "int",
+                "required": false,
+                "description": "Сколько миллисекунд ждать (по умолчанию 10000)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "ms": "int|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "ms": 10000
+        }
+    },
+    "check_url_status": {
+        "name": "check_url_status",
+        "description": "Проверяет, какой HTTP-код вернёт запрос по URL (Выполняет запрос через API-контекст Playwright и возвращает HTTP-код). Этот метод не открывает страницу в активной вкладке Playwright, а только возвращает статус который вернётся при обращении на указанный URL",
+        "args": [
+            {
+                "name": "url",
+                "type": "str",
+                "required": true,
+                "description": "Адрес, для которого нужно узнать код ответа"
+            },
+            {
+                "name": "method",
+                "type": "str",
+                "required": false,
+                "description": "HTTP-метод: GET или HEAD"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут запроса в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "code": "HTTP-код ответа или null",
+            "url": "str",
+            "error": "Описание ошибки, если она была"
+        },
+        "example_args": {
+            "url": "https://example.com",
+            "method": "HEAD",
+            "timeout": 10000
+        }
+    },
+    "validate_interactivity": {
+        "name": "validate_interactivity",
+        "description": "Быстрая проверка селектора: isEditable, isVisible, isEnabled. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор элемента"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "editable": "bool|null",
+            "visible": "bool|null",
+            "enabled": "bool|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "input[name='q']"
+        }
+    },
+    "smart_focus": {
+        "name": "smart_focus",
+        "description": "Пытается сфокусироваться: Click -> Wait(timeout) -> Click. При перехвате клика нажимает Escape и повторяет попытку. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор элемента"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут ожиданий между действиями в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "attempts": "int",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "input[name='q']",
+            "timeout": 1000
+        }
+    },
+    "click_element": {
+        "name": "click_element",
+        "description": "Кликает по элементу с заданным селектором. По умолчанию — по первому, можно выбрать индекс. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор элемента"
+            },
+            {
+                "name": "element_index",
+                "type": "int",
+                "required": false,
+                "description": "Номер элемента, если их несколько (0 — первый по умолчанию)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "element_index": "int",
+            "total_count": "int|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "button.submit",
+            "element_index": 0
+        }
+    },
+    "scroll_to_bottom": {
+        "name": "scroll_to_bottom",
+        "description": "Прокручивает страницу к низу. На текущей странице открытой в Playwright",
+        "args": [],
+        "returns": {
+            "status": "ok|error",
+            "position": "bottom",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {}
+    },
+    "scroll_to_top": {
+        "name": "scroll_to_top",
+        "description": "Прокручивает страницу к верху. На текущей странице открытой в Playwright",
+        "args": [],
+        "returns": {
+            "status": "ok|error",
+            "position": "top",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {}
+    },
+    "scroll_to_selector": {
+        "name": "scroll_to_selector",
+        "description": "Прокручивает страницу к элементу по селектору (к первому совпадению). На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор элемента"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "total_count": "int|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "form button[type='submit']"
+        }
+    },
+    "human_like_input": {
+        "name": "human_like_input",
+        "description": "Очищает поле и вводит текст посимвольно используя press_sequentially, иммитируя человеческий ввод. На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор поля ввода"
+            },
+            {
+                "name": "text",
+                "type": "str",
+                "required": true,
+                "description": "Текст для ввода"
+            },
+            {
+                "name": "delay_ms",
+                "type": "int",
+                "required": false,
+                "description": "Задержка между символами в миллисекундах"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "selector": "str",
+            "text_len": "int",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "input[name='q']",
+            "text": "hello world",
+            "delay_ms": 100
+        }
+    },
+    "press_enter": {
+        "name": "press_enter",
+        "description": "Эмулирует нажатие клавиши Enter на текущей странице открытой в Playwright",
+        "args": [],
+        "returns": {
+            "status": "ok|error",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {}
+    },
+    "press_key": {
+        "name": "press_key",
+        "description": "Эмулирует нажатие указанной клавиши на текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "key",
+                "type": "str",
+                "required": true,
+                "description": "Название клавиши в формате Playwright (например, 'Enter', 'Tab', 'ArrowDown')"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "pressed_key": "str|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "key": "Enter"
+        }
+    },
+    "wait_for_navigation_or_content": {
+        "name": "wait_for_navigation_or_content",
+        "description": "Ждёт смену URL или существенное изменение контента (>20% текста) за таймаут. На текущей вкладке Playwright",
+        "args": [
+            {
+                "name": "old_url",
+                "type": "str",
+                "required": true,
+                "description": "URL, который считаем исходным"
+            },
+            {
+                "name": "timeout",
+                "type": "int",
+                "required": false,
+                "description": "Таймаут ожидания в миллисекундах"
+            },
+            {
+                "name": "change_threshold",
+                "type": "float",
+                "required": false,
+                "description": "Порог доли изменения текста (по умолчанию 0.2 = 20%)"
+            }
+        ],
+        "returns": {
+            "status": "ok|timeout|error",
+            "reason": "url_changed|content_changed|no_change",
+            "new_url": "str",
+            "change_fraction": "float|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "old_url": "https://example.com",
+            "timeout": 15000,
+            "change_threshold": 0.2
+        }
+    },
+    "search_in_page_html": {
+        "name": "search_in_page_html",
+        "description": "Ищет подстроку в текущем HTML страницы (до 5 вхождений, 200 символов контекста перед и после найденного элемента). На текущей странице открытой в Playwright",
+        "args": [
+            {
+                "name": "substring",
+                "type": "str",
+                "required": true,
+                "description": "Подстрока для поиска"
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "required": false,
+                "description": "Максимальное число сниппетов (по умолчанию 5)"
+            },
+            {
+                "name": "context",
+                "type": "int",
+                "required": false,
+                "description": "Длина контекста вокруг совпадения (по умолчанию 200 символов)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "count": "int",
+            "matches": "list[str]|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "substring": "Example Domain",
+            "max_results": 3,
+            "context": 120
+        }
+    },
+    "find_elements": {
+        "name": "find_elements",
+        "description": "Возвращает элементы по селектору (max 5) и их количество. Можно запросить только count. Для каждого элемента возвращает inner_text/inner_html и все атрибуты (attrs).",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS/XPath селектор"
+            },
+            {
+                "name": "only_count",
+                "type": "bool",
+                "required": false,
+                "description": "Если True — вернуть только количество без данных элементов"
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "required": false,
+                "description": "Максимум элементов в выдаче (по умолчанию 5)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "count": "int",
+            "elements": "list[dict]|null",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": "a",
+            "only_count": false,
+            "max_results": 3
+        }
+    },
+    "extract_selector_data_from_cached_pages": {
+        "name": "extract_selector_data_from_cached_pages",
+        "description": "Принимает CSS/XPath селектор и массив ссылок, берёт HTML каждой страницы и возвращает массив результатов: count найденных элементов, main_result/все результаты (до 30) и html_frame_main_result (get_html_frame для первого совпадения; строится только для CSS-селекторов).Данный инструмент не взаимодействует с браузером Playwright, а получает html страниц обычным запросом.",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS или XPath селектор"
+            },
+            {
+                "name": "links",
+                "type": "list[str]",
+                "required": true,
+                "description": "Ссылки на страницы"
+            },
+            {
+                "name": "max_all_results",
+                "type": "int",
+                "required": false,
+                "description": "Лимит для all_results (по умолчанию 30)"
+            },
+            {
+                "name": "print_cache_msgs",
+                "type": "bool",
+                "required": false,
+                "description": "Печатать сообщения cache (по умолчанию False)"
+            }
+        ],
+        "returns": {
+            "results": "list[dict]: [{link, used_selector, count_of_elements, main_result, all_results, html_frame_main_result}]"
+        },
+        "example_args": {
+            "selector": ".price",
+            "links": [
+                "https://example.com/a",
+                "https://example.com/b"
+            ],
+            "max_all_results": 30,
+            "print_cache_msgs": false
+        }
+    },
+    "search_in_page_network_requests": {
+        "name": "search_in_page_network_requests",
+        "description": "Ищет подстроку по всем сетевым запросам (request/response), которые были выполнены на текущей странице Playwright с момента последней перезагрузки/навигации (top-level document). Ищет вхождения подстроки в URL/методе/параметрах/заголовках/теле запроса и в ответе.",
+        "args": [
+            {
+                "name": "substring",
+                "type": "str",
+                "required": true,
+                "description": "Подстрока для поиска по истории запросов"
+            },
+            {
+                "name": "max_results",
+                "type": "int",
+                "required": false,
+                "description": "Максимум результатов (всё равно будет ограничено 5)"
+            },
+            {
+                "name": "response_head_chars",
+                "type": "int",
+                "required": false,
+                "description": "Сколько символов брать с начала body ответа (по умолчанию 300)"
+            },
+            {
+                "name": "response_tail_chars",
+                "type": "int",
+                "required": false,
+                "description": "Сколько символов брать с конца body ответа (по умолчанию 100)"
+            },
+            {
+                "name": "response_match_context_chars",
+                "type": "int",
+                "required": false,
+                "description": "Если подстрока найдена в body ответа и находится в середине (не попадает в head/tail), то добавляем окно вокруг вхождения: N символов до и N символов после (по умолчанию 200)"
+            },
+            {
+                "name": "case_sensitive",
+                "type": "bool",
+                "required": false,
+                "description": "Искать с учётом регистра (по умолчанию False)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "count": "int",
+            "results": "array[json]",
+            "scanned": "int",
+            "error": "str|null"
+        },
+        "example_args": {
+            "substring": "diginetica",
+            "max_results": 5,
+            "response_head_chars": 300,
+            "response_tail_chars": 100,
+            "response_match_context_chars": 200,
+            "case_sensitive": false
+        }
+    },
+    "run_cheerio_js_extract_vars": {
+        "name": "run_cheerio_js_extract_vars",
+        "description": "Выполняет переданный JS-код, выполняет его и возвращает JSON со всеми переменными, объявленными в user_code через const/let/var и их значениями после выполненя. Значение для переменной HOST и объект cheerio с контентом переданной ссылки страницы уже будут инициализированы в песочнице. Не использует Playwright, получает html код ссылки через обычный запрос.",
+        "args": [
+            {
+                "name": "user_code",
+                "type": "str",
+                "required": true,
+                "description": "JS-код (1+ строк), в котором объявляются новые переменные через const/let/var, например:\nconst name = $('h1').text().trim();\nconst imageLink = HOST + $('.x a')?.attr('href');\nconst stock = $('.buy').text().includes('Купить') ? 'InStock' : 'OutOfStock';"
+            },
+            {
+                "name": "link",
+                "type": "str|list[str]",
+                "required": true,
+                "description": "URL страницы (str) или список URL (list[str])"
+            }
+        ],
+        "returns": {
+            "type": "dict|list[dict]",
+            "single_result": "{status: ok|error, vars: dict|null, results: null, error: str|null} — если link это строка",
+            "batch_result": "list[single_result] — если link это список ссылок (массив результатов в том же порядке)"
+        },
+        "example_args": {
+            "link": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+            "user_code": "const name = $('h1').text().trim();"
+        }
+    },
+    "get_total_pages_on_current_page_cheerio": {
+        "name": "get_total_pages_on_current_page_cheerio",
+        "description": "Запускает JS-выражение (cheerio/Node.js) вида `let totalPages = Math.max(...$(selector).get().map(item => +$(item).text().trim()).filter(Boolean))` на HTML текущей страницы Playwright и возвращает значение totalPages.",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS-селектор элементов пагинации (например, '.module-pagination__wrapper > a')"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "totalPages": "str|null — значение переменной totalPages (как в JS)",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "selector": ".module-pagination__wrapper > a"
+        }
+    },
+    "run_js_parsePage_get_card_links": {
+        "name": "run_js_parsePage_get_card_links",
+        "description": "Принимает строку JS/TS-кода, содержащую процедуру `async parsePage(set) { ... }`, выполняет её в Node.js в минимальном окружении (this.conf, this.query.add, this.makeRequest), кладёт переданный `query` в `set.query`, и возвращает массив из первых 10 ссылок товаров из вызовов `this.query.add({ type: 'card', query: <link> })`.",
+        "args": [
+            {
+                "name": "user_code",
+                "type": "str",
+                "required": true,
+                "description": "Код с одной процедурой `async parsePage(set) { ... }` (может быть в стиле TS: `set: SetType`). Важно: внутри кода должны добавляться карточки через `this.query.add({ type: 'card', query: link })`."
+            },
+            {
+                "name": "query",
+                "type": "str",
+                "required": true,
+                "description": "Поисковый запрос. Будет положен в `set.query` перед запуском parsePage."
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "links": "list[str]|null — первые 10 ссылок из this.query.add(type='card')",
+            "error": "Описание ошибки, если была",
+            "debug": "dict|null — отладочная информация (кол-во add и card)"
+        },
+        "example_args": {
+            "query": "iphone",
+            "user_code": "async parsePage(set) { /* ... */ }"
+        }
+    },
+    "get_total_pages_on_current_page_cheerio_code": {
+        "name": "get_total_pages_on_current_page_cheerio_code",
+        "description": "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной totalPages. Код запускается в песочнице vm (без eval/new Function и wasm). Ожидается, что в коде будет присваивание вида `let totalPages = ...` (для проверки корректного извлечения количества максимальных страниц в пагинации).",
+        "args": [
+            {
+                "name": "user_code",
+                "type": "str",
+                "required": true,
+                "description": "JS-код, который должен вычислить переменную totalPages (например `let totalPages = +$('.pagination a').last().text().trim()`)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "totalPages": "str|null — значение переменной totalPages (как в JS)",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "user_code": "let totalPages = +$('.pagination > a').last().text().trim()"
+        }
+    },
+    "get_product_link_on_current_page_cheerio_code": {
+        "name": "get_product_link_on_current_page_cheerio_code",
+        "description": "Запускает переданный JS-код (cheerio/Node.js) на HTML текущей страницы Playwright и возвращает значение переменной `link` (проверка корректного извлечения ссылки на товар из селектора). Код запускается в песочнице vm (без eval/new Function и wasm).",
+        "args": [
+            {
+                "name": "user_code",
+                "type": "str",
+                "required": true,
+                "description": "JS-код, который должен вычислить переменную `link`, например:\nlet HOST='https://example.com';\nlet products=$('.products a.stretched-link');\nlet product=products?.eq(0);\nlet link=HOST + $(product)?.attr('href');\nconsole.log('link = ' + link);"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "link": "str|null — значение переменной link (как в JS)",
+            "logs": "str|null — отладочные логи console.log (по строкам), если были",
+            "error": "Описание ошибки, если была"
+        },
+        "example_args": {
+            "user_code": "let HOST='https://makitaclub.ru'; let products=$('.products .card a.stretched-link'); let product=products?.eq(0); let link=HOST + $(product)?.attr('href'); console.log('link = ' + link);"
+        }
+    },
+    "send_curl_request": {
+        "name": "send_curl_request",
+        "description": "Принимает описание HTTP-запроса в формате curl и выполняет запрос. Возвращает код ответа, заголовки, финальный URL (с учётом редиректов), историю редиректов и обрезанный текст ответа.",
+        "args": [
+            {
+                "name": "curl_command",
+                "type": "str",
+                "required": true,
+                "description": "Полная команда curl одной строкой (можно с переносами строк и продолжением через \\)."
+            },
+            {
+                "name": "trim_head_chars",
+                "type": "int",
+                "required": false,
+                "description": "Сколько первых символов ответа показывать при обрезке (по умолчанию 300)."
+            },
+            {
+                "name": "trim_tail_chars",
+                "type": "int",
+                "required": false,
+                "description": "Сколько последних символов ответа показывать при обрезке (по умолчанию 100)."
+            },
+            {
+                "name": "trim_if_longer_than",
+                "type": "int",
+                "required": false,
+                "description": "Обрезать ответ, только если длина ответа больше этого значения (по умолчанию 400)."
+            },
+            {
+                "name": "default_timeout_seconds",
+                "type": "float",
+                "required": false,
+                "description": "Таймаут по умолчанию (сек), если в curl не задан --max-time/--connect-timeout (по умолчанию 30)."
+            }
+        ],
+        "returns": {
+            "error": "str|None — текст ошибки (если произошла), иначе None",
+            "request": "dict|None — разобранные параметры запроса (method/url/headers/timeout/verify и т.п.)",
+            "response": "dict|None — параметры ответа (status_code/headers/url/history/elapsed_ms) + body_preview (обрезанный текст) / body_length (полная длина)"
+        },
+        "example_args": {
+            "curl_command": "curl -X POST 'https://httpbin.org/post' -H 'Content-Type: application/json' -d '{\"a\":1}'",
+            "trim_head_chars": 300,
+            "trim_tail_chars": 100,
+            "trim_if_longer_than": 400,
+            "default_timeout_seconds": 30
+        }
+    },
+    "check_selector_on_current_page_cheerio": {
+        "name": "check_selector_on_current_page_cheerio",
+        "description": "Проверяет, является ли селектор верным и валидным в cheerio (Node.js). Возвращает количество совпадений CSS-селектора на текущей странице Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS-селектор для поиска"
+            }
+        ],
+        "returns": {
+            "count": "int — количество найденных элементов по селектору на текущей странице Playwright, либо текст ошибки"
+        },
+        "example_args": {
+            "selector": "div.item"
+        }
+    },
+    "get_html_frame_on_current_page": {
+        "name": "get_html_frame_on_current_page",
+        "description": "Строит компактный HTML-фрейм вокруг первого элемента по CSS-селектору, беря HTML из текущей страницы Playwright",
+        "args": [
+            {
+                "name": "selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS-селектор для поиска target"
+            },
+            {
+                "name": "max_frame_chars",
+                "type": "int",
+                "required": false,
+                "description": "Макс. длина итогового HTML-фрейма"
+            },
+            {
+                "name": "max_container_text_chars",
+                "type": "int",
+                "required": false,
+                "description": "Лимит текста при выборе контейнера"
+            },
+            {
+                "name": "max_container_html_chars",
+                "type": "int",
+                "required": false,
+                "description": "Лимит HTML при выборе контейнера"
+            },
+            {
+                "name": "sibling_elems",
+                "type": "int",
+                "required": false,
+                "description": "Сколько соседних элементов сохранять рядом с target"
+            },
+            {
+                "name": "max_text_node_chars",
+                "type": "int",
+                "required": false,
+                "description": "Лимит длины текста внутри узла"
+            },
+            {
+                "name": "ancestor_levels",
+                "type": "int",
+                "required": false,
+                "description": "Сколько уровней предков сохранять. Если нужно расширить окно, попробуй увеличить значение например до 5"
+            }
+        ],
+        "returns": {
+            "html_frame": "str — HTML-фрейм с комментариями TRIMMED_* с количеством удалённых узлов и маркерами TARGET вокруг исходного элемента"
+        },
+        "example_args": {
+            "selector": ".price",
+            "max_frame_chars": 2000
+        }
+    },
+    "parse_product_blocks_on_current_page": {
+        "name": "parse_product_blocks_on_current_page",
+        "description": "Анализирует HTML, находит полные блоки товаров на основе селектора ссылки внутри товара и возвращает их HTML и общий селектор. Важно: в ответе первый элемент массива blocks_html всегда будет пуст - это корректный ответ. Заполненными будут 2й и 3й элементы массива, там будут лежать объекты 2го и 3го товара на странице. Также помни, что данный инструмент не гарантирует полную правильность block_selector.",
+        "args": [
+            {
+                "name": "item_selector",
+                "type": "str",
+                "required": true,
+                "description": "CSS селектор элемента внутри карточки товара (например, ссылка на товар)"
+            }
+        ],
+        "returns": {
+            "status": "ok|error",
+            "blocks_html": "list[str|None]",
+            "block_selector": "str",
+            "error": "Описание ошибки"
+        },
+        "example_args": {
+            "item_selector": "a.stretched-link"
+        }
+    }
+}
+
+————————————————————————————————————
+
+ТЕКУЩАЯ ЗАДАЧА (общее описание):
+Сейчас в браузере Playwright открыта страница результатов товаров с поисковой выдачи по запросу 'инструмент'.
+
+Во входных данных (input_data) тебе даны селекторы на элементы этой страницы. Они понадобятся тебе в ходе выполнения проверок и решения задачи. В каждом массиве есть input_data по 3 селектора, из них первый - это самый стабильный и предпочтительный, по умолчанию используй его. Но если вдруг первый окажется по каким-то причинам неподходящим или нерабочим, то есть ещё два запасных селектора, которые указывают также на этот элемент.
+
+ЗАДАЧА:
+
+Нужно проверить, выполняется ли загрузка товаров дополнительным запросами. 
+
+АЛГОРИТМ:
+
+———————————————————————— Шаг алгоритма 1: Проверка, подгружаются ли данные доп. запросами
+
+1. Перейди на страницу поиска для первого запроса: https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT
+
+2. Посчитай количество результатов по селектору, указанному в product_link_selectors. Запиши количество в result в поле count_of_products_first.
+
+3. Пролистни страницу в самый низ, используя инструмент scroll_to_bottom. Если количество не изменилось, попробуй проскроллить еще 1-2 раза, так как подгрузка может срабатывать не мгновенно или порционно.
+
+4. Заново посчитай количество результатов по селектору товара product_link_selectors. 
+Если количество результатов увеличилось (обычно на 10 и более) - значит на странице выполняется подгрузка результатов через дополнительные запросы. Зафиксируй это в result: в поле is_site_used_add_request = true. 
+
+Если количество результатов по селектору товара не изменилось, то запиши в поле is_site_used_add_request значение false, и заверши задание через DONE.
+
+———————————————————————— Шаг алгоритма 2: Получение типа запроса, которым выполняется загрузка результатов (diginetica или custom)
+
+Если на странице выполняется подгрузка результатов через дополнительные запросы, и в result поле is_site_used_add_request = true, значит нужно определить тип, через что выполняется загрузка данных о товаре.
+
+- Получи полные элементы товаров используя инструмент parse_product_blocks_on_current_page. Он вернёт тебе структурные блоки 2го и 3го по счёту товаров на странице, достаточно передать ему селектор, который ты сейчас проверяешь, из поля product_link_selectors. Этот инструмент ожидает именно селектор на ссылку товара, и сам пройдётся по дереву DOM и извлечёт полные блоки товаров. Иногда инструмент parse_product_blocks_on_current_page может отработать некорректно, тогда используй универсальную функцию get_html_frame_on_current_page. В ней можно расширить окно контекста при необходимости. Также помни, что селектор product_link_selectors указывает не на весь блок товара на странице, а только на ссылку на этот товар.
+
+- Извлеки название и цену 2го товара. Сохрани их в result в поля name_second_product и price_second_product.
+
+- Используя инструмент поиска пои истории запросов на этой странице в Playwright search_in_page_network_requests
+выполни поиск по названию товара (или по части названия)
+    - Если совпадения есть, и обращение идёт к https://sort.diginetica.net то зафиксируй в result в поле search_type значение "diginetica".
+    - Если обращение идёт не к https://sort.diginetica.net, и в результатах с инструмента search_in_page_network_requests по поиску по названию есть результаты, но в них нет того, который обращался бы к diginetica, то зафиксируй в result в поле search_type значение "custom".
+    - Если поиск по истории запросов по названию второго товара не дал результатов, то повтори поиск с ценой (значение записано в result в поле price_second_product)
+        - Если и он не дал результатов, то попробуй произвести поиск по названию и цене последнего товара, которых находится селектором product_link_selectors (используя инструмент get_html_frame_on_current_page и указав в селекторе что бы он вернул последний элемент).
+        - Русские буквы могут кодироваться, если нет результатов, то попробуй искать английские слова из названий, или другие части (например с числами). Также помни, что на странице цена может быть например с пробелом, отделяющим тысячи, и запятой, например отделяющей копейки, а в api оно может приходить без пробелов и точек/запятых
+        - Если поиск по названию и цене товара не дал результатов в истории запросов, то верни FAILED с текстом, что не удалось обнаружить как товары загружаются на страницу
+
+Переходи на следующий шаг алгоритма, когда значение search_type будет зафиксировано.
+
+———————————————————————— Шаг алгоритма 3: Написание кода процедуры получения результатов поиска
+
+Здесь тебе нужно будет написать и проверить код процедуры, на вход которой будут подаваться значения поискового запроса (set.query). В set.query будет содержаться строка поиска (например "Кусачки" или "Плитка").
+
+ПРИМЕРЫ для search_type = "diginetica":
+
+async parsePage(set: SetType) {
+    const url = new URL("https://sort.diginetica.net/search")
+    const pageSize = 500;
+    const urlParam = {
+        st: set.query,
+        apiKey: "TW6F7714EE", // CHANGE_HERE: В большинстве случаев меняется только этот параметр
+        strategy: "advanced_xname,zero_queries",
+        fullData: true,
+        withCorrection: true,
+        withFacets: true,
+        treeFacets: true,
+        regionId: "global",
+        useCategoryPrediction: false,
+        size: pageSize,
+        offset: set.offset,
+        showUnavailable: true,
+        unavailableMultiplier: 0.2,
+        preview: false,
+        withSku: false,
+        sort: "DEFAULT",
+    };
+
+    const data = await this.makeRequest(url.href, set.region, urlParam)
+    const json = JSON.parse(data);
+
+    if (json.totalHits == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    if (set.offset === 0) {
+        const totalPages = Math.ceil(json.totalHits / pageSize);
+        for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagesCount); shift++) {
+            this.query.add(({ ...set, query: set.query, type: "page", offset: shift * pageSize, lvl: 1 }));
+        }
+    }
+    json.products.slice(0, +this.conf.itemsCount).forEach(product => {
+        let link = `https://apelsin.ru${product?.link_url}` // CHANGE_HERE: Вот тут надо будет подставить верный хост текущего сайта
+        this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+    })
+}
+
+Пример 2:
+
+async parsePage(set) {
+    let url = "https://sort.diginetica.net/search"
+    const pageSize = 500;
+    const urlParam = {
+        st: set.query,
+        apiKey: '28429CHU1K',
+        strategy: "advanced,zero_queries",
+        fullData: true,
+        withCorrection: true,
+        withFacets: true,
+        treeFacets: true,
+        regionId: "global",
+        useCategoryPrediction: false,
+        size: pageSize,
+        offset: set.offset,
+        showUnavailable: true,
+        unavailableMultiplier: 0.2,
+        preview: false,
+        withSku: false,
+        sort: "DEFAULT",
+    };
+    const data = await this.makeRequest(url, urlParam)
+    const json = JSON.parse(data);
+
+    let items = [];
+    if (json.totalHits > 0) {
+        if (set.offset === 0) {
+            const totalPages = Math.ceil(json.totalHits / pageSize);
+            for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagescount); shift++) {
+                this.query.add(({...set, query: set.query, type: "page", offset: shift * pageSize, lvl: 1}));
+            }
+        }
+        json.products.slice(0, +this.conf.itemscount).forEach(product => {
+            let link = 'https://www.antica.su' + product.link_url
+            this.query.add({...set, query: link, type: "card", lvl: 1})
+        })
+    } else {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    return items;
+}
+
+Пример 3:
+
+async parsePage(set) {
+    let url = "https://sort.diginetica.net/search"
+    const pageSize = 500;
+    const urlParam = {
+        st: set.query,
+        apiKey: "NY2D9562L7",
+        strategy: "advanced_xname,zero_queries",
+        fullData: true,
+        withCorrection: true,
+        withFacets: true,
+        treeFacets: true,
+        regionId: "global",
+        useCategoryPrediction: false,
+        size: pageSize,
+        offset: set.offset,
+        showUnavailable: true,
+        unavailableMultiplier: 0.2,
+        preview: false,
+        withSku: false,
+        sort: "DEFAULT",
+    };
+    const data = await this.makeRequest(url, urlParam)
+    const json = JSON.parse(data);
+
+    let items = [];
+    if (json.totalHits == 0){
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    if (set.offset === 0) {
+        const totalPages = Math.ceil(json.totalHits / pageSize);
+        for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagesCount); shift++) {
+            this.query.add(({...set, query: set.query, type: "page", offset: shift * pageSize, lvl: 1}));
+        }
+    }
+    json.products.slice(0, +this.conf.itemscount).forEach(product => {
+        let link = "https://elemis.ru" + product?.link_url
+        this.query.add({...set, query: link, type: "card", lvl: 1})
+    })
+    return items;
+}
+
+Как ты видишь, структура всегда практически одинаковая.
+Нужно будет подставить apiKey
+И верный host, где мы задаём let link = ... 
+
+ВАЖНО: НЕ меняй сигнатуру метода, структуру и названия переменных. Код должен получиться похожим на шаблон, и изменения должны затронуть только некоторые элементы.
+
+Подобранные запросы можно проверить, используя инструмент send_curl_request, отправляя в него запросы в формате curl.
+
+Запиши полученный код процедуры parsePage в result в поле result_code
+
+———————————————————————— Если не diginetica:
+
+Если is_site_used_add_request = true И search_type = "custom", то пример с diginetica уже не подойдёт. В таком случае тебе нужно будет самостоятельно проанализировать запросы страницы, и выделить тот запрос, в ответе которого приходят результаты поиска, включая ссылки на товары. 
+
+Далее, тебе нужно будет составить валидный код, в котором будет отправляться этот запрос, с нужными рабочими параметрами, и параметром, которым задаётся поисковый запрос = set.query (это важно). Записать его также в result в поле result_code, проверить, и при необходимости изменить, что бы он работал корректно - при проверке возвращал первые 10 ссылок на товары с указанного запроса поиска.
+
+Если search_type = custom, код должен тоже реализовывать интерфейс parsePage(set).
+
+Если что, в search_input_selectors указан селектор поля ввода. При необходимости, ты сможешь выполнить поиск на этом сайте по другому запросу из семантики.
+
+———————————————————————— Шаг алгоритма 4: Проверка написанного кода
+
+Далее тебе нужно будет запустить код, записанный в result в поле result_code, используя инструмент run_js_parsePage_get_card_links.
+
+Т.е. передай в него код ровно из result_code. Также, нужно будет передать запрос на поиск, во втором аргументе. Выполни две проверки - сначала с тем запросом который сейчас открыт на странице Playwright: 'инструмент', а затем следующим запросом из семантики: {
+    "semantics": [
+        "инструмент",
+        "дрель",
+        "шуруповерт",
+        "перфоратор",
+        "болгарка",
+        "пила",
+        "шлифмашина",
+        "пылесос",
+        "аккумулятор",
+        "оснастка"
+    ]
+}
+
+Этот инструмент вернёт тебе первые 10 ссылок на товары. Убедись что они валидные (используя инструмент check_url_status)
+
+Если код не работает, падает с ошибкой, или возвращает не рабочие ссылки, то нужно будет его изменить, и обновить значение поля result_code в result.
+
+Когда рабочий код будет написан и проверен - запиши в result в поле check_code_ok значение true. Важно: не записывай в это поле значение false, если при проверке код окажется не рабочим. Это поле ожидает только записи значения true.
+
+
+Входные данные (input_data):
+
+{
+    "search_input_selectors": [
+        "input#title-search-input_fixed",
+        "form.search input.search-input[name=\"q\"]#title-search-input_fixed",
+        "#title-search_fixed input.search-input"
+    ],
+    "search_button_selectors": [
+        "#title-search_fixed button.btn.btn-search[type=\"submit\"]",
+        "form.search button[name=\"s\"][type=\"submit\"]",
+        "#title-search_fixed .search-button-div > button"
+    ],
+    "total_results_count_selectors": null,
+    "product_link_selectors": [
+        "a.cp_catalog-item__title[href]",
+        "div.cp_catalog-item a.cp_catalog-item__title[href]",
+        "a.cp_catalog-item__image[href]"
+    ],
+    "pagination_container_selectors": null,
+    "pagination_page2_selectors": null,
+    "pagination_last_page_selectors": null,
+    "last_page_number_displayed": null
+}
+
+————————————————————————————————————
+
+ГЛОБАЛЬНЫЙ ПЛАН ЗАДАЧИ (main_plan):
+ШАГИ ПЛАНА (фазы):
+АКТИВНАЯ ФАЗА [Фаза 1]
+   Цель (Goal): Определить начальное количество товаров на странице поиска по запросу «плитка» и зафиксировать его.
+   Требует заполнить (Fills): ['count_of_products_first']
+   Статус: in_progress
+ [Фаза 2]
+   Цель (Goal): Установить, происходит ли увеличение количества товаров после прокрутки вниз (т.е. есть ли подгрузка через дополнительные запросы).
+   Требует заполнить (Fills): ['is_site_used_add_request']
+   Статус: pending
+ [Фаза 3]
+   Цель (Goal): Если подгрузка есть: извлечь название и цену 2-го товара и определить тип запросов подгрузки (diginetica или custom) по совпадениям в сетевых запросах.
+   Требует заполнить (Fills): ['name_second_product', 'price_second_product', 'search_type']
+   Статус: pending
+ [Фаза 4]
+   Цель (Goal): Сформировать код процедуры parsePage(set) для получения ссылок товаров из поиска согласно определённому типу запросов.
+   Требует заполнить (Fills): ['result_code']
+   Статус: pending
+ [Фаза 5]
+   Цель (Goal): Проверить написанный код parsePage на двух запросах («инструмент» и «дрель») и подтвердить его работоспособность валидными ссылками.
+   Требует заполнить (Fills): ['check_code_ok']
+   Статус: pending
+
+————————————————————————————————————
+
+ТВОЙ ФОКУС ПРЯМО СЕЙЧАС (текущая фаза):
+Цель фазы: Определить начальное количество товаров на странице поиска по запросу «плитка» и зафиксировать его.
+Необходимо заполнить поля в result: ['count_of_products_first']
+
+
+ТАКТИЧЕСКИЙ ПЛАН (steps_future) должен вести к завершению этой фазы
+
+————————————————————————————————————
+Контекст браузера (Playwright)
+
+Текущая открытая страница: https://apelsin.ru/?digiSearch=true&term=%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0&params=%7Csort%3DDEFAULT
+HTTP status: 200
+Page version: 1
+Navigations since start: 1
+Load state: complete
+Time since the page was loaded: 16.2 сек
+
+DOM summary:
+- total elements: 15741
+- links: 1566
+- inputs: 467
+- buttons: 34
+
+Изменения, которые произошли после последнего действия на странице:
+- type: navigation
+- trigger: goto_url("https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT")
+- delta_text: null
+
+History actions since load on this page:
+1. goto_url("https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT")
+
+
+————————————————————————————————————
+
+ТРЕБУЕМЫЙ ФОРМАТ РЕЗУЛЬТАТА (result_schema):
+{
+    "count_of_products_first": {
+        "type": "number",
+        "description": "Количество товаров на странице, при первой проверке"
+    },
+    "is_site_used_add_request": {
+        "type": "boolean",
+        "description": "Использует ли сайт дополнительные запросы для загрузки данных поисковой выдачи"
+    },
+    "name_second_product": {
+        "type": "string",
+        "description": "Имя второго продукта"
+    },
+    "price_second_product": {
+        "type": "string",
+        "description": "Цена второго продукта"
+    },
+    "search_type": {
+        "type": "diginetica | custom",
+        "description": "Обозначенный тип дополнительных запросов"
+    },
+    "result_code": {
+        "type": "string",
+        "description": "Сформированный фрагмент кода процедуры parsePage"
+    },
+    "check_code_ok": {
+        "type": "string",
+        "description": "Корректен ли написанный код"
+    }
+}
+
+————————————————————————————————————
+
+ТЕКУЩИЙ РЕЗУЛЬТАТ (result):
+{
+    "count_of_products_first": null,
+    "is_site_used_add_request": null,
+    "name_second_product": null,
+    "price_second_product": null,
+    "search_type": null,
+    "result_code": null,
+    "check_code_ok": null
+}
+
+————————————————————————————————————
+
+ИСТОРИЯ ПОСЛЕДНИХ ШАГОВ:
+[]
+
+————————————————————————————————————
+
+ДОЛГОВРЕМЕННАЯ ПАМЯТЬ (memory):
+[]
+
+————————————————————————————————————
+
+ТЕКУЩИЙ ТАКТИЧЕСКИЙ ПЛАН (steps_future):
+[]
+
+————————————————————————————————————
+
+ТВОЯ ЗАДАЧА НА ЭТОМ ШАГЕ:
+
+1. Ориентация по плану:
+   - Сверься с целью ТЕКУЩЕЙ ФАЗЫ main_plan
+   - Посмотри на fills в текущей фазе в main_plan: какие данные являются итоговым критерием успеха этой фазы?
+
+2. Оценка прогресса:
+   - Проанализируй историю: какая информация для достижения цели фазы уже получена, а какой не хватает?
+   - Если нужные данные для fills уже найдены в истории — внеси их в результат используя update_result
+   - Если данных еще нет — определи, какой промежуточный шаг необходим сейчас
+
+3. Выбор действий:
+   - Сформулируй цель текущего шага (target), которая максимально приблизит тебя к выполнению цели всей фазы
+   - Выбери ОДИН подходящий инструмент (action) и подготовь аргументы (args)
+
+4. Коррекция тактики:
+   - Обнови steps_future, чтобы наметить цепочку шагов до конца текущей фазы
+   - Если обнаружена важная информация «на будущее» (для следующих фаз) — сохрани её в memory_updates
+   - При необходимости оставь development_feedback
+
+————————————————————————————————————
+
+ФОРМАТ ОТВЕТА (СТРОГО JSON):
+
+{
+    "target": "краткое описание цели текущего шага",
+    "action": "ИМЯ_ИНСТРУМЕНТА | DONE | FAILED",
+    "args": { ... },
+    "reasoning": "твои рассуждения",
+    "steps_future": [
+        "шаг 1",
+        "шаг 2"
+    ],
+    "memory_updates": [
+        "строка памяти 1",
+        "строка памяти 2"
+    ],
+    "development_feedback": [
+        {
+            "type": "tool_gap | improvement | other",
+            "description": "что можно улучшить"
+        }
+    ]
+}
+
+ПРАВИЛА:
+- target, action, args, reasoning — ОБЯЗАТЕЛЬНЫ
+- steps_future, memory_updates, development_feedback — ОПЦИОНАЛЬНЫ
+- если поле не нужно — НЕ передавай его
+- в ответе верни только один JSON объект, соответствующий следующему шагу
+- для завершения задачи используй action="DONE"
+- если задача/фаза недостижима — используй action="FAILED" и передай причину в args.reason (строка)
+- чтобы собрать финальный ответ, заполняй result через action="update_result"
+- action="DONE" используй только когда result заполнен и содержит итог в нужном формате
+
+
+💬 AI ANSWER:
+"{
+  "target": "Посчитать начальное количество товаров в выдаче по селектору ссылок товара (product_link_selectors[0])",
+  "action": "find_elements",
+  "args": {
+    "selector": "a.cp_catalog-item__title[href]",
+    "only_count": true
+  },
+  "reasoning": "Для завершения текущей фазы нужно зафиксировать count_of_products_first — это количество товарных ссылок на странице по основному селектору.",
+  "steps_future": [
+    "Записать полученное количество в result.count_of_products_first через update_result",
+    "Перейти к фазе 2: прокрутка вниз и повторный подсчёт количества товаров"
+  ]
+}"
+
+Время выполнения: 5.69 секунд
+
+
+🟢 reasoning: Для завершения текущей фазы нужно зафиксировать count_of_products_first — это количество товарных ссылок на странице по основному селектору.
+🔵 target: Посчитать начальное количество товаров в выдаче по селектору ссылок товара (product_link_selectors[0])
+🟡 action: find_elements
+   🔶 args: {"selector": "a.cp_catalog-item__title[href]", "only_count": true}
+
+
+-----> Нажмите Enter чтобы продолжить
