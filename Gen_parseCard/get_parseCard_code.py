@@ -265,7 +265,75 @@ const brand = $(".c-value:contains('Бренд') > .c-value__value-text")?.first
 
 
 
-# Схема результата
+# Генерация схемы и шаблона результата под любые поля из input_data
+def build_main_result_schema_and_template(input_data: Dict[str, Any], num_links: int = 3) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """
+    На вход принимает словарь вида:
+        {
+            "name": ["селектор_1", ...],
+            "price": ["селектор_1", ...],
+            ...
+        }
+
+    Возвращает:
+      - main_result_schema: json-schema-подобное описание ожидаемого result для orchestrate()
+      - main_result_template: шаблон result (все значения None), который агент заполняет
+
+    num_links — количество страниц/ссылок, на которых агент должен проставлять ok-флаги
+    (в текущем пайплайне обычно 3: ok_on_1_link, ok_on_2_link, ok_on_3_link).
+    """
+    if not isinstance(input_data, dict):
+        raise TypeError(f"input_data must be dict, got: {type(input_data).__name__}")
+    if not isinstance(num_links, int) or num_links <= 0:
+        raise ValueError(f"num_links must be positive int, got: {num_links!r}")
+
+    main_result_schema: Dict[str, Any] = {}
+    main_result_template: Dict[str, Any] = {}
+
+    for field_name in input_data.keys():
+        # 1) выбранный селектор
+        key_selector = f"choosed_selector_field_{field_name}"
+        main_result_schema[key_selector] = {
+            "type": "string",
+            "required": True,
+            "description": f"Выбранный селектор для извлечения значений для поля {field_name}",
+        }
+        main_result_template[key_selector] = None
+
+        # 2) код извлечения
+        key_code = f"field__{field_name}__code"
+        main_result_schema[key_code] = {
+            "type": "string",
+            "required": True,
+            "description": f"Код на JS для извлечения значения для поля {field_name} по выбранному селектору",
+        }
+        main_result_template[key_code] = None
+
+        # 3) флаг, что код написан
+        key_done = f"field__{field_name}__code_gen_completed"
+        main_result_schema[key_done] = {
+            "type": "boolean",
+            "required": True,
+            "description": f"Код для поля {field_name} написан",
+        }
+        main_result_template[key_done] = None
+
+        # 4) ok-флаги по страницам
+        for i in range(1, num_links + 1):
+            key_ok = f"field__{field_name}__ok_on_{i}_link"
+            main_result_schema[key_ok] = {
+                "type": "boolean",
+                "required": True,
+                "description": f"Корректное ли значение извлекает написанный код для поля {field_name} на {i}й странице",
+            }
+            main_result_template[key_ok] = None
+
+    return main_result_schema, main_result_template
+
+
+# Схема результата (legacy-пример для 2 полей: name/price).
+# В реальном запуске `get_parseCard_code()` использует динамическую генерацию
+# через `build_main_result_schema_and_template(input_data, num_links=3)` под все поля из input_data.
 main_result_schema = {
     "choosed_selector_field_name": {
         "type": "string",
@@ -361,25 +429,25 @@ main_result_template = {
 
 
 
-main_plan = {
-    "steps": [
-        {
-            "step_id": 1,
-            "goal": "Определить источник/селектор, из которого можно надежно извлечь максимальное количество страниц (числа в элементах пагинации; либо номер в элементе перехода на последнюю страницу; либо totalCount в тексте счетчика результатов). Зафиксировать выбранный тип структуры и селектор.",
-            "fills": [
-                "type_struct_extract_max_page",
-                "pagination_max_page_value_selector"
-            ]
-        },
-        {
-            "step_id": 2,
-            "goal": "Сформировать итоговый код, который возвращает числовое значение totalPages согласно выбранному типу структуры извлечения. Если выбран тип use_total_count — предварительно определить количество товаров на одной странице. Проверить работоспособность кода инструментом get_total_pages_on_current_page_cheerio_code и зафиксировать результат.",
-            "fills": [
-                "builded_code_get_max_page_on_pagination"
-            ]
-        }
-    ]
-}
+# main_plan = {
+#     "steps": [
+#         {
+#             "step_id": 1,
+#             "goal": "Определить источник/селектор, из которого можно надежно извлечь максимальное количество страниц (числа в элементах пагинации; либо номер в элементе перехода на последнюю страницу; либо totalCount в тексте счетчика результатов). Зафиксировать выбранный тип структуры и селектор.",
+#             "fills": [
+#                 "type_struct_extract_max_page",
+#                 "pagination_max_page_value_selector"
+#             ]
+#         },
+#         {
+#             "step_id": 2,
+#             "goal": "Сформировать итоговый код, который возвращает числовое значение totalPages согласно выбранному типу структуры извлечения. Если выбран тип use_total_count — предварительно определить количество товаров на одной странице. Проверить работоспособность кода инструментом get_total_pages_on_current_page_cheerio_code и зафиксировать результат.",
+#             "fills": [
+#                 "builded_code_get_max_page_on_pagination"
+#             ]
+#         }
+#     ]
+# }
 
 
 
@@ -420,11 +488,14 @@ def get_parseCard_code(input_data, host_value):
         gen_main_prompt(host_value) + 
         input_data_str)
 
+    # Генерирую схему и шаблон динамически, на основе входных полей
+    dynamic_result_schema, dynamic_result_template = build_main_result_schema_and_template(input_data, num_links=3)
+
     resulr_answer = orchestrate(
         task = task,
         max_steps = 40,
-        result_schema = main_result_schema,
-        result_template = main_result_template,
+        result_schema = dynamic_result_schema,
+        result_template = dynamic_result_template,
         # plan = main_plan,
         # step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
