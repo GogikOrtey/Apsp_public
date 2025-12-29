@@ -1,143 +1,39 @@
-29.12.2025 22:30:07
-
-SYSTEM_PROMPT = 
-Ты — reasoning-агент, который решает задачи пошагово, строго следуя Глобальному Плану (main_plan).
-
-Ты работаешь в интерактивном браузере (Playwright), и взаимодействуешь с реальной веб-страницей через инструменты (goto_url, click_element, press_key, find_elements и т.п.).
-- Страница может изменяться после твоих действий (навигация, SPA-обновления, AJAX).
-- Единственный источник истины о состоянии страницы — блок "Контекст браузера (Playwright)" в промпте шага.
-- Ты всегда работаешь с одной текущей открытой страницей, на одной вкладке. Если ты выполняешь действие перехода на другую страницу, то текущая страница заменяется новой, и далее ты работаешь только с этой новой версией страницы.
-
-ОБЩИЕ ПРАВИЛА:
-- Ты выполняешь задачу итеративно, шаг за шагом, работая в рамках ТЕКУЩЕЙ ФАЗЫ Глобального Плана
-- На каждом шаге ты выбираешь ОДНО действие (action)
-- На каждом шаге ты возвращаешь ровно ОДИН JSON-объект, соответствующий следующему шагу
-- Даже если шаги очевидны — верни только один следующий шаг
-- Любой текст в твоём ответе вне одного JSON-объекта считается ошибкой
-- Если задача решена (все фазы плана завершены) — используй action="DONE"
-- Если в ходе рассуждений ты понимаешь, что цель текущей фазы или всей задачи недостижима (нет данных, логическое противоречие и т.п.) — не выдумывай результат. Заполни доступные поля описанием проблемы и используй action="FAILED", указав причину в args.reason
-- Ты не выдумываешь результаты инструментов — они приходят извне
-- Ты не повторяешь уже выполненные действия без причины
-
-ГЛОБАЛЬНЫЙ ПЛАН (main_plan):
-- План разбит на фазы. У каждой фазы есть цель (goal) и список полей (fills), которые нужно заполнить в result.
-- Твоя приоритетная задача — выполнить цель ТЕКУЩЕЙ АКТИВНОЙ ФАЗЫ.
-- Не пытайся выполнять задачи будущих фаз, пока не закрыты требования текущей.
-
-ИСТОРИЯ (history):
-- history — это кратковременная история твоих последних действий и наблюдений
-- history может быть усечена в любой момент, старые шаги могут исчезать
-- history не является надёжным источником фактов и отражает лишь ход выполнения задачи
-- нельзя рассчитывать на сохранность информации в history между шагами
-- любая информация (факт, вывод, наблюдение, результат инструмента), которая может понадобиться для:
-заполнения result, принятия решений на следующих шагах, будущих фаз плана - должна быть сохранена в memory через memory_updates или инструмент update_memory(value)
-- не нужно сохранять в memory информацию, которая уже надёжно зафиксирована в result
-
-ДОЛГОВРЕМЕННАЯ ПАМЯТЬ (memory):
-- memory содержит информацию, которую ты ранее сохранил
-- memory передаётся тебе полностью на каждом шаге
-- memory не ограничена HISTORY_WINDOW
-- если информация может понадобиться позже — сохрани её через memory_updates или инструмент update_memory(value)
-
-ТЕКУЩИЙ ТАКТИЧЕСКИЙ ПЛАН (steps_future):
-- steps_future — это твоя тактическая гипотеза действий внутри ТЕКУЩЕЙ ФАЗЫ глобального плана
-- используй её как ориентир для декомпозиции цели фазы
-- на каждом шаге переписывай steps_future полностью
-- если план стал неактуален — замени его полностью
-
-ИНСТРУМЕНТЫ:
-- используй только инструменты из списка доступных
-- передавай корректные аргументы
-- не используй инструмент, если результат уже известен
-
-КОНТЕКСТ БРАУЗЕРА (Playwright):
-- Любые селекторы, тексты и DOM-наблюдения действительны ТОЛЬКО для текущей версии страницы (Page version).
-- Если Page version изменилась — все старые DOM-наблюдения считаются устаревшими.
-- Если после действия last_change.type == "none", значит действие не привело к изменению страницы. В этом случае НЕ повторяй то же действие без изменения стратегии.
-- Смена URL всегда означает новую версию страницы (Page version увеличивается), даже если страница визуально похожа.
-- History actions since load относится только к текущей версии страницы. При смене Page version это новая страница.
-
-Помимо решения основной задачи, ты можешь помогать разработчику улучшать архитектуру агента.
-Для этого существует специальное поле: development_feedback (опционально, на любом шаге)
-Используй development_feedback, если во время выполнения задачи ты обнаружил:
-- отсутствие нужного инструмента
-- неудобный или ограничивающий контракт инструмента
-- избыточную или недостаточную информацию в промпте
-- архитектурное ограничение, мешающее рассуждению
-- повторяющиеся действия, которые можно автоматизировать
-
-Правила для development_feedback:
-- development_feedback НЕ влияет на выполнение текущей задачи
-- НЕ используй development_feedback для рассуждений
-- НЕ сохраняй туда факты задачи
-- development_feedback не передаётся тебе на следующих шагах
-- development_feedback предназначен ТОЛЬКО для разработчика
-
-Формат development_feedback — массив объектов:
-{
-    "type": "tool_gap | improvement | other",
-    "description": "<краткое и конкретное описание проблемы или идеи>"
-}
-
-ФОРМАТ ОТВЕТА:
-- Ты ВСЕГДА отвечаешь строго валидным JSON
-- Без пояснений, без markdown, без текста вне JSON
-- Не забывай что все обратные слэши и кавычки нужно экранировать, когда будешь записывать значения в поле result, чтобы JSON был валидным.
-
-РЕЗУЛЬТАТ (result):
-- Тебе будет дан result_schema и текущий result
-- Заполняй result ПОШАГОВО через инструмент update_result(...)
-  - Одиночное обновление: update_result(field, value)
-  - Пакетное обновление: update_result(updates=[{"field": "...", "value": ...}, ...]) или update_result(updates={"a": 1, "b": 2})
-- Текущая фаза считается завершенной, когда заполнены все обязательные поля, указанные в её "fills"
-- Используй action="DONE" только когда все фазы Глобального Плана выполнены и result полон
-- Используй action="FAILED" только когда ты не можешь продвинуться из-за недостижимости цели; в args обязательно передай reason (строку)
-
-МЕНТАЛЬНАЯ МОДЕЛЬ:
-- 1. Определи текущую активную ФАЗУ в Глобальном Плане и её цель (goal).
-- 2. Проверь, какие поля из списка "fills" текущей фазы еще не заполнены в result.
-- 3. Спланируй ОДИН атомарный шаг (action), чтобы приблизиться к заполнению этих полей.
-- 4. После ответа управление ВСЕГДА возвращается оркестратору.
-- 5. Ты НИКОГДА не выполняешь следующий шаг сам.
+29.12.2025 23:02:17
 
 Запускаем браузер
 Браузер успешно запущен
-
-Запустили get_html_frame с селектором: .products .product-card a.stretched-link[href*='/products/']
-
-Результат get_html_frame:
- <!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 249 NODES--><div class="row g-0"><!--TRIMMED_BEFORE 1 NODES--><div class="col-md-7"><div class="card-body"><h5 class="card-title">Сумка для инструментов Makita 831271-6</h5><div class="text-muted text-truncate">&lt;!--TRIMMED_BEFORE 1 AFTER 0 NODES--&gt;</div><!--TARGET_START--><a class="stretched-link" href="https://makitaclub.ru/products/831271-6/"></a><!--TARGET_END--></div></div><!--TRIMMED_AFTER 1 NODES--></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 893 NODES-->
-
-Запустили get_html_frame с селектором: .products .product-card a.stretched-link[href*='/products/']
-
-Результат get_html_frame:
- <!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 256 NODES--><div class="row g-0"><!--TRIMMED_BEFORE 1 NODES--><div class="col-md-7"><div class="card-body"><h5 class="card-title">Аккумуляторная цепная пила Makita DUC204RF (1*3Ah, 18V, Li-Ion)</h5><div class="text-muted text-truncate">&lt;!--TRIMMED_BEFORE 1 AFTER 0 NODES--&gt;</div><!--TARGET_START--><a class="stretched-link" href="https://makitaclub.ru/products/duc204rf/"></a><!--TARGET_END--></div></div><!--TRIMMED_AFTER 1 NODES--></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 893 NODES-->
-
-Запустили get_html_frame с селектором: .products .product-card a.stretched-link[href*='/products/']
-
-Результат get_html_frame:
- <!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 247 NODES--><div class="row g-0"><!--TRIMMED_BEFORE 1 NODES--><div class="col-md-7"><div class="card-body"><h5 class="card-title">Дрель безударная Makita DP4021</h5><div class="text-muted text-truncate">&lt;!--TRIMMED_BEFORE 1 AFTER 0 NODES--&gt;</div><!--TARGET_START--><a class="stretched-link" href="https://makitaclub.ru/products/dp4021/"></a><!--TARGET_END--></div></div><!--TRIMMED_AFTER 1 NODES--></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 893 NODES-->
-resilt:
 {
-    "five_links_1": [
-        "https://makitaclub.ru/products/831271-6/",
-        "https://makitaclub.ru/products/garantiya-5-let/",
-        "https://makitaclub.ru/products/nabor-rychnyh-instrumentov-i-osnastki-makita-d-42042-103-predmeta/",
-        "https://makitaclub.ru/products/nabor-instrumentov-56-sht-makita-b-53768/",
-        "https://makitaclub.ru/products/akkumulyatornyj-mnogofunktsionalnyj-instrument-makita-tm30dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/"
-    ],
-    "five_links_2": [
-        "https://makitaclub.ru/products/duc204rf/",
-        "https://makitaclub.ru/products/jv002gz/",
-        "https://makitaclub.ru/products/duc353rf2/",
-        "https://makitaclub.ru/products/duc101sf/",
-        "https://makitaclub.ru/products/dtd153sy/"
-    ],
-    "five_links_3": [
-        "https://makitaclub.ru/products/dp4021/",
-        "https://makitaclub.ru/products/df488d002/",
-        "https://makitaclub.ru/products/ddf489z/",
-        "https://makitaclub.ru/products/m0600/",
-        "https://makitaclub.ru/products/hp002gd201/"
-    ]
+    "status": "ok",
+    "url": "https://makitaclub.ru/products/831271-6/",
+    "request_ok": true,
+    "metrics": {
+        "playwright": {
+            "node_count": 1390,
+            "text_length": 2958,
+            "div_count": 163,
+            "a_count": 436,
+            "img_count": 22,
+            "button_count": 13,
+            "input_count": 3,
+            "max_depth": 20
+        },
+        "request": {
+            "node_count": 1370,
+            "text_length": 28650,
+            "div_count": 159,
+            "a_count": 435,
+            "img_count": 18,
+            "button_count": 11,
+            "input_count": 3,
+            "max_depth": 20
+        }
+    },
+    "ratios": {
+        "node_ratio": 1.0145985401459854,
+        "text_ratio": 0.10324607329842932,
+        "a_ratio": 1.0022988505747126,
+        "img_ratio": 1.2222222222222223,
+        "depth_diff": 0
+    },
+    "thresholds_triggered": []
 }

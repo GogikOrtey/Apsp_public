@@ -4,9 +4,23 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
-from import_all_libraries import get_html
-from playwright_tool.playwright_toolkit import get_current_url, goto_url, page_restart
-from playwright_tool.shared_page import get_shared_page
+from pathlib import Path
+import sys
+import os
+import json
+import copy
+import traceback
+import time
+from typing import Any
+from urllib.parse import urljoin, urlparse
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from import_all_libraries import *
+from playwright_tool.browser_start import *
+from playwright_tool.playwright_toolkit import *
+from playwright_tool.shared_page import *
 
 
 @dataclass(frozen=True)
@@ -239,6 +253,9 @@ def _metrics_from_playwright_current_page() -> PageMetrics:
     )
 
 
+
+# region Основная функция
+
 def check_request_this_site_ok(
     url: str,
     *,
@@ -339,3 +356,21 @@ def check_request_this_site_ok(
             # Не ломаем основной результат, если "возврат" не удался.
             pass
 
+
+
+
+
+# region Проверка
+
+if __name__ == "__main__":
+    # Запускаю браузер с видимым окном
+    launch_browser(headless = False)
+
+    goto_url( 
+        url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+        wait_until = "load",
+        timeout = 30_000
+    )
+
+    result = check_request_this_site_ok("https://makitaclub.ru/products/831271-6/")
+    print_json(result)

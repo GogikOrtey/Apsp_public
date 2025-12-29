@@ -18,6 +18,8 @@ import traceback
 import time
 from typing import Any
 
+
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -37,6 +39,7 @@ from new_program.agent_step_6_URL_construct import *
 from new_program.agent_step_6_1_get_links_for_product import *
 from new_program.agent_step_7_build_code_parsePage import *
 from new_program.build_final_code import *
+from new_program.check_request_this_site_ok import *
 
 # region Задачи
 
@@ -528,6 +531,32 @@ def main_processer(input_url):
 
     result_agent_step_6_1_get_links_for_product = agent_step_6_1_get_links_for_product(input_data_for_3_links, search_request)
 
+    """
+    {
+        "five_links_1": [
+            "https://makitaclub.ru/products/831271-6/",
+            "https://makitaclub.ru/products/garantiya-5-let/",
+            "https://makitaclub.ru/products/nabor-rychnyh-instrumentov-i-osnastki-makita-d-42042-103-predmeta/",
+            "https://makitaclub.ru/products/nabor-instrumentov-56-sht-makita-b-53768/",
+            "https://makitaclub.ru/products/akkumulyatornyj-mnogofunktsionalnyj-instrument-makita-tm30dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/"
+        ],
+        "five_links_2": [
+            "https://makitaclub.ru/products/duc204rf/",
+            "https://makitaclub.ru/products/jv002gz/",
+            "https://makitaclub.ru/products/duc353rf2/",
+            "https://makitaclub.ru/products/duc101sf/",
+            "https://makitaclub.ru/products/dtd153sy/"
+        ],
+        "five_links_3": [
+            "https://makitaclub.ru/products/dp4021/",
+            "https://makitaclub.ru/products/df488d002/",
+            "https://makitaclub.ru/products/ddf489z/",
+            "https://makitaclub.ru/products/m0600/",
+            "https://makitaclub.ru/products/hp002gd201/"
+        ]
+    }
+    """
+
 
 
 
@@ -624,6 +653,25 @@ def main_processer(input_url):
     Тут нужно будет проверить, открывается ли одинаковая страница в Playwright и по прямому запросу. Если между ними есть больше 15% разницы, то кидать ошибку, что "По прямому запросу сайт выдаёт другой контент, чем в браузере"
 
     """
+
+    check_url_t = result_agent_step_6_1_get_links_for_product.get("five_links_1")[0]
+    # Проверяем на первой странице товара
+    result_check_simple_request_on_this_site = check_request_this_site_ok(check_url_t)
+    result_check_simple_request_on_this_site_status = result_check_simple_request_on_this_site.get("request_ok")
+
+    print(f"\Проверка, можно ли будет получать контент с сайта обычными запросами\n")
+    print_json(result_check_simple_request_on_this_site)
+
+    if result_check_simple_request_on_this_site_status == False:
+        error_text = """
+        
+        🟡 Данные с текущего сайта нельзя будет корректно получать простыми http request запросами.
+        Нужно подключать логику решалки
+
+        Данный функционал не реализован на текущий момент 🟡
+
+        """
+        return error_text
 
     # region Шаг 9 - parseCard
 
