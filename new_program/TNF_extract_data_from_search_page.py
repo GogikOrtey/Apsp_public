@@ -332,3 +332,88 @@ if __name__ == "__main__":
     TNF_result = TNF_extract_data_from_search_page(html_content_zip)
     print(f"\nTNF_result:\n")
     print(TNF_result)
+
+
+
+
+""" 
+
+Пример стандартного вывода:
+https://makitaclub.ru
+
+{
+    "status": "ok",
+    "error_type": null,
+    "analysis_message": "Страница результатов поиска доступна, товары и пагинация присутствуют. Кнопка поиска найдена как submit-кнопка формы.",
+    "search_input_selectors": [
+        "form.woocommerce-product-search input#woocommerce-product-search-field-0",
+        "form.woocommerce-product-search input.search-field[type=\"search\"][name=\"s\"]",
+        ".site-search form.woocommerce-product-search input.search-field"
+    ],
+    "search_button_selectors": [
+        "form.woocommerce-product-search button[type=\"submit\"]",
+        ".site-search form.woocommerce-product-search button[type=\"submit\"]",
+        ".woocommerce-product-search button"
+    ],
+    "total_results_count_selectors": [
+        "p.woocommerce-result-count",
+        ".storefront-sorting > p.woocommerce-result-count",
+        "main#main p.woocommerce-result-count"
+    ],
+    "product_link_selectors": [
+        ".products .product-card a.stretched-link[href]",
+        ".products.row .col.product-card a.stretched-link[href]",
+        "div.products a.stretched-link[href]"
+    ],
+    "pagination_container_selectors": [
+        "nav.woocommerce-pagination",
+        ".storefront-sorting nav.woocommerce-pagination",
+        "ul.page-numbers"
+    ],
+    "pagination_page2_selectors": [
+        "nav.woocommerce-pagination a.page-numbers[href*=\"/page/2/\"]",
+        "ul.page-numbers a.page-numbers[href*=\"/page/2/\"]",
+        "nav.woocommerce-pagination a.page-numbers[href*=\"page/2\"]"
+    ],
+    "pagination_last_page_selectors": [
+        "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) a.page-numbers",
+        "ul.page-numbers li:nth-last-child(2) a.page-numbers",
+        "nav.woocommerce-pagination li:nth-last-child(2) > a"
+    ],
+    "last_page_number_displayed": true
+}
+
+
+
+
+
+Пример страницы с дигинетикой:
+https://apelsin.ru
+
+{
+    "status": "ok",
+    "error_type": null,
+    "analysis_message": "Страница доступна, капча/блокировка и сообщения об отсутствии результатов не обнаружены. Найдены элементы поиска и ссылки на товары. Явный элемент с общим количеством результатов и блок пагинации в предоставленном HTML не найден.",
+    "search_input_selectors": [
+        "input#title-search-input_fixed",
+        "form.search input.search-input[name=\"q\"]#title-search-input_fixed",
+        "#title-search_fixed input.search-input"
+    ],
+    "search_button_selectors": [
+        "#title-search_fixed button.btn.btn-search[type=\"submit\"]",
+        "form.search button[name=\"s\"][type=\"submit\"]",
+        "#title-search_fixed .search-button-div > button"
+    ],
+    "total_results_count_selectors": null,
+    "product_link_selectors": [
+        "a.cp_catalog-item__title[href]",
+        "div.cp_catalog-item a.cp_catalog-item__title[href]",
+        "a.cp_catalog-item__image[href]"
+    ],
+    "pagination_container_selectors": null,
+    "pagination_page2_selectors": null,
+    "pagination_last_page_selectors": null,
+    "last_page_number_displayed": null
+}
+
+"""
