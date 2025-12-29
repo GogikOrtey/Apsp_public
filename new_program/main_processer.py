@@ -51,9 +51,7 @@ from new_program.check_request_this_site_ok import *
 
 
 - Выписать запрос к агенту на формирование PP с дигинетикой
-- Добавить инструменты для исследования запросов браузера
-    - [прописать какие]
-    - 
+- Для 6_1 нужны 15 ссылок - будем брать с 1й страницы все что есть (сделать ветку в логике)
 - Протестировать суммарно на 10 простых сайтах
     - И на 3х со сложной генерацией PP, два из которых будут с дигинетикой
 - Фронт собрать
@@ -418,33 +416,17 @@ def main_processer(input_url):
 
     # region Шаг 6_2 - Кастомные запросы
 
-    # Вот здесь надо отловить момент, когда один из агентов понял что не получается ходить по страницам обычным изменением URL
+    # Генерация PP для дигинетики
+    parse_page_code_fragment = None
 
-    if TNF_result.get("pagination_container_selectors") == None or TNF_result.get("pagination_page2_selectors"):
+    if not TNF_result.get("pagination_container_selectors") or not TNF_result.get("pagination_page2_selectors"):
         
         parse_page_code_fragment = agent_step_6_2_diginetica_and_custom_req_on_PP(TNF_result, search_request, semantics, result_agent_answer_from_2_step.get("second_html")).get("result_code")
 
-    """ 
-
-    - Надо запускать проверку, если pagination_container_selectors пуст или если пуст pagination_page2_selectors. Это после выполнения 4го шага
-
-    - После выполнения 6го шага надо 
 
 
 
 
-
-
-    - И тогда 7й шаг заменяем на результат, который вернёт функция 6_2
-        - Но 6_1 также запускаем (нужны будут кастомные URL тогда для них)
-
-    """
-
-
-
-
-
-    
 
     # Генерируем кастомные исключения, для понятной отладки в случае ошибок
     if not isinstance(result_agent_step_4_product, dict):

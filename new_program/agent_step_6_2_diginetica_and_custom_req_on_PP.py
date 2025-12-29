@@ -116,7 +116,7 @@ async parsePage(set: SetType) {
         sort: "DEFAULT",
     };
 
-    const data = await this.makeRequest(url.href, set.region, urlParam)
+    const data = await this.makeRequest(url.href, urlParam)
     const json = JSON.parse(data);
 
     if (json.totalHits == 0) {
