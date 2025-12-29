@@ -14,4 +14,4 @@ link = "https://makitatrading.ru"
 # link = "som1.ru"
 # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
 # link = "https://galleryceramics.ru"
-main_processer(link)
+result_code = main_processer_base(link)

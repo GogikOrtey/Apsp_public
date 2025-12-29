@@ -18,10 +18,6 @@ import traceback
 import time
 from typing import Any
 
-from new_program.agent_step_6_2_diginetica_and_custom_req_on_PP import *
-
-
-
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -42,6 +38,7 @@ from new_program.agent_step_6_1_get_links_for_product import *
 from new_program.agent_step_7_build_code_parsePage import *
 from new_program.build_final_code import *
 from new_program.check_request_this_site_ok import *
+from new_program.agent_step_6_2_diginetica_and_custom_req_on_PP import *
 
 # region Задачи
 
@@ -50,11 +47,12 @@ from new_program.check_request_this_site_ok import *
 Глобальный план:
 
 
-- Для 6_1 нужны 15 ссылок - будем брать с 1й страницы все что есть (сделать ветку в логике)
 - Протестировать суммарно на 10 простых сайтах
     - И на 3х со сложной генерацией PP, два из которых будут с дигинетикой
 - Фронт собрать
     - [прописать что нужно]
+- Поля просмотреть и актуализировать
+    - Проверить по задачам, какие часто испольуются, и добавить их
 
 
 
@@ -65,12 +63,8 @@ from new_program.check_request_this_site_ok import *
 
 - Найти хороший пример, на котором буду всё показывать
 - Проверить что в результатах не попадаеюся поля in_stock_trigger
-- Посмотреть, какие поля чаще всего используются в задачах, и добавить их
-    - product_id убрать в самый низ и закомментить
 - Сделать headles = True для Playwright
 - Проверить что product_id не генерится
-- Обернуть обработку всех raise внутри main_processer, и выводить их как ошибки в окне вывода кода  
-    - У нас вообще будет только один вывод результата, и при корректном завершении, и при ошибке (всё в окне кода)
 - Добавить скриншоты браузера с текущего состояния
 
 
@@ -685,19 +679,23 @@ def main_processer(input_url):
 
 
 
-
-
+def main_processer_base(link):
+    try:
+        result = main_processer(link)
+    except BaseException:
+        result = traceback.format_exc()
+    return result
 
 
 
 # region Тестовый запуск
 if __name__ == "__main__":
     # link = "https://makitaclub.ru"
-    # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
+    link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
     # link = "https://makitatrading.ru"
     # link = "https://galleryceramics.ru"
-    main_processer(link)
 
+    main_processer_base(link)
 
 
 
