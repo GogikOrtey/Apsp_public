@@ -803,6 +803,295 @@ main();
 
 
 
+
+
+
+
+
+
+# region js_sandbox_run_parsePage_get_card_links
+
+# Обёртка для агента: выполнить переданный код (процедура parsePage) в Node.js и вернуть 10 ссылок карточек
+@tool(
+    name="run_js_parsePage_get_card_links",
+    description=(
+        "Принимает строку JS/TS-кода, содержащую процедуру `async parsePage(set) { ... }`, "
+        "выполняет её в Node.js в минимальном окружении (this.conf, this.query.add, this.makeRequest), "
+        "кладёт переданный `query` в `set.query`, и возвращает массив из первых 10 ссылок товаров "
+        "из вызовов `this.query.add({ type: 'card', query: <link> })`."
+    ),
+    args=[
+        {
+            "name": "user_code",
+            "type": "str",
+            "required": True,
+            "description": (
+                "Код с одной процедурой `async parsePage(set) { ... }` (может быть в стиле TS: `set: SetType`). "
+                "Важно: внутри кода должны добавляться карточки через `this.query.add({ type: 'card', query: link })`."
+            ),
+        },
+        {
+            "name": "query",
+            "type": "str",
+            "required": True,
+            "description": "Поисковый запрос. Будет положен в `set.query` перед запуском parsePage.",
+        },
+    ],
+    returns={
+        "status": "ok|error",
+        "links": "list[str]|null — первые 10 ссылок из this.query.add(type='card')",
+        "error": "Описание ошибки, если была",
+        "debug": "dict|null — отладочная информация (кол-во add и card)",
+    },
+    example_args={
+        "query": "iphone",
+        "user_code": "async parsePage(set) { /* ... */ }",
+    },
+)
+def run_js_parsePage_get_card_links(user_code: str, query: str) -> dict[str, Any]:
+    """
+    Упрощённая песочница для прогона parsePage-кода в Node.js.
+
+    ВАЖНО: сейчас БЕЗ защиты от вредоносного кода (как просил пользователь) — hardening добавится следующим шагом.
+    """
+    if not isinstance(user_code, str) or not user_code.strip():
+        return {"status": "error", "links": None, "error": "user_code должен быть непустой строкой", "debug": None}
+    if not isinstance(query, str) or not query.strip():
+        return {"status": "error", "links": None, "error": "query должен быть непустой строкой", "debug": None}
+
+    user_code_js = json.dumps(user_code)
+    query_js = json.dumps(query)
+
+    # ВАЖНО: печатаем строго JSON одним console.log, чтобы Python мог распарсить результат.
+    node_script_template = r"""
+function main() {
+  try {
+    const userCodeRaw = __USER_CODE__;
+    const query = __QUERY__;
+
+    // Минимальная "нормализация" TS -> JS (наивно, но хватает для типичных примеров)
+    // 1) async parsePage(set: SetType) -> async parsePage(set)
+    // 2) let items: ResultItem[] = [] -> let items = []
+    function stripTs(code) {
+      if (typeof code !== 'string') return '';
+      let c = code;
+      c = c.replace(/async\s+parsePage\s*\(\s*([a-zA-Z_$][\w$]*)\s*:\s*[^)]+\)/g, 'async parsePage($1)');
+      // убираем аннотации типов у let/const/var перед '=' или ';'
+      c = c.replace(/\b(let|const|var)\s+([a-zA-Z_$][\w$]*)\s*:\s*[^=;]+(\s*[=;])/g, '$1 $2$3');
+      return c;
+    }
+
+    const userCode = stripTs(userCodeRaw).trim();
+    if (!userCode) {
+      console.log(JSON.stringify({ status: 'error', links: null, error: 'Empty user code after normalization', debug: null }));
+      return;
+    }
+
+    // Чтобы код с `regionId: global` не падал по ReferenceError, дадим дефолт.
+    // (Пользователь при необходимости подставит корректный регион на своей стороне.)
+    const global = 0;
+
+    class NotFoundError extends Error {
+      constructor(message) { super(message || 'NotFoundError'); this.name = 'NotFoundError'; }
+    }
+
+    class BaseRunner {
+      constructor() {
+        this.conf = { itemsCount: 10, pagesCount: 1 };
+        this._added = [];
+        this.query = {
+          add: (obj) => { this._added.push(obj); }
+        };
+        this.logger = { put: () => {} };
+      }
+
+      // Универсальный запрос: makeRequest(url) или makeRequest(url, params) или makeRequest(url, region, params)
+      async makeRequest(url, a, b) {
+        const params = (b !== undefined) ? b : a;
+        const href = String(url || '');
+        if (!href) throw new Error('makeRequest: empty url');
+
+        const u = new URL(href);
+        if (params && typeof params === 'object') {
+          for (const [k, v] of Object.entries(params)) {
+            if (v === undefined || v === null) continue;
+            u.searchParams.set(k, String(v));
+          }
+        }
+
+        const headers = {
+          'user-agent': 'APSP-js-sandbox/1.0',
+          'accept': '*/*',
+        };
+
+        // Node >= 18: есть fetch. Node < 18: делаем GET через http/https.
+        if (typeof fetch === 'function') {
+          const res = await fetch(u.toString(), { method: 'GET', headers });
+          const text = await res.text();
+          if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText + ' ' + u.toString());
+          return text;
+        }
+
+        const httpMod = (u.protocol === 'http:') ? require('node:http') : require('node:https');
+        const text = await new Promise((resolve, reject) => {
+          const req = httpMod.request(u.toString(), { method: 'GET', headers }, (res) => {
+            const chunks = [];
+            res.on('data', (c) => chunks.push(c));
+            res.on('end', () => {
+              const body = Buffer.concat(chunks).toString('utf-8');
+              const ok = res.statusCode >= 200 && res.statusCode < 300;
+              if (!ok) reject(new Error('HTTP ' + res.statusCode + ' ' + u.toString()));
+              else resolve(body);
+            });
+          });
+          req.on('error', reject);
+          req.end();
+        });
+        return text;
+      }
+
+      // Заглушка на случай, если код всё же вызовет handleData
+      handleData(x) { return x; }
+    }
+
+    // Компилируем `parsePage` как обычную функцию и вызываем её с нужным `this`.
+    // Да, тут используется Function (и это небезопасно) — hardening будет следующим шагом.
+    let parsePageFn = null;
+    try {
+      let src = userCode;
+      // Превращаем class-method синтаксис в обычную function-дефиницию
+      src = src.replace(/^\s*async\s+parsePage\s*\(/, 'async function parsePage(');
+      src = src.replace(/^\s*parsePage\s*\(/, 'function parsePage(');
+      const factorySrc = src + '\nreturn parsePage;';
+      parsePageFn = (new Function('NotFoundError', 'global', factorySrc))(NotFoundError, global);
+    } catch (e) {
+      console.log(JSON.stringify({
+        status: 'error',
+        links: null,
+        error: 'Failed to compile user code: ' + String(e && e.message ? e.message : e),
+        debug: { userCodePreview: String(userCode).slice(0, 300) }
+      }));
+      return;
+    }
+
+    (async () => {
+      try {
+        const runner = new BaseRunner();
+        // set.query должен быть именно тут, как требовалось
+        const set = { query, offset: 0, page: 1, lvl: 0 };
+        if (typeof parsePageFn !== 'function') {
+          console.log(JSON.stringify({ status: 'error', links: null, error: 'user_code must define method parsePage(set)', debug: null }));
+          return;
+        }
+
+        await parsePageFn.call(runner, set);
+
+        const cards = (runner._added || [])
+          .filter(x => x && x.type === 'card')
+          .map(x => x.query)
+          .filter(x => typeof x === 'string' && x.trim().length > 0);
+
+        const links = cards.slice(0, 10);
+        console.log(JSON.stringify({
+          status: 'ok',
+          links,
+          error: null,
+          debug: { addedCount: (runner._added || []).length, cardCount: cards.length }
+        }));
+      } catch (e) {
+        console.log(JSON.stringify({
+          status: 'error',
+          links: null,
+          error: String(e && e.stack ? e.stack : (e && e.message ? e.message : e)),
+          debug: null
+        }));
+      }
+    })();
+  } catch (e) {
+    console.log(JSON.stringify({ status: 'error', links: null, error: String(e && e.message ? e.message : e), debug: null }));
+  }
+}
+
+main();
+""".strip()
+
+    node_script = (
+        node_script_template.replace("__USER_CODE__", user_code_js).replace("__QUERY__", query_js)
+    )
+
+    result = subprocess.run(
+        ["node", "-e", node_script],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    if result.returncode != 0:
+        err = (result.stderr or "").strip() or f"Node.js exited with code {result.returncode}"
+        return {"status": "error", "links": None, "error": err, "debug": None}
+
+    output = (result.stdout or "").strip()
+    try:
+        parsed = json.loads(output)
+    except Exception:
+        return {"status": "error", "links": None, "error": f"Unexpected Node.js output: {output!r}", "debug": None}
+
+    if parsed.get("status") == "ok":
+        links = parsed.get("links") or []
+        # гарантируем list[str]
+        if not isinstance(links, list):
+            links = []
+        links = [str(x) for x in links][:10]
+        return {"status": "ok", "links": links, "error": None, "debug": parsed.get("debug")}
+
+    return {"status": "error", "links": None, "error": parsed.get("error") or "Unknown error", "debug": parsed.get("debug")}
+
+
+# endregion js_sandbox_run_parsePage_get_card_links
+
+
+
+
+
+
+""" 
+async parsePage(set: SetType) {
+    let url = new URL(`https://api.detmir.ru/v2/products?&meta=*&limit=100&search=${set.query}`)
+    url.searchParams.set("filter", `driver:detectum;platform:web;promo:false`)
+    url.searchParams.set("meta", "*")
+    url.searchParams.set("limit", "100")
+    url.searchParams.set("search", set.query)
+    if (set.page > 1) url.searchParams.set("offset", `${(set.page - 1) * 100}`)
+
+    const data = await this.makeRequest(url.href)
+    const json = JSON.parse(data)
+
+    if (set.page === 1) {
+        for (let page = 2; page <= Math.min(6, +this.conf.pagesCount); page++) {
+            this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+        }
+    }
+
+    let items: ResultItem[] = [];
+    let products = json?.items
+    if (products.length == 0) {
+        this.logger.put(`По запросу ${set.query} ничего не найдено`)
+        throw new NotFoundError()
+    }
+    products.slice(0, +this.conf.itemsCount).forEach(product => {
+        const item = this.handleData(product)
+        items.push(item);
+    })
+    return items;
+}
+"""
+
+
+
+
+
+
+
 # region Функции-проверяльщики
 
 """
