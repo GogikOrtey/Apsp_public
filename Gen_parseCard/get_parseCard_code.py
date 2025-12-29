@@ -23,6 +23,10 @@ if str(ROOT_DIR) not in sys.path:
 from Gen_parseCard.extract_selectors_parseCard_from_GPT import *
 from import_all_libraries import *
 from reasoning_agent.agent_main import *
+from playwright_tool.browser_start import *
+
+from playwright_tool.playwright_toolkit import *  # регистрирует инструменты playwright
+from new_program.html_toolkit import *  # регистрирует инструменты html_tool
 
 
 
@@ -225,73 +229,132 @@ const brand = $(".c-value:contains('Бренд') > .c-value__value-text")?.first
 
 
 
+
+
+"""
+
+{
+    "choosed_selector_field_name": str
+    "field__name__code": str
+    "field__name__code_gen_completed": boolean
+    "field__name__ok_on_1_link": boolean
+    "field__name__ok_on_2_link": boolean
+    "field__name__ok_on_3_link": boolean
+
+    "choosed_selector_field_price"
+    "field__price__code"
+    "field__price__code_gen_completed"
+    "field__price__ok_on_1_link"
+    "field__price__ok_on_2_link"
+    "field__price__ok_on_3_link"
+
+    ... (для всех полей по 6 ячеек)
+}
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Схема результата
 main_result_schema = {
-    "pagination_max_page_value_selector": {
-        "type": "simple_max | extract_from_last_page_element | use_total_count",
-        "required": True,
-        "description": "Селектор, указывающий на элемент, из которого мы будем извлекать значение максимального количества страниц для пагинации. Селектор может указывать либо на список элементов пагинации, либо на элемент последней страницы, либо на элемент с totalCount."
-    },
-    "type_struct_extract_max_page": {
+    "choosed_selector_field_name": {
         "type": "string",
         "required": True,
-        "description": "Тип структуры кода для извлечения максимального количества страниц для пагинации"
+        "description": "Выбранный селектор для извлечения значений для поля name"
     },
-    "builded_code_get_max_page_on_pagination": {
+    "field__name__code": {
         "type": "string",
         "required": True,
-        "description": "Сформированный фрагмент кода извлечения максимального количества страниц для пагинации"
+        "description": "Код на JS для извлечения значения для поля name по выбранному селектору"
+    },
+    "field__name__code_gen_completed": {
+        "type": "boolean",
+        "required": True,
+        "description": "Код для поля name написан"
+    },
+    "field__name__ok_on_1_link": {
+        "type": "boolean",
+        "required": True,
+        "description": "Корректное ли значение извлекает написанный код для поля name на 1й странице"
+    },
+    "field__name__ok_on_2_link": {
+        "type": "boolean",
+        "required": True,
+        "description": "Корректное ли значение извлекает написанный код для поля name на 2й странице"
+    },
+    "field__name__ok_on_3_link": {
+        "type": "boolean",
+        "required": True,
+        "description": "Корректное ли значение извлекает написанный код для поля name на 3й странице"
+    },
+    "choosed_selector_field_price": {
+        "type": "string",
+        "required": True,
+        "description": "Выбранный селектор для извлечения значений для поля price"
+    },
+    "field__price__code": {
+        "type": "string",
+        "required": True,
+        "description": "Код на JS для извлечения значения для поля price по выбранному селектору"
+    },
+    "field__price__code_gen_completed": {
+        "type": "boolean",
+        "required": True,
+        "description": "Код для поля price написан"
+    },
+    "field__price__ok_on_1_link": {
+        "type": "boolean",
+        "required": True,
+        "description": "Корректное ли значение извлекает написанный код для поля price на 1й странице"
+    },
+    "field__price__ok_on_2_link": {
+        "type": "boolean",
+        "required": True,
+        "description": "Корректное ли значение извлекает написанный код для поля price на 2й странице"
+    },
+    "field__price__ok_on_3_link": {
+        "type": "boolean",
+        "required": True,
+        "description": "Корректное ли значение извлекает написанный код для поля price на 3й странице"
     }
 }
 
+
+
+
+
+
+
+
 # Шаблон результата, который агент заполняет в процессе работы
 main_result_template = {
-    "pagination_max_page_value_selector": None,
-    "type_struct_extract_max_page": None,
-    "builded_code_get_max_page_on_pagination": None
+    "choosed_selector_field_name": None,
+    "field__name__code": None,
+    "field__name__code_gen_completed": None,
+    "field__name__ok_on_1_link": None,
+    "field__name__ok_on_2_link": None,
+    "field__name__ok_on_3_link": None,
+
+    "choosed_selector_field_price": None,
+    "field__price__code": None,
+    "field__price__code_gen_completed": None,
+    "field__price__ok_on_1_link": None,
+    "field__price__ok_on_2_link": None,
+    "field__price__ok_on_3_link": None
 }
 
 
 
-
-input_data_test = {
-    "search_input_selectors": [
-        "#woocommerce-product-search-field-0",
-        "form.woocommerce-product-search input.search-field[type='search'][name='s']",
-        ".site-search .woocommerce-product-search input.search-field"
-    ],
-    "search_button_selectors": [
-        "form.woocommerce-product-search button[type='submit']",
-        ".site-search form.woocommerce-product-search button",
-        ".widget_product_search form button[type='submit']"
-    ],
-    "total_results_count_selectors": [
-        "p.woocommerce-result-count",
-        ".storefront-sorting > p.woocommerce-result-count",
-        "main#main p.woocommerce-result-count"
-    ],
-    "product_link_selectors": [
-        ".products .product-card a.stretched-link[href*='/products/']",
-        ".products a.stretched-link[href*='/products/']",
-        ".products .card a.stretched-link"
-    ],
-    "pagination_container_selectors": [
-        "nav.woocommerce-pagination",
-        ".storefront-sorting nav.woocommerce-pagination",
-        "ul.page-numbers"
-    ],
-    "pagination_page2_selectors": [
-        "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
-        "ul.page-numbers a.page-numbers[href*='/page/2/']",
-        "nav.woocommerce-pagination a.next.page-numbers[href*='/page/2/']"
-    ],
-    "pagination_last_page_selectors": [
-        "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-        "ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-        "nav.woocommerce-pagination a.page-numbers[href*='/page/']"
-    ],
-    "last_page_number_displayed": "true"
-}
 
 
 
@@ -319,7 +382,19 @@ main_plan = {
 }
 
 
-def agent_step_5_pagination(input_data, host_value):
+
+
+
+
+
+
+
+
+
+
+
+
+def get_parseCard_code(input_data, host_value):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -332,6 +407,13 @@ def agent_step_5_pagination(input_data, host_value):
 
 
     ###### input_data_str = ...
+    """
+
+    - Селекторы, которые собрались с 3х страниц
+    - Ссылки на 3 страницы
+    - Используемые поля и их описание
+
+    """
 
 
     task = (
@@ -343,8 +425,8 @@ def agent_step_5_pagination(input_data, host_value):
         max_steps = 40,
         result_schema = main_result_schema,
         result_template = main_result_template,
-        plan = main_plan,
-        step_by_step_running = False, # Разрешаем агенту работать автоматически
+        # plan = main_plan,
+        # step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
     result_task = get_result()
@@ -354,22 +436,50 @@ def agent_step_5_pagination(input_data, host_value):
 
 
 
-# # Проверка:
 
-# search_request_test = "инструмент"
 
-# # Запускаю браузер с видимым окном
-# launch_browser(headless = False)
 
-# goto_url( 
-#     url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
-#     wait_until = "load",
-#     timeout = 30_000
-# )
 
-# resilt = agent_step_5_pagination(input_data_test, search_request_test)
+# Проверка:
 
-# print("resilt:")
-# print(resilt)
+input_data_test = {
+    "name": [
+        "h1.product_title.entry-title"       
+    ],
+    "price": [
+        "div#product-65416 .summary.entry-summary p.price .woocommerce-Price-amount",     
+        "#product-81354 .summary.entry-summary p.price .woocommerce-Price-amount",        
+        "#product-65494 .summary.entry-summary p.price .woocommerce-Price-amount"
+    ],
+    "imageLink": [
+        "div#product-65416 .woocommerce-product-gallery img.wp-post-image",
+        "#product-81354 .woocommerce-product-gallery__wrapper .woocommerce-product-gallery__image:first-child img.wp-post-image",      
+        "#product-65494 .woocommerce-product-gallery img.wp-post-image"
+    ],
+    "article": [
+        "div#product-65416 .product_meta .sku_wrapper .sku",
+        "#product-81354 .product_meta .sku_wrapper .sku",
+        "#product-65494 .product_meta .sku_wrapper .sku"
+    ]
+}
+
+
+
+
+host_value_test = "https://makitaclub.ru"
+
+# Запускаю браузер с видимым окном
+launch_browser(headless = False)
+
+goto_url( 
+    url = "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
+    wait_until = "load",
+    timeout = 30_000
+)
+
+resilt = get_parseCard_code(input_data_test, host_value_test)
+
+print("resilt:")
+print(resilt)
 # print("builded_code_get_max_page_on_pagination:")
 # print(resilt.get("builded_code_get_max_page_on_pagination"))
