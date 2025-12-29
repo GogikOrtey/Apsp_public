@@ -15,7 +15,7 @@ if str(ROOT_DIR) not in sys.path:
 # Подключение всех библиотек и функций
 from import_all_libraries import *
 
-from OpenAI_ChatGPT import *
+from ChatGPT.OpenAI_ChatGPT import *
 from new_program.html_toolkit import clean_html_universal
 
 
@@ -261,13 +261,13 @@ def extract_selectors_parseCard_from_GPT(input_url):
 
 
 
-# Тестирование:
+# # Тестирование:
 
-url = "https://makitaclub.ru/products/831271-6/"
-resilt = extract_selectors_parseCard_from_GPT(url)
+# url = "https://makitaclub.ru/products/831271-6/"
+# resilt = extract_selectors_parseCard_from_GPT(url)
 
-print(f"\nresilt:\n")
-print(resilt)
+# print(f"\nresilt:\n")
+# print(resilt)
 
 
 
