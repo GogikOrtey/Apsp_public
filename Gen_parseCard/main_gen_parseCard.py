@@ -65,6 +65,8 @@ def merge_selectors_from_multiple_pages(results: List[Dict[str, Any]]) -> Dict[s
                 seen_keys.add(k)
                 keys_in_order.append(k)
 
+    stock_present_in_any = any(isinstance(d, dict) and "stock" in d for d in results)
+
     merged: Dict[str, List[str]] = {}
     for key in keys_in_order:
         uniq_values: List[str] = []
@@ -78,6 +80,10 @@ def merge_selectors_from_multiple_pages(results: List[Dict[str, Any]]) -> Dict[s
                 uniq_values.append(normalized)
         if uniq_values:
             merged[key] = uniq_values
+
+    # Если поля stock нет ни в одном входном объекте — добавляем пустой массив
+    if not stock_present_in_any and "stock" not in merged:
+        merged["stock"] = []
 
     return merged
 
@@ -440,7 +446,8 @@ def main_gen_parseCard(input_15_links, host):
             "div#product-65416 .product_meta .sku_wrapper .sku",
             "#product-81354 .product_meta .sku_wrapper .sku",
             "#product-65494 .product_meta .sku_wrapper .sku"
-        ]
+        ],
+        "stock" = []
     }
 
     """
@@ -453,9 +460,11 @@ def main_gen_parseCard(input_15_links, host):
 
 
     # Валидирую селекторы через агента
+    # get_parseCard_code(used_fields_and_selectors, host_value, random_3_links)
 
 
     # Собираю провалидированные поля в функцию parseCard
+    # 
 
 
     # Возвращаю её как строку
