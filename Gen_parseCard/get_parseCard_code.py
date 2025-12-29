@@ -20,6 +20,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 # Подключение всех библиотек и функций
+from Gen_parseCard.all_fields_description import *
 from Gen_parseCard.extract_selectors_parseCard_from_GPT import *
 from import_all_libraries import *
 from reasoning_agent.agent_main import *
@@ -455,6 +456,11 @@ main_result_template = {
 
 
 
+def extract_only_used_fields(all_fields, used_fields_and_selectors):
+    """
+    Фильтрует поля из all_fields, и возвращает объект только с теми, которые есть в used_fields_and_selectors
+    """
+    # Это заглушка
 
 
 
@@ -462,41 +468,85 @@ main_result_template = {
 
 
 
-def get_parseCard_code(input_data, host_value):
+def format_3_links(arr_links):
+    """
+    Форматирует массив ссылок в блок вида:
+
+    link_1 = https://...
+    link_2 = https://...
+    link_3 = https://...
+
+    Используется для вставки в текст промпта.
+    """
+    # Если уже строка — возвращаем как есть (на случай ручной подстановки).
+    if isinstance(arr_links, str):
+        return arr_links.strip()
+
+    if arr_links is None:
+        links = []
+    elif isinstance(arr_links, (list, tuple)):
+        links = list(arr_links)
+    else:
+        # Последняя попытка: привести к списку / строке
+        try:
+            links = list(arr_links)
+        except Exception:
+            return str(arr_links).strip()
+
+    # Берём первые 3 ссылки (ожидаемый сценарий — ровно 3).
+    links = [("" if x is None else str(x).strip()) for x in links[:3]]
+
+    lines = []
+    for i, link in enumerate(links, start=1):
+        lines.append(f"link_{i} = {link}")
+
+    return "\n".join(lines)
+
+
+
+
+
+
+def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links):
     # Приводим input_data к строке
-    if isinstance(input_data, str):
-        input_data_str = input_data
+    if isinstance(used_fields_and_selectors, str):
+        used_fields_and_selectors_str = used_fields_and_selectors
     else:
         try:
-            input_data_str = json.dumps(input_data, ensure_ascii=False, indent=4, default=str)
+            used_fields_and_selectors_str = json.dumps(used_fields_and_selectors, ensure_ascii=False, indent=4, default=str)
         except Exception:
-            input_data_str = str(input_data)
+            used_fields_and_selectors_str = str(used_fields_and_selectors)
 
+    used_3_links = format_3_links(random_3_links)
 
+    used_fields = extract_only_used_fields(all_fields, used_fields_and_selectors)
 
-    ###### input_data_str = ...
+    # input_data_str = 
     """
-
     - Селекторы, которые собрались с 3х страниц
     - Ссылки на 3 страницы
     - Используемые поля и их описание
-
     """
 
+    input_data_value = (
+        used_fields_and_selectors_str + f"\n\n" + 
+        used_3_links + f"\n\n" + 
+        used_fields + f"\n\n"
+    )
 
     task = (
         gen_main_prompt(host_value) + 
-        input_data_str)
+        input_data_value)
 
     # Генерирую схему и шаблон динамически, на основе входных полей
-    dynamic_result_schema, dynamic_result_template = build_main_result_schema_and_template(input_data, num_links=3)
+    dynamic_result_schema, dynamic_result_template = build_main_result_schema_and_template(used_fields_and_selectors, num_links=3)
 
     resulr_answer = orchestrate(
         task = task,
-        max_steps = 40,
+        max_steps = 100,
         result_schema = dynamic_result_schema,
         result_template = dynamic_result_template,
-        # plan = main_plan,
+        # plan = main_plan,                 ###### Также прописать, что бц генерился динамически
         # step_by_step_running = False, # Разрешаем агенту работать автоматически
     ) 
 
@@ -513,7 +563,7 @@ def get_parseCard_code(input_data, host_value):
 
 # Проверка:
 
-input_data_test = {
+used_fields_and_selectors_test = {
     "name": [
         "h1.product_title.entry-title"       
     ],
@@ -535,6 +585,13 @@ input_data_test = {
 }
 
 
+random_3_links_test = [
+    'https://makitaclub.ru/products/831271-6/', 
+    'https://makitaclub.ru/products/jv002gz/', 
+    'https://makitaclub.ru/products/nabor-rychnyh-instrumentov-i-osnastki-makita-d-42042-103-predmeta/'
+]
+
+
 
 
 host_value_test = "https://makitaclub.ru"
@@ -548,9 +605,7 @@ goto_url(
     timeout = 30_000
 )
 
-resilt = get_parseCard_code(input_data_test, host_value_test)
+resilt = get_parseCard_code(used_fields_and_selectors_test, host_value_test, random_3_links_test)
 
 print("resilt:")
 print(resilt)
-# print("builded_code_get_max_page_on_pagination:")
-# print(resilt.get("builded_code_get_max_page_on_pagination"))

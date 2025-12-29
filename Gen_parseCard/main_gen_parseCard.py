@@ -386,6 +386,8 @@ def main_gen_parseCard(input_15_links, host):
     # 1. Получаем 3 случайные ссылки
     (all_links, random_3_links) = merge_links_and_pick_random(input_15_links)
 
+    # print(random_3_links)
+
     print("Выбрали такие 3 случайные ссылки на товары:")
     for input_url in random_3_links:
         print(input_url)
@@ -447,6 +449,16 @@ def main_gen_parseCard(input_15_links, host):
 
     print(f"\nresult_extract_selectors_parseCard_from_GPT:\n")
     print(result_extract_selectors_parseCard_from_GPT_str)
+
+
+
+    # Валидирую селекторы через агента
+
+
+    # Собираю провалидированные поля в функцию parseCard
+
+
+    # Возвращаю её как строку
     
 
 
