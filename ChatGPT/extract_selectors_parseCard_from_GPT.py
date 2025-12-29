@@ -54,6 +54,7 @@ from new_program.html_toolkit import clean_html_universal
 "oldprice": "Старая цена",
 "imageLink": "Ссылка на изображение",
 "brand": "Бренд",
+"article": "Артикул",
 "volume": "Объём",
 "InStock_trigger": "Триггер наличия товара",
 "OutOfStock_trigger": "Триггер отсутствия товара"
@@ -113,6 +114,7 @@ def get_MAIN_PROMPT(fields_descr, fields_schema):
 "oldprice" – Старая, если явно присутствует рядом с текущей ценой в карточке товара, иначе null
 "imageLink" – Ссылка на изображение товара  
 "brand" – Бренд  
+"article" – Артикул
 "volume" – Объём  
 "stock" – CSS-селектор блока, внутри которого содержится информация о наличии товара
 
@@ -136,6 +138,7 @@ def get_MAIN_PROMPT(fields_descr, fields_schema):
 Логично, что на приведённой странице будет только один статус наличия, товар будет либо в наличии, либо нет. Для второго статуса проставь значение null. 
 Эти строки будут использованы далее в коде для определения наличия товара путём проверки их присутствия внутри элемента, найденного по селектору "stock". 
 Статусы брать изнутри контейнера stock, а не из других блоков страницы. 
+Если не удаётся найти на странице значения И для поля in_stock_status И для поля out_of_stock_status, то в поле stock возвращай null.
 
 Формат ответа (строго):
 
@@ -145,6 +148,7 @@ def get_MAIN_PROMPT(fields_descr, fields_schema):
     "oldprice": string | null,
     "imageLink": string | null,
     "brand": string | null,
+    "article": string | null,
     "volume": string | null,
     "stock": string | null,
     "in_stock_status": string | null,
@@ -222,6 +226,8 @@ def extract_selectors_parseCard_from_GPT(input_url):
     print("Отправляем запрос к extract_selectors_parseCard_from_GPT")
 
     ######## fields_descr, fields_schema
+    fields_descr = ""
+    fields_schema = ""
 
     request_from_LLM = f"""
     Инструкции:
@@ -257,7 +263,7 @@ def extract_selectors_parseCard_from_GPT(input_url):
 
 # Тестирование:
 
-url = "https://makitatrading.ru/"
+url = "https://makitaclub.ru/products/831271-6/"
 resilt = extract_selectors_parseCard_from_GPT(url)
 
 print(f"\nresilt:\n")
@@ -265,3 +271,20 @@ print(resilt)
 
 
 
+""" 
+resilt:
+
+{
+    "name": "h1.product_title.entry-title",    
+    "price": "div#product-61091 .summary p.price .woocommerce-Price-amount.amount",
+    "oldprice": null,
+    "imageLink": "div#product-61091 .woocommerce-product-gallery img.wp-post-image",        
+    "brand": null,
+    "article": "div#product-61091 .product_meta .sku_wrapper .sku",
+    "volume": null,
+    "stock": "div#product-61091",
+    "in_stock_status": null,
+    "out_of_stock_status": null
+}
+
+"""
