@@ -11,19 +11,6 @@ from OpenAI_ChatGPT import *
 
 Тут нужно для начала прописать поля
 Затем - пример структуры выхода
-Запрос
-И склейка его с html страницы (получение её из кеша)
-
-Далее - возможно валидация селекторов перед ответом
-
-Возвращает данные как из extraction_selectors_main
-(посмотреть и сделать также как получается там в выводе)
-
-
-
-
-
-
 
 Задачи:
 * Прописать системный промпт, что бы он не писал ничего лишнего в результате
@@ -34,22 +21,7 @@ from OpenAI_ChatGPT import *
 * Обработать и проверить селекторы с таблицами, важно
 * Подумать, оставить ли nth-child / nth-of-type - или вообще убрать
 
-
 """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -93,7 +65,28 @@ from OpenAI_ChatGPT import *
 
 
 
-instruction_of_extraction =  """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# region Пропмты
+
+SYSTEM_PROMPT = """
+Ты — инструмент для анализа HTML-страницы интернет-магазина. 
+"""
+
+MAIN_PROMPT =  """
 
 Тебе передан HTML-код страницы товара.
 
@@ -181,6 +174,8 @@ id, itemprop, property, aria-*, стабильные семантические 
     h1[title="Отвёртка крестовая DX-17"] - не подходит (привязка к значению товара)
     img[itemprop="image"][src] - подходит
 
+- Избегай использования случайно сгенерированных классов (хешей), типичных для styled-components или CSS modules (например, .css-1a2b3c), если есть более читаемые альтернативы.
+
 ФОРМАТ ОТВЕТА:
 - Ты ВСЕГДА отвечаешь строго валидным JSON
 - Без пояснений, без markdown, без текста вне JSON
@@ -216,8 +211,44 @@ END_HTML
 ################################ system prompt не задан!
 ################################ Добавить очистку через clean_html_universal
 
-"""
-Избегай использования случайно сгенерированных классов (хешей), типичных для styled-components или CSS modules (например, .css-1a2b3c), если есть более читаемые альтернативы.
-"""
 
 result_request = send_message_to_ChatGPT(formation_request, temperature = 0.15)
+
+
+
+
+# region Внешняя функция
+
+def extract_selectors_parseCard_from_GPT(input_html):
+    print("Отправляем запрос к extract_selectors_parseCard_from_GPT")
+
+    request_from_LLM = f"""
+    Инструкции:
+    {MAIN_PROMPT}
+
+    HTML ниже является входными данными
+
+    BEGIN_HTML
+    {input_html}
+    END_HTML
+
+    Напоминаю задачу:
+    Верни ТОЛЬКО валидный JSON строго в указанном формате.
+
+    """
+
+    result_request = send_message_to_ChatGPT(request_from_LLM, temperature = 0.1, system_prompt = SYSTEM_PROMPT)
+
+    # send_message_to_ChatGPT возвращает ChatGPTResult; достаём текст ответа
+    result_text = result_request.answer if hasattr(result_request, "answer") else str(result_request)
+
+    # Удаляем обертку ``` ``` если модель вернула JSON внутри Markdown
+    if "```" in result_text:
+        match = re.search(r"```(?:json)?\s*(.*?)\s*```", result_text, re.DOTALL)
+        if match:
+            result_text = match.group(1)
+
+    # Возвращаем именно текст, чтобы вызывающий код мог сразу парсить JSON
+    return result_text
+
+

@@ -3,38 +3,71 @@
 Возвращает код функции parsePage
 """ 
 
+import random
+from typing import Any, Dict, List, Tuple, Optional
+
+# region Импорты
+# Чтобы при запуске файла из этой папки были видны модули из корня проекта (addedFunc.py и др.)
+### Потом убрать, что бы было нормально
+from pathlib import Path
+import sys
+import json
+import copy
+from typing import Any
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+# Подключение всех библиотек и функций
+from import_all_libraries import *
+
+
+
+
+
+
+
+
+def merge_links_and_pick_random(
+    links_obj: Dict[str, Any],
+    k: int = 3,
+    *,
+    seed: Optional[int] = None,
+) -> Tuple[List[str], List[str]]:
+    """
+    1) Сливает все ссылки из объекта вида {"group": [url, ...], ...} в один массив.
+    2) Выбирает k случайных ссылок (без повторов) и возвращает их отдельным массивом.
+
+    Возвращает: (all_links, random_3_links)
+    """
+    all_links: List[str] = []
+
+    for value in links_obj.values():
+        if isinstance(value, (list, tuple)):
+            all_links.extend([x for x in value if isinstance(x, str)])
+
+    rng = random.Random(seed) if seed is not None else random
+    random_3_links = all_links.copy() if len(all_links) <= k else rng.sample(all_links, k)
+    return all_links, random_3_links
+
 
 
 """ 
 Пример ссылок, приходящих из главной функции:
 
-{
-    "five_links_1": [
-        "https://makitaclub.ru/products/831271-6/",
-        "https://makitaclub.ru/products/garantiya-5-let/",
-        "https://makitaclub.ru/products/nabor-rychnyh-instrumentov-i-osnastki-makita-d-42042-103-predmeta/",
-        "https://makitaclub.ru/products/nabor-instrumentov-56-sht-makita-b-53768/",
-        "https://makitaclub.ru/products/akkumulyatornyj-mnogofunktsionalnyj-instrument-makita-tm30dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/"
-    ],
-    "five_links_2": [
-        "https://makitaclub.ru/products/duc204rf/",
-        "https://makitaclub.ru/products/jv002gz/",
-        "https://makitaclub.ru/products/duc353rf2/",
-        "https://makitaclub.ru/products/duc101sf/",
-        "https://makitaclub.ru/products/dtd153sy/"
-    ],
-    "five_links_3": [
-        "https://makitaclub.ru/products/dp4021/",
-        "https://makitaclub.ru/products/df488d002/",
-        "https://makitaclub.ru/products/ddf489z/",
-        "https://makitaclub.ru/products/m0600/",
-        "https://makitaclub.ru/products/hp002gd201/"
-    ]
-}
-
-host = ""https://makitaclub.ru"
-
 """
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -379,46 +412,6 @@ const brand = $(".c-value:contains('Бренд') > .c-value__value-text")?.first
 
 Если значение, извлекаемое инструментом run_cheerio_js_extract_vars из рассматриваемой страницы корректно, то запиши для этой страницы в ячейке field__[название поля]__ok_on_[номер ссылки]_link значение true.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ВАЖНО:
 - Не оборачивай код, который ты будешь записывать в ячейки result в обратные кавычки, такие как ``` и `. 
 - Код JS будет строкой внутри JSON. Обязательно экранируй необходимые символы, такие как обратные слэши (например, replace(/[\\d]/g, '') вместо /[\d]/) и двойные кавычки.
@@ -536,6 +529,76 @@ const brand = $(".c-value:contains('Бренд') > .c-value__value-text")?.first
 
 
 
+# region main_gen_parseCard
 
 def main_gen_parseCard(input_15_links, host):
     print("") # Убрать
+
+    # 1. Получаем 3 случайные ссылки
+    (all_links, random_3_links) = merge_links_and_pick_random(input_15_links)
+
+    # Извлекем селекторы на этих трёх ссылках
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+host = "https://makitaclub.ru"
+
+test_input = {
+    "five_links_1": [
+        "https://makitaclub.ru/products/831271-6/",
+        "https://makitaclub.ru/products/garantiya-5-let/",
+        "https://makitaclub.ru/products/nabor-rychnyh-instrumentov-i-osnastki-makita-d-42042-103-predmeta/",
+        "https://makitaclub.ru/products/nabor-instrumentov-56-sht-makita-b-53768/",
+        "https://makitaclub.ru/products/akkumulyatornyj-mnogofunktsionalnyj-instrument-makita-tm30dz-10-8v-li-ion-bez-akkumulyatorov-i-zaryadnogo-ustrojstva/"
+    ],
+    "five_links_2": [
+        "https://makitaclub.ru/products/duc204rf/",
+        "https://makitaclub.ru/products/jv002gz/",
+        "https://makitaclub.ru/products/duc353rf2/",
+        "https://makitaclub.ru/products/duc101sf/",
+        "https://makitaclub.ru/products/dtd153sy/"
+    ],
+    "five_links_3": [
+        "https://makitaclub.ru/products/dp4021/",
+        "https://makitaclub.ru/products/df488d002/",
+        "https://makitaclub.ru/products/ddf489z/",
+        "https://makitaclub.ru/products/m0600/",
+        "https://makitaclub.ru/products/hp002gd201/"
+    ]
+}
+
+
+
+main_gen_parseCard(test_input, host)
