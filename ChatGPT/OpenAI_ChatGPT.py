@@ -468,106 +468,189 @@ def send_message_to_ChatGPT(
 
 
 my_prompt = """
-Привет. Я сейчас пишу реализацию reasoning-агента, который собирает селекторы и другую необходимую информацию со страниц, для того что бы составить код парсера для сайта. Сейчас я прописываю шаг, на котором он стартует со страниц результатов поисковой выдачи сайта. С этой страницы ему нужно собрать информацию:
-- Селектор товара
-- Где получить максимальное количество страниц выдачи (число)
-    - Чаще всего у нас в коде используется ссылка на общий блок пагинации, и там функция выделяет элемент с максимальным числом
-    - Также здесь агенту будет дан селектор на элемент перехода на последнюю страницу
-    - Ну и ему будет дан селектор, указывающий на текстовое описание, в котором указано сколько товаров в выдаче по этому запросу, если такое текстовое описание отображается на сайте
-        - В таком случае мы в коде обычно чистим регуляркой эту строку, извлекаем кол-во товаров на этой странице, и пишем код, что total_pages = current_count / count_items_of_this_page с округлением вверх
-- И также ему нужно будет собрать запрос на любую станицу выдачи и любой поисковый запрос, например:
+You are an information-structuring agent.
 
-let url = new URL(`${HOST}/catalogsearch/result/index/`)
-url.searchParams.set("q", set.query)
-url.searchParams.set("p", set.page)
+You receive a list of product fields grouped by sections.
+Each field is provided as: 
+"field_key": "short russian description"
 
-Т.е. ещё раз - реализация агента у меня уже есть, и на этом шаге у него будут данные с селекторами, и открытая страница в playwright, и набор инструментов, позволяющих выполнять необходимые действия на странице.
-
-Пример структуры данных, которую ему дадут:
-
-
-ОПИСАНИЕ ПОЛЕЙ:
-Ещё раз описание, в какое поле результата нужно положить какое значение.
-
-Поля статуса:
-- status: Общий результат анализа страницы: "ok" если селекторы успешно извлечены, либо "error" если страница не может быть обработана.
-- error_type: Тип ошибки, если status = "error" (captcha, access_denied, empty_page, unknown_structure и т.п.). Если ошибок нет — null.
-- analysis_message: Краткое текстовое описание результата: либо подтверждение успешной обработки, либо причина ошибки.
-
-Поля селекторов интерфейса поиска:
-- search_input_selectors: Селекторы поля ввода, в которое пользователь вводит поисковый запрос.
-- search_button_selectors: Селекторы кнопки, которая запускает поиск (если она существует).
-- total_results_count_selectors: Селекторы элемента, который отображает общее количество найденных товаров по текущему запросу.
-
-Поля селекторов товаров:
-- product_link_selectors: Селекторы ссылок на карточки товаров в основной выдаче.
-
-Поля селекторов пагинации:
-- pagination_container_selectors: Селекторы контейнера блока пагинации.
-- pagination_page2_selectors: Селекторы элемента, ведущего на вторую страницу результатов.
-- pagination_last_page_selectors: Селекторы элемента, ведущего на последнюю страницу выдачи.
-- last_page_number_displayed:
-    - true, если номер последней страницы виден в тексте кнопки,  
-    - false — если номер определяется только из ссылки внутри этого элемента,  
-    - null — если последнюю страницу определить невозможно.
-
-———————————————————————————————
-
-Пример данных, которые другая модель уже соберёт для него: 
+Your task is to convert this list into a structured JSON object with the following format:
 
 {
-  "status": "ok",
-  "error_type": null,
-  "analysis_message": "Страница результатов поиска WooCommerce: селекторы поля поиска, кнопки, счетчика результатов, ссылок товаров и пагинации успешно извлечены.",
-  "search_input_selectors": [
-    "form.woocommerce-product-search input#woocommerce-product-search-field-0",
-    "form.woocommerce-product-search input.search-field[type='search'][name='s']",
-    ".site-search form[role='search'] input.search-field"
-  ],
-  "search_button_selectors": [
-    "form.woocommerce-product-search button[type='submit']",
-    ".site-search form[role='search'] button[type='submit']",
-    ".woocommerce-product-search button"
-  ],
-  "total_results_count_selectors": [
-    "p.woocommerce-result-count",
-    ".storefront-sorting > p.woocommerce-result-count",
-    "main#main p.woocommerce-result-count"
-  ],
-  "product_link_selectors": [
-    ".products .product-card a.stretched-link[href]",
-    ".products.row .col.product-card a.stretched-link[href]",
-    "div.products a.stretched-link[href]"
-  ],
-  "pagination_container_selectors": [
-    "nav.woocommerce-pagination",
-    ".storefront-sorting nav.woocommerce-pagination",
-    "ul.page-numbers"
-  ],
-  "pagination_page2_selectors": [
-    "nav.woocommerce-pagination a.page-numbers[href*='/page/2/']",
-    "nav.woocommerce-pagination a.page-numbers[href*='page/2'][href*='post_type=product']",
-    "ul.page-numbers a.page-numbers[href*='/page/2/']"
-  ],
-  "pagination_last_page_selectors": [
-    "nav.woocommerce-pagination ul.page-numbers li:nth-last-child(2) > a.page-numbers",
-    "nav.woocommerce-pagination ul.page-numbers a.page-numbers[href*='/page/9/']",
-    "ul.page-numbers li:nth-last-child(2) > a.page-numbers"
-  ],
-  "last_page_number_displayed": true
+  "main": { ... },
+  "additional": { ... },
+  ...
 }
 
+You must preserve all group names and the grouping order exactly as provided.
+Fields must be placed inside the same group where they were originally listed.
 
-Тогда подумай и напиши мне его путь - т.е. что он должен будет сделать и в каком порядке, что проверить, и т.д., а также что и вкаком формате вернуть
+For each field you must generate an object with the following properties:
+
+- title  
+  Use the original short description exactly as provided.
+
+- description  
+  Write a more detailed explanation of what this field represents in an online shop product page.
+  Include, when possible:
+  • what the value means  
+  • how it usually looks  
+  • where it is typically located on the page (for example: title, h1, product card, near buy button, etc.)
+
+- examples  
+  Provide 3–6 realistic example values that could appear in this field on real product pages.
+
+- negative_examples  
+  Provide 3–6 realistic values that may appear on the page but should NOT be treated as this field.
+
+- selector_hint  
+  Provide 3–5 CSS selector patterns that are commonly used on real sites for this type of data.
+  These must be short, generic and reusable (for example: ".price", ".product-title", "[itemprop=name]").
+
+- relations (optional)  
+  If this field has logical or semantic relations to other fields (for example price vs oldprice, stock vs availableCount, etc),
+  describe them in natural language here.
+  If no clear relations exist, omit this property.
+
+Rules:
+
+1. Do NOT invent or rename any field keys.
+2. Do NOT move fields between groups.
+3. Do NOT remove any fields.
+4. Do NOT add new fields that were not provided.
+5. Do NOT include type, unit, currency, priority or any technical metadata.
+6. Use concise, clear, technical Russian.
+7. Output ONLY valid JSON. No comments, no explanations, no markdown.
+
+The goal is to produce a compact but semantically rich schema that allows an LLM-based parser to locate and validate these fields on real product pages.
+
+FIELDS:
+
+
+
+Основные параметры:
+"name": "Наименование товара",
+"stock": "Наличие товара",
+"imageLink": "Ссылка на фото товара",
+"article": "Артикул",
+"product_id": "Код товара",
+"category": "Категория",
+"brand": "Бренд",
+"manufacturer": "Производитель",
+"model": "Модель",
+"description": "Описание товара",
+
+Цены и скидки:
+"price": "Цена",
+"oldprice": "Старая цена",
+"price_discount": "Акционная цена",
+"card_price": "Цена по дисконтной карте",
+"cashback": "Кешбек \ Бонусы",
+"currency": "Валюта",
+"vat": "Признак включен ли НДС в указанную цену",
+"promotionDate": "Дата окончания действия акции",
+
+Склад и наличие:
+"availibility": "Статус товара",
+"availableCount": "Кол-во товара в наличии",
+
+Идентификация:
+"barcode": "Штрихкод",
+"ean": "Международный артикул",
+"oem": "OEM-номер",
+"partNumber": "Партномер (артикул производителя)",
+
+Характеристики:
+"color": "Цвет товара",
+"material": "Материал",
+"collection": "Коллекция товара",
+"series": "Серия",
+"aromaName": "Аромат",
+"uom": "Единица измерения",
+"count": "Кол-во товара в упаковке",
+"equipment": "Комплектация и измерения/кол-во товаров",
+"packaging": "Упаковка",
+
+Габариты и вес:
+"weight": "Вес товара",
+"volume": "Объём товара",
+"size": "Размер товара",
+"length": "Длина",
+"width": "Ширина",
+"height": "Высота",
+"diameter": "Диаметр",
+
+Статистика и рейтинги:
+"rating": "Рейтинг товара / Кол-во звездочек",
+"seller_rating": "Рейтинг товара / Кол-во звездочек",
+"reviewsCount": "Количество отзывов",
+"ordersCount": "Количество заказов",
+"users": "Кол-во пользователей",
+
+Локация и доставка:
+"region": "Регион",
+"address": "Адрес магазина",
+"shop": "Название магазина",
+"deliveryDays": "Срок доставки в днях",
+"deliveryDate": "Дата доставки",
+"deliveryPrice": "Стоимость доставки",
+"deliveryAddress": "Адрес доставки",
+"breadCrumbs": "Поисковая цепочка",
+
+Юридические данные и продавцы:
+"seller": "Продавец",
+"shopLink": "Ссылка на магазин",
+"sellerLink": "Ссылка на продавца",
+"sellerName": "Юридическое название продавца",
+"supplierName": "Юридическое название продавца",
+"sellerINN": "ИНН продавца",
+"sellerORGN": "ОГРН/ОГРНИП продавца",
+"sellerAddress": "Адрес продавца",
+
+Аптечные товары:
+"releaseForm": "Форма выпуска(мазь,пилюли)",
+"dosage": "Дозировка лекарства",
+
+Книжные поля:
+"bookype": "Тип книги",
+"isbn": "Международный стандартный книжный номер",
+"coverType": "Тип обложки",
+"publishYear": "Год выпуска",
+"pages": "Количество страниц",
+"publisher": "Издательство",
+"author": "Автор",
+
+Техника и оборудование:
+"ram": "Объем оперативной памяти",
+"rom": "Объем постоянной памяти",
+"voltage": "Напряжение (В)",
+"torque": "Максимальный крутящий момент (Н·м)",
+"battery_capacity": "Емкость аккумулятора",
+"speeds_count": "Количество скоростей",
+"bullet_diameter": "Диаметр патрона",
+"disk_diameter": "Диаметр диска (мм)",
+"power": "Мощность",
+"speed_regulation": "Регулировка скорости",
+"constant_speed": "Поддержание постоянных оборотов под нагрузкой",
+"revolutions": "Число оборотов",
+
+Промышленное / Прочее:
+"kcal_100": "Пищевая ценность на 100 г",
+"profile_number": "Номер профиля",
+"steel_mark": "Марка стали",
+
+
+
 """
 
 
-# result_request = send_message_to_ChatGPT(
-#         prompt = my_prompt,
-#         is_print = True,
-#         model = "gpt-4o",
-#         temperature = 0.85
-#     )
+result_request = send_message_to_ChatGPT(
+        prompt = my_prompt,
+        is_print = True,
+        # model = "gpt-4o",
+        model = "gpt-5.2",
+        temperature = 0.15
+    )
 
 
 
