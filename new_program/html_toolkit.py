@@ -124,6 +124,15 @@ def get_host_from_link(link: str) -> str:
     return f"{scheme}://{domain}" if domain else ""
 
 
+
+
+
+
+
+
+
+
+
 # region cheerio_js_simple_sandbox_extract_vars
 @tool(
     name="run_cheerio_js_extract_vars",
@@ -145,38 +154,59 @@ def get_host_from_link(link: str) -> str:
         },
         {
             "name": "link",
-            "type": "str",
+            "type": "str|list[str]",
             "required": True,
-            "description": "URL страницы",
+            "description": "URL страницы (str) или список URL (list[str])",
         },
     ],
     returns={
-        "status": "ok|error",
-        "vars": "dict|null — объект {varName: value} со значениями переменных из user_code",
-        "error": "str|null — описание ошибки",
+        "type": "dict|list[dict]",
+        "single_result": "{status: ok|error, vars: dict|null, results: null, error: str|null} — если link это строка",
+        "batch_result": "list[single_result] — если link это список ссылок (массив результатов в том же порядке)",
     },
     example_args={
         "link": "https://makitaclub.ru/?s=%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82&post_type=product",
         "user_code": "const name = $('h1').text().trim();",
     },
 )
-def run_cheerio_js_extract_vars(user_code: str, link: str) -> dict[str, Any]:
+def run_cheerio_js_extract_vars(
+    user_code: str,
+    link: str | list[str],
+) -> dict[str, Any] | list[dict[str, Any]]:
     """
     Выполняет user_code в Node.js+cheerio и возвращает все объявленные переменные.
 
     ВАЖНО: это упрощённая реализация (без vm/Proxy/жёсткой изоляции), как просил пользователь.
     """
     if not isinstance(user_code, str) or not user_code.strip():
-        return {"status": "error", "vars": None, "error": "user_code должен быть непустой строкой"}
+        return {"status": "error", "vars": None, "results": None, "error": "user_code должен быть непустой строкой"}
+
+    # Поддержка режима: link = список ссылок -> вернуть массив результатов
+    if isinstance(link, list):
+        results: list[dict[str, Any]] = []
+        for one_link in link:
+            # Последовательные вызовы основной функции (в режиме одиночной ссылки)
+            one_result = run_cheerio_js_extract_vars(user_code=user_code, link=one_link)
+            # Защита: в batch-режиме ожидаем именно dict на элемент
+            if isinstance(one_result, dict):
+                results.append(one_result)
+            else:
+                results.append({"status": "error", "vars": None, "results": None, "error": "Unexpected non-dict result"})
+        return results
+
     if not isinstance(link, str) or not link.strip():
-        return {"status": "error", "vars": None, "error": "link должен быть непустой строкой"}
+        return {"status": "error", "vars": None, "results": None, "error": "link должен быть непустой строкой"}
 
     try:
         html_content = get_html_from_cache(link, print_msg=False)
     except Exception as e:
-        return {"status": "error", "vars": None, "error": f"Не удалось получить HTML из кеша: {e}"}
+        return {"status": "error", "vars": None, "results": None, "error": f"Не удалось получить HTML из кеша: {e}"}
 
-    return run_cheerio_js_extract_vars_on_html(user_code=user_code, html_content=html_content, link=link)
+    result = run_cheerio_js_extract_vars_on_html(user_code=user_code, html_content=html_content, link=link)
+    # Обратная совместимость: в одиночном режиме возвращаем как раньше `vars`, но добавляем `results: None`
+    if isinstance(result, dict) and "results" not in result:
+        result["results"] = None
+    return result
 
 
 def run_cheerio_js_extract_vars_on_html(user_code: str, html_content: str, link: str) -> dict[str, Any]:
