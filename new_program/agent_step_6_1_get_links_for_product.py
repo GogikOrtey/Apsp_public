@@ -159,6 +159,13 @@ def _extract_hrefs_from_cached_page_html(selector: str, page_url: str) -> list[s
                     href = el.get("href")  # type: ignore[attr-defined]
                 except Exception:
                     href = None
+                if not href:
+                    try:
+                        a_nodes = el.xpath(".//a[@href]")  # type: ignore[attr-defined]
+                        a0 = a_nodes[0] if isinstance(a_nodes, list) and a_nodes else None
+                        href = a0.get("href") if a0 is not None else None  # type: ignore[attr-defined]
+                    except Exception:
+                        href = None
                 if isinstance(href, str) and href.strip():
                     out.append(href.strip())
             return out
