@@ -150,6 +150,7 @@ def _safe_page_content(page: Page, timeout_ms: int = 1_000, poll_ms: int = 100) 
     raise RuntimeError("Failed to read page.content()")
 
 
+# region page_restart
 @tool(
     name="page_restart",
     description="Перезагружает текущую страницу и возвращает код ответа. Этот инструмент взаимодействует с текущей страницей открытой в Playwright",
@@ -196,6 +197,7 @@ def page_restart(
     return res
 
 
+# region goto_url
 @tool(
     name="goto_url",
     description="Открывает указанную страницу по URL в текущей вкладке Playwright и возвращает код ответа",
@@ -249,6 +251,7 @@ def goto_url(
     return res
 
 
+# region get_current_url
 @tool(
     name="get_current_url",
     description="Возвращает текущий URL открытой страницы, открытой в Playwright",
@@ -278,6 +281,7 @@ def get_current_url() -> dict[str, str | None]:
     return res
 
 
+# region wait_ms
 @tool(
     name="wait_ms",
     description="Ожидание указанное количество миллисекунд (по умолчанию 10 секунд) на текущей странице, открытой в Playwright",
@@ -318,6 +322,7 @@ def wait_ms(ms: int = 10_000) -> dict[str, str | int | None]:
     return res
 
 
+# region check_url_status
 @tool(
     name="check_url_status",
     description="Проверяет, какой HTTP-код вернёт запрос по URL (Выполняет запрос через API-контекст Playwright и возвращает HTTP-код). Этот метод не открывает страницу в активной вкладке Playwright, а только возвращает статус который вернётся при обращении на указанный URL",
@@ -378,6 +383,7 @@ def check_url_status(
     return res
 
 
+# region validate_interactivity
 @tool(
     name="validate_interactivity",
     description="Быстрая проверка селектора: isEditable, isVisible, isEnabled. На текущей странице открытой в Playwright",
@@ -439,6 +445,7 @@ def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
     return res
 
 
+# region smart_focus
 @tool(
     name="smart_focus",
     description="Пытается сфокусироваться: Click -> Wait(timeout) -> Click. При перехвате клика нажимает Escape и повторяет попытку. На текущей странице открытой в Playwright",
@@ -497,6 +504,7 @@ def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | No
     return res
 
 
+# region click_element
 @tool(
     name="click_element",
     description="Кликает по элементу с заданным селектором. По умолчанию — по первому, можно выбрать индекс. На текущей странице открытой в Playwright",
@@ -584,6 +592,7 @@ def click_element(
         return res
 
 
+# region scroll_to_bottom
 @tool(
     name="scroll_to_bottom",
     description="Прокручивает страницу к низу. На текущей странице открытой в Playwright",
@@ -620,6 +629,7 @@ def scroll_to_bottom() -> dict[str, str | None]:
     return res
 
 
+# region scroll_to_top
 @tool(
     name="scroll_to_top",
     description="Прокручивает страницу к верху. На текущей странице открытой в Playwright",
@@ -649,6 +659,7 @@ def scroll_to_top() -> dict[str, str | None]:
     return res
 
 
+# region scroll_to_selector
 @tool(
     name="scroll_to_selector",
     description="Прокручивает страницу к элементу по селектору (к первому совпадению). На текущей странице открытой в Playwright",
@@ -696,6 +707,7 @@ def scroll_to_selector(selector: str) -> dict[str, str | int | None]:
     return res
 
 
+# region human_like_input
 @tool(
     name="human_like_input",
     description="Очищает поле и вводит текст посимвольно используя press_sequentially, иммитируя человеческий ввод. На текущей странице открытой в Playwright",
@@ -753,6 +765,7 @@ def human_like_input(
     return res
 
 
+# region press_enter
 @tool(
     name="press_enter",
     description="Эмулирует нажатие клавиши Enter на текущей странице открытой в Playwright",
@@ -782,6 +795,7 @@ def press_enter() -> dict[str, str | None]:
     return res
 
 
+# region press_key
 @tool(
     name="press_key",
     description="Эмулирует нажатие указанной клавиши на текущей странице открытой в Playwright",
@@ -818,6 +832,7 @@ def press_key(key: str) -> dict[str, str | None]:
     return res
 
 
+# region wait_for_navigation_or_content
 @tool(
     name="wait_for_navigation_or_content",
     description="Ждёт смену URL или существенное изменение контента (>20% текста) за таймаут. На текущей вкладке Playwright",
@@ -943,6 +958,7 @@ def wait_for_navigation_or_content(
         return res
 
 
+# region search_in_page_html
 @tool(
     name="search_in_page_html",
     description="Ищет подстроку в текущем HTML страницы (до 5 вхождений, 200 символов контекста перед и после найденного элемента). На текущей странице открытой в Playwright",
@@ -1014,6 +1030,7 @@ def search_in_page_html(
     return res
 
 
+# region find_elements
 @tool(
     name="find_elements",
     description="Возвращает элементы по селектору (max 5) и их количество. Можно запросить только count. Для каждого элемента возвращает inner_text/inner_html и все атрибуты (attrs).",
@@ -1145,6 +1162,7 @@ def _extract_element_value(el: Any) -> str:
     return ""
 
 
+# region extract_selector_data_from_cached_pages
 @tool(
     name="extract_selector_data_from_cached_pages",
     description=(
