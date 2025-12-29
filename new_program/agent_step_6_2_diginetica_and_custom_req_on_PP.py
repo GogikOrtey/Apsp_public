@@ -23,9 +23,7 @@ if str(ROOT_DIR) not in sys.path:
 
 # Подключение всех библиотек и функций
 from import_all_libraries import *
-
 from reasoning_agent.agent_main import *
-
 from playwright_tool.playwright_toolkit import *  # регистрирует инструменты playwright
 from new_program.html_toolkit import *  # регистрирует инструменты html_tool
 
@@ -533,7 +531,7 @@ if __name__ == "__main__":
         timeout = 30_000
     )
 
-
+    # Поля похожи на те, что есть в 6
     resilt = agent_step_6_2_diginetica_and_custom_req_on_PP(input_data_test, search_request_test, semantics_test, link)
 
     print("resilt:")
