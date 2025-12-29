@@ -298,7 +298,7 @@ def build_main_result_schema_and_template(input_data: Dict[str, Any], num_links:
         key_selector = f"choosed_selector_field_{field_name}"
         main_result_schema[key_selector] = {
             "type": "string",
-            "required": True,
+            # "required": True,
             "description": f"Выбранный селектор для извлечения значений для поля {field_name}",
         }
         main_result_template[key_selector] = None
@@ -307,7 +307,7 @@ def build_main_result_schema_and_template(input_data: Dict[str, Any], num_links:
         key_code = f"field__{field_name}__code"
         main_result_schema[key_code] = {
             "type": "string",
-            "required": True,
+            # "required": True,
             "description": f"Код на JS для извлечения значения для поля {field_name} по выбранному селектору",
         }
         main_result_template[key_code] = None
@@ -316,7 +316,7 @@ def build_main_result_schema_and_template(input_data: Dict[str, Any], num_links:
         key_done = f"field__{field_name}__code_gen_completed"
         main_result_schema[key_done] = {
             "type": "boolean",
-            "required": True,
+            # "required": True,
             "description": f"Код для поля {field_name} написан",
         }
         main_result_template[key_done] = None
@@ -326,12 +326,84 @@ def build_main_result_schema_and_template(input_data: Dict[str, Any], num_links:
             key_ok = f"field__{field_name}__ok_on_{i}_link"
             main_result_schema[key_ok] = {
                 "type": "boolean",
-                "required": True,
+                # "required": True,
                 "description": f"Корректное ли значение извлекает написанный код для поля {field_name} на {i}й странице",
             }
             main_result_template[key_ok] = None
 
     return main_result_schema, main_result_template
+
+
+def _ru_pages_phrase(num_links: int) -> str:
+    """
+    Утилита для человекочитаемой фразы про количество страниц в goal плана.
+    """
+    mapping = {
+        1: "на одной странице",
+        2: "на двух страницах",
+        3: "на трёх страницах",
+        4: "на четырёх страницах",
+        5: "на пяти страницах",
+    }
+    return mapping.get(num_links, f"на {num_links} страницах")
+
+
+def build_main_plan_for_parse_card(input_data: Dict[str, Any], num_links: int = 3) -> Dict[str, Any]:
+    """
+    Генерирует main_plan по схеме из `reasoning_agent/plan_tools.py`:
+
+    {
+        "steps": [
+            {"step_id": 1, "goal": "...", "fills": [...]},
+            ...
+        ]
+    }
+
+    Для каждого поля создаёт 3 шага (как в описании в этом файле):
+      - n + 1: Проверить и выбрать селектор для извлечения значений для поля _
+      - n + 2: Сгенерировать код извлечения значений для поля _
+      - n + 3: Проверить сгенерированный код извлечения значений для поля _ на N страницах
+    """
+    if not isinstance(input_data, dict):
+        raise TypeError(f"input_data must be dict, got: {type(input_data).__name__}")
+    if not isinstance(num_links, int) or num_links <= 0:
+        raise ValueError(f"num_links must be positive int, got: {num_links!r}")
+
+    steps: List[Dict[str, Any]] = []
+    step_id = 1
+
+    for field_name in input_data.keys():
+        steps.append(
+            {
+                "step_id": step_id,
+                "goal": f"Проверить и выбрать селектор для извлечения значений для поля {field_name}",
+                "fills": [f"choosed_selector_field_{field_name}"],
+            }
+        )
+        step_id += 1
+
+        steps.append(
+            {
+                "step_id": step_id,
+                "goal": f"Сгенерировать код извлечения значений для поля {field_name}",
+                "fills": [
+                    f"field__{field_name}__code",
+                    f"field__{field_name}__code_gen_completed",
+                ],
+            }
+        )
+        step_id += 1
+
+        steps.append(
+            {
+                "step_id": step_id,
+                "goal": f"Проверить сгенерированный код извлечения значений для поля {field_name} {_ru_pages_phrase(num_links)}",
+                "fills": [f"field__{field_name}__ok_on_{i}_link" for i in range(1, num_links + 1)],
+            }
+        )
+        step_id += 1
+
+    return {"steps": steps}
 
 
 # Схема результата (legacy-пример для 2 полей: name/price).
@@ -479,8 +551,8 @@ main_plan = {
                 "field__price__code",
                 "field__price__code_gen_completed"
             ]
-        }
-        ...
+        },
+        # ... (другие поля по той же схеме: selector -> code -> ok_on_links)
     ]
 }
 
@@ -671,22 +743,27 @@ def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links):
         input_data_value
         )
 
-    print(task)
+    # print(task)
 
-    # # Генерирую схему и шаблон динамически, на основе входных полей
-    # dynamic_result_schema, dynamic_result_template = build_main_result_schema_and_template(used_fields_and_selectors, num_links=3)
+    # Генерирую схему/шаблон/план динамически, на основе входных полей
+    dynamic_result_schema, dynamic_result_template = build_main_result_schema_and_template(used_fields_and_selectors, num_links=3)
+    dynamic_main_plan = build_main_plan_for_parse_card(used_fields_and_selectors, num_links=3)
 
-    # resulr_answer = orchestrate(
-    #     task = task,
-    #     max_steps = 100,
-    #     result_schema = dynamic_result_schema,
-    #     result_template = dynamic_result_template,
-    #     # plan = main_plan,                 ###### Также прописать, что бц генерился динамически
-    #     # step_by_step_running = False, # Разрешаем агенту работать автоматически
-    # ) 
+    # print(dynamic_main_plan)
+    # print(dynamic_result_schema)
+    # print(dynamic_result_template)
 
-    # result_task = get_result()
-    # return result_task
+    resulr_answer = orchestrate(
+        task = task,
+        max_steps = 100,
+        result_schema = dynamic_result_schema,
+        result_template = dynamic_result_template,
+        plan = dynamic_main_plan,
+        # step_by_step_running = False, # Разрешаем агенту работать автоматически
+    ) 
+
+    result_task = get_result()
+    return result_task
 
 
 
