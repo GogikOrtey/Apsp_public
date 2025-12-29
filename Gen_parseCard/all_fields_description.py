@@ -437,7 +437,6 @@ all_fields = {
                 ".product-gallery img",
                 ".product__image img",
                 "[itemprop=image]",
-                "meta[property='og:image']",
                 ".swiper-slide img"
             ],
             "relations": "Может дополнять description и name (визуальная идентификация товара). Часто есть несколько изображений, но поле обычно подразумевает главное."
