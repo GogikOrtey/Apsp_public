@@ -35,6 +35,14 @@ RESULT_CODE_FILE_PATH = RESULT_OUTPUT_DIR / 'result_code.ts'
 MESSAGE_GLOBAL_FILE_PATH = RESULT_OUTPUT_DIR / 'message_global.txt'
 LOG_FILE_PATH = PROJECT_ROOT / 'output.log'
 GEN_DATA_INPUT_TABLE_PATH = PROJECT_ROOT / 'gen_data_input_table.py'
+NEW_PAGE_2_STATE_FILE_PATH = RESULT_OUTPUT_DIR / 'new_page_2_state.json'
+NEW_PAGE_2_ALLOWED_FIELDS = {
+    "reflection_text",
+    "goal_text",
+    "action_text",
+    "update_result_text",
+    "last_phase_result_text",
+}
 
 # Глобальное состояние генерации (используется для опроса фронтом)
 CODE_GEN_STATE = {
@@ -88,6 +96,46 @@ def sanitize_text(value):
         return value
     value = value.strip()
     return value.replace('"', r'\"')
+
+
+def normalize_display_text(value, *, max_len: int = 200_000) -> str:
+    """
+    Нормализация текста для отображения на фронте.
+    - без экранирования кавычек (иначе на экране будут лишние '\\')
+    - ограничение длины, чтобы случайно не положить сервер мегабайтами
+    """
+    if value is None:
+        return ""
+    if not isinstance(value, str):
+        value = str(value)
+    if len(value) > max_len:
+        return value[:max_len]
+    return value
+
+
+def load_new_page_2_state() -> dict:
+    default_state = {k: "" for k in NEW_PAGE_2_ALLOWED_FIELDS}
+    try:
+        if not NEW_PAGE_2_STATE_FILE_PATH.is_file():
+            return default_state
+        with open(NEW_PAGE_2_STATE_FILE_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return default_state
+        # подмешиваем только разрешённые ключи
+        for k in NEW_PAGE_2_ALLOWED_FIELDS:
+            if k in data:
+                default_state[k] = normalize_display_text(data.get(k))
+        return default_state
+    except Exception:
+        return default_state
+
+
+def save_new_page_2_state(state: dict) -> None:
+    RESULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    safe_state = {k: normalize_display_text(state.get(k, "")) for k in NEW_PAGE_2_ALLOWED_FIELDS}
+    with open(NEW_PAGE_2_STATE_FILE_PATH, "w", encoding="utf-8") as f:
+        json.dump(safe_state, f, ensure_ascii=False, indent=2, sort_keys=True)
 
 
 def reorder_result_json(result_json, selected_fields):
@@ -738,6 +786,51 @@ def get_message_global():
             return Response('', mimetype='text/plain; charset=utf-8')
     except Exception as e:
         return Response(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+
+
+@app.route('/api/new_page_2_state', methods=['GET'])
+def api_new_page_2_state_get():
+    """Отдаёт JSON-состояние для `templates/new_page_2.html`."""
+    state = load_new_page_2_state()
+    return Response(json.dumps(state, ensure_ascii=False), mimetype='application/json; charset=utf-8')
+
+
+@app.route('/api/new_page_2_state', methods=['POST'])
+def api_new_page_2_state_post():
+    """
+    Обновляет состояние `new_page_2`.
+
+    Поддерживаем 2 формата:
+    1) {"field": "reflection_text", "value": "..."}
+    2) {"reflection_text": "...", "goal_text": "..."} (массовое обновление)
+    """
+    payload = request.get_json(silent=True) or {}
+    if not isinstance(payload, dict):
+        return Response('{"ok":false,"error":"invalid_json"}', mimetype='application/json; charset=utf-8', status=400)
+
+    state = load_new_page_2_state()
+
+    if "field" in payload:
+        field = payload.get("field")
+        value = payload.get("value", "")
+        if field not in NEW_PAGE_2_ALLOWED_FIELDS:
+            return Response('{"ok":false,"error":"unknown_field"}', mimetype='application/json; charset=utf-8', status=400)
+        state[field] = normalize_display_text(value)
+    else:
+        updated_any = False
+        for k in NEW_PAGE_2_ALLOWED_FIELDS:
+            if k in payload:
+                state[k] = normalize_display_text(payload.get(k))
+                updated_any = True
+        if not updated_any:
+            return Response('{"ok":false,"error":"no_allowed_fields"}', mimetype='application/json; charset=utf-8', status=400)
+
+    try:
+        save_new_page_2_state(state)
+    except Exception:
+        return Response('{"ok":false,"error":"save_failed"}', mimetype='application/json; charset=utf-8', status=500)
+
+    return Response('{"ok":true}', mimetype='application/json; charset=utf-8')
 
 
 @app.route('/download/parser_ts')

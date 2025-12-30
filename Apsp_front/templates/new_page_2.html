@@ -189,3 +189,48 @@
 {% endblock %}
 
 
+{% block extra_js %}
+<script>
+    const NEW_PAGE_2_FIELDS = [
+        'reflection_text',
+        'goal_text',
+        'action_text',
+        'update_result_text',
+        'last_phase_result_text',
+    ];
+
+    let lastStateJson = null;
+
+    function applyNewPage2State(state) {
+        if (!state) return;
+        for (const id of NEW_PAGE_2_FIELDS) {
+            const el = document.getElementById(id);
+            if (!el) continue;
+            const nextText = (state[id] == null) ? '' : String(state[id]);
+            if (el.textContent !== nextText) {
+                el.textContent = nextText;
+            }
+        }
+    }
+
+    async function pollNewPage2State() {
+        try {
+            const resp = await fetch('/api/new_page_2_state', { cache: 'no-store' });
+            if (!resp.ok) return;
+            const state = await resp.json();
+            const asJson = JSON.stringify(state);
+            if (asJson === lastStateJson) return;
+            lastStateJson = asJson;
+            applyNewPage2State(state);
+        } catch (e) {
+            // молча игнорируем: страница должна быть "тихой" даже при временных сбоях
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        pollNewPage2State();
+        setInterval(pollNewPage2State, 250);
+    });
+</script>
+{% endblock %}
+

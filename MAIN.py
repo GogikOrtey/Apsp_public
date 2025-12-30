@@ -3,6 +3,18 @@
 Что бы точно её не потерять
 """
 
+# Утилиты для обновления текста на фронте (new_page_2.html).
+# Важно: сами функции "молча" игнорируют ошибки соединения (если фронт не запущен).
+from front_client import (
+    update_content_front_reasoning,
+    update_content_front_goal,
+    update_content_front_action,
+    update_content_front_update_result,
+    update_content_front_last_phase_result,
+)
+
+import time
+
 # from import_all_libraries import *
 # from new_program.main_processer import *
 
@@ -29,6 +41,10 @@ def main_funk_start_on_front(link):
     # # Ленивая загрузка тяжёлых импортов, чтобы импорт MAIN.py был безопасным.
     # from new_program.main_processer import main_processer_base
     # return main_processer_base(link)
+
+    time.sleep(10) 
+
+    update_content_front_reasoning("Думаю о мороженом")
 
 
 if __name__ == "__main__":
