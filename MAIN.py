@@ -81,7 +81,7 @@ def main_funk_start_on_front(link):
     try:
         result_code = main_processer(link)
     except Exception:
-        error_text = f"🟠 Ошибка генерации: 🟠\n" + traceback.format_exc()
+        error_text = f"🟠 Ошибка генерации: 🟠\n\n" + traceback.format_exc()
         _write_error_to_result_code_ts(error_text)
         return error_text
 
