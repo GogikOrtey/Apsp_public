@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, imageLink, product_id, category, brand, link, timestamp
+    name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, link, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,16 +16,16 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, imageLink, product_id, category, brand, link, timestamp
+    name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, link, timestamp
 }
 
-const HOST = "https://makitatrading.ru"
+const HOST = "https://kotel-nasos.ru"
 
-export class JS_Base_makitatradingru extends JS_Base_Custom {
+export class JS_Base_kotelnasosru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
-            proxyChecker: "tor.proxy.ru",
+            proxyChecker: "fineproxy.org",
             requestdelay: "3,5",
             engine: "a-parser",
             mode: "normal",
@@ -73,23 +73,22 @@ export class JS_Base_makitatradingru extends JS_Base_Custom {
 
     //#region Парсинг поиска
         async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/catalog/`)
-        url.searchParams.set("q", set.query)
-        url.searchParams.set("s", "Найти")
-        if (+set.page > 1) url.searchParams.set("PAGEN_2", String(set.page))
+        let url = new URL(`${HOST}/search/`)
+        url.searchParams.set("query", set.query)
+        if (set.page && +set.page > 1) url.searchParams.set("page", String(set.page))
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$('nav#pagination a').get().map(item => +$(item).text().trim()).filter(Boolean))
+            let totalPages = Math.max(...$('.c-search-page .c-products__pagination .c-pagination .c-pagination-item').get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
 
-        let products = $('.catalog.catalogCards .itemCard[itemtype="http://schema.org/Product"] > a.image[href^="/catalog/product/"]')
+        let products = $('.c-search-page .c-products__list .c-product-thumb__name[href]')
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -107,17 +106,24 @@ export class JS_Base_makitatradingru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1[itemprop=\"name\"]").text().trim()
-        const stock = $(".cardPrice .availability, .cardPrice [itemprop=\"offers\"] .availability").text().trim()?.includes("В наличии") ? "InStock" : "OutOfStock"
-        const imageLink = $("meta[property=\"og:image\"]")?.attr("content")?.trim() || ""
-        const product_id = $(".bx_stars_bg[id^=\"bx_vo_3_\"]")?.first()?.attr("id")?.match(/bx_vo_3_(\d+)_/)?.at(1) || ""
-        const category = $("#breadcrumbs ul li a[title]")?.last()?.text()?.trim() || ""
-        const brand = $("#product_cloth_manuf span[itemprop=\"brand\"], #product_cloth_manuf [itemprop=\"brand\"]")?.first()?.text()?.trim() || ""
+        const name = $("h1.c-header.c-header_h1").text().trim();
+        const stockText = $(".c-product-skus-stocks__sku-stock-available")?.first().text().trim(); 
+        const stock = stockText?.includes("В наличии") ? "InStock" : "OutOfStock";
+        const imageHref = $(".c-product-images__image[data-index=\"0\"] a[href]")?.first()?.attr("href")?.trim() || ""; 
+        const imageLink = imageHref?.startsWith("http") ? imageHref : (imageHref ? (HOST + imageHref) : "");
+        const article = $(".c-product-cart-form__sku-value")?.first().text().trim() || $("meta[itemprop=\"sku\"]")?.first()?.attr("content")?.trim() || "";
+        const category = $(".c-breadcrumbs__item:nth-last-child(2) a")?.first().text().trim() || "";
+        const brand = $(".c-product-cart-form__top-values .c-value__value-text a[href^=\"/brand/\"]")?.first().text().trim() || "";
+        const manufacturer = $(".c-product-features-overview__item:contains(\"Производитель\") .c-value__value-text")?.first().text().trim() || "";
+        const priceText = $(".c-product-add-to-cart__price")?.first().text().trim() || ""; 
+        const price = priceText?.replace(/,/g, ".")?.replace(/[^\d.]/g, "") || "";
+        const oldpriceText = $(".c-product-add-to-cart__compare-price")?.first().text().trim() || ""; 
+        const oldprice = oldpriceText?.replace(/,/g, ".")?.replace(/[^\d.]/g, "") || "";
         const link = set.query;
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, imageLink, product_id, category, brand, link, timestamp
+            name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, link, timestamp
         }
         items.push(item);
 
@@ -127,7 +133,7 @@ export class JS_Base_makitatradingru extends JS_Base_Custom {
     
 
     //#region Выполнение запроса
-    async makeRequest(url: string) {
+    async makeRequest(url: string, urlPrams = {}) {
         const opts: AsyncHTTPXRequestOptsCustom = {
             ...defaultOpts,
             engine: this.conf.engine,
@@ -135,7 +141,7 @@ export class JS_Base_makitatradingru extends JS_Base_Custom {
         };
         this.debugger.put(opts)
 
-        const { success, headers, data } = await this.request("GET", url, {}, opts);
+        const { success, headers, data } = await this.request("GET", url, urlPrams, opts);
         this.debugger.put(data)
 
         if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
@@ -146,5 +152,5 @@ export class JS_Base_makitatradingru extends JS_Base_Custom {
 }
 
 // Код сгенерирован Auto-gen parsers v1.0
-// Дата: 29 Дек 2025
+// Дата: 30 Дек 2025
 // © BrandPol
