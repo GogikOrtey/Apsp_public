@@ -17,6 +17,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 # Подключение всех библиотек и функций
+from front_client import update_content_front_action, update_content_front_goal, update_content_front_reasoning
 from import_all_libraries import *
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 from reasoning_agent.chat_terminal import init_chat_channel, chat_print
@@ -1073,6 +1074,21 @@ def orchestrate(
             f"{'   🔶 args: ' + args_text if args_text != '—' else ''}" # С аргументами
             f"\n"
         )
+
+        update_content_front_reasoning(step_reply.get('reasoning') or '—')
+        update_content_front_goal(step_reply.get('target') or '—')
+        update_content_front_action((step_reply.get('action') + f"\n"+ (args_text if args_text != '—' else '')) or '—')
+
+        """ 
+        update_content_front_reasoning,
+        update_content_front_goal,
+        update_content_front_action,
+        update_content_front_update_result,
+        update_content_front_last_phase_result,
+        """
+
+
+
         chat_print(model_summary)
         print(model_summary)
 

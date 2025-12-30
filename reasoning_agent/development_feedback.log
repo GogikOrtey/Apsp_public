@@ -4,3 +4,4 @@
 [{"type": "tool_gap", "description": "В промпте/истории использовался инструмент update_memory, но он отсутствует в списке доступных инструментов. Нужен единый поддерживаемый инструмент для записи в memory или убрать упоминание update_memory из сценария."}]
 [{"type": "improvement", "description": "get_total_pages_on_current_page_cheerio_code: ошибка со spread-оператором выглядит как ограничение/баг песочницы vm. Было бы полезно явно поддержать modern JS (spread) или документировать ограничения и рекомендованные шаблоны (Math.max.apply)."}]
 [{"type": "other", "description": "Нужен авто-валидатор семантики (brand vs article) по набору all_results (например, исключать значения, совпадающие с артикулом/числами), чтобы быстрее подбирать селектор в характеристиках."}]
+[{"type": "tool_gap", "description": "Инструмент update_result падает с NameError: update_content_front_update_result is not defined. Из-за этого невозможно записывать результат и завершать фазы плана."}]

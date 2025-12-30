@@ -61,7 +61,7 @@ def main_funk_start_on_front(link):
     # time.sleep(10) 
     # print("Завершено")
 
-    result_code = main_funk_start_on_front(link)
+    result_code = main_processer(link)
 
     print("Генерация завершена")
     time.sleep(5) 

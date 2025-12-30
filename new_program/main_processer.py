@@ -18,6 +18,8 @@ import traceback
 import time
 from typing import Any
 
+from front_client import update_content_front_last_phase_result
+
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -177,6 +179,7 @@ def main_processer(input_url):
 
     HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
     print(f"\nHGF_result:\n")
+    update_content_front_last_phase_result(json.dumps(HGF_result, ensure_ascii=False, indent=4))
     print(HGF_result)
 
     # # Пример ответа HGF для сайта makitaclub.ru
@@ -269,6 +272,7 @@ def main_processer(input_url):
 
     result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
     print("result_agent_answer_from_2_step:")
+    update_content_front_last_phase_result(json.dumps(result_agent_answer_from_2_step, ensure_ascii=False, indent=4))
     print(result_agent_answer_from_2_step)
 
     """ 
@@ -305,6 +309,7 @@ def main_processer(input_url):
     TNF_result = TNF_extract_data_from_search_page(html_content_zip)
     print(f"\nTNF_result:\n")
     print(TNF_result)
+    update_content_front_last_phase_result(json.dumps(TNF_result, ensure_ascii=False, indent=4))
 
     # Преобразует строку ответа в json
     TNF_result = json.loads(TNF_result)
@@ -386,6 +391,7 @@ def main_processer(input_url):
         # Генерация PP для дигинетики
 
         parse_page_code_fragment = agent_step_6_2_diginetica_and_custom_req_on_PP(TNF_result, search_request, semantics, result_agent_answer_from_2_step.get("second_html")).get("result_code")
+        update_content_front_last_phase_result(json.dumps(parse_page_code_fragment, ensure_ascii=False, indent=4))
     
     else:
 
@@ -393,6 +399,7 @@ def main_processer(input_url):
 
         print("Запуск result_agent_step_4_product")
         result_agent_step_4_product = agent_step_4_product(TNF_result, search_request)
+        update_content_front_last_phase_result(json.dumps(result_agent_step_4_product, ensure_ascii=False, indent=4))
         """ 
         Формируент фрагмент кода для вставки в PC - обработка извлечения ссылки на товар
 
@@ -405,6 +412,7 @@ def main_processer(input_url):
 
         print("Запуск result_agent_step_5_pagination")
         result_agent_step_5_pagination = agent_step_5_pagination(TNF_result, search_request)
+        update_content_front_last_phase_result(json.dumps(result_agent_step_5_pagination, ensure_ascii=False, indent=4))
         """ 
         Формируент фрагмент кода для вставки в PC - обработка извлечения максимального количества страниц пагинации
 
@@ -414,7 +422,8 @@ def main_processer(input_url):
         """
 
         print("Запуск result_agent_step_6_URL_construct")
-        result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)    
+        result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)   
+        update_content_front_last_phase_result(json.dumps(result_agent_step_6_URL_construct, ensure_ascii=False, indent=4)) 
         """ 
         Формируент фрагмент кода для вставки в PC - обработка создания URL на основе кастомного запроса и номера страницы выдачи
 
@@ -479,6 +488,7 @@ def main_processer(input_url):
         }
 
     result_agent_step_6_1_get_links_for_product = agent_step_6_1_get_links_for_product(input_data_for_3_links, search_request)
+    update_content_front_last_phase_result(json.dumps(result_agent_step_6_1_get_links_for_product, ensure_ascii=False, indent=4)) 
 
     """
     {
@@ -564,6 +574,7 @@ def main_processer(input_url):
 
     print("📒 parse_page_code_fragment:")
     print(parse_page_code_fragment)
+    update_content_front_last_phase_result(parse_page_code_fragment) 
 
 
     """ 
@@ -617,6 +628,7 @@ def main_processer(input_url):
 
     print(f"\nПроверка, можно ли будет получать контент с сайта обычными запросами\n")
     print_json(result_check_simple_request_on_this_site)
+    update_content_front_last_phase_result(json.dumps(result_check_simple_request_on_this_site, ensure_ascii=False, indent=4)) 
 
     if result_check_simple_request_on_this_site_status == False:
         error_text = """
@@ -635,6 +647,7 @@ def main_processer(input_url):
     # 15 примеров ссылок товаров лежат в result_agent_step_6_1_get_links_for_product
 
     (parse_card_code_fragment, fields_descr)  = main_gen_parseCard(result_agent_step_6_1_get_links_for_product, url_input)
+    update_content_front_last_phase_result(parse_card_code_fragment) 
 
     """ 
     async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
