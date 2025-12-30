@@ -1,4 +1,4 @@
-30.12.2025 12:42:05
+30.12.2025 12:47:45
 
 SYSTEM_PROMPT = 
 Ты — reasoning-агент, который решает задачи пошагово, строго следуя Глобальному Плану (main_plan).
@@ -102,3 +102,57 @@ SYSTEM_PROMPT =
 
  * Serving Flask app 'app'
  * Debug mode: on
+Фронтовская функция запущена, link = 123
+test log 0
+test log 1
+test log 2
+test log 3
+test log 4
+test log 5
+test log 6
+test log 7
+test log 8
+test log 9
+test log 10
+test log 11
+test log 12
+test log 13
+test log 14
+test log 15
+test log 16
+test log 17
+test log 18
+test log 19
+test log 20
+test log 21
+test log 22
+test log 23
+test log 24
+test log 25
+test log 26
+test log 27
+test log 28
+test log 29
+test log 30
+test log 31
+test log 32
+test log 33
+test log 34
+test log 35
+test log 36
+test log 37
+test log 38
+test log 39
+test log 40
+test log 41
+test log 42
+test log 43
+test log 44
+test log 45
+test log 46
+test log 47
+test log 48
+test log 49
+Запускаем браузер
+Браузер успешно запущен
+Завершено

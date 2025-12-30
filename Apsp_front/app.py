@@ -69,6 +69,15 @@ CODE_GEN_STATE = {
 }
 CODE_GEN_STATE_LOCK = threading.Lock()
 
+# Статус выполнения main_funk_start_on_front (MAIN.py), чтобы фронт мог понять,
+# когда фоновая задача завершилась и можно перейти на new_page_3.
+FRONT_MAIN_STATE = {
+    "running": False,
+    "done": False,
+    "error": None,
+}
+FRONT_MAIN_STATE_LOCK = threading.Lock()
+
 # Последний скриншот браузера, который может быть "запушен" из другого процесса (например, MAIN.py).
 # Это нужно, когда Playwright и Flask работают в разных процессах и shared_page не разделяется.
 PUSHED_SCREENSHOT_STATE = {
@@ -232,6 +241,19 @@ def get_code_gen_state():
     """Возвращает копию текущего состояния генерации."""
     with CODE_GEN_STATE_LOCK:
         return dict(CODE_GEN_STATE)
+
+def set_front_main_state(running=False, done=False, error=None):
+    """Атомарно обновляет состояние выполнения main_funk_start_on_front()."""
+    with FRONT_MAIN_STATE_LOCK:
+        FRONT_MAIN_STATE["running"] = running
+        FRONT_MAIN_STATE["done"] = done
+        FRONT_MAIN_STATE["error"] = error
+
+
+def get_front_main_state():
+    """Возвращает копию текущего состояния выполнения main_funk_start_on_front()."""
+    with FRONT_MAIN_STATE_LOCK:
+        return dict(FRONT_MAIN_STATE)
 
 
 def write_data_input_table_file(result_json):
@@ -724,7 +746,11 @@ def new_page_1():
                     main_funk_start_on_front(link)
                 except Exception as e:
                     print(f"Ошибка в main_funk_start_on_front: {e}")
+                    set_front_main_state(running=False, done=False, error=str(e))
+                    return
+                set_front_main_state(running=False, done=True, error=None)
 
+            set_front_main_state(running=True, done=False, error=None)
             threading.Thread(target=runner_front, args=(site_url,), daemon=True).start()
             return redirect(url_for('new_page_2'))
 
@@ -791,6 +817,11 @@ def code_gen_status():
     """Возвращает состояние фоновой генерации main_func."""
     status = get_code_gen_state()
     return status
+
+@app.route('/api/front_main_status')
+def front_main_status():
+    """Возвращает состояние выполнения main_funk_start_on_front() (MAIN.py)."""
+    return get_front_main_state()
 
 @app.route('/api/result_code')
 def get_result_code():

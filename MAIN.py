@@ -42,26 +42,30 @@ def main_funk_start_on_front(link):
     # from new_program.main_processer import main_processer_base
     # return main_processer_base(link)
 
-    time.sleep(5) 
+    # time.sleep(5) 
 
-    update_content_front_reasoning("Думаю о мороженом")
+    # update_content_front_reasoning("Думаю о мороженом")
 
-    for i in range(0, 50):
-        print(f"test log {i}")
+    # for i in range(0, 50):
+    #     print(f"test log {i}")
 
-    # Запускаю браузер с видимым окном
-    launch_browser(headless = False)
+    # # Запускаю браузер с видимым окном
+    # launch_browser(headless = False)
 
-    goto_url( 
-        url = "https://makitaclub.ru/",
-        wait_until = "load",
-        timeout = 30_000
-    )
-
-    # Скриншоты пушатся автоматически внутри launch_browser() (см. playwright_tool/browser_start.py).
+    # goto_url( 
+    #     url = "https://makitaclub.ru/",
+    #     wait_until = "load",
+    #     timeout = 30_000
+    # )
 
     # time.sleep(10) 
     # print("Завершено")
+
+    result_code = main_funk_start_on_front(link)
+
+    print("Генерация завершена")
+    time.sleep(5) 
+    
 
 
 # if __name__ == "__main__":

@@ -70,7 +70,7 @@ from new_program.agent_step_6_2_diginetica_and_custom_req_on_PP import *
 
 
 
-
+- Добавить потом fallback при неверной заданной ссылке на new_page_1
 
 
 
