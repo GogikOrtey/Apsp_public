@@ -165,7 +165,7 @@ async parsePage(set) {
     if (json.totalHits > 0) {
         if (set.offset === 0) {
             const totalPages = Math.ceil(json.totalHits / pageSize);
-            for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagescount); shift++) {
+            for (let shift = 1; shift <= Math.min(totalPages, +this.conf.pagesCount); shift++) {
                 this.query.add(({...set, query: set.query, type: "page", offset: shift * pageSize, lvl: 1}));
             }
         }
@@ -231,6 +231,8 @@ async parsePage(set) {
 ВАЖНО: НЕ меняй сигнатуру метода, структуру и названия переменных. Код должен получиться похожим на шаблон, и изменения должны затронуть только некоторые элементы.
 
 Подобранные запросы можно проверить, используя инструмент send_curl_request, отправляя в него запросы в формате curl.
+
+Но комментарии "CHANGE_HERE" удали из своего итоового кода
 
 Запиши полученный код процедуры parsePage в result в поле result_code
 

@@ -832,6 +832,15 @@ https://makita-line.ru
 
 Обработать другие расписанные ситуации
 
+
+————————————————————————
+
+Не ок:
+
+link = "https://apelsin.ru"
+link = "https://donplafon.ru/"
+link = "https://domostroy.shop"
+
 """
 
 

@@ -1242,6 +1242,16 @@ def wait_for_navigation_or_content(
     if err:
         record_playwright_action("wait_for_navigation_or_content", args=args, result=err)
         return err
+    if "digiSearch" in page.url:
+        res = {
+            "status": "ok",
+            "reason": "url_changed",
+            "new_url": page.url,
+            "change_fraction": None,
+            "error": None,
+        }
+        record_playwright_action("wait_for_navigation_or_content", args=args, result=res)
+        return res
     deadline = time.monotonic() + timeout / 1000
     start_text: str | None = None
     last_fraction: float | None = None
