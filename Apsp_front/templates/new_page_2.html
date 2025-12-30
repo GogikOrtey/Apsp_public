@@ -4,21 +4,24 @@
 
 {% block extra_css %}
 <style>
+    /* На этой странице: центрируем основной контейнер по вертикали */
+    body {
+        padding: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     /* Широкая страница */
     .container {
         max-width: 1200px !important;
-        height: calc(100vh - 40px);
+        height: 90vh;
+        padding: 24px !important;
+        margin: 0 !important;
         display: flex;
         flex-direction: column;
-    }
-
-    /* На этой странице убираем padding body, чтобы точнее "влезало" по высоте экрана */
-    body {
-        padding: 0;
-    }
-
-    .container {
-        height: 90vh;
+        overflow: hidden;
     }
 
     /* Главный блок: 2 колонки */
@@ -29,6 +32,11 @@
         align-items: start;
         flex: 1;
         min-height: 0;
+    }
+
+    .page-title {
+        margin: 0 0 14px 0;
+        flex: 0 0 auto;
     }
 
     .col {
@@ -86,6 +94,10 @@
         line-height: 1.5;
     }
 
+    .panel-body--image {
+        display: flex;
+    }
+
     /* Высоты блоков */
     .panel--high { min-height: 0; }
     .panel--medium { min-height: 0; }
@@ -100,7 +112,8 @@
     /* Окно браузера: пока просто плейсхолдер */
     .image-placeholder {
         width: 100%;
-        height: 100%;
+        flex: 1;
+        min-height: 0;
         border-radius: 8px;
         border: 2px dashed #c9c9c9;
         background: linear-gradient(135deg, #f2f2f2 0%, #fafafa 100%);
@@ -122,7 +135,7 @@
 {% endblock %}
 
 {% block content %}
-<h1 style="margin-bottom: 18px;">new_page_2</h1>
+<h1 class="page-title">new_page_2</h1>
 
 <div class="main-grid">
     <!-- Левая колонка -->
@@ -166,7 +179,7 @@
 
         <div class="panel panel--medium">
             <div class="panel-title">Окно браузера</div>
-            <div class="panel-body" id="browser_window">
+            <div class="panel-body panel-body--image" id="browser_window">
                 <div class="image-placeholder">Здесь будет картинка/скриншот окна браузера (подключим логику позже)</div>
             </div>
         </div>
