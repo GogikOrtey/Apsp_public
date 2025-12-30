@@ -40,6 +40,7 @@ from playwright_tool.shared_page import (
     set_shared_page,
     get_shared_page,
     record_playwright_action,
+    maybe_push_screenshot_to_front,
 )
 
 
@@ -194,6 +195,11 @@ def page_restart(
     except Exception as exc:  # noqa: BLE001
         res = {"status": "error", "code": None, "url": page.url, "error": str(exc)}
     record_playwright_action("page_restart", args=args, result=res)
+    # Обновляем скриншот после перезагрузки.
+    try:
+        maybe_push_screenshot_to_front(min_interval_ms=1500)
+    except Exception:
+        pass
     return res
 
 
@@ -248,6 +254,11 @@ def goto_url(
     except Exception as exc:  # noqa: BLE001
         res = {"status": "error", "code": None, "url": url, "error": str(exc)}
     record_playwright_action("goto_url", args=args, result=res)
+    # Обновляем скриншот после навигации (в owner-thread Playwright).
+    try:
+        maybe_push_screenshot_to_front(min_interval_ms=1500)
+    except Exception:
+        pass
     return res
 
 
@@ -314,7 +325,22 @@ def wait_ms(ms: int = 10_000) -> dict[str, str | int | None]:
             raise TypeError("ms должен быть int")
         if ms < 0:
             raise ValueError("ms должен быть >= 0")
-        page.wait_for_timeout(ms)
+        # Ждём чанками, чтобы во время долгих ожиданий можно было обновлять скриншот на фронте.
+        remaining = int(ms)
+        last_push_t = time.monotonic()
+        while remaining > 0:
+            chunk = min(500, remaining)
+            page.wait_for_timeout(chunk)
+            remaining -= chunk
+
+            # Пушим скриншот не чаще, чем раз в ~5 секунд.
+            now_t = time.monotonic()
+            if now_t - last_push_t >= 5.0:
+                last_push_t = now_t
+                try:
+                    maybe_push_screenshot_to_front(min_interval_ms=1500)
+                except Exception:
+                    pass
         res = {"status": "ok", "ms": ms, "error": None}
     except Exception as exc:  # noqa: BLE001
         res = {"status": "error", "ms": None, "error": str(exc)}
@@ -670,6 +696,11 @@ def click_element(
             "error": None,
         }
         record_playwright_action("click_element", args=args, result=res)
+        # Обновляем скриншот после клика.
+        try:
+            maybe_push_screenshot_to_front(min_interval_ms=1500)
+        except Exception:
+            pass
         return res
     except Exception as exc:  # noqa: BLE001
         res = {
@@ -1120,6 +1151,11 @@ def human_like_input(
     except Exception as exc:  # noqa: BLE001
         res = {"status": "error", "selector": selector, "text_len": 0, "error": str(exc)}
     record_playwright_action("human_like_input", args=args, result=res)
+    # Обновляем скриншот после ввода.
+    try:
+        maybe_push_screenshot_to_front(min_interval_ms=1500)
+    except Exception:
+        pass
     return res
 
 
@@ -1150,6 +1186,11 @@ def press_enter() -> dict[str, str | None]:
     except Exception as exc:  # noqa: BLE001
         res = {"status": "error", "error": str(exc)}
     record_playwright_action("press_enter", args=args, result=res)
+    # Обновляем скриншот после Enter.
+    try:
+        maybe_push_screenshot_to_front(min_interval_ms=1500)
+    except Exception:
+        pass
     return res
 
 
@@ -1187,6 +1228,11 @@ def press_key(key: str) -> dict[str, str | None]:
     except Exception as exc:  # noqa: BLE001
         res = {"status": "error", "pressed_key": None, "error": str(exc)}
     record_playwright_action("press_key", args=args, result=res)
+    # Обновляем скриншот после нажатия клавиши.
+    try:
+        maybe_push_screenshot_to_front(min_interval_ms=1500)
+    except Exception:
+        pass
     return res
 
 

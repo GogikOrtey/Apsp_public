@@ -868,15 +868,15 @@ def api_browser_screenshot():
 
     Если браузер ещё не запущен (shared_page не установлен) — вернёт 404.
     """
-    # 1) Если Playwright запущен В ЭТОМ ЖЕ процессе (shared_page установлен) — берём напрямую.
-    png, meta = get_cached_screenshot_png(min_interval_ms=800, timeout_ms=2_000, full_page=False)
+    # 1) Если Playwright запущен в ДРУГОМ процессе — берём "запушенный" скриншот (самый частый кейс).
+    with PUSHED_SCREENSHOT_LOCK:
+        png = PUSHED_SCREENSHOT_STATE.get("png")
+        ts = PUSHED_SCREENSHOT_STATE.get("ts")
+    meta = {"ts": ts, "age_ms": None, "error": None}
 
-    # 2) Если shared_page недоступен (Playwright запущен в другом процессе) — берём "запушенный" скриншот.
+    # 2) Если пуш-кадра нет, но Playwright запущен в ЭТОМ ЖЕ процессе (shared_page установлен) — пробуем снять напрямую.
     if png is None:
-        with PUSHED_SCREENSHOT_LOCK:
-            png = PUSHED_SCREENSHOT_STATE.get("png")
-            ts = PUSHED_SCREENSHOT_STATE.get("ts")
-        meta = {"ts": ts, "age_ms": None, "error": None}
+        png, meta = get_cached_screenshot_png(min_interval_ms=800, timeout_ms=2_000, full_page=False)
 
     if png is None:
         return FlaskResponse("browser_not_started", mimetype='text/plain; charset=utf-8', status=404)
