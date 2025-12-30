@@ -21,6 +21,8 @@ if str(ROOT_DIR) not in sys.path:
 
 from import_all_libraries import *
 from new_program.main_processer import *
+# Скриншот текущей Playwright-страницы (если браузер запущен)
+from playwright_tool.shared_page import get_cached_screenshot_png
 # Важно: `import *` выше может перетереть имя `Response` не-flask'овским классом.
 # Явно фиксируем, что в этом файле под Response для HTTP-ответов используется именно flask.Response.
 from flask import Response as FlaskResponse
@@ -66,6 +68,14 @@ CODE_GEN_STATE = {
     "error": None,
 }
 CODE_GEN_STATE_LOCK = threading.Lock()
+
+# Последний скриншот браузера, который может быть "запушен" из другого процесса (например, MAIN.py).
+# Это нужно, когда Playwright и Flask работают в разных процессах и shared_page не разделяется.
+PUSHED_SCREENSHOT_STATE = {
+    "png": None,   # bytes | None
+    "ts": None,    # float | None (time.time())
+}
+PUSHED_SCREENSHOT_LOCK = threading.Lock()
 
 def load_fields_descriptions():
     """Загрузка описаний полей из JSON файла"""
@@ -844,6 +854,78 @@ def api_new_page_2_state_post():
         save_new_page_2_state(state)
     except Exception:
         return FlaskResponse('{"ok":false,"error":"save_failed"}', mimetype='application/json; charset=utf-8', status=500)
+
+    return FlaskResponse('{"ok":true}', mimetype='application/json; charset=utf-8')
+
+
+@app.route('/api/browser_screenshot', methods=['GET'])
+def api_browser_screenshot():
+    """
+    Отдаёт актуальный (или последний удачный) PNG-скриншот текущей вкладки Playwright.
+
+    Использование на фронте:
+      <img src="/api/browser_screenshot?t=TIMESTAMP">
+
+    Если браузер ещё не запущен (shared_page не установлен) — вернёт 404.
+    """
+    # 1) Если Playwright запущен В ЭТОМ ЖЕ процессе (shared_page установлен) — берём напрямую.
+    png, meta = get_cached_screenshot_png(min_interval_ms=800, timeout_ms=2_000, full_page=False)
+
+    # 2) Если shared_page недоступен (Playwright запущен в другом процессе) — берём "запушенный" скриншот.
+    if png is None:
+        with PUSHED_SCREENSHOT_LOCK:
+            png = PUSHED_SCREENSHOT_STATE.get("png")
+            ts = PUSHED_SCREENSHOT_STATE.get("ts")
+        meta = {"ts": ts, "age_ms": None, "error": None}
+
+    if png is None:
+        return FlaskResponse("browser_not_started", mimetype='text/plain; charset=utf-8', status=404)
+
+    resp = FlaskResponse(png, mimetype="image/png")
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    # Диагностика (не критично)
+    try:
+        resp.headers["X-Screenshot-Ts"] = str(meta.get("ts") or "")
+        resp.headers["X-Screenshot-AgeMs"] = str(meta.get("age_ms") or 0)
+        if meta.get("error"):
+            resp.headers["X-Screenshot-Warn"] = "stale"
+    except Exception:
+        pass
+    return resp
+
+
+@app.route('/api/browser_screenshot_push', methods=['POST'])
+def api_browser_screenshot_push():
+    """
+    Принимает PNG-скриншот (байты) и сохраняет как "последний кадр" в памяти Flask-процесса.
+
+    Это нужно, когда Playwright работает в другом процессе (например, MAIN.py),
+    и shared_page недоступен из Flask.
+
+    Ожидаемый формат:
+      Content-Type: image/png
+      Body: raw png bytes
+    """
+    try:
+        raw = request.get_data(cache=False) or b""
+    except Exception:
+        raw = b""
+
+    if not raw:
+        return FlaskResponse('{"ok":false,"error":"empty_body"}', mimetype='application/json; charset=utf-8', status=400)
+
+    # Примитивная проверка PNG сигнатуры
+    if not (len(raw) >= 8 and raw[:8] == b"\x89PNG\r\n\x1a\n"):
+        return FlaskResponse('{"ok":false,"error":"not_png"}', mimetype='application/json; charset=utf-8', status=400)
+
+    # Ограничим размер (на всякий случай)
+    if len(raw) > 8_000_000:
+        return FlaskResponse('{"ok":false,"error":"too_large"}', mimetype='application/json; charset=utf-8', status=413)
+
+    with PUSHED_SCREENSHOT_LOCK:
+        PUSHED_SCREENSHOT_STATE["png"] = raw
+        PUSHED_SCREENSHOT_STATE["ts"] = datetime.now().timestamp()
 
     return FlaskResponse('{"ok":true}', mimetype='application/json; charset=utf-8')
 

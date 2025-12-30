@@ -10,7 +10,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from playwright_tool.shared_page import set_shared_page
+from playwright_tool.shared_page import set_shared_page, start_screenshot_pusher_to_front
 
 # region Запуск браузера
 
@@ -24,6 +24,9 @@ def launch_browser(headless: bool = True) -> tuple[Playwright, Browser, Page]:
     context = browser.new_context()
     page = context.new_page()
     set_shared_page(page)
+    # Запускаем пуш скриншотов в Flask (на случай, если Playwright и Flask в разных процессах).
+    # Если Flask не запущен — поток будет тихо ждать.
+    start_screenshot_pusher_to_front(interval_s=5.0)
     print("Браузер успешно запущен")
     return pw, browser, page
 

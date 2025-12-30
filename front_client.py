@@ -54,6 +54,33 @@ def _post_json(
         return False
 
 
+def push_browser_screenshot_png(
+    png_bytes: bytes,
+    *,
+    base_url: str = DEFAULT_FRONT_BASE_URL,
+    timeout_s: float = 0.5,
+) -> bool:
+    """
+    Пушит PNG-скриншот в Flask (в память процесса) на /api/browser_screenshot_push.
+
+    Важно: как и остальные функции этого файла, не выбрасывает исключений наружу.
+    """
+    try:
+        if not isinstance(png_bytes, (bytes, bytearray)) or not png_bytes:
+            return False
+        url = base_url.rstrip("/") + "/api/browser_screenshot_push"
+        req = urllib.request.Request(
+            url,
+            data=bytes(png_bytes),
+            headers={"Content-Type": "image/png"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout_s) as resp:
+            return 200 <= int(getattr(resp, "status", 200)) < 300
+    except Exception:
+        return False
+
+
 def update_new_page_2_field(
     field_id: str,
     text: Any,

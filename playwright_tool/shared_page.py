@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import time
+import threading
 from typing import Any, Literal
 
 from playwright.sync_api import Page, Response, Request
@@ -23,6 +24,16 @@ _network_records_since_load: list[dict[str, Any]] = []
 _network_req_map_since_load: dict[int, dict[str, Any]] = {}
 _NETWORK_MAX_RECORDS: int = 2000
 _NETWORK_BODY_STORE_LIMIT: int = 1_000_000  # символов текста (best-effort), чтобы не раздувать память
+
+# Screenshot cache (for UI preview)
+_screenshot_lock = threading.Lock()
+_last_screenshot_png: bytes | None = None
+_last_screenshot_ts: float | None = None
+_last_screenshot_error: str | None = None
+
+# Background pusher: pushes screenshots to Flask when Playwright and Flask are in different processes.
+_screenshot_pusher_lock = threading.Lock()
+_screenshot_pusher_started = False
 
 
 def set_shared_page(page: Page) -> None:
@@ -39,6 +50,125 @@ def get_shared_page() -> Page:
             "Playwright page is not initialized. Call set_shared_page(page) before using toolkit tools."
         )
     return _current_page
+
+
+def get_cached_screenshot_png(
+    *,
+    min_interval_ms: int = 800,
+    timeout_ms: int = 2_000,
+    full_page: bool = False,
+) -> tuple[bytes | None, dict[str, Any]]:
+    """
+    Возвращает PNG-скриншот текущей shared_page.
+
+    - Кэширует последний удачный скриншот в памяти.
+    - Не делает новый скриншот чаще, чем раз в min_interval_ms.
+    - Если в момент вызова Playwright кидает исключение (например, навигация) —
+      вернёт предыдущий скриншот (если он есть) + метаданные с ошибкой.
+
+    Returns:
+        (png_bytes, meta)
+        meta: {ok, ts, age_ms, from_cache, error}
+    """
+    global _last_screenshot_png, _last_screenshot_ts, _last_screenshot_error
+
+    now = time.time()
+    with _screenshot_lock:
+        age_ms: int | None = None
+        if _last_screenshot_ts is not None:
+            age_ms = int(max(0.0, (now - _last_screenshot_ts) * 1000))
+
+        # Fresh enough -> return cache
+        if _last_screenshot_png is not None and age_ms is not None and age_ms < int(min_interval_ms):
+            return _last_screenshot_png, {
+                "ok": True,
+                "ts": _last_screenshot_ts,
+                "age_ms": age_ms,
+                "from_cache": True,
+                "error": None,
+            }
+
+        # Need a refresh
+        try:
+            page = get_shared_page()
+            png = page.screenshot(type="png", timeout=int(timeout_ms), full_page=bool(full_page))
+            if not isinstance(png, (bytes, bytearray)):
+                raise TypeError("page.screenshot() returned non-bytes")
+            _last_screenshot_png = bytes(png)
+            _last_screenshot_ts = time.time()
+            _last_screenshot_error = None
+            return _last_screenshot_png, {
+                "ok": True,
+                "ts": _last_screenshot_ts,
+                "age_ms": 0,
+                "from_cache": False,
+                "error": None,
+            }
+        except Exception as exc:  # noqa: BLE001
+            _last_screenshot_error = str(exc)
+            # Fallback to previous screenshot if any
+            if _last_screenshot_png is not None and _last_screenshot_ts is not None:
+                fallback_age_ms = int(max(0.0, (now - _last_screenshot_ts) * 1000))
+                return _last_screenshot_png, {
+                    "ok": True,
+                    "ts": _last_screenshot_ts,
+                    "age_ms": fallback_age_ms,
+                    "from_cache": True,
+                    "error": _last_screenshot_error,
+                }
+            return None, {"ok": False, "ts": None, "age_ms": None, "from_cache": False, "error": _last_screenshot_error}
+
+
+def start_screenshot_pusher_to_front(*, interval_s: float = 5.0) -> None:
+    """
+    Запускает daemon-поток, который периодически пушит скриншоты в Flask на
+    /api/browser_screenshot_push.
+
+    Зачем: когда Playwright и Flask живут в разных процессах, shared_page не разделяется,
+    и единственный простой мост — отправлять PNG по HTTP.
+
+    Важно: если Flask не запущен — поток будет "тихо" ждать и почти ничего не делать.
+    """
+    global _screenshot_pusher_started
+    with _screenshot_pusher_lock:
+        if _screenshot_pusher_started:
+            return
+        _screenshot_pusher_started = True
+
+    def _runner() -> None:
+        # Ленивые импорты: чтобы shared_page.py не тащил сеть при обычном использовании.
+        from front_client import DEFAULT_FRONT_BASE_URL, push_browser_screenshot_png  # noqa: WPS433
+
+        # Простейшая проверка, что Flask жив: дергаем существующий GET endpoint.
+        import urllib.request  # noqa: WPS433
+        import urllib.error  # noqa: WPS433
+
+        base_url = DEFAULT_FRONT_BASE_URL.rstrip("/")
+        ping_url = base_url + "/api/code_gen_status"
+
+        def _front_alive() -> bool:
+            try:
+                req = urllib.request.Request(ping_url, method="GET")
+                with urllib.request.urlopen(req, timeout=0.25) as resp:
+                    return 200 <= int(getattr(resp, "status", 200)) < 300
+            except Exception:
+                return False
+
+        while True:
+            try:
+                if not _front_alive():
+                    time.sleep(1.5)
+                    continue
+
+                page = get_shared_page()
+                png = page.screenshot(type="png", timeout=2_000, full_page=False)
+                ok = push_browser_screenshot_png(png)
+                # если не удалось — подождём чуть меньше, чтобы быстрее "подхватить" фронт
+                time.sleep(interval_s if ok else 1.5)
+            except Exception:
+                time.sleep(1.5)
+
+    threading.Thread(target=_runner, daemon=True).start()
 
 
 ChangeType = Literal["navigation", "dom_update", "none"]

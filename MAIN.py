@@ -49,9 +49,23 @@ def main_funk_start_on_front(link):
     for i in range(0, 50):
         print(f"test log {i}")
 
+    # Запускаю браузер с видимым окном
+    launch_browser(headless = False)
 
-if __name__ == "__main__":
-    # Пример ручного запуска:
-    link = "https://makitaclub.ru"
-    result_code = main_funk_start_on_front(link)
-    print(result_code)
+    goto_url( 
+        url = "https://makitaclub.ru/",
+        wait_until = "load",
+        timeout = 30_000
+    )
+
+    # Скриншоты пушатся автоматически внутри launch_browser() (см. playwright_tool/browser_start.py).
+
+    # time.sleep(10) 
+    # print("Завершено")
+
+
+# if __name__ == "__main__":
+#     # Пример ручного запуска:
+#     link = "https://makitaclub.ru"
+#     result_code = main_funk_start_on_front(link)
+#     print(result_code)
