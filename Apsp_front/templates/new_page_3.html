@@ -160,6 +160,9 @@
         const actionsEl = document.getElementById('final-actions');
         if (!textarea) return;
 
+        // Скорость "печати" (символов в секунду) — как на step6
+        const CODE_TYPEWRITER_CHARS_PER_SEC = 370;
+
         let editor = null;
         try {
             editor = CodeMirror.fromTextArea(textarea, {
@@ -180,6 +183,9 @@
             editor = null;
         }
 
+        let typewriterTimer = null;
+        let typewriterInProgress = false;
+
         function adjustEditorHeight() {
             if (!editor) return;
             editor.refresh();
@@ -189,9 +195,82 @@
             editor.setSize(null, contentHeight);
         }
 
+        function keepBottomInView() {
+            const wrapper = editor ? editor.getWrapperElement() : null;
+            if (!wrapper) return;
+
+            const rect = wrapper.getBoundingClientRect();
+            const bottom = rect.bottom;
+            const viewportH = window.innerHeight || document.documentElement.clientHeight;
+            const margin = 24;
+            const threshold = viewportH - margin;
+
+            if (bottom > threshold) {
+                const delta = bottom - threshold;
+                window.scrollBy({ top: delta, left: 0, behavior: 'auto' });
+            }
+        }
+
         function showActions() {
             if (!actionsEl) return;
             actionsEl.hidden = false;
+        }
+
+        function stopTypewriter() {
+            if (typewriterTimer) {
+                clearInterval(typewriterTimer);
+                typewriterTimer = null;
+            }
+            typewriterInProgress = false;
+        }
+
+        function startTypewriter(fullText, onComplete) {
+            stopTypewriter();
+            typewriterInProgress = true;
+
+            const tickMs = 16; // ~60fps
+            const chunkSize = Math.max(1, Math.floor((CODE_TYPEWRITER_CHARS_PER_SEC * tickMs) / 1000));
+
+            let idx = 0;
+            let lastHeightAdjustAt = 0;
+
+            if (editor) {
+                editor.getDoc().setValue('');
+                setTimeout(adjustEditorHeight, 0);
+            } else {
+                textarea.value = '';
+            }
+
+            typewriterTimer = setInterval(function () {
+                if (!typewriterInProgress) return;
+
+                const nextIdx = Math.min(fullText.length, idx + chunkSize);
+                const chunk = fullText.slice(idx, nextIdx);
+                idx = nextIdx;
+
+                if (editor) {
+                    const doc = editor.getDoc();
+                    const lastLine = doc.lastLine();
+                    const lastCh = doc.getLine(lastLine).length;
+                    doc.replaceRange(chunk, { line: lastLine, ch: lastCh });
+
+                    const now = Date.now();
+                    if (now - lastHeightAdjustAt > 200) {
+                        lastHeightAdjustAt = now;
+                        adjustEditorHeight();
+                    }
+                    keepBottomInView();
+                } else {
+                    textarea.value += chunk;
+                    textarea.scrollTop = textarea.scrollHeight;
+                }
+
+                if (idx >= fullText.length) {
+                    stopTypewriter();
+                    if (editor) setTimeout(adjustEditorHeight, 0);
+                    if (typeof onComplete === 'function') onComplete();
+                }
+            }, tickMs);
         }
 
         async function loadCode() {
@@ -200,14 +279,9 @@
                 if (!resp.ok) throw new Error('bad_status');
                 const text = await resp.text();
 
-                if (editor) {
-                    editor.getDoc().setValue(text || '');
-                    setTimeout(adjustEditorHeight, 0);
-                } else {
-                    textarea.value = text || '';
-                }
-
-                showActions();
+                startTypewriter(text || '', function () {
+                    showActions();
+                });
             } catch (e) {
                 const msg = 'Не удалось загрузить файл result_code_gen/result/result_code.ts';
                 if (editor) {
