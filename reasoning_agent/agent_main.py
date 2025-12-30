@@ -1077,7 +1077,8 @@ def orchestrate(
 
         update_content_front_reasoning(step_reply.get('reasoning') or '—')
         update_content_front_goal(step_reply.get('target') or '—')
-        update_content_front_action((step_reply.get('action') + f"\n"+ (args_text if args_text != '—' else '')) or '—')
+        update_content_front_action((step_reply.get('action') + f"\n\nАргументы:\n"+ (json.dumps(args_text, ensure_ascii=False, indent=4) if args_text != '—' else '')) or '—')
+
 
         """ 
         update_content_front_reasoning,

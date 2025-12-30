@@ -740,6 +740,16 @@ def new_page_1():
 
         # Если пусто — ничего не делаем (остаёмся на странице).
         if site_url.strip():
+            # При старте нового прогона: на следующей странице очищаем состояние,
+            # чтобы UI не показывал данные от предыдущего запуска.
+            session['reset_new_page_2_state'] = True
+            # И очищаем общий лог, чтобы /api/log не отдавал хвосты предыдущего запуска.
+            try:
+                LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+                with open(LOG_FILE_PATH, 'w', encoding='utf-8') as f:
+                    f.write('')
+            except Exception:
+                pass
             # Запускаем обработку в фоне, чтобы не блокировать переход на следующую страницу.
             def runner_front(link: str):
                 try:
@@ -763,6 +773,14 @@ def new_page_2():
     """
     Широкая страница-дашборд (пока без логики; наполнение подключим позже).
     """
+    # Сбрасываем серверное состояние для /api/new_page_2_state только при первом заходе
+    # после редиректа с /new_page_1 (не трогаем refresh страницы, чтобы не терять прогресс).
+    if session.pop('reset_new_page_2_state', False):
+        try:
+            save_new_page_2_state({})
+        except Exception:
+            # не критично: UI всё равно умеет очищаться на клиенте
+            pass
     return render_template('new_page_2.html')
 
 

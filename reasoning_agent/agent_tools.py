@@ -366,7 +366,8 @@ def update_result(field: str | None = None, value: Any = None, updates: Any = No
             return r
         updated += 1
 
-    update_content_front_update_result(str(RESULT))
+    # update_content_front_update_result(str(RESULT))
+    update_content_front_update_result(json.dumps(RESULT, ensure_ascii=False, indent=4))
     return {"status": "ok", "result": RESULT, "updated": updated}
 
 # Примечание: поддерживаются вложенные пути через точку, например "meta.url" или "b.c"

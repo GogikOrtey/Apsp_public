@@ -162,6 +162,8 @@ def main_processer(input_url):
         wait_until = "load",
         timeout = 30_000
     )
+
+    raise RuntimeError("Test_error")
     
     ############# Что делаеть если браузер вдруг внезапно закроется посреди выполнения алгоритма?
     ############# Что делаеть если не дождёмся загрузки страницы в таймаут?
@@ -654,7 +656,7 @@ def main_processer(input_url):
         Данный функционал не реализован на текущий момент 🟡
 
         """
-        return error_text
+        raise RuntimeError(error_text)
 
     # region Шаг 9 - parseCard
 

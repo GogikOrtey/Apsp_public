@@ -77,7 +77,7 @@
 
     /* Текущий шаг: только заголовок и он в 2 раза больше */
     .panel-title--big {
-        font-size: 32px;
+        font-size: 18px;
         text-align: center;
         margin-bottom: 0;
     }
@@ -92,7 +92,7 @@
         color: #222;
         white-space: pre-wrap;
         overflow: auto;
-        font-size: 14px;
+        font-size: 16px;
         line-height: 1.5;
     }
 
@@ -222,6 +222,28 @@
 
     let lastStateJson = null;
 
+    function resetNewPage2Ui() {
+        // Очищаем "карточки" (могут быть восстановлены браузером при Back/Forward)
+        for (const id of NEW_PAGE_2_FIELDS) {
+            const el = document.getElementById(id);
+            if (!el) continue;
+            el.textContent = '';
+        }
+        // Возвращаем дефолтный заголовок текущего шага
+        const stepTitle = document.getElementById('current_step_title');
+        if (stepTitle) stepTitle.textContent = 'Текущий шаг';
+
+        // Очищаем лог (textarea)
+        const logTextarea = document.getElementById('global_log_text');
+        if (logTextarea) {
+            logTextarea.value = '';
+            logTextarea.scrollTop = 0;
+        }
+
+        // Форсируем первое применение state после очистки
+        lastStateJson = null;
+    }
+
     function applyNewPage2State(state) {
         if (!state) return;
         for (const id of NEW_PAGE_2_FIELDS) {
@@ -294,6 +316,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        resetNewPage2Ui();
         pollNewPage2State();
         setInterval(pollNewPage2State, 250);
 
@@ -332,6 +355,13 @@
     //     // Первый запрос сразу + далее по таймеру
     //     refreshBrowserScreenshot();
     //     setInterval(refreshBrowserScreenshot, SCREENSHOT_POLL_MS);
+    });
+
+    // Если браузер восстанавливает страницу из bfcache (Back/Forward), DOMContentLoaded не сработает.
+    window.addEventListener('pageshow', function (event) {
+        if (event && event.persisted) {
+            resetNewPage2Ui();
+        }
     });
 </script>
 {% endblock %}

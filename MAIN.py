@@ -14,6 +14,8 @@ from front_client import (
 )
 
 import time
+import traceback
+from pathlib import Path
 
 from import_all_libraries import *
 from new_program.main_processer import *
@@ -37,7 +39,7 @@ from new_program.main_processer import *
 
 
 def main_funk_start_on_front(link):
-    print("Фронтовская функция запущена, link = " + link)
+    # print("Фронтовская функция запущена, link = " + link)
     # # Ленивая загрузка тяжёлых импортов, чтобы импорт MAIN.py был безопасным.
     # from new_program.main_processer import main_processer_base
     # return main_processer_base(link)
@@ -61,10 +63,31 @@ def main_funk_start_on_front(link):
     # time.sleep(10) 
     # print("Завершено")
 
-    result_code = main_processer(link)
+    def _write_error_to_result_code_ts(text: str) -> None:
+        """
+        Пишем в файл, который показывает фронт (new_page_3 /api/result_code):
+        result_code_gen/result/result_code.ts
+        """
+        try:
+            target = Path(__file__).resolve().parent / "result_code_gen" / "result" / "result_code.ts"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            tmp = target.with_suffix(target.suffix + ".tmp")
+            tmp.write_text(text, encoding="utf-8")
+            tmp.replace(target)
+        except Exception:
+            # Если даже запись результата упала — не даём падать main_funk_start_on_front наружу.
+            pass
+
+    try:
+        result_code = main_processer(link)
+    except Exception:
+        error_text = f"🟠 Ошибка генерации: 🟠\n" + traceback.format_exc()
+        _write_error_to_result_code_ts(error_text)
+        return error_text
 
     print("Генерация завершена")
     time.sleep(5) 
+    return result_code
     
 
 
