@@ -448,7 +448,7 @@ def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
 # region smart_focus
 @tool(
     name="smart_focus",
-    description="Пытается сфокусироваться: Click -> Wait(timeout) -> Click. При перехвате клика нажимает Escape и повторяет попытку. На текущей странице открытой в Playwright",
+    description="Пытается сфокусироваться: Esc -> Click -> Wait(timeout) -> Click. Если клик не проходит — повторяет попытку. На текущей странице открытой в Playwright",
     args=[
         {
             "name": "selector",
@@ -473,8 +473,8 @@ def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
 )
 def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | None]:
     """
-    Пытается сфокусироваться: Click -> Wait(timeout) -> Click.
-    При перехвате клика нажимает Escape и повторяет попытку.
+    Пытается сфокусироваться: Esc -> Click -> Wait(timeout) -> Click.
+    Если клик не проходит — повторяет попытку.
     """
     args = {"selector": selector, "timeout": timeout}
     page, err = _require_page_or_error({"selector": selector, "attempts": 0})
@@ -484,24 +484,82 @@ def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | No
     locator = page.locator(selector)
     last_error: str | None = None
 
-    for attempt in range(1, 3):  # максимум 2 попытки
+    for attempt in range(1, 4):  # максимум 3 попытки
         try:
+            try:
+                page.keyboard.press("Escape")
+            except Exception:
+                pass
             locator.click()
-            page.wait_for_timeout(timeout)
-            locator.click()
+            # page.wait_for_timeout(timeout)
+            # locator.click()
             res = {"status": "ok", "selector": selector, "attempts": attempt, "error": None}
             record_playwright_action("smart_focus", args=args, result=res)
             return res
         except Exception as exc:  # noqa: BLE001
             last_error = str(exc)
-            try:
-                page.keyboard.press("Escape")
-            except Exception:
-                pass
 
-    res = {"status": "error", "selector": selector, "attempts": 2, "error": last_error}
+    res = {"status": "error", "selector": selector, "attempts": 3, "error": last_error}
     record_playwright_action("smart_focus", args=args, result=res)
     return res
+
+
+
+
+if __name__ == "__main__":
+    # Запускаю браузер с видимым окном
+    launch_browser(headless = False)
+
+    goto_url( 
+        url = "https://donplafon.ru/",
+        wait_until = "load",
+        timeout = 30_000
+    )
+
+    wait_ms(5000)
+
+    # smart_focus("#title-search-input-xs")
+    smart_focus("form.top-search._search_ajax input[name=\"q\"]")
+    input("__")
+
+
+
+
+
+# def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | None]:
+#     """
+#     Пытается сфокусироваться: Click -> Wait(timeout) -> Click.
+#     При перехвате клика нажимает Escape и повторяет попытку.
+#     """
+#     args = {"selector": selector, "timeout": timeout}
+#     page, err = _require_page_or_error({"selector": selector, "attempts": 0})
+#     if err:
+#         record_playwright_action("smart_focus", args=args, result=err)
+#         return err
+#     locator = page.locator(selector)
+#     last_error: str | None = None
+
+#     for attempt in range(1, 3):  # максимум 3 попытки
+#         try:
+#             locator.click()
+#             page.wait_for_timeout(timeout)
+#             locator.click()
+#             res = {"status": "ok", "selector": selector, "attempts": attempt, "error": None}
+#             record_playwright_action("smart_focus", args=args, result=res)
+#             return res
+#         except Exception as exc:  # noqa: BLE001
+#             last_error = str(exc)
+#             try:
+#                 page.keyboard.press("Escape")
+#             except Exception:
+#                 pass
+
+#     res = {"status": "error", "selector": selector, "attempts": 2, "error": last_error}
+#     record_playwright_action("smart_focus", args=args, result=res)
+#     return res
+
+
+
 
 
 # region click_element
@@ -872,20 +930,20 @@ def scroll_to_bottom() -> dict[str, str | None]:
 
 
 
-if __name__ == "__main__":
-    # Запускаю браузер с видимым окном
-    launch_browser(headless = False)
+# if __name__ == "__main__":
+#     # Запускаю браузер с видимым окном
+#     launch_browser(headless = False)
 
-    goto_url( 
-        url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
-        wait_until = "load",
-        timeout = 30_000
-    )
+#     goto_url( 
+#         url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT",
+#         wait_until = "load",
+#         timeout = 30_000
+#     )
 
-    wait_ms(5000)
+#     wait_ms(5000)
 
-    scroll_to_bottom()
-    input("__")
+#     scroll_to_bottom()
+#     input("__")
 
 
 
