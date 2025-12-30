@@ -790,7 +790,86 @@ FIELDS:
 
 
 
+# Промат для генерации описаний для полей
+
+""" 
+You are an information-structuring agent.
+
+You receive a list of product fields grouped by sections.
+Each field is provided as: 
+"field_key": "short russian description"
+
+Your task is to convert this list into a structured JSON object with the following format:
+
+{
+  "required": { ... },
+  "additional": { ... },
+  "other_groups_if_present": { ... }
+}
+
+You must preserve all group names and the grouping order exactly as provided.
+Fields must be placed inside the same group where they were originally listed.
+
+For each field you must generate an object with the following properties:
+
+- title  
+  Use the original short description exactly as provided.
+
+- description  
+  Write a more detailed explanation of what this field represents in an online shop product page.
+  Include, when possible:
+  • what the value means  
+  • how it usually looks  
+  • where it is typically located on the page (for example: title, h1, product card, near buy button, etc.)
+
+- examples  
+  Provide 3–6 realistic example values that could appear in this field on real product pages.
+
+- negative_examples  
+  Provide 3–6 realistic values that may appear on the page but should NOT be treated as this field.
+
+- selector_hint  
+  Provide 3–5 CSS selector patterns that are commonly used on real sites for this type of data.
+  These must be short, generic and reusable (for example: ".price", ".product-title", "[itemprop=name]").
+
+- relations (optional)  
+  If this field has logical or semantic relations to other fields (for example price vs oldprice, stock vs availableCount, etc),
+  describe them in natural language here.
+  If no clear relations exist, omit this property.
+
+Rules:
+
+1. Do NOT invent or rename any field keys.
+2. Do NOT move fields between groups.
+3. Do NOT remove any fields.
+4. Do NOT add new fields that were not provided.
+5. Do NOT include type, unit, currency, priority or any technical metadata.
+6. Use concise, clear, technical Russian.
+7. Output ONLY valid JSON. No comments, no explanations, no markdown.
+
+The goal is to produce a compact but semantically rich schema that allows an LLM-based parser to locate and validate these fields on real product pages.
+
+"""
 
 
 
+""" 
+Дополнительные:
+"breadCrumbs": "Поисковая цепочка",
+"deliveryDays": "Срок доставки в днях",
+"rating": "Рейтинг товара / Кол-во звездочек",
+"color": "Цвет товара",
+"material": "Материал",
+"collection": "Коллекция товара",
+"series": "Серия",
 
+Габариты и вес:
+"weight": "Вес товара",
+"volume": "Объём товара",
+"size": "Размер товара",
+"length": "Длина",
+"width": "Ширина",
+"height": "Высота",
+"diameter": "Диаметр",
+
+"""
