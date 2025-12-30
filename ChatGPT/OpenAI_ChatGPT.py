@@ -22,9 +22,108 @@ if not api_key:
         "OpenAI API key not found. Add OPEN_AI_API_KEY to your .env file"
     )
 
-client = OpenAI(
-    api_key=api_key
-)
+import httpx
+from openai import APIConnectionError, APITimeoutError, RateLimitError, APIError
+
+_OPENAI_HTTP_CLIENT: httpx.Client | None = None
+
+def _has_proxy_env() -> bool:
+    keys = (
+        "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+        "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+    )
+    return any(os.getenv(k) for k in keys)
+
+def _build_openai_http_client(*, trust_env: bool) -> httpx.Client:
+    timeout_s = float(os.getenv("OPENAI_TIMEOUT_S", "120"))
+    connect_timeout_s = float(os.getenv("OPENAI_CONNECT_TIMEOUT_S", "30"))
+    timeout = httpx.Timeout(timeout_s, connect=connect_timeout_s)
+    return httpx.Client(timeout=timeout, trust_env=trust_env)
+
+def _set_openai_client(*, api_key: str, trust_env: bool) -> OpenAI:
+    global _OPENAI_HTTP_CLIENT, client
+    try:
+        if _OPENAI_HTTP_CLIENT is not None:
+            _OPENAI_HTTP_CLIENT.close()
+    except Exception:
+        pass
+    _OPENAI_HTTP_CLIENT = _build_openai_http_client(trust_env=trust_env)
+    client = OpenAI(api_key=api_key, http_client=_OPENAI_HTTP_CLIENT)
+    return client
+
+def _parse_bool_env(name: str, default: bool) -> bool:
+    v = os.getenv(name)
+    if v is None:
+        return default
+    v = str(v).strip().lower()
+    return v not in ("0", "false", "no", "off", "")
+
+_TRUST_ENV = _parse_bool_env("OPENAI_TRUST_ENV", True)
+client = _set_openai_client(api_key=api_key, trust_env=_TRUST_ENV)
+atexit.register(lambda: _OPENAI_HTTP_CLIENT.close() if _OPENAI_HTTP_CLIENT else None)
+
+def _openai_responses_create_with_retry(params: dict, *, max_attempts: int | None = None):
+    """
+    Обёртка над client.responses.create:
+    - ретраи на сетевые/временные ошибки
+    - если включён trust_env и в окружении есть прокси, при TLS-ошибке через proxy
+      пробуем один раз пересоздать клиента с trust_env=False (обход системных прокси)
+    """
+    attempts = int(os.getenv("OPENAI_MAX_RETRIES", "3")) if max_attempts is None else int(max_attempts)
+    attempts = max(1, attempts)
+
+    last_exc: Exception | None = None
+    tried_no_env_proxy_fallback = False
+    success = False
+
+    try:
+        for attempt in range(1, attempts + 1):
+            try:
+                resp = client.responses.create(**params)
+                success = True
+                return resp
+            except (APIConnectionError, APITimeoutError) as ex:
+                last_exc = ex
+
+                # Частый кейс в Windows/корп-сетях: env-прокси ломает TLS-туннель.
+                if _TRUST_ENV and _has_proxy_env() and not tried_no_env_proxy_fallback:
+                    tried_no_env_proxy_fallback = True
+                    print("🟠 OpenAI: обнаружены proxy env vars; пробую повторить запрос без trust_env (в обход системных прокси).")
+                    _set_openai_client(api_key=api_key, trust_env=False)
+                    continue
+
+                if attempt >= attempts:
+                    raise
+
+                # backoff: 1s, 2s, 4s...
+                delay_s = min(2 ** (attempt - 1), 8)
+                print(
+                    f"🟠 OpenAI: временная сетевая ошибка ({type(ex).__name__}: {ex}). "
+                    f"Повтор через {delay_s}s (попытка {attempt}/{attempts})"
+                )
+                time.sleep(delay_s)
+            except RateLimitError as ex:
+                last_exc = ex
+                if attempt >= attempts:
+                    raise
+                delay_s = min(2 ** (attempt - 1), 30)
+                print(f"🟠 OpenAI: rate limit ({ex}). Повтор через {delay_s}s (попытка {attempt}/{attempts})")
+                time.sleep(delay_s)
+            except APIError:
+                # Ошибки API обычно не лечатся ретраями (но иногда 5xx можно). Пока без ретраев.
+                raise
+    finally:
+        # Если фоллбек на trust_env=False не помог — вернём клиента к исходной настройке,
+        # чтобы не ломать последующие вызовы у тех, кому прокси всё-таки нужен.
+        if tried_no_env_proxy_fallback and not success:
+            try:
+                _set_openai_client(api_key=api_key, trust_env=_TRUST_ENV)
+            except Exception:
+                pass
+
+    if last_exc:
+        raise last_exc
+    raise RuntimeError("OpenAI request failed for unknown reason")
 
 
 
@@ -324,9 +423,11 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2")
         print(f"\n💫Запрос к ChatGPT, модель {model}\nPROMPT:\n{prompt}\n")
 
     start = time.time()
-    response = client.responses.create(
-        model=model,
-        input=prompt
+    response = _openai_responses_create_with_retry(
+        {
+            "model": model,
+            "input": prompt,
+        }
     )
 
     if is_print:
@@ -371,7 +472,7 @@ def send_message_to_ChatGPT(
         if temperature is not None:
             params["temperature"] = temperature
 
-        response = client.responses.create(**params)
+        response = _openai_responses_create_with_retry(params)
         answer_text = response.output_text
 
         # Подсчёт токенов для входа/выхода
@@ -418,7 +519,7 @@ def send_message_to_ChatGPT(
     if temperature is not None:
         params["temperature"] = temperature
 
-    response = client.responses.create(**params)
+    response = _openai_responses_create_with_retry(params)
     answer_text = response.output_text
 
     # Подсчёт токенов для входа/выхода
