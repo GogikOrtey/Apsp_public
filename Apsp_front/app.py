@@ -226,9 +226,8 @@ def start_code_generation():
 
 @app.route('/')
 def index():
-    """Главная страница - перенаправление на нулевой шаг"""
-    session.clear()  # Очищаем сессию при начале новой формы
-    return redirect(url_for('step0'))
+    """Главная страница"""
+    return redirect(url_for('new_page_1'))
 
 #region step0
 @app.route('/step0')
@@ -633,17 +632,18 @@ def reset():
     
     return redirect(url_for('step0'))
 
-@app.route('/example1', methods=['GET', 'POST'])
-def example1():
+@app.route('/new_page_1', methods=['GET', 'POST'])
+@app.route('/example1', methods=['GET', 'POST'])  # обратная совместимость
+def new_page_1():
     """
-    Простая отдельная форма на /example1 (без шагов и без зависимостей от многошагового флоу).
+    Простая отдельная форма (без шагов и без зависимостей от многошагового флоу).
     """
     site_url = ''
     if request.method == 'POST':
         # Пока просто принимаем значение; дальнейшую логику "Generate" можно подключить позже.
         site_url = sanitize_text(request.form.get('site_url', ''))
 
-    return render_template('example1.html', site_url=site_url)
+    return render_template('new_page_1.html', site_url=site_url)
 
 @app.route('/example2', methods=['GET', 'POST'])
 def example2():
