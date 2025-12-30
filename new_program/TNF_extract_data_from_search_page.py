@@ -322,7 +322,8 @@ if __name__ == "__main__":
     # url = "https://makitaclub.ru/page/1/?s=шуруповерт&post_type=product"
     # url = "https://www.krason.ru/search"
     # url = "https://apelsin.ru/?digiSearch=true&term=плитка&params=%7Csort%3DDEFAULT"
-    url = "https://elemis.ru/?digiSearch=true&term=крем&params=%7Csort%3DDEFAULT"
+    # url = "https://elemis.ru/?digiSearch=true&term=крем&params=%7Csort%3DDEFAULT"
+    url = "https://domo-terra.ru/catalog/?q=%D0%B4%D0%B2%D0%B5%D1%80%D1%8C&s="
 
     html_content = get_html_from_cache(url)
     html_content_zip = clean_html_universal(html_content)

@@ -13,7 +13,7 @@ from new_program.main_processer import *
 # link = "https://makitatrading.ru"
 # link = "https://galleryceramics.ru"
 # link = "https://cosmedel.ru"
-link = "https://cosmedel.ru"
+link = "https://domo-terra.ru/"
 
 
 

@@ -37,7 +37,7 @@ from new_program.html_toolkit import *  # регистрирует инстру�
 main_task = """ 
 Алгоритм, что тебе нужно сделать:
 
-1. Сохранить текущий URL страницы (get_current_url) - можешь записать его в memory
+1. Сохранить текущий URL страницы (get_current_url) - записать его в result в поле first_url
 2. Выбрать селектор (используя данные из поля search_input_selectors из input_data), проверить что он даёт результат на странице (инструмент find_elements)
 3. Получить окружающий html код вокруг этого элемента, убедиться что это действительно поле ввода запроса на поиск (инструмент get_html_frame)
 4. Использовать инструмент наведения фокуса на этот элемент (это smart_focus)
@@ -69,6 +69,11 @@ main_task = """
 
 # Схема результата
 main_result_schema = {
+    "first_url": {
+        "type": "string",
+        "required": True,
+        "description": "Начальный URL первой страницы"
+    },
     "used_seletor_search_input": {
         "type": "string",
         "required": True,
@@ -93,6 +98,7 @@ main_result_schema = {
 
 # Шаблон результата, который агент заполняет в процессе работы
 main_result_template = {
+    "first_url": None,
     "used_seletor_search_input": None,
     "used_seletor_search_button": None,
     "used_search_request": None,
@@ -104,8 +110,9 @@ main_plan = {
     "steps": [
         {
             "step_id": 1,
-            "goal": "Определить рабочий селектор поля ввода поиска и зафиксировать выбранный поисковый запрос из semantics, который будет введён в это поле.",
+            "goal": "Зафиксировать URL первой страниц, определить рабочий селектор поля ввода поиска и зафиксировать выбранный поисковый запрос из semantics, который будет введён в это поле.",
             "fills": [
+                "first_url",
                 "used_seletor_search_input",
                 "used_search_request"
             ]
