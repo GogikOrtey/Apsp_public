@@ -43,6 +43,7 @@
         display: grid;
         gap: 20px;
         min-height: 0;
+        width: 550px;
     }
 
     .col--left {
@@ -107,14 +108,14 @@
         display: flex;
     }
 
-    .browser-screenshot {
-        width: 100%;
-        height: 100%;
+    /* .browser-screenshot {
+        width: 120px;
+        height: 100px;
         object-fit: contain;
         border-radius: 8px;
         background: #111;
         display: none; /* включим, когда загрузится */
-    }
+    /* } */
 
     /* Высоты блоков */
     .panel--high { min-height: 0; }
@@ -198,8 +199,9 @@
         <div class="panel panel--medium">
             <div class="panel-title">Окно браузера</div>
             <div class="panel-body panel-body--image" id="browser_window">
-                <img id="browser_screenshot" class="browser-screenshot" alt="Playwright screenshot" />
-                <div class="image-placeholder" id="browser_screenshot_placeholder">Скриншот появится после запуска Playwright</div>
+                <!-- <img id="browser_screenshot" class="browser-screenshot" alt="Playwright screenshot" /> -->
+                <!-- <div class="image-placeholder" id="browser_screenshot_placeholder">Скриншот появится после запуска Playwright</div> -->
+                <div class="image-placeholder" id="browser_screenshot_placeholder"> - </div>
             </div>
         </div>
     </div>
@@ -280,35 +282,35 @@
         updateGlobalLogContent();
         setInterval(updateGlobalLogContent, 500);
 
-        // Скриншот браузера (Playwright): обновляем нечасто, чтобы не грузить CPU.
-        const screenshotImg = document.getElementById('browser_screenshot');
-        const screenshotPlaceholder = document.getElementById('browser_screenshot_placeholder');
-        const SCREENSHOT_POLL_MS = 5000; // можно поменять на 10000
+    //     // Скриншот браузера (Playwright): обновляем нечасто, чтобы не грузить CPU.
+    //     const screenshotImg = document.getElementById('browser_screenshot');
+    //     const screenshotPlaceholder = document.getElementById('browser_screenshot_placeholder');
+    //     const SCREENSHOT_POLL_MS = 5000; // можно поменять на 10000
 
-        function setScreenshotVisible(isVisible) {
-            if (!screenshotImg || !screenshotPlaceholder) return;
-            screenshotImg.style.display = isVisible ? 'block' : 'none';
-            screenshotPlaceholder.style.display = isVisible ? 'none' : 'flex';
-        }
+    //     function setScreenshotVisible(isVisible) {
+    //         if (!screenshotImg || !screenshotPlaceholder) return;
+    //         screenshotImg.style.display = isVisible ? 'block' : 'none';
+    //         screenshotPlaceholder.style.display = isVisible ? 'none' : 'flex';
+    //     }
 
-        async function refreshBrowserScreenshot() {
-            if (!screenshotImg) return;
-            // cache-busting: каждый раз уникальный query, чтобы браузер не кешировал картинку
-            screenshotImg.src = '/api/browser_screenshot?t=' + Date.now();
-        }
+    //     async function refreshBrowserScreenshot() {
+    //         if (!screenshotImg) return;
+    //         // cache-busting: каждый раз уникальный query, чтобы браузер не кешировал картинку
+    //         screenshotImg.src = '/api/browser_screenshot?t=' + Date.now();
+    //     }
 
-        if (screenshotImg) {
-            screenshotImg.addEventListener('load', function() {
-                setScreenshotVisible(true);
-            });
-            screenshotImg.addEventListener('error', function() {
-                setScreenshotVisible(false);
-            });
-        }
+    //     if (screenshotImg) {
+    //         screenshotImg.addEventListener('load', function() {
+    //             setScreenshotVisible(true);
+    //         });
+    //         screenshotImg.addEventListener('error', function() {
+    //             setScreenshotVisible(false);
+    //         });
+    //     }
 
-        // Первый запрос сразу + далее по таймеру
-        refreshBrowserScreenshot();
-        setInterval(refreshBrowserScreenshot, SCREENSHOT_POLL_MS);
+    //     // Первый запрос сразу + далее по таймеру
+    //     refreshBrowserScreenshot();
+    //     setInterval(refreshBrowserScreenshot, SCREENSHOT_POLL_MS);
     });
 </script>
 {% endblock %}
