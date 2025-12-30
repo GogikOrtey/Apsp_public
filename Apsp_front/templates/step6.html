@@ -520,11 +520,16 @@
     }
 
     // Функция для обновления содержимого лог-файла
+    const LOG_TAIL_BYTES = 500_000; // ~0.5MB хвоста лога вместо чтения всего файла
+    const LOG_POLL_MS = 1000;
+    let logRequestInFlight = false;
     function updateLogContent() {
         const logTextarea = document.getElementById('log-textarea');
         if (!logTextarea) return;
+        if (logRequestInFlight) return;
 
-        fetch('/api/log')
+        logRequestInFlight = true;
+        fetch(`/api/log?tail_bytes=${LOG_TAIL_BYTES}`, { cache: 'no-store' })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Ошибка при загрузке логов');
@@ -535,7 +540,9 @@
                 const currentScrollTop = logTextarea.scrollTop;
                 const isScrolledToBottom = logTextarea.scrollHeight - logTextarea.clientHeight <= currentScrollTop + 1;
                 
-                logTextarea.value = text;
+                if (logTextarea.value !== text) {
+                    logTextarea.value = text;
+                }
                 
                 // Если пользователь был внизу, прокручиваем вниз после обновления
                 if (isScrolledToBottom) {
@@ -546,6 +553,9 @@
             })
             .catch(error => {
                 console.error('Ошибка при обновлении логов:', error);
+            })
+            .finally(() => {
+                logRequestInFlight = false;
             });
     }
 
@@ -1103,8 +1113,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         updateLogContent();
         
-        // Обновляем содержимое каждые 500 мс (2 раза в секунду)
-        setInterval(updateLogContent, 500);
+        // Обновляем содержимое раз в секунду (и только "хвост"), чтобы не убивать UI на больших логах
+        setInterval(updateLogContent, LOG_POLL_MS);
 
         // Log открыт по умолчанию — стартуем статусы сразу (если генерация ещё идёт)
         startGenStatusesIfNeeded();

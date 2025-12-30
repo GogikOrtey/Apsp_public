@@ -60,6 +60,7 @@ NEW_PAGE_2_ALLOWED_FIELDS = {
     "update_result_text",
     "current_step_title",
     "last_phase_result_text",
+    "timer_reset_seq",
 }
 
 # Глобальное состояние генерации (используется для опроса фронтом)
@@ -822,11 +823,58 @@ def get_log():
     """Возвращает содержимое файла output.log"""
     try:
         if LOG_FILE_PATH.is_file():
-            with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return FlaskResponse(content, mimetype='text/plain; charset=utf-8')
+            tail_bytes = request.args.get('tail_bytes', default=None, type=int)
+            # Без tail_bytes — старое поведение (весь файл).
+            if tail_bytes is None:
+                with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
+                resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+                resp.headers["Pragma"] = "no-cache"
+                return resp
+
+            # С tail_bytes — отдаём только хвост файла (чтобы UI не умирал на сотнях тысяч строк).
+            # Ограничиваем верхнюю границу, чтобы не унести память/CPU по ошибке.
+            if tail_bytes < 0:
+                tail_bytes = 0
+            if tail_bytes > 10_000_000:
+                tail_bytes = 10_000_000
+
+            truncated = False
+            with open(LOG_FILE_PATH, 'rb') as f:
+                try:
+                    f.seek(0, 2)  # end
+                    size = f.tell()
+                except Exception:
+                    size = None
+                if not size or tail_bytes == 0:
+                    chunk = b""
+                else:
+                    start = max(0, size - tail_bytes)
+                    truncated = start > 0
+                    f.seek(start)
+                    chunk = f.read()
+                    # Если читаем "не с начала" — режем до первой полной строки (после \n),
+                    # чтобы не показывать пользователю "обрезанный" кусок строки.
+                    if truncated:
+                        nl = chunk.find(b'\n')
+                        if nl != -1:
+                            chunk = chunk[nl + 1:]
+            content = chunk.decode('utf-8', errors='replace')
+            resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["Pragma"] = "no-cache"
+            try:
+                resp.headers["X-Log-Tail-Bytes"] = str(tail_bytes)
+                resp.headers["X-Log-Truncated"] = "1" if truncated else "0"
+            except Exception:
+                pass
+            return resp
         else:
-            return FlaskResponse('', mimetype='text/plain; charset=utf-8')
+            resp = FlaskResponse('', mimetype='text/plain; charset=utf-8')
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["Pragma"] = "no-cache"
+            return resp
     except Exception as e:
         return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
 

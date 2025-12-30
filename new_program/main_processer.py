@@ -308,7 +308,7 @@ def main_processer(input_url):
     # save_page_html(html_content, filename = "page_html.html")
     # save_page_html(html_content_zip, filename = "page_html_zip.html")
 
-    update_content_front_current_step("Шаг 3/10: Извлечение селекторов для полй товара")
+    update_content_front_current_step("Шаг 3/10: Извлечение селекторов для полей товара")
 
     TNF_result = TNF_extract_data_from_search_page(html_content_zip)
     print(f"\nTNF_result:\n")

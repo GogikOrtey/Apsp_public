@@ -414,7 +414,7 @@ main();
             capture_output=True,
             text=False,
             check=False,
-            timeout=3,
+            timeout=20,
         )
 
         if result.returncode != 0:

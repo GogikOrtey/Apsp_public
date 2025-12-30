@@ -92,7 +92,7 @@
         color: #222;
         white-space: pre-wrap;
         overflow: auto;
-        font-size: 16px;
+        font-size: 14px;
         line-height: 1.5;
     }
 
@@ -143,6 +143,24 @@
         text-align: center;
         padding: 16px;
         font-size: 14px;
+    }
+
+    /* Таймер (фиксированный блок справа снизу, поверх всего) */
+    .corner-timer {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 99999;
+        background: #ffffff;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 8px 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        color: #222;
+        user-select: none;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1;
     }
 
     /* Адаптив: на узких экранах — одна колонка */
@@ -197,6 +215,11 @@
         </div>
     </div>
 </div>
+
+<!-- Таймер (секунды с 1 десятичным знаком) -->
+<div class="corner-timer" id="corner_timer" title="Таймер (сбрасывается при завершении вызова ChatGPT)">
+    <span id="corner_timer_value">0.0</span>
+</div>
 {% endblock %}
 
 <!-- <div class="panel panel--medium">
@@ -221,6 +244,50 @@
     ];
 
     let lastStateJson = null;
+    let lastTimerResetSeq = null;
+    const GLOBAL_LOG_TAIL_BYTES = 500_000; // ~0.5MB хвоста лога вместо чтения всего файла
+    const GLOBAL_LOG_POLL_MS = 1000;
+    let globalLogRequestInFlight = false;
+
+    // --- Таймер (0.1s) ---
+    let timerStartMs = 0;
+    let timerRafId = null;
+    let timerLastPaintTenth = null;
+
+    function _nowMs() {
+        return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    }
+
+    function resetCornerTimer() {
+        timerStartMs = _nowMs();
+        timerLastPaintTenth = null;
+        paintCornerTimer(); // сразу обновим UI
+    }
+
+    function paintCornerTimer() {
+        const el = document.getElementById('corner_timer_value');
+        if (!el) return;
+        const elapsedS = Math.max(0, (_nowMs() - timerStartMs) / 1000);
+        const tenth = Math.floor(elapsedS * 10 + 1e-6); // защита от дрожания float
+        if (timerLastPaintTenth === tenth) return;
+        timerLastPaintTenth = tenth;
+        el.textContent = (tenth / 10).toFixed(1);
+    }
+
+    function startCornerTimerLoop() {
+        if (timerRafId != null) return;
+        const loop = () => {
+            paintCornerTimer();
+            timerRafId = window.requestAnimationFrame(loop);
+        };
+        timerRafId = window.requestAnimationFrame(loop);
+    }
+
+    function stopCornerTimerLoop() {
+        if (timerRafId == null) return;
+        try { window.cancelAnimationFrame(timerRafId); } catch (e) {}
+        timerRafId = null;
+    }
 
     function resetNewPage2Ui() {
         // Очищаем "карточки" (могут быть восстановлены браузером при Back/Forward)
@@ -242,6 +309,7 @@
 
         // Форсируем первое применение state после очистки
         lastStateJson = null;
+        lastTimerResetSeq = null;
     }
 
     function applyNewPage2State(state) {
@@ -261,6 +329,14 @@
             const resp = await fetch('/api/new_page_2_state', { cache: 'no-store' });
             if (!resp.ok) return;
             const state = await resp.json();
+
+            // Сбрасываем таймер, если сервер сообщил о событии (инкремент timer_reset_seq)
+            const nextSeq = (state && state.timer_reset_seq != null) ? String(state.timer_reset_seq) : null;
+            if (nextSeq && nextSeq !== lastTimerResetSeq) {
+                lastTimerResetSeq = nextSeq;
+                resetCornerTimer();
+            }
+
             const asJson = JSON.stringify(state);
             if (asJson === lastStateJson) return;
             lastStateJson = asJson;
@@ -274,9 +350,11 @@
     async function updateGlobalLogContent() {
         const logTextarea = document.getElementById('global_log_text');
         if (!logTextarea) return;
+        if (globalLogRequestInFlight) return;
 
         try {
-            const response = await fetch('/api/log', { cache: 'no-store' });
+            globalLogRequestInFlight = true;
+            const response = await fetch(`/api/log?tail_bytes=${GLOBAL_LOG_TAIL_BYTES}`, { cache: 'no-store' });
             if (!response.ok) return;
             const text = await response.text();
 
@@ -295,6 +373,8 @@
             }
         } catch (e) {
             // тихо игнорируем
+        } finally {
+            globalLogRequestInFlight = false;
         }
     }
 
@@ -317,11 +397,13 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         resetNewPage2Ui();
+        resetCornerTimer();
+        startCornerTimerLoop();
         pollNewPage2State();
         setInterval(pollNewPage2State, 250);
 
         updateGlobalLogContent();
-        setInterval(updateGlobalLogContent, 500);
+        setInterval(updateGlobalLogContent, GLOBAL_LOG_POLL_MS);
 
         pollFrontMainStatus();
         setInterval(pollFrontMainStatus, 500);
@@ -361,7 +443,14 @@
     window.addEventListener('pageshow', function (event) {
         if (event && event.persisted) {
             resetNewPage2Ui();
+            resetCornerTimer();
+            startCornerTimerLoop();
         }
+    });
+
+    // На всякий случай: при уходе со страницы прекращаем loop
+    window.addEventListener('pagehide', function () {
+        stopCornerTimerLoop();
     });
 </script>
 {% endblock %}

@@ -134,6 +134,43 @@ MAX_MESSAGES_FOR_PROMPT = 10
 SESSION_TTL_DAYS = 7
 _SESSION_HISTORY_INITIALIZED = False
 
+
+def _try_bump_new_page_2_timer_reset_seq() -> None:
+    """
+    Best-effort сигнал для фронта (`/new_page_2`): инкрементит `timer_reset_seq`
+    в `result_code_gen/result/new_page_2_state.json`, чтобы UI мог сбросить таймер.
+    """
+    try:
+        import json
+        import os
+
+        state_path = ROOT_DIR / "result_code_gen" / "result" / "new_page_2_state.json"
+
+        try:
+            with state_path.open("r", encoding="utf-8") as f:
+                state = json.load(f)
+            if not isinstance(state, dict):
+                state = {}
+        except Exception:
+            state = {}
+
+        prev = state.get("timer_reset_seq")
+        try:
+            prev_int = int(str(prev)) if prev not in (None, "") else 0
+        except Exception:
+            prev_int = 0
+
+        state["timer_reset_seq"] = str(prev_int + 1)
+
+        state_path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_path = state_path.with_suffix(state_path.suffix + ".tmp")
+        with tmp_path.open("w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=2, sort_keys=True)
+        os.replace(str(tmp_path), str(state_path))
+    except Exception:
+        # Не ломаем основной пайплайн, если UI-сигнал не удалось записать
+        return
+
 #region Функции для работы с историей
 
 class ChatGPTResult:
@@ -492,6 +529,7 @@ def send_message_to_ChatGPT(
             print(f"\n")
 
         # chat_id пустой, т.к. историю мы не вели
+        _try_bump_new_page_2_timer_reset_seq()
         return ChatGPTResult(answer=answer_text, chat_id="", raw_response=response)
 
     history = _load_session_history()
@@ -541,6 +579,7 @@ def send_message_to_ChatGPT(
         emit_execution_time(start, emit=print, print_time_smile=False)
         print(f"\n\n")
 
+    _try_bump_new_page_2_timer_reset_seq()
     return ChatGPTResult(answer=answer_text, chat_id=chat_id, raw_response=response)
 
 
