@@ -15,8 +15,8 @@ from front_client import (
 
 import time
 
-# from import_all_libraries import *
-# from new_program.main_processer import *
+from import_all_libraries import *
+from new_program.main_processer import *
 
 # Хороший пример:
 # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
@@ -42,9 +42,12 @@ def main_funk_start_on_front(link):
     # from new_program.main_processer import main_processer_base
     # return main_processer_base(link)
 
-    time.sleep(10) 
+    time.sleep(5) 
 
     update_content_front_reasoning("Думаю о мороженом")
+
+    for i in range(0, 50):
+        print(f"test log {i}")
 
 
 if __name__ == "__main__":

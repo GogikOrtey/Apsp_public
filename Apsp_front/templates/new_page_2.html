@@ -95,6 +95,14 @@
         line-height: 1.5;
     }
 
+    /* Лог: textarea как в step6 (нормальные переносы + прокрутка) */
+    .panel-body--log {
+        width: 100%;
+        height: 100%;
+        resize: none;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
     .panel-body--image {
         display: flex;
     }
@@ -136,7 +144,7 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">new_page_2</h1>
+<!-- <h1 class="page-title">new_page_2</h1> -->
 
 <div class="main-grid">
     <!-- Левая колонка -->
@@ -166,7 +174,7 @@
     <div class="col col--right">
         <div class="panel panel--high">
             <div class="panel-title">Общий лог</div>
-            <div class="panel-body" id="global_log_text"></div>
+            <textarea class="panel-body panel-body--log" id="global_log_text" readonly spellcheck="false">Логи будут отображаться здесь</textarea>
         </div>
 
         <div class="panel panel--step">
@@ -227,9 +235,40 @@
         }
     }
 
+    // Логика лога (как в step6): читаем /api/log и обновляем textarea, не ломая скролл пользователя
+    async function updateGlobalLogContent() {
+        const logTextarea = document.getElementById('global_log_text');
+        if (!logTextarea) return;
+
+        try {
+            const response = await fetch('/api/log', { cache: 'no-store' });
+            if (!response.ok) return;
+            const text = await response.text();
+
+            const currentScrollTop = logTextarea.scrollTop;
+            const isScrolledToBottom = logTextarea.scrollHeight - logTextarea.clientHeight <= currentScrollTop + 1;
+
+            if (logTextarea.value !== text) {
+                logTextarea.value = text;
+            }
+
+            // Если пользователь был внизу, прокручиваем вниз после обновления
+            if (isScrolledToBottom) {
+                logTextarea.scrollTop = logTextarea.scrollHeight;
+            } else {
+                logTextarea.scrollTop = currentScrollTop;
+            }
+        } catch (e) {
+            // тихо игнорируем
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         pollNewPage2State();
         setInterval(pollNewPage2State, 250);
+
+        updateGlobalLogContent();
+        setInterval(updateGlobalLogContent, 500);
     });
 </script>
 {% endblock %}

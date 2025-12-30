@@ -10,6 +10,21 @@ from datetime import datetime
 from collections import OrderedDict
 from result_processer import process_results
 
+from pathlib import Path
+import sys
+import json
+import copy
+from typing import Any
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from import_all_libraries import *
+from new_program.main_processer import *
+# Важно: `import *` выше может перетереть имя `Response` не-flask'овским классом.
+# Явно фиксируем, что в этом файле под Response для HTTP-ответов используется именно flask.Response.
+from flask import Response as FlaskResponse
+
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'  # Важно для работы сессий
 
@@ -745,11 +760,11 @@ def get_log():
         if LOG_FILE_PATH.is_file():
             with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
                 content = f.read()
-            return Response(content, mimetype='text/plain; charset=utf-8')
+            return FlaskResponse(content, mimetype='text/plain; charset=utf-8')
         else:
-            return Response('', mimetype='text/plain; charset=utf-8')
+            return FlaskResponse('', mimetype='text/plain; charset=utf-8')
     except Exception as e:
-        return Response(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+        return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
 
 
 @app.route('/api/code_gen_status')
@@ -765,11 +780,11 @@ def get_result_code():
         if RESULT_CODE_FILE_PATH.is_file():
             with open(RESULT_CODE_FILE_PATH, 'r', encoding='utf-8') as f:
                 content = f.read()
-            return Response(content, mimetype='text/plain; charset=utf-8')
+            return FlaskResponse(content, mimetype='text/plain; charset=utf-8')
         else:
-            return Response('', mimetype='text/plain; charset=utf-8')
+            return FlaskResponse('', mimetype='text/plain; charset=utf-8')
     except Exception as e:
-        return Response(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+        return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
 
 
 @app.route('/api/message_global')
@@ -781,18 +796,18 @@ def get_message_global():
                 content = f.read()
             # Удаляем переносы строк только сверху и снизу (внутренние переносы сохраняем)
             content = content.strip('\r\n')
-            return Response(content, mimetype='text/plain; charset=utf-8')
+            return FlaskResponse(content, mimetype='text/plain; charset=utf-8')
         else:
-            return Response('', mimetype='text/plain; charset=utf-8')
+            return FlaskResponse('', mimetype='text/plain; charset=utf-8')
     except Exception as e:
-        return Response(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+        return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
 
 
 @app.route('/api/new_page_2_state', methods=['GET'])
 def api_new_page_2_state_get():
     """Отдаёт JSON-состояние для `templates/new_page_2.html`."""
     state = load_new_page_2_state()
-    return Response(json.dumps(state, ensure_ascii=False), mimetype='application/json; charset=utf-8')
+    return FlaskResponse(json.dumps(state, ensure_ascii=False), mimetype='application/json; charset=utf-8')
 
 
 @app.route('/api/new_page_2_state', methods=['POST'])
@@ -806,7 +821,7 @@ def api_new_page_2_state_post():
     """
     payload = request.get_json(silent=True) or {}
     if not isinstance(payload, dict):
-        return Response('{"ok":false,"error":"invalid_json"}', mimetype='application/json; charset=utf-8', status=400)
+        return FlaskResponse('{"ok":false,"error":"invalid_json"}', mimetype='application/json; charset=utf-8', status=400)
 
     state = load_new_page_2_state()
 
@@ -814,7 +829,7 @@ def api_new_page_2_state_post():
         field = payload.get("field")
         value = payload.get("value", "")
         if field not in NEW_PAGE_2_ALLOWED_FIELDS:
-            return Response('{"ok":false,"error":"unknown_field"}', mimetype='application/json; charset=utf-8', status=400)
+            return FlaskResponse('{"ok":false,"error":"unknown_field"}', mimetype='application/json; charset=utf-8', status=400)
         state[field] = normalize_display_text(value)
     else:
         updated_any = False
@@ -823,21 +838,21 @@ def api_new_page_2_state_post():
                 state[k] = normalize_display_text(payload.get(k))
                 updated_any = True
         if not updated_any:
-            return Response('{"ok":false,"error":"no_allowed_fields"}', mimetype='application/json; charset=utf-8', status=400)
+            return FlaskResponse('{"ok":false,"error":"no_allowed_fields"}', mimetype='application/json; charset=utf-8', status=400)
 
     try:
         save_new_page_2_state(state)
     except Exception:
-        return Response('{"ok":false,"error":"save_failed"}', mimetype='application/json; charset=utf-8', status=500)
+        return FlaskResponse('{"ok":false,"error":"save_failed"}', mimetype='application/json; charset=utf-8', status=500)
 
-    return Response('{"ok":true}', mimetype='application/json; charset=utf-8')
+    return FlaskResponse('{"ok":true}', mimetype='application/json; charset=utf-8')
 
 
 @app.route('/download/parser_ts')
 def download_parser_ts():
     """Скачать сгенерированный парсер .ts"""
     if not RESULT_CODE_FILE_PATH.is_file():
-        return Response('Файл result_code.ts не найден', mimetype='text/plain; charset=utf-8', status=404)
+        return FlaskResponse('Файл result_code.ts не найден', mimetype='text/plain; charset=utf-8', status=404)
 
     return send_file(
         str(RESULT_CODE_FILE_PATH),
@@ -865,7 +880,7 @@ def download_all_files_zip():
             candidates.append((arcname, full_path))
 
     if missing:
-        return Response(
+        return FlaskResponse(
             'Не найдены файлы: ' + ', '.join(missing),
             mimetype='text/plain; charset=utf-8',
             status=404
@@ -891,7 +906,7 @@ def download_all_files_zip():
 @app.route('/.well-known/appspecific/com.chrome.devtools.json')
 def chrome_devtools():
     """Обработчик для Chrome DevTools - убирает 404 предупреждения"""
-    return Response('{}', mimetype='application/json')
+    return FlaskResponse('{}', mimetype='application/json')
 
 if __name__ == '__main__':
     # В режиме debug Flask включает reloader, который поднимает дочерний процесс.
