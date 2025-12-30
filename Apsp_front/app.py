@@ -640,8 +640,20 @@ def new_page_1():
     """
     site_url = ''
     if request.method == 'POST':
-        # Пока просто принимаем значение; дальнейшую логику "Generate" можно подключить позже.
         site_url = sanitize_text(request.form.get('site_url', ''))
+
+        # Если пусто — ничего не делаем (остаёмся на странице).
+        if site_url.strip():
+            # Запускаем обработку в фоне, чтобы не блокировать переход на следующую страницу.
+            def runner_front(link: str):
+                try:
+                    from MAIN import main_funk_start_on_front
+                    main_funk_start_on_front(link)
+                except Exception as e:
+                    print(f"Ошибка в main_funk_start_on_front: {e}")
+
+            threading.Thread(target=runner_front, args=(site_url,), daemon=True).start()
+            return redirect(url_for('new_page_2'))
 
     return render_template('new_page_1.html', site_url=site_url)
 

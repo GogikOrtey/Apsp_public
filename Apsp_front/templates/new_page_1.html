@@ -37,7 +37,7 @@
 {% endblock %}
 
 {% block content %}
-<form method="POST" class="example1-form">
+<form method="POST" class="example1-form" id="new_page_1_form">
     <div class="form-group">
         <label for="site_url" class="example1-label">Введите адрес сайта</label>
         <input
@@ -51,8 +51,24 @@
         >
     </div>
 
-    <button type="submit" class="btn btn-success btn-full">Generate</button>
+    <button type="submit" class="btn btn-success btn-full" id="new_page_1_submit">Generate</button>
 </form>
+
+<script>
+    (function () {
+        const form = document.getElementById('new_page_1_form');
+        const input = document.getElementById('site_url');
+        if (!form || !input) return;
+
+        form.addEventListener('submit', function (e) {
+            const v = (input.value || '').trim();
+            if (!v) {
+                // По требованию: если пусто — по нажатию кнопки "ничего не происходит"
+                e.preventDefault();
+            }
+        });
+    })();
+</script>
 {% endblock %}
 
 
