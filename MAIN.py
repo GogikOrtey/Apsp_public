@@ -20,6 +20,38 @@ from pathlib import Path
 from import_all_libraries import *
 from new_program.main_processer import *
 
+
+
+
+
+
+
+""" 
+
+
+
+Для запуска проекта нужно запустить app.py
+И зайти на http://127.0.0.1:5000
+
+
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Хороший пример:
 # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
 

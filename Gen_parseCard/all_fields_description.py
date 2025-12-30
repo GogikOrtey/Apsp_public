@@ -1035,31 +1035,31 @@ all_fields = {
                 ".line",
                 "[data-collection]"
             ]
-        },
-        "series": {
-            "title": "Серия",
-            "description": "Серия или модельная линейка внутри бренда, объединяющая товары с общими характеристиками или дизайном. Обычно указывается рядом с названием или в блоке характеристик.",
-            "examples": [
-                "Galaxy S",
-                "Pro",
-                "X-Series",
-                "AquaLine",
-                "Model 3000"
-            ],
-            "negative_examples": [
-                "Красный",
-                "Хлопок",
-                "Коллекция Summer",
-                "4.5",
-                "В наличии"
-            ],
-            "selector_hint": [
-                ".series",
-                ".product-series",
-                ".model-line",
-                "[data-series]"
-            ]
         }
+        # "series": {
+        #     "title": "Серия",
+        #     "description": "Серия или модельная линейка внутри бренда, объединяющая товары с общими характеристиками или дизайном. Обычно указывается рядом с названием или в блоке характеристик.",
+        #     "examples": [
+        #         "Galaxy S",
+        #         "Pro",
+        #         "X-Series",
+        #         "AquaLine",
+        #         "Model 3000"
+        #     ],
+        #     "negative_examples": [
+        #         "Красный",
+        #         "Хлопок",
+        #         "Коллекция Summer",
+        #         "4.5",
+        #         "В наличии"
+        #     ],
+        #     "selector_hint": [
+        #         ".series",
+        #         ".product-series",
+        #         ".model-line",
+        #         "[data-series]"
+        #     ]
+        # }
     },
     "Габариты и вес": {
         "weight": {
