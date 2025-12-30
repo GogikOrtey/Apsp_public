@@ -200,6 +200,9 @@ def build_all_code_parseCard(result_build_parseCard, result_get_fields_descripti
         }
         items.push(item);
 
+        // Отладочный вывод всех полей
+        if (this.conf.debug) items.forEach(elem => { Object.entries(elem).forEach(([key, value]) => { this.debugger.put(`🟩 ${key} = ${value}`) }) });
+
         cacher.cache = items
         return items;
     }

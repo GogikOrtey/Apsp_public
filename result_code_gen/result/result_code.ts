@@ -127,6 +127,9 @@ export class JS_Base_kotelnasosru extends JS_Base_Custom {
         }
         items.push(item);
 
+        // Отладочный вывод всех полей
+        if (this.conf.debug) items.forEach(elem => { Object.entries(elem).forEach(([key, value]) => { this.debugger.put(`🟩 ${key} = ${value}`) }) });
+
         cacher.cache = items
         return items;
     }
