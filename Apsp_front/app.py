@@ -645,6 +645,14 @@ def new_page_1():
 
     return render_template('new_page_1.html', site_url=site_url)
 
+
+@app.route('/new_page_2', methods=['GET'])
+def new_page_2():
+    """
+    Широкая страница-дашборд (пока без логики; наполнение подключим позже).
+    """
+    return render_template('new_page_2.html')
+
 @app.route('/example2', methods=['GET', 'POST'])
 def example2():
     """
