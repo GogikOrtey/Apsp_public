@@ -473,8 +473,8 @@ def validate_interactivity(selector: str) -> dict[str, str | bool | None]:
 )
 def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | None]:
     """
-    Пытается сфокусироваться: Esc -> Click -> Wait(timeout) -> Click.
-    Если клик не проходит — повторяет попытку.
+    Пытается сфокусироваться: Click -> Wait(timeout) -> Click.
+    При перехвате клика нажимает Escape и повторяет попытку.
     """
     args = {"selector": selector, "timeout": timeout}
     page, err = _require_page_or_error({"selector": selector, "attempts": 0})
@@ -484,24 +484,57 @@ def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | No
     locator = page.locator(selector)
     last_error: str | None = None
 
-    for attempt in range(1, 4):  # максимум 3 попытки
+    for attempt in range(1, 3):  # максимум 2 попытки
         try:
-            try:
-                page.keyboard.press("Escape")
-            except Exception:
-                pass
             locator.click()
-            # page.wait_for_timeout(timeout)
-            # locator.click()
+            page.wait_for_timeout(timeout)
+            locator.click()
             res = {"status": "ok", "selector": selector, "attempts": attempt, "error": None}
             record_playwright_action("smart_focus", args=args, result=res)
             return res
         except Exception as exc:  # noqa: BLE001
             last_error = str(exc)
+            try:
+                page.keyboard.press("Escape")
+            except Exception:
+                pass
 
-    res = {"status": "error", "selector": selector, "attempts": 3, "error": last_error}
+    res = {"status": "error", "selector": selector, "attempts": 2, "error": last_error}
     record_playwright_action("smart_focus", args=args, result=res)
     return res
+
+
+# def smart_focus(selector: str, timeout: int = 1_000) -> dict[str, str | int | None]:
+#     """
+#     Пытается сфокусироваться: Esc -> Click -> Wait(timeout) -> Click.
+#     Если клик не проходит — повторяет попытку.
+#     """
+#     args = {"selector": selector, "timeout": timeout}
+#     page, err = _require_page_or_error({"selector": selector, "attempts": 0})
+#     if err:
+#         record_playwright_action("smart_focus", args=args, result=err)
+#         return err
+#     locator = page.locator(selector)
+#     last_error: str | None = None
+
+#     for attempt in range(1, 4):  # максимум 3 попытки
+#         try:
+#             try:
+#                 page.keyboard.press("Escape")
+#             except Exception:
+#                 pass
+#             locator.click()
+#             # page.wait_for_timeout(timeout)
+#             # locator.click()
+#             res = {"status": "ok", "selector": selector, "attempts": attempt, "error": None}
+#             record_playwright_action("smart_focus", args=args, result=res)
+#             return res
+#         except Exception as exc:  # noqa: BLE001
+#             last_error = str(exc)
+
+#     res = {"status": "error", "selector": selector, "attempts": 3, "error": last_error}
+#     record_playwright_action("smart_focus", args=args, result=res)
+#     return res
 
 
 

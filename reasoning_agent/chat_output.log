@@ -101,68 +101,38 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 1   ———————————
 
-🟢 reasoning: В текущей фазе нужно определить рабочий селектор поля ввода поиска. Начинаю с первого селектора из search_input_selectors и проверяю, что он находит поле на странице, чтобы затем получить html-фрейм и зафиксировать селектор в result.
-🔵 target: Проверить первый селектор поля поиска на наличие элементов на текущей странице
+🟢 reasoning: В фазе 1 нужно определить рабочий селектор поля поиска. Начинаю с первого селектора из search_input_selectors и проверяю, что он реально находит поле на текущей странице.
+🔵 target: Проверить первый кандидатный селектор поля ввода поиска на наличие элементов на странице
 🟡 action: find_elements
-   🔶 args: {"selector": "form.top-search._search_ajax input[name=\"q\"]", "only_count": false, "max_results": 3}
+   🔶 args: {"selector": "#digi-shield input.digi-search-form__input", "only_count": false, "max_results": 3}
 
-🛠️  find_elements({'selector': 'form.top-search._search_ajax input[name="q"]', 'only_count': False, 'max_results': 3})
-Инструмент вернул результат: {"status": "ok", "count": 1, "elements": [{"index": 0, "text": "", "html": "", "href": null, "attrs": {"name": "q", "class": "text digi-instant-search jc-ignore", "value": "", "autocomplete": "off", "placeholder": ""}}]}
+🛠️  find_elements({'selector': '#digi-shield input.digi-search-form__input', 'only_count': False, 'max_results': 3})
+Инструмент вернул результат: {"status": "ok", "count": 1, "elements": [{"index": 0, "text": "", "html": "", "href": null, "attrs": {"type": "text", "data-target": "_self", "class": "digi-search-form__input"}}]}
 
 ———————————   Шаг 2   ———————————
 
-🟢 reasoning: В фазе 1 нужно выбрать рабочий селектор поля поиска. find_elements уже показал 1 совпадение, но важно подтвердить по окружающему HTML, что это действительно поисковое поле (внутри search/top-search формы), прежде чем фиксировать used_seletor_search_input и used_search_request в result.
-🔵 target: Получить HTML-фрейм вокруг найденного поля ввода, чтобы убедиться что это именно поиск
+🟢 reasoning: В фазе 1 нужно зафиксировать рабочий селектор поля поиска. Селектор уже нашёл 1 input, теперь проверяю окружение в HTML, чтобы убедиться, что это именно поисковое поле (форма/кнопка submit/подписи поиска), прежде чем записывать used_seletor_search_input и выбирать запрос из semantics.
+🔵 target: Получить HTML-фрейм вокруг найденного поля ввода и убедиться, что это поиск
 🟡 action: get_html_frame_on_current_page
-   🔶 args: {"selector": "form.top-search._search_ajax input[name=\"q\"]", "max_frame_chars": 2000, "ancestor_levels": 5, "sibling_elems": 2}
+   🔶 args: {"selector": "#digi-shield input.digi-search-form__input", "max_frame_chars": 2500, "ancestor_levels": 4, "sibling_elems": 2}
 
-🛠️  get_html_frame_on_current_page({'selector': 'form.top-search._search_ajax input[name="q"]', 'max_frame_chars': 2000, 'ancestor_levels': 5, 'sibling_elems': 2})
-Инструмент вернул результат: "<!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 300 NODES--><div class=\"container\"><!--TRIMMED_BEFORE 1 NODES--><div class=\"header__inner header__mob-bottom\"><!--TRIMMED_BEFORE 1 NODES--><div class=\"header__search\" id=\"search\"><!--TRIMMED_BEFORE 1 NODES--><form class=\"top-search _search_ajax\"><fieldset><!--TARGET_START--><input class=\"text digi-instant-search jc-ignore\"><!--TARGET_END--></fieldset><!--TRIMMED_AFTER 1 NODES--></form><!--TRIMMED_AFTER 3 NODES--></div></div><!--TRIMMED_AFTER 1 NODES--></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 2941 NODES-->"
+🛠️  get_html_frame_on_current_page({'selector': '#digi-shield input.digi-search-form__input', 'max_frame_chars': 2500, 'ancestor_levels': 4, 'sibling_elems': 2})
+Инструмент вернул результат: "<!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 287 NODES--><div class=\"digi-wrapper\"><div class=\"digi-search-wrapper\"><form class=\"digi-search__form digi-search-form\"><div class=\"digi-search-form__input-block\"><!--TARGET_START--><input data-target=\"_self\" class=\"digi-search-form__input\"><!--TARGET_END--><div class=\"digi-search-form__actions\">&lt;!--TRIMMED_BEFORE 1 AFTER 0 NODES--&gt;</div></div><!--TRIMMED_AFTER 2 NODES--></form></div></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 11317 NODES-->"
 
 ———————————   Шаг 3   ———————————
 
-🟢 reasoning: Селектор поля ввода найден (find_elements вернул 1 элемент с name=q), а html-фрейм показывает что инпут находится внутри header__search/#search и формы top-search _search_ajax, значит это корректное поле поиска. Для фазы 1 нужно заполнить used_seletor_search_input и used_search_request; выбираю первый запрос из semantics — "люстра".
-🔵 target: Зафиксировать рабочий селектор поля поиска и выбранный поисковый запрос (для заполнения полей текущей фазы)
+🟢 reasoning: Селектор #digi-shield input.digi-search-form__input находит ровно один input на странице. HTML-фрейм показывает, что элемент находится внутри form с классами digi-search__form/digi-search-form и рядом есть блок actions, что соответствует поисковой форме. Значит селектор рабочий; по инструкции берём первый запрос из semantics — «ламинат».
+🔵 target: Зафиксировать рабочий селектор поля поиска и выбранный поисковый запрос из semantics в result
 🟡 action: update_result
-   🔶 args: {"updates": [{"field": "used_seletor_search_input", "value": "form.top-search._search_ajax input[name=\"q\"]"}, {"field": "used_search_request", "value": "люстра"}]}
+   🔶 args: {"updates": [{"field": "used_seletor_search_input", "value": "#digi-shield input.digi-search-form__input"}, {"field": "used_search_request", "value": "ламинат"}]}
 
-🛠️  update_result({'updates': [{'field': 'used_seletor_search_input', 'value': 'form.top-search._search_ajax input[name="q"]'}, {'field': 'used_search_request', 'value': 'люстра'}]})
-Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "form.top-search._search_ajax input[name=\"q\"]", "used_seletor_search_button": null, "used_search_request": "люстра", "second_html": null}, "updated": 2}
+🛠️  update_result({'updates': [{'field': 'used_seletor_search_input', 'value': '#digi-shield input.digi-search-form__input'}, {'field': 'used_search_request', 'value': 'ламинат'}]})
+Инструмент вернул результат: {"status": "ok", "result": {"used_seletor_search_input": "#digi-shield input.digi-search-form__input", "used_seletor_search_button": null, "used_search_request": "ламинат", "second_html": null}, "updated": 2}
 
 ———————————   Шаг 4   ———————————
 
-🟢 reasoning: Для фазы 2 нужно зафиксировать URL после запуска поиска. Перед нажатием Enter сохраню текущий URL как old_url (в memory), чтобы затем корректно вызвать wait_for_navigation_or_content и сравнить изменения.
-🔵 target: Сохранить текущий URL страницы перед запуском поиска, чтобы затем отследить переход после нажатия Enter
-🟡 action: get_current_url
-
-
-🛠️  get_current_url({})
-Инструмент вернул результат: {"status": "ok", "url": "https://donplafon.ru/"}
-
-———————————   Шаг 5   ———————————
-
-🟢 reasoning: Для wait_for_navigation_or_content нужен исходный URL. Мы уже получили текущий URL через get_current_url, поэтому фиксирую его в memory как old_url и дальше буду запускать поиск (Enter) и ожидать переход.
-🔵 target: Сохранить текущий URL (old_url) в memory перед запуском поиска, чтобы затем отследить навигацию после Enter
-🟡 action: update_memory
-   🔶 args: {"value": "old_url=https://donplafon.ru/"}
-
-🛠️  update_memory({'value': 'old_url=https://donplafon.ru/'})
-Инструмент вернул результат: {"status": "ok", "added": 1, "memory_size": 1}
-
-———————————   Шаг 6   ———————————
-
-🟢 reasoning: Текущая фаза требует получить URL страницы после запуска поиска и записать его в second_html. old_url уже сохранён в memory. Следующий шаг по алгоритму — нажать Enter, чтобы инициировать поиск.
-🔵 target: Запустить поиск нажатием Enter (после ввода запроса в поле поиска)
-🟡 action: press_enter
-
-
-🛠️  press_enter({})
-Инструмент вернул результат: {"status": "ok"}
-
-———————————   Шаг 7   ———————————
-
-🟢 reasoning: Текущая фаза требует заполнить second_html (URL после запуска поиска). Enter уже был нажат, old_url сохранён. Следующий шаг алгоритма — подождать смену URL или заметное изменение контента.
-🔵 target: Дождаться перехода/существенного изменения контента после нажатия Enter, чтобы получить URL страницы результатов поиска
-🟡 action: wait_for_navigation_or_content
-   🔶 args: {"old_url": "https://donplafon.ru/", "timeout": 15000, "change_threshold": 0.2}
+🟢 reasoning: В текущей фазе нужно запустить поиск и получить URL результата (second_html). Для этого сначала необходимо сфокусироваться на поле ввода (по инструкции smart_focus используется только для поля), затем ввести used_search_request и инициировать поиск Enter/кнопкой.
+🔵 target: Сфокусироваться на найденном поле поиска, чтобы подготовиться к вводу запроса
+🟡 action: smart_focus
+   🔶 args: {"selector": "#digi-shield input.digi-search-form__input", "timeout": 1000}
 

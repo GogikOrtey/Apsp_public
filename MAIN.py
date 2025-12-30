@@ -14,7 +14,8 @@ from new_program.main_processer import *
 # link = "https://makitatrading.ru"
 # link = "https://galleryceramics.ru"
 # link = "https://apelsin.ru"
-link = "https://donplafon.ru/"
+# link = "https://donplafon.ru/"
+link = "https://domostroy.shop"
 
 
 
