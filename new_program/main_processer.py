@@ -179,7 +179,7 @@ def main_processer(input_url):
 
     HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
     print(f"\nHGF_result:\n")
-    update_content_front_last_phase_result(json.dumps(HGF_result, ensure_ascii=False, indent=4))
+    update_content_front_last_phase_result(HGF_result)
     print(HGF_result)
 
     # # Пример ответа HGF для сайта makitaclub.ru
@@ -272,7 +272,7 @@ def main_processer(input_url):
 
     result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
     print("result_agent_answer_from_2_step:")
-    update_content_front_last_phase_result(json.dumps(result_agent_answer_from_2_step, ensure_ascii=False, indent=4))
+    update_content_front_last_phase_result(result_agent_answer_from_2_step)
     print(result_agent_answer_from_2_step)
 
     """ 
@@ -309,7 +309,7 @@ def main_processer(input_url):
     TNF_result = TNF_extract_data_from_search_page(html_content_zip)
     print(f"\nTNF_result:\n")
     print(TNF_result)
-    update_content_front_last_phase_result(json.dumps(TNF_result, ensure_ascii=False, indent=4))
+    update_content_front_last_phase_result(TNF_result)
 
     # Преобразует строку ответа в json
     TNF_result = json.loads(TNF_result)

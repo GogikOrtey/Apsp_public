@@ -48,11 +48,11 @@
 
     .col--left {
         /* grid-template-rows: 3fr 1fr 2fr 3fr; */
-        grid-template-rows: 210px 120px 140px 200px;
+        grid-template-rows: 210px 120px 160px 234px;
     }
 
     .col--right {
-        grid-template-rows: 3fr 1fr 2fr 2fr;
+        grid-template-rows: 390px 80px 275px ;
     }
 
     /* Карточки */
@@ -195,18 +195,18 @@
             <div class="panel-title">Результат последней фазы</div>
             <div class="panel-body" id="last_phase_result_text"></div>
         </div>
-
-        <div class="panel panel--medium">
-            <div class="panel-title">Окно браузера</div>
-            <div class="panel-body panel-body--image" id="browser_window">
-                <!-- <img id="browser_screenshot" class="browser-screenshot" alt="Playwright screenshot" /> -->
-                <!-- <div class="image-placeholder" id="browser_screenshot_placeholder">Скриншот появится после запуска Playwright</div> -->
-                <div class="image-placeholder" id="browser_screenshot_placeholder"> - </div>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}
+
+<!-- <div class="panel panel--medium">
+    <div class="panel-title">Окно браузера</div>
+    <div class="panel-body panel-body--image" id="browser_window"> -->
+        <!-- <img id="browser_screenshot" class="browser-screenshot" alt="Playwright screenshot" /> -->
+        <!-- <div class="image-placeholder" id="browser_screenshot_placeholder">Скриншот появится после запуска Playwright</div> -->
+        <!-- <div class="image-placeholder" id="browser_screenshot_placeholder"> - </div>
+    </div>
+</div> -->
 
 
 {% block extra_js %}
