@@ -561,14 +561,15 @@ def clean_html_universal(html_content: str, trim: bool = True) -> str:
 
     # 7. Финальная обрезка всего HTML по середине (страховка от переполнения контекста LLM)
     # Если контент слишком большой — оставляем фиксированные head/tail и вырезаем середину
-    if trim and len(cleaned_html) > 500_000:
+    if trim and len(cleaned_html) > 400_000:
         marker = "\n<!-- APSP: CONTENT TRIMMED IN THE MIDDLE (removed to fit LLM context) -->\n"
-        head_len = 400_000
+        # head_len = 400_000
+        head_len = 300_000
         tail_len = 100_000
         cleaned_html = cleaned_html[:head_len] + marker + cleaned_html[-tail_len:]
         print(
             f"🟨 Страницу обрезали по середине до {len(cleaned_html)} символов "
-            f"(порог 500 000; оставили {head_len} в начале и {tail_len} в конце)."
+            f"(порог 400 000; оставили {head_len} в начале и {tail_len} в конце)."
         )
 
     # Вычисление и вывод статистики

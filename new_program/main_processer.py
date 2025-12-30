@@ -50,11 +50,12 @@ from new_program.agent_step_6_2_diginetica_and_custom_req_on_PP import *
 
 
 
-- Тестировать
+
 - Фронт собрать
     - [прописать что нужно]
 - Поля просмотреть и актуализировать - проверить по задачам, какие часто испольуются, и добавить их
     - Выписать список
+- Тестировать, уже с использованием фронта
 
 
 
@@ -798,6 +799,7 @@ https://www.krason.ru/search
 
 https://domo-terra.ru
 https://domplitok.ru
+
 https://dvkeramik.ru
 https://e-dz.ru
 https://electron.bg

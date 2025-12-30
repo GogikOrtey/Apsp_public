@@ -10,10 +10,12 @@ from new_program.main_processer import *
 # link = "https://kotel-nasos.ru/nastennyy-gazovyy-kotel-28-kvt-eca-gerda-28-hm-ng_1/"
 
 # link = "https://makitaclub.ru"
+# link = "https://cosmedel.ru"
+# link = "https://domo-terra.ru/"
+# link = "https://domplitok.ru"
 # link = "https://makitatrading.ru"
 # link = "https://galleryceramics.ru"
-# link = "https://cosmedel.ru"
-link = "https://domo-terra.ru/"
+link = "http://systemarf.ru/"
 
 
 

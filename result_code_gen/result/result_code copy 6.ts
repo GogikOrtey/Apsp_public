@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, link, timestamp
+    name, stock, imageLink, article, category, brand, manufacturer, price, link, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, link, timestamp
+    name, stock, imageLink, article, category, brand, manufacturer, price, link, timestamp
 }
 
-const HOST = "https://systemarf.ru"
+const HOST = "https://domplitok.ru"
 
-export class JS_Base_systemarfru extends JS_Base_Custom {
+export class JS_Base_domplitokru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,23 +73,22 @@ export class JS_Base_systemarfru extends JS_Base_Custom {
 
     //#region Парсинг поиска
         async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/search/`)
+        let url = new URL(`${HOST}/catalog/`)
         url.searchParams.set("q", set.query)
-        if (set.page && +set.page > 1) url.searchParams.set("PAGEN_1", String(set.page))
-        else url.searchParams.delete("PAGEN_1")
+        if (set.page && +set.page > 1) url.searchParams.set("PAGEN_3", String(set.page))
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$(".pagination-catalog a").get().map(item => +$(item).text().trim()).filter(Boolean))
+            let totalPages = Math.max(...$(".navigation_block .pagging__list a.pagging__item").get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
 
-        let products = $('.catalog_items_list .catalog_item .product-item-title > a[href]')
+        let products = $('section.elements .elements-item__name[href]')
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
@@ -107,20 +106,35 @@ export class JS_Base_systemarfru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.name-item[itemprop='name']").text().trim()
-        const stock = $(".available_block").text().trim()?.includes("Поставка от 3-х дней") ? "InStock" : "OutOfStock"
-        const imageLink = $(".main-slider .item:first-child img.lazy-image")?.attr("src") || $(".main-slider .item:first-child img.lazy-image")?.attr("data-src") || ""
-        const article = $(".product-item-detail-properties > div:first-child dd").text().trim()
-        const category = $(".bx-breadcrumb span[itemprop='name']")?.last().text().trim()
-        const brand = $(".product-item-detail-properties > div:nth-child(2) dd").text().trim()
-        const manufacturer = $(".product-item-detail-properties > div:nth-child(2) dd").text().trim()
-        const price = $(".product-item-detail-price-current").first().text().trim()?.replace(/\s+/g, " ")?.replace(/[^\d]/g, "")
-        const oldprice = $(".product-item-detail-price-old").first().text().trim()?.replace(/\s+/g, " ")?.replace(/[^\d]/g, "")
+        const name = $("h1.collection-top__title").text().trim();
+        const stock = $(".product-bottom__left").text().trim()?.includes("Купить") ? "InStock" : "OutOfStock";
+        const imageLink = (() => {
+          const src = $(".collection-top__slide-ibg img")?.first()?.attr("src") || $(".collection-top__slide-ibg img")?.first()?.attr("data-src") || "";
+          if (!src) return "";
+          return src.startsWith("http") ? src : (HOST + src);
+        })();
+        const article = $(".collection-top__rightinfo:contains(\"KM\")")?.first().text().trim();
+        const category = $(".crumbs__body a.crumbs__link:nth-last-of-type(1)")?.first().text().trim();
+        let brand = "";
+        $(".collection-top__rightrow").each((i, el) => {
+          const label = $(el).find(".collection-top__rightname")?.first().text().trim();
+          if (label === "Производитель") {
+            brand = $(el).find(".collection-top__rightinfo")?.first().text().trim();
+          }
+        });
+        let manufacturer = "";
+        $(".collection-top__rightrow").each((i, el) => {
+          const label = $(el).find(".collection-top__rightname")?.first().text().trim();
+          if (label === "Производитель") {
+            manufacturer = $(el).find(".collection-top__rightinfo")?.first().text().trim();
+          }
+        });
+        const price = $(".collection-top__rightrow .collection-top__rightinfo-blue span")?.first().text().trim()?.replace(/\s+/g, "")?.replace(",", ".")?.replace(/[^\d.]/g, "")?.replace(/\.(?=.*\.)/g, "")?.replace(/\.+$/g, "");
         const link = set.query;
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, link, timestamp
+            name, stock, imageLink, article, category, brand, manufacturer, price, link, timestamp
         }
         items.push(item);
 
