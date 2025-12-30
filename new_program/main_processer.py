@@ -18,7 +18,7 @@ import traceback
 import time
 from typing import Any
 
-from front_client import update_content_front_last_phase_result
+from front_client import update_content_front_current_step, update_content_front_last_phase_result
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -176,6 +176,7 @@ def main_processer(input_url):
     # save_page_html(html_content_zip, filename = "page_html_zip.html")
 
     # region Шаг 1 - HGF
+    update_content_front_current_step("Шаг 1/10: Извлечение семантики сайта и селекторов поля ввода поискового запроса")
 
     HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
     print(f"\nHGF_result:\n")
@@ -269,6 +270,7 @@ def main_processer(input_url):
         del HGF_result[key]
 
     # region Шаг 2 - Агент 
+    update_content_front_current_step("Шаг 2/10: Переход на страницу результатов поисковой выдачи")
 
     result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
     print("result_agent_answer_from_2_step:")
@@ -305,6 +307,8 @@ def main_processer(input_url):
 
     # save_page_html(html_content, filename = "page_html.html")
     # save_page_html(html_content_zip, filename = "page_html_zip.html")
+
+    update_content_front_current_step("Шаг 3/10: Извлечение селекторов для полй товара")
 
     TNF_result = TNF_extract_data_from_search_page(html_content_zip)
     print(f"\nTNF_result:\n")
@@ -390,6 +394,8 @@ def main_processer(input_url):
         
         # Генерация PP для дигинетики
 
+        update_content_front_current_step("Шаг 4/10: Генерация кода parsePage для дигинетики")
+
         parse_page_code_fragment = agent_step_6_2_diginetica_and_custom_req_on_PP(TNF_result, search_request, semantics, result_agent_answer_from_2_step.get("second_html")).get("result_code")
         update_content_front_last_phase_result(json.dumps(parse_page_code_fragment, ensure_ascii=False, indent=4))
     
@@ -398,6 +404,7 @@ def main_processer(input_url):
         # Генерация PP по кусочкам, в обычном формате
 
         print("Запуск result_agent_step_4_product")
+        update_content_front_current_step("Шаг 4/10: Генерация фрагмента кода извлечения ссылки на товары для parsePage")
         result_agent_step_4_product = agent_step_4_product(TNF_result, search_request)
         update_content_front_last_phase_result(json.dumps(result_agent_step_4_product, ensure_ascii=False, indent=4))
         """ 
@@ -411,6 +418,7 @@ def main_processer(input_url):
         """
 
         print("Запуск result_agent_step_5_pagination")
+        update_content_front_current_step("Шаг 5/10: Генерация фрагмента кода пагинации по страницам для parsePage")
         result_agent_step_5_pagination = agent_step_5_pagination(TNF_result, search_request)
         update_content_front_last_phase_result(json.dumps(result_agent_step_5_pagination, ensure_ascii=False, indent=4))
         """ 
@@ -422,6 +430,7 @@ def main_processer(input_url):
         """
 
         print("Запуск result_agent_step_6_URL_construct")
+        update_content_front_current_step("Шаг 6/10: Генерация фрагмента кода формирования URL поиска для parsePage")
         result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)   
         update_content_front_last_phase_result(json.dumps(result_agent_step_6_URL_construct, ensure_ascii=False, indent=4)) 
         """ 
@@ -486,6 +495,8 @@ def main_processer(input_url):
             "selector_product": product_link_selectors[0],
             "additional_processing_for_the_link_value": None,
         }
+
+    update_content_front_current_step("Шаг 6_1: Собираем 15 ссылок на товары")
 
     result_agent_step_6_1_get_links_for_product = agent_step_6_1_get_links_for_product(input_data_for_3_links, search_request)
     update_content_front_last_phase_result(json.dumps(result_agent_step_6_1_get_links_for_product, ensure_ascii=False, indent=4)) 
@@ -569,6 +580,7 @@ def main_processer(input_url):
 
         # Вот тут добавить вызов функции сборщика кода
         print("Запускаем agent_step_7_build_code_parsePage")
+        update_content_front_current_step("Шаг 7/10: Собираем код parsePage")
         
         parse_page_code_fragment = agent_step_7_build_code_parsePage(object_for_code_block_parsePage)
 
@@ -622,6 +634,8 @@ def main_processer(input_url):
             "Шаг 6.1 вернул пустой/некорректный five_links_1 — не могу проверить доступность сайта простыми запросами."
         )
     check_url_t = five_links_1[0]
+
+    update_content_front_current_step("Шаг 8/10: Проверяем доступность страниц для парсинга простыми запросами")
     # Проверяем на первой странице товара
     result_check_simple_request_on_this_site = check_request_this_site_ok(check_url_t)
     result_check_simple_request_on_this_site_status = result_check_simple_request_on_this_site.get("request_ok")
@@ -645,6 +659,8 @@ def main_processer(input_url):
     # region Шаг 9 - parseCard
 
     # 15 примеров ссылок товаров лежат в result_agent_step_6_1_get_links_for_product
+
+    update_content_front_current_step("Шаг 9/10: Валидируем селекторы для полей и собираем код parsePage")
 
     (parse_card_code_fragment, fields_descr)  = main_gen_parseCard(result_agent_step_6_1_get_links_for_product, url_input)
     update_content_front_last_phase_result(parse_card_code_fragment) 
@@ -675,6 +691,8 @@ def main_processer(input_url):
     """
 
     # region Шаг 10 - Итоговый код
+
+    update_content_front_current_step("Шаг 10/10: Собираем итоговый код")
 
     result_final_code = build_final_code(url_input, parse_card_code_fragment, parse_page_code_fragment, fields_descr)
 

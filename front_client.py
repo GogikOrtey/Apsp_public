@@ -123,3 +123,8 @@ def update_content_front_last_phase_result(text: Any, *, base_url: str = DEFAULT
     return update_new_page_2_field("last_phase_result_text", text, base_url=base_url, timeout_s=timeout_s)
 
 
+def update_content_front_current_step(text: Any, *, base_url: str = DEFAULT_FRONT_BASE_URL, timeout_s: float = 0.25) -> bool:
+    """`new_page_2.html`: обновляет заголовок 'Текущий шаг' (id=`current_step_title`)."""
+    return update_new_page_2_field("current_step_title", text, base_url=base_url, timeout_s=timeout_s)
+
+

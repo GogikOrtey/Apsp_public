@@ -58,6 +58,7 @@ NEW_PAGE_2_ALLOWED_FIELDS = {
     "goal_text",
     "action_text",
     "update_result_text",
+    "current_step_title",
     "last_phase_result_text",
 }
 
