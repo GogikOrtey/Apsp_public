@@ -98,3 +98,46 @@ SYSTEM_PROMPT =
 - 4. После ответа управление ВСЕГДА возвращается оркестратору.
 - 5. Ты НИКОГДА не выполняешь следующий шаг сам.
 
+
+———————————   Шаг 1   ———————————
+
+🟢 reasoning: Для закрытия Фазы 1 нужно заполнить first_url; самый надёжный источник — текущий URL страницы в Playwright.
+🔵 target: Сохранить текущий URL как first_url для выполнения требований Фазы 1
+🟡 action: get_current_url
+
+
+🛠️  get_current_url({})
+Инструмент вернул результат: {"status": "ok", "url": "https://chiedocover.ru/"}
+
+———————————   Шаг 2   ———————————
+
+🟢 reasoning: В истории уже получен текущий URL через get_current_url; нужно зафиксировать его в result, чтобы закрыть часть fills Фазы 1.
+🔵 target: Записать текущий URL страницы в result.first_url для выполнения требований Фазы 1
+🟡 action: update_result
+   🔶 args: {"field": "first_url", "value": "https://chiedocover.ru/"}
+
+🛠️  update_result({'field': 'first_url', 'value': 'https://chiedocover.ru/'})
+Инструмент вернул результат: {"status": "ok", "result": {"first_url": "https://chiedocover.ru/", "used_seletor_search_input": null, "used_seletor_search_button": null, "used_search_request": null, "second_html": null}, "updated": 1}
+
+———————————   Шаг 3   ———————————
+
+🟢 reasoning: Для завершения Фазы 1 нужно определить рабочий селектор поля ввода поиска. Начинаю с первого селектора из input_data и проверяю, что он находит элемент на текущей странице.
+🔵 target: Проверить наличие на странице поля поиска по первому селектору из списка
+🟡 action: find_elements
+   🔶 args: {"selector": "input[data-element=\"header__search-input\"]", "only_count": false, "max_results": 5}
+
+🛠️  find_elements({'selector': 'input[data-element="header__search-input"]', 'only_count': False, 'max_results': 5})
+Инструмент вернул результат: {"status": "ok", "count": 1, "elements": [{"index": 0, "text": "", "html": "", "href": null, "attrs": {"type": "search", "class": "header__search-input input-text", "name": "query", "data-element": "header__search-input", "autocomplete": "off", "aria-label": "Поиск", "style": ""}}]}
+
+———————————   Шаг 4   ———————————
+
+🟢 reasoning: В Фазе 1 нужно выбрать рабочий селектор поля поиска. find_elements показал count=1 и атрибуты похожи на поиск (type=search, aria-label=Поиск). Следующий шаг по алгоритму — взять окружающий HTML, чтобы убедиться, что это действительно поле поиска в шапке, прежде чем фокусироваться и вводить запрос.
+🔵 target: Получить HTML-фрейм вокруг найденного поля поиска, чтобы подтвердить, что это корректный input для ввода запроса
+🟡 action: get_html_frame_on_current_page
+   🔶 args: {"selector": "input[data-element=\"header__search-input\"]", "max_frame_chars": 2500, "ancestor_levels": 5, "sibling_elems": 2}
+
+🛠️  get_html_frame_on_current_page({'selector': 'input[data-element="header__search-input"]', 'max_frame_chars': 2500, 'ancestor_levels': 5, 'sibling_elems': 2})
+Инструмент вернул результат: "<!--TRIMMED_OUTSIDE_CONTAINER_BEFORE: 73 NODES--><div class=\"header__wrapper\" data-element=\"header__wrapper\"><!--TRIMMED_BEFORE 1 NODES--><div class=\"header__cont cont\"><!--TRIMMED_BEFORE 1 NODES--><div class=\"header__search\"><!--TRIMMED_BEFORE 4 NODES--><form class=\"header__search-form\" data-element=\"header__search-form\"><!--TRIMMED_BEFORE 1 NODES--><div class=\"header__search-field\"><!--TARGET_START--><input class=\"header__search-input input-text\" data-element=\"header__search-input\" aria-label=\"Поиск\"><!--TARGET_END--><div class=\"header__search-placeholder text-small header__search-placeholder_show\" data-element=\"header__search-placeholder\">Чехлы для стульев</div><div class=\"header__search-button\" data-element=\"header__search-button\" role=\"button\" aria-label=\"Поиск по каталогу\"></div><!--TRIMMED_AFTER 2 NODES--></div><!--TRIMMED_AFTER 1 NODES--></form></div></div></div><!--TRIMMED_OUTSIDE_CONTAINER_AFTER: 5659 NODES-->"
+
+———————————   Шаг 5   ———————————
+
