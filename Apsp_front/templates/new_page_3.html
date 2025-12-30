@@ -1,0 +1,232 @@
+{% extends "layout.html" %}
+
+{% block title %}New Page 3 - Result code{% endblock %}
+
+{% block content %}
+<h1>Result code</h1>
+
+<div class="code-wrap">
+    <textarea id="code-textarea" class="code-textarea" readonly>Загрузка кода...</textarea>
+</div>
+
+<div class="final-actions-bar">
+    <div class="final-actions-bar__placeholder" aria-hidden="true"></div>
+    <div id="final-actions" class="final-actions" hidden>
+        <a class="final-actions__btn final-actions__btn--ts" href="{{ url_for('download_parser_ts') }}">.ts</a>
+        <a class="final-actions__btn final-actions__btn--zip" href="{{ url_for('download_all_files_zip') }}">Скачать все файлы .zip</a>
+        <a class="final-actions__btn final-actions__btn--start" href="{{ url_for('index') }}">В начало</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material.min.css">
+<style>
+    .container {
+        max-width: 900px !important;
+    }
+
+    .code-wrap {
+        margin-top: 10px;
+    }
+
+    .code-textarea {
+        width: 100%;
+        height: 300px;
+        padding: 12px;
+        border: 2px solid #2d2d2d;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        resize: none;
+        background-color: #1e1e1e;
+        color: #d4d4d4;
+        overflow-y: auto;
+        line-height: 1.5;
+        tab-size: 4;
+    }
+
+    .CodeMirror {
+        margin-top: 0;
+        border: 1px solid #444;
+        border-radius: 8px;
+        height: auto;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .cm-s-material.CodeMirror,
+    .cm-s-material .CodeMirror-gutters {
+        background-color: #13191c;
+    }
+
+    .CodeMirror-scroll {
+        overflow: hidden !important;
+    }
+
+    .CodeMirror-vscrollbar,
+    .CodeMirror-hscrollbar,
+    .CodeMirror-scrollbar-filler,
+    .CodeMirror-gutter-filler {
+        display: none !important;
+    }
+
+    .CodeMirror-scroll::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
+    }
+
+    .final-actions-bar {
+        margin-top: 20px;
+        display: grid;
+        grid-template-areas: "stack";
+    }
+
+    .final-actions-bar__placeholder {
+        grid-area: stack;
+        min-height: 44px;
+    }
+
+    .final-actions {
+        grid-area: stack;
+        display: grid;
+        grid-template-columns: 1fr 4fr 1fr;
+        gap: 10px;
+        align-items: center;
+        justify-content: stretch;
+    }
+
+    .final-actions[hidden] {
+        display: none !important;
+    }
+
+    .final-actions__btn {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        padding: 12px 22px;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1;
+        text-decoration: none;
+        cursor: pointer;
+        user-select: none;
+        transition: filter 0.2s, transform 0.06s;
+    }
+
+    .final-actions__btn:hover {
+        filter: brightness(0.97);
+    }
+
+    .final-actions__btn:active {
+        transform: scale(0.99);
+    }
+
+    .final-actions__btn--ts {
+        background: #667eea;
+        border: 0;
+        color: #ffffff;
+    }
+
+    .final-actions__btn--ts:hover {
+        background: #5568d3;
+    }
+
+    .final-actions__btn--zip {
+        background: #28a745;
+        border: 0;
+        color: #ffffff;
+    }
+
+    .final-actions__btn--start {
+        background: #6c757d;
+        border: 0;
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/edit/closebrackets.min.js"></script>
+
+<script>
+    (function () {
+        const textarea = document.getElementById('code-textarea');
+        const actionsEl = document.getElementById('final-actions');
+        if (!textarea) return;
+
+        let editor = null;
+        try {
+            editor = CodeMirror.fromTextArea(textarea, {
+                mode: { name: "javascript", typescript: true },
+                theme: "material",
+                lineNumbers: true,
+                lineWrapping: true,
+                matchBrackets: true,
+                autoCloseBrackets: true,
+                indentUnit: 4,
+                tabSize: 4,
+                indentWithTabs: false,
+                viewportMargin: Infinity,
+                readOnly: true
+            });
+        } catch (e) {
+            // Если CodeMirror не загрузился — оставим обычный textarea
+            editor = null;
+        }
+
+        function adjustEditorHeight() {
+            if (!editor) return;
+            editor.refresh();
+            const wrapper = editor.getWrapperElement();
+            const sizer = wrapper ? wrapper.querySelector('.CodeMirror-sizer') : null;
+            const contentHeight = (sizer && sizer.offsetHeight) ? sizer.offsetHeight : editor.getScrollInfo().height;
+            editor.setSize(null, contentHeight);
+        }
+
+        function showActions() {
+            if (!actionsEl) return;
+            actionsEl.hidden = false;
+        }
+
+        async function loadCode() {
+            try {
+                const resp = await fetch('/api/result_code', { cache: 'no-store' });
+                if (!resp.ok) throw new Error('bad_status');
+                const text = await resp.text();
+
+                if (editor) {
+                    editor.getDoc().setValue(text || '');
+                    setTimeout(adjustEditorHeight, 0);
+                } else {
+                    textarea.value = text || '';
+                }
+
+                showActions();
+            } catch (e) {
+                const msg = 'Не удалось загрузить файл result_code_gen/result/result_code.ts';
+                if (editor) {
+                    editor.getDoc().setValue(msg);
+                    setTimeout(adjustEditorHeight, 0);
+                } else {
+                    textarea.value = msg;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadCode();
+            window.addEventListener('resize', function () {
+                adjustEditorHeight();
+            });
+        });
+    })();
+</script>
+{% endblock %}
+
+

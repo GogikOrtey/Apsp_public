@@ -738,6 +738,15 @@ def new_page_2():
     """
     return render_template('new_page_2.html')
 
+
+@app.route('/new_page_3', methods=['GET'])
+def new_page_3():
+    """
+    Отдельная страница: показать содержимое result_code_gen/result/result_code.ts
+    так же "красиво", как на step6 (построчно с подсветкой/номерами строк).
+    """
+    return render_template('new_page_3.html')
+
 @app.route('/example2', methods=['GET', 'POST'])
 def example2():
     """
