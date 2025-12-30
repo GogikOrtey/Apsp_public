@@ -7,7 +7,7 @@ import { SetType, tools } from "a-parser-types";
 import { Cacher } from "../Base-Custom/Cache";
 import {
     toArray, isBadLink,
-    name, stock, imageLink, article, category, price, breadCrumbs, weight, width, link, timestamp
+    name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, breadCrumbs, material, weight, size, width, height, link, timestamp
 } from "../Base-Custom/Fields"
 import * as cheerio from "cheerio";
 
@@ -16,12 +16,12 @@ type ResultItem = Item<typeof fields>
 
 //#region Константы
 const fields = {
-    name, stock, imageLink, article, category, price, breadCrumbs, weight, width, link, timestamp
+    name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, breadCrumbs, material, weight, size, width, height, link, timestamp
 }
 
-const HOST = "https://makitaclub.ru"
+const HOST = "https://kotel-nasos.ru"
 
-export class JS_Base_makitaclubru extends JS_Base_Custom {
+export class JS_Base_kotelnasosru extends JS_Base_Custom {
     static defaultConf: defaultConf = {
             ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
             parsecodes: { 200: 1, 404: 1 },
@@ -73,31 +73,28 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
 
     //#region Парсинг поиска
         async parsePage(set: SetType) {
-        let url = new URL(`${HOST}/`);
-        url.searchParams.set('s', set.query);
-        url.searchParams.set('post_type', 'product');
-        if (set.page && Number(set.page) > 1) {
-          url.pathname = `/page/${set.page}/`;
-        }
+        let url = new URL(`${HOST}/search/`)
+        url.searchParams.set("query", set.query)
+        if (set.page && +set.page > 1) url.searchParams.set("page", String(set.page))
 
         const data = await this.makeRequest(url.href)
         const $ = cheerio.load(data)
 
         if (set.page === 1) {
-            let totalPages = Math.max(...$('nav.woocommerce-pagination .page-numbers').get().map(item => +$(item).text().trim()).filter(Boolean))
+            let totalPages = Math.max(...$(".c-products__pagination .c-pagination .c-pagination-item").get().map(item => +$(item).text().trim()).filter(Boolean))
             this.debugger.put(`totalPages = ${totalPages}`)
             for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
                 this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
             }
         }
 
-        let products = $(".products .product-card a.stretched-link[href]")
+        let products = $('.c-search-page .c-products__list .c-product-thumb__name[href]')
         if (products.length == 0) {
             this.logger.put(`По запросу ${set.query} ничего не найдено`)
             throw new NotFoundError()
         }
         products.slice(0, +this.conf.itemsCount).each((i, product) => {
-            let link = $(product)?.attr('href')
+            let link = HOST + $(product)?.attr('href')
             this.query.add({ ...set, query: link, type: "card", lvl: 1 })
         })
     }
@@ -109,20 +106,27 @@ export class JS_Base_makitaclubru extends JS_Base_Custom {
         const data = await this.makeRequest(set.query);
         const $ = cheerio.load(data);
 
-        const name = $("h1.product_title.entry-title").text().trim()
-        const stock = $("form.cart button.single_add_to_cart_button, form.cart .single_add_to_cart_button").text().trim()?.includes("В корзину") ? "InStock" : "OutOfStock"
-        const imageLink = $(".woocommerce-product-gallery__wrapper img.wp-post-image").attr("data-src") || $(".woocommerce-product-gallery__wrapper img.wp-post-image").attr("src") || ""
-        const article = $(".product_meta .sku_wrapper .sku").first().text().trim()
-        const category = $(".product_meta .posted_in a[rel='tag']").first().text().trim()
-        const price = $(".summary .price .woocommerce-Price-amount").first().text().trim()?.replace(/,/g, ".")?.replace(/[^\d.]/g, "")
-        const breadCrumbs = $(".breadcrumbs .woocommerce-breadcrumb").first().text().trim()?.replace(/\s*\/\s*/g, " / ")
-        const weight = $("table.woocommerce-product-attributes tr:contains(\"Вес\") td.woocommerce-product-attributes-item__value").first().text().trim()?.replace(/,/g, ".")
-        const width = $("table.woocommerce-product-attributes tr:contains(\"Ширина\") td.woocommerce-product-attributes-item__value").first().text().trim()
+        const name = $("h1.c-header.c-header_h1")?.first().text().trim()
+        const stock = $(".c-product-skus-stocks__sku-stocks_selected .c-product-skus-stocks__sku-stock-available")?.first().text().trim()?.includes("В наличии") ? "InStock" : "OutOfStock"
+        const imageLink = ($(".c-product-images__image[data-index=\"0\"] a.l-image-box[href]")?.first()?.attr("href") || "").trim();
+        const imageLinkAbs = imageLink?.startsWith("http") ? imageLink : (imageLink ? (HOST + imageLink) : "")
+        const article = $(".c-product-cart-form__top-value_sku .c-product-cart-form__sku-value")?.first().text().trim()
+        const category = $(".c-breadcrumbs__item:nth-last-child(2) a.c-link")?.first().text().trim()
+        const brand = $(".c-product-cart-form__top-values .c-value__value-text a.c-link[href^=\"/brand/\"]")?.first().text().trim()
+        const manufacturer = $(".c-product-features-overview__item .c-value__value-text")?.first().text().trim()
+        const price = $(".c-product-add-to-cart__price")?.first().text().trim()?.replace(/\s+/g, " ")?.replace(/\s/g, "")?.replace(/[^\d]/g, "") || ""
+        const oldprice = $(".c-product-add-to-cart__compare-price")?.first().text().trim()?.replace(/\s+/g, " ")?.replace(/\s/g, "")?.replace(/[^\d]/g, "") || ""
+        const breadCrumbs = $(".c-breadcrumbs__wrapper")?.first().text().trim()?.replace(/\s+/g, " ") || ""
+        const material = $(".c-product-feature__name:contains(\"Материал корпуса\")")?.first()?.closest(".c-product-feature")?.find(".c-product-feature__value")?.first().text().trim() || ""
+        const weight = $(".c-product-feature__name:contains(\"Вес\")")?.first()?.closest(".c-product-feature")?.find(".c-product-feature__value")?.first().text().trim() || ""
+        const size = $(".c-product-feature__name:contains(\"Габариты\")")?.first()?.closest(".c-product-feature")?.find(".c-product-feature__value")?.first().text().trim() || ""
+        const width = $(".c-product-feature__name:contains(\"Ширина\")")?.first()?.closest(".c-product-feature")?.find(".c-product-feature__value")?.first().text().trim() || ""
+        const height = $(".c-product-feature__name:contains(\"Высота\")")?.first()?.closest(".c-product-feature")?.find(".c-product-feature__value")?.first().text().trim() || ""
         const link = set.query;
         const timestamp = getTimestamp()
 
         const item: ResultItem = {
-            name, stock, imageLink, article, category, price, breadCrumbs, weight, width, link, timestamp
+            name, stock, imageLink, article, category, brand, manufacturer, price, oldprice, breadCrumbs, material, weight, size, width, height, link, timestamp
         }
         items.push(item);
 

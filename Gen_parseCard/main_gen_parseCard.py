@@ -15,6 +15,8 @@ import json
 import copy
 from typing import Any
 
+from front_client import update_content_front_last_phase_result
+
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -429,6 +431,8 @@ def main_gen_parseCard(input_15_links, host):
     result_extract_selectors_parseCard_from_GPT = merge_selectors_from_multiple_pages(
         results_extract_selectors_parseCard_from_GPT
     )
+
+    update_content_front_last_phase_result((json.dumps(result_extract_selectors_parseCard_from_GPT, ensure_ascii=False, indent=4)) )
 
     """
 
