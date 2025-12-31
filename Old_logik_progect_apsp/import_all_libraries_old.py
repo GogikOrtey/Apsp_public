@@ -30,6 +30,7 @@ import os
 
 
 # Глобальные модули
+from gen_data_input_table import data_input_table # Входные данные
 import module_logging
 from YandexGPT import *
 from global_variable import *
@@ -173,24 +174,24 @@ def get_html(
         return ""
     
 
-# # region ErrorHandler
-# class ErrorHandler(Exception):
-#     """Моё кастомное исключение."""
+# region ErrorHandler
+class ErrorHandler(Exception):
+    """Моё кастомное исключение."""
 
-#     def __init__(self, message, error_code=0):
-#         self.message = message
-#         self.error_code = error_code
+    def __init__(self, message, error_code=0):
+        self.message = message
+        self.error_code = error_code
 
-#         message_global.append({"1": f"🔴 Агент завершил работу с ошибкой: {message}"})
+        message_global.append({"1": f"🔴 Агент завершил работу с ошибкой: {message}"})
 
 
 
-#         full_msg = (
-#             f"🔴 Агент завершил работу с ошибкой: {message}"
-#             if error_code == 0
-#             else f"🔴 Агент завершил работу с ошибкой: {message}. Стадия и шаг: {error_code}"
-#         )
-#         super().__init__(full_msg)
+        full_msg = (
+            f"🔴 Агент завершил работу с ошибкой: {message}"
+            if error_code == 0
+            else f"🔴 Агент завершил работу с ошибкой: {message}. Стадия и шаг: {error_code}"
+        )
+        super().__init__(full_msg)
 
 
 # Примеры использования:
@@ -389,6 +390,64 @@ def compute_match_score_2(found_text, target_text):
         return 0.0
 
     return SequenceMatcher(None, found_text, target_text).ratio()
+
+
+
+# region Check html
+
+# region check_avialible_html
+# Проверяю, что название первого товара содержится в html первой ссылки
+# Это проверка на то, есть ли на сайте какая-то защита, типо куратора
+def check_avialible_html():
+    # 1. Данные
+    first_item_link = data_input_table["links"]["simple"][0]["link"]
+    target_name = data_input_table["links"]["simple"][0]["name"].strip().lower()
+    
+    # Получаем HTML
+    html_content = get_html(first_item_link).lower()
+    
+    # 2. Быстрая очистка HTML от тегов (оставляем только текст)
+    # Это важно, чтобы название не "разбилось" тегами типа <b>Name</b>
+    text_content = re.sub(r'<[^>]+>', ' ', html_content)
+    # Убираем лишние пробелы (превращаем "  " в " ")
+    text_content = " ".join(text_content.split())
+
+    # 3. Магия difflib: ищем самый длинный общий кусок
+    matcher = SequenceMatcher(None, target_name, text_content)
+    match = matcher.find_longest_match(0, len(target_name), 0, len(text_content))
+    
+    similarity = match.size / len(target_name)
+
+    # 4. Проверка
+    threshold = 0.8  # 80%
+    
+    if similarity < threshold:
+        # Если не совпало частичным, то пробуем простым включением
+        # (старая логика)
+        first_item_link = data_input_table["links"]["simple"][0]["link"]
+        html = get_html(first_item_link)
+
+        text_includes = data_input_table["links"]["simple"][0]["name"] 
+        if text_includes in html:
+            return
+
+        # Если всё таки нет вхождений
+
+        print(f"🟠 Частичное совпадение слишком слабое: {similarity:.2%}")
+        print(f"Искали: {target_name}")
+        found_part = text_content[match.b : match.b + match.size]
+        print(f"Нашли кусок: '{found_part}'")
+
+        # Сохраняем HTML перед ошибкой
+        try:
+            with open("current_html.html", "w", encoding="utf-8") as f:
+                f.write(html_content)
+            print("HTML сохранён в current_html.html")
+        except Exception as save_err:
+            print(f"Ошибка сохранения HTML: {save_err}")
+
+        raise ErrorHandler("Название товара не найдено на странице (даже частично).")
+
 
 
 # region Сохранение кеша
