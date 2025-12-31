@@ -1,3 +1,15 @@
+"""
+Flask-фронт APSP.
+
+Назначение:
+- UI страницы `new_page_1/new_page_2/new_page_3` (см. `Apsp_front/templates/*`)
+- API-эндпоинты для UI: лог, состояние прогресса, выдача результата, скриншоты
+
+Важно:
+- В этом файле НЕТ Flask `session`/`secret_key` (старый многошаговый флоу удалён).
+- Часть состояния/файлов используется как "простой IPC" между Flask и `MAIN.py`/Playwright.
+"""
+
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, send_file
 import json
 import sys
@@ -6,10 +18,14 @@ import zipfile
 from pathlib import Path
 from io import BytesIO
 from datetime import datetime
+
+# Корень репозитория (нужно для импорта модулей из верхнего уровня проекта).
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+# Проект исторически использует "агрегатор" импортов.
+# Да, это не идеально (может переопределять имена), но так устроен текущий проект.
 from import_all_libraries import *
 from new_program.main_processer import *
 # Скриншот текущей Playwright-страницы (если браузер запущен)
@@ -28,7 +44,9 @@ PROJECT_ROOT = FRONT_DIR.parent                         # .../APSP_public
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-# Выходные файлы генерации (лежат в корне проекта / рядом с беком)
+# Выходные файлы генерации (лежат в корне проекта).
+# Эти файлы пишет "бэк"/пайплайн генерации (например, `MAIN.py` и связанные модули),
+# а Flask только отдаёт их UI как текст/скачивание.
 RESULT_OUTPUT_DIR = PROJECT_ROOT / 'result_code_gen' / 'result'
 RESULT_CODE_FILE_PATH = RESULT_OUTPUT_DIR / 'result_code.ts'
 MESSAGE_GLOBAL_FILE_PATH = RESULT_OUTPUT_DIR / 'message_global.txt'
@@ -44,7 +62,8 @@ NEW_PAGE_2_ALLOWED_FIELDS = {
     "timer_reset_seq",
 }
 
-# Статус выполнения main_funk_start_on_front (MAIN.py), чтобы фронт мог понять,
+# Статус выполнения `main_funk_start_on_front()` (см. `MAIN.py`).
+# UI (`templates/new_page_2.html`) опрашивает `/api/front_main_status`, чтобы понять,
 # когда фоновая задача завершилась и можно перейти на new_page_3.
 FRONT_MAIN_STATE = {
     "running": False,
@@ -53,8 +72,11 @@ FRONT_MAIN_STATE = {
 }
 FRONT_MAIN_STATE_LOCK = threading.Lock()
 
-# Последний скриншот браузера, который может быть "запушен" из другого процесса (например, MAIN.py).
-# Это нужно, когда Playwright и Flask работают в разных процессах и shared_page не разделяется.
+# Последний скриншот браузера.
+# Два режима:
+# - Playwright в ЭТОМ же процессе: можно снимать через `shared_page` (`get_cached_screenshot_png`)
+# - Playwright в ДРУГОМ процессе (часто `MAIN.py`): тогда процесс-генератор "пушит" кадры в Flask
+#   через `/api/browser_screenshot_push`, а UI читает через `/api/browser_screenshot`.
 PUSHED_SCREENSHOT_STATE = {
     "png": None,   # bytes | None
     "ts": None,    # float | None (time.time())
@@ -66,6 +88,10 @@ def sanitize_text(value):
     Небольшая обработка текстовых полей перед сохранением:
     1) Убрать пробелы/табы/переносы строк с концов
     2) Экранировать двойные кавычки: " -> \"
+
+    Используется только для полей форм (URL/regions).
+    Для отображения в UI используем отдельную функцию `normalize_display_text()`,
+    чтобы не "засорять" экран лишними обратными слешами.
     """
     if value is None:
         return ''
@@ -218,7 +244,12 @@ def favicon():
 
 @app.route('/api/log')
 def get_log():
-    """Возвращает содержимое файла output.log"""
+    """
+    Возвращает содержимое файла `output.log`.
+
+    UI может передавать `tail_bytes`, чтобы получать только хвост файла
+    (иначе браузер/страница могут "упасть" на очень больших логах).
+    """
     try:
         if LOG_FILE_PATH.is_file():
             tail_bytes = request.args.get('tail_bytes', default=None, type=int)
@@ -445,7 +476,13 @@ def download_parser_ts():
 
 @app.route('/download/all_files_zip')
 def download_all_files_zip():
-    """Скачать все полезные выходные файлы одним .zip"""
+    """
+    Скачать все полезные выходные файлы одним .zip.
+
+    Делаем "store" (без сжатия), чтобы:
+    - не тратить CPU на сервере
+    - быстрее отдавать архив на больших файлах
+    """
     required_files = [
         ('result_code.ts', RESULT_CODE_FILE_PATH),
         ('output.log', LOG_FILE_PATH),
