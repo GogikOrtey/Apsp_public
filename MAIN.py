@@ -35,6 +35,10 @@ from new_program.main_processer import *
 
 
 
+https://dev.gogorey.ru/auto_gen_parsers/start
+https://dev.gogorey.ru/auto_gen_parsers/main
+
+
 """
 
 

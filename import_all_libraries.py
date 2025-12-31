@@ -18,6 +18,7 @@ from uuid import uuid4
 from lxml import etree
 import jsbeautifier
 import itertools
+import traceback
 import requests
 import locale
 import atexit
@@ -27,6 +28,10 @@ import copy
 import sys
 import re
 import os
+
+
+
+
 
 
 # Глобальные модули

@@ -14,8 +14,6 @@ if str(ROOT_DIR) not in sys.path:
 # Подключение всех библиотек и функций
 from import_all_libraries import * 
 
-from makeRequest_gen import * 
-
 
 
 
