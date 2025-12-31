@@ -8,12 +8,29 @@
 from __future__ import annotations
 
 import json
+import os
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any, Optional
 
 
-DEFAULT_FRONT_BASE_URL = "http://127.0.0.1:5000"
+DEFAULT_FRONT_BASE_URL = os.environ.get("APSP_FRONT_BASE_URL", "http://127.0.0.1:5000")
+_DEBUG = os.environ.get("APSP_FRONT_CLIENT_DEBUG", "").strip() not in ("", "0", "false", "False")
+
+# Файл состояния, который читает Flask-роут /api/new_page_2_state (через load_new_page_2_state()).
+# Это fallback, если HTTP POST не прошёл (фронт не запущен / таймаут / порт не тот).
+_PROJECT_ROOT = Path(__file__).resolve().parent
+_NEW_PAGE_2_STATE_FILE = _PROJECT_ROOT / "result_code_gen" / "result" / "new_page_2_state.json"
+_NEW_PAGE_2_ALLOWED_FIELDS = {
+    "reflection_text",
+    "goal_text",
+    "action_text",
+    "update_result_text",
+    "current_step_title",
+    "last_phase_result_text",
+    "timer_reset_seq",
+}
 
 
 def _to_text(value: Any) -> str:
@@ -50,8 +67,58 @@ def _post_json(
         with urllib.request.urlopen(req, timeout=timeout_s) as resp:
             # Любой 2xx считаем успехом
             return 200 <= int(getattr(resp, "status", 200)) < 300
-    except Exception:
+    except Exception as e:
+        if _DEBUG:
+            try:
+                print(f"[front_client] POST {path} failed: {type(e).__name__}: {e}")
+            except Exception:
+                pass
         return False
+
+
+def _load_new_page_2_state_file() -> dict[str, Any]:
+    try:
+        if not _NEW_PAGE_2_STATE_FILE.is_file():
+            return {}
+        with open(_NEW_PAGE_2_STATE_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
+    except Exception as e:
+        if _DEBUG:
+            try:
+                print(f"[front_client] load state file failed: {type(e).__name__}: {e}")
+            except Exception:
+                pass
+        return {}
+
+
+def _save_new_page_2_state_file(state: dict[str, Any]) -> bool:
+    try:
+        _NEW_PAGE_2_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = _NEW_PAGE_2_STATE_FILE.with_suffix(_NEW_PAGE_2_STATE_FILE.suffix + ".tmp")
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=2, sort_keys=True)
+        tmp.replace(_NEW_PAGE_2_STATE_FILE)
+        return True
+    except Exception as e:
+        if _DEBUG:
+            try:
+                print(f"[front_client] save state file failed: {type(e).__name__}: {e}")
+            except Exception:
+                pass
+        return False
+
+
+def _fallback_update_state_file(field_id: str, text: Any) -> bool:
+    # Пишем только "разрешённые" поля, чтобы не ломать фронт.
+    if field_id not in _NEW_PAGE_2_ALLOWED_FIELDS:
+        return False
+    state = _load_new_page_2_state_file()
+    # Подмешиваем/обновляем поле
+    state[field_id] = _to_text(text)
+    # На всякий случай не даём записать неожиданные ключи
+    state = {k: state.get(k, "") for k in _NEW_PAGE_2_ALLOWED_FIELDS if k in state or k == field_id}
+    return _save_new_page_2_state_file(state)
 
 
 def push_browser_screenshot_png(
@@ -88,12 +155,15 @@ def update_new_page_2_field(
     base_url: str = DEFAULT_FRONT_BASE_URL,
     timeout_s: float = 0.25,
 ) -> bool:
-    return _post_json(
+    ok = _post_json(
         "/api/new_page_2_state",
         {"field": field_id, "value": _to_text(text)},
         base_url=base_url,
         timeout_s=timeout_s,
     )
+    if ok:
+        return True
+    return _fallback_update_state_file(field_id, text)
 
 
 # --- Удобные обёртки под конкретные поля new_page_2.html ---

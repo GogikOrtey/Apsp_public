@@ -607,7 +607,7 @@ def send_message_to_ChatGPT(
 
 
 
-my_prompt = """
+my_prompt_old = """
 You are an information-structuring agent.
 
 You receive a list of product fields grouped by sections.
@@ -815,13 +815,18 @@ FIELDS:
 """
 
 
-# result_request = send_message_to_ChatGPT(
-#         prompt = my_prompt,
-#         is_print = True,
-#         # model = "gpt-4o",
-#         model = "gpt-5.2",
-#         temperature = 0.15
-#     )
+if __name__ == "__main__":
+    my_prompt = """
+    Привет, расскажи интересный факт про звёзды
+    """
+
+    result_request = send_message_to_ChatGPT(
+            prompt = my_prompt,
+            is_print = True,
+            model = "gpt-4o",
+            # model = "gpt-5.2",
+            temperature = 0.15
+        )
 
 
 

@@ -6,14 +6,12 @@ from typing import Any
 
 from pathlib import Path
 import sys
-import json
-import copy
-from typing import Any
 
-from front_client import update_content_front_update_result
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
+
+from front_client import update_content_front_update_result
 
 # Импортируем LLM-клиент для генерации и формализации плана
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
@@ -23,15 +21,7 @@ from reasoning_agent.runtime_state import (
     get_long_term_memory as _get_runtime_long_term_memory,
 )
 
-"""
 
-Начальные инструменты:
-
-list_files - возвращает список файлов в окружении
-read_file - читает содержимое файла по имени
-search_in_file - ищет вхождения подстроки в тексте файла
-
-"""
 
 
 
