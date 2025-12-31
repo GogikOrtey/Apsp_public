@@ -101,8 +101,8 @@ SYSTEM_PROMPT =
 
 ———————————   Шаг 1   ———————————
 
-🟢 reasoning: В Фазе 1 обязательное поле first_url ещё не заполнено. Сначала сохраняю текущий URL страницы как исходную точку для последующего ожидания редиректа и для фиксации результата фазы.
-🔵 target: Получить и зафиксировать текущий URL первой страницы в result.first_url
+🟢 reasoning: Для выполнения фазы 1 нужно зафиксировать начальный URL. Начинаю с получения текущего URL через get_current_url и затем запишу его в result.first_url.
+🔵 target: Получить и зафиксировать текущий URL первой страницы (first_url)
 🟡 action: get_current_url
 
 
@@ -110,24 +110,4 @@ SYSTEM_PROMPT =
 Инструмент вернул результат: {"status": "ok", "url": "https://makitarussia.ru/"}
 
 ———————————   Шаг 2   ———————————
-
-🟢 reasoning: В Фазе 1 обязательное поле first_url ещё не заполнено, при этом текущий URL уже получен инструментом get_current_url. Записываю его в result, чтобы далее использовать как old_url при ожидании редиректа и как исходный URL первой страницы.
-🔵 target: Зафиксировать текущий URL первой страницы в result.first_url
-🟡 action: update_result
-   🔶 args: {"field": "first_url", "value": "https://makitarussia.ru/"}
-
-🛠️  update_result({'field': 'first_url', 'value': 'https://makitarussia.ru/'})
-Инструмент вернул результат: {"status": "ok", "result": {"first_url": "https://makitarussia.ru/", "used_seletor_search_input": null, "used_seletor_search_button": null, "used_search_request": null, "second_html": null}, "updated": 1}
-
-———————————   Шаг 3   ———————————
-
-🟢 reasoning: В Фазе 1 нужно определить рабочий селектор поля поиска (used_seletor_search_input). Начинаю с первого селектора из input_data и проверяю, есть ли совпадения на странице через find_elements.
-🔵 target: Проверить, находит ли первый предложенный селектор поле ввода поиска на текущей странице
-🟡 action: find_elements
-   🔶 args: {"selector": "form.search__form-shop input[name=\"query\"]", "only_count": false, "max_results": 5}
-
-🛠️  find_elements({'selector': 'form.search__form-shop input[name="query"]', 'only_count': False, 'max_results': 5})
-Инструмент вернул результат: {"status": "ok", "count": 2, "elements": [{"index": 0, "text": "", "html": "", "href": null, "attrs": {"class": "site-search__input site-search__input_merged", "type": "search", "name": "query", "autocomplete": "off", "placeholder": "Найти товары", "value": "", "style": ""}}, {"index": 1, "text": "", "html": "", "href": null, "attrs": {"class": "site-search__input site-search__input_merged", "type": "search", "name": "query", "autocomplete": "off", "placeholder": "Найти товары", "value": "", "style": ""}}]}
-
-———————————   Шаг 4   ———————————
 
