@@ -155,7 +155,8 @@ def main_processer(input_url):
     url_input = normalize_url(input_url)
 
     # Запускаю браузер с видимым окном
-    launch_browser(headless = False)
+    # launch_browser(headless = False)
+    launch_browser(headless = True)
 
     goto_url( 
         url = url_input,
