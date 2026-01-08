@@ -137,6 +137,7 @@ def push_browser_screenshot_png(
     *,
     base_url: str = DEFAULT_FRONT_BASE_URL,
     timeout_s: float = 0.5,
+    uid: str | None = None,
 ) -> bool:
     """
     Пушит PNG-скриншот в Flask (в память процесса) на /api/browser_screenshot_push.
@@ -146,8 +147,8 @@ def push_browser_screenshot_png(
     try:
         if not isinstance(png_bytes, (bytes, bytearray)) or not png_bytes:
             return False
-        uid = get_current_task_uid()
-        url = base_url.rstrip("/") + ("/api/browser_screenshot_push" if not uid else f"/api/task/{uid}/browser_screenshot_push")
+        effective_uid = uid if uid else get_current_task_uid()
+        url = base_url.rstrip("/") + ("/api/browser_screenshot_push" if not effective_uid else f"/api/task/{effective_uid}/browser_screenshot_push")
         req = urllib.request.Request(
             url,
             data=bytes(png_bytes),

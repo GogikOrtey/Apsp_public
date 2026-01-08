@@ -19,6 +19,7 @@ import time
 from typing import Any
 
 from front_client import update_content_front_current_step, update_content_front_last_phase_result
+from task_runtime.task_context import set_current_task, clear_current_task
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -41,7 +42,7 @@ from new_program.agent_step_7_build_code_parsePage import *
 from new_program.build_final_code import *
 from new_program.check_request_this_site_ok import *
 from new_program.agent_step_6_2_diginetica_and_custom_req_on_PP import *
-from playwright_tool.shared_page import set_shared_page, get_shared_page
+from playwright_tool.shared_page import set_shared_page, get_shared_page, maybe_push_screenshot_to_front
 
 # region Задачи
 
@@ -149,6 +150,13 @@ https://apelsin.ru
 
 
 def main_processer(input_url, *, uid=None, task_dir=None, page=None):
+    ctx_set = False
+    if uid and task_dir:
+        try:
+            set_current_task(uid, task_dir)
+            ctx_set = True
+        except Exception:
+            pass
     start_time = time.time()
     # 0. Чистим URL, запускам браузер и переходим на него
 
@@ -169,6 +177,10 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
         wait_until = "load",
         timeout = 30_000
     )
+    try:
+        maybe_push_screenshot_to_front(min_interval_ms=0, uid=uid)
+    except Exception:
+        pass
 
 
 
@@ -756,6 +768,12 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
 
     print(f"\n")
     emit_execution_time(start_time, emit=print, print_time_smile=True)
+
+    if ctx_set:
+        try:
+            clear_current_task()
+        except Exception:
+            pass
 
     return result_final_code
     

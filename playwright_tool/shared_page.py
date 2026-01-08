@@ -163,6 +163,7 @@ def maybe_push_screenshot_to_front(
     timeout_ms: int = 2_000,
     full_page: bool = False,
     base_url: str | None = None,
+    uid: str | None = None,
 ) -> bool:
     """
     Делает (или берёт из кэша) PNG-скриншот и пушит его в Flask (/api/browser_screenshot_push).
@@ -178,6 +179,22 @@ def maybe_push_screenshot_to_front(
     if not png or not isinstance(meta, dict) or not meta.get("ok"):
         return False
 
+    # If we run in the same process as Flask front, we can store screenshot directly (no HTTP needed).
+    effective_uid = uid
+    if not effective_uid:
+        try:
+            from task_runtime.task_context import get_current_task_uid  # noqa: WPS433
+            effective_uid = get_current_task_uid()
+        except Exception:
+            effective_uid = None
+
+    if effective_uid:
+        try:
+            from task_runtime.screenshot_store import set_task_screenshot  # noqa: WPS433
+            set_task_screenshot(effective_uid, png, ts=meta.get("ts"))
+        except Exception:
+            pass
+
     ts = meta.get("ts")
     if isinstance(ts, (int, float)) and c.get("last_pushed_screenshot_ts") == float(ts):
         return True  # этот кадр уже отправляли
@@ -186,7 +203,7 @@ def maybe_push_screenshot_to_front(
         # Ленивая загрузка, чтобы не тянуть сеть при импорте.
         from front_client import DEFAULT_FRONT_BASE_URL, push_browser_screenshot_png  # noqa: WPS433
 
-        ok = push_browser_screenshot_png(png, base_url=(base_url or DEFAULT_FRONT_BASE_URL), timeout_s=0.5)
+        ok = push_browser_screenshot_png(png, base_url=(base_url or DEFAULT_FRONT_BASE_URL), timeout_s=0.5, uid=effective_uid)
         if ok and isinstance(ts, (int, float)):
             c["last_pushed_screenshot_ts"] = float(ts)
         return ok

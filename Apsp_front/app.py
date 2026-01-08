@@ -30,6 +30,7 @@ from import_all_libraries import *
 from new_program.main_processer import *
 from task_runtime.task_registry import TaskRegistry, TaskInfo
 from task_runtime.task_context import set_current_task, clear_current_task
+from task_runtime.screenshot_store import TASK_SCREENSHOTS_STATE, TASK_SCREENSHOTS_LOCK
 from task_runtime.print_router import install_print_router, register_thread_io, unregister_thread_io
 # Скриншот текущей Playwright-страницы (если браузер запущен)
 from playwright_tool.shared_page import get_cached_screenshot_png, clear_shared_page, set_shared_page
@@ -95,8 +96,7 @@ TASKS = TaskRegistry(result_tasks_dir=RESULT_TASKS_DIR, max_workers=10, headless
 TASKS.warmup()
 atexit.register(TASKS.shutdown)
 
-TASK_SCREENSHOTS_STATE = {}
-TASK_SCREENSHOTS_LOCK = threading.Lock()
+ # TASK_SCREENSHOTS_STATE / TASK_SCREENSHOTS_LOCK are imported from task_runtime.screenshot_store
 
 
 def _run_task(browser, info: TaskInfo):
