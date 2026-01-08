@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ page_title }} — Flask + Jinja</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="card">
+        <header class="topbar">
+          <nav class="nav">
+            <a class="nav__btn" href="{{ url_for('index') }}" target="_blank" rel="noopener">Главная</a>
+            <a class="nav__btn" href="{{ url_for('page2') }}" target="_blank" rel="noopener">2-я</a>
+            <a class="nav__btn" href="{{ url_for('page3') }}" target="_blank" rel="noopener">3-я</a>
+          </nav>
+        </header>
+
+        <main class="content">
+          <h1 class="title">{{ page_title }}</h1>
+          <p class="text">{{ sample_text }}</p>
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
+
+

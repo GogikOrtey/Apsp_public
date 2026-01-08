@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="chat">
+    <form id="chat-form" class="chat__form">
+      <label class="chat__label" for="prompt">Сообщение</label>
+      <textarea
+        id="prompt"
+        class="chat__input"
+        name="prompt"
+        rows="5"
+        placeholder="Например: Какой сейчас год?"
+        required
+      ></textarea>
+
+      <div class="chat__actions">
+        <button id="send-btn" class="btn" type="submit">Отправить</button>
+        <span id="status" class="chat__status" aria-live="polite"></span>
+      </div>
+    </form>
+
+    <div class="chat__result">
+      <div class="chat__label">Ответ</div>
+      <pre id="answer" class="chat__answer"></pre>
+      <div id="error" class="chat__error" role="alert"></div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      const form = document.getElementById("chat-form");
+      const promptEl = document.getElementById("prompt");
+      const btn = document.getElementById("send-btn");
+      const statusEl = document.getElementById("status");
+      const answerEl = document.getElementById("answer");
+      const errorEl = document.getElementById("error");
+
+      async function sendPrompt(prompt) {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
+
+        let payload = null;
+        try {
+          payload = await res.json();
+        } catch (e) {
+          // ignore
+        }
+
+        if (!res.ok) {
+          const msg =
+            (payload && payload.error) ||
+            ("HTTP " + res.status + " " + res.statusText);
+          throw new Error(msg);
+        }
+
+        if (!payload || !payload.ok) {
+          throw new Error((payload && payload.error) || "Неизвестная ошибка");
+        }
+
+        return payload.answer || "";
+      }
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const prompt = (promptEl.value || "").trim();
+        if (!prompt) return;
+
+        btn.disabled = true;
+        statusEl.textContent = "Отправляю…";
+        errorEl.textContent = "";
+        answerEl.textContent = "";
+
+        try {
+          const answer = await sendPrompt(prompt);
+          answerEl.textContent = answer;
+          statusEl.textContent = "Готово";
+        } catch (err) {
+          errorEl.textContent = err && err.message ? err.message : String(err);
+          statusEl.textContent = "";
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    })();
+  </script>
+{% endblock %}
+
+

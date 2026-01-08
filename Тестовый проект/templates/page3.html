@@ -1,0 +1,174 @@
+{% extends "base.html" %} 
+
+{% block content %}
+  <section class="browser">
+    <form id="browser-form" class="browser__form">
+      <label class="browser__label" for="browser-url">Адрес</label>
+      <div class="browser__row">
+        <input
+          id="browser-url"
+          class="browser__input"
+          type="text"
+          inputmode="url"
+          placeholder="https://example.com"
+          value="https://example.com"
+          required
+        />
+        <button id="browser-open-btn" class="btn" type="submit">Открыть</button>
+      </div>
+      <div class="browser__meta">
+        <span id="browser-status" class="browser__status" aria-live="polite"></span>
+        <span id="browser-pages-count" class="browser__status"></span>
+      </div>
+    </form>
+
+    <div class="browser__preview">
+      <div class="browser__label">Вид страницы (обновление каждые 5 секунд)</div>
+      <div class="browser__frame">
+        <img id="browser-img" class="browser__img" alt="Скриншот страницы" />
+      </div>
+      <div id="browser-error" class="browser__error" role="alert"></div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      const form = document.getElementById("browser-form");
+      const urlEl = document.getElementById("browser-url");
+      const btn = document.getElementById("browser-open-btn");
+      const statusEl = document.getElementById("browser-status");
+      const pagesCountEl = document.getElementById("browser-pages-count");
+      const imgEl = document.getElementById("browser-img");
+      const errorEl = document.getElementById("browser-error");
+
+      let timer = null;
+      let lastObjectUrl = null;
+
+      function setStatus(text) {
+        statusEl.textContent = text || "";
+      }
+
+      function setPagesCount(count) {
+        if (!pagesCountEl) return;
+        if (typeof count !== "number") {
+          pagesCountEl.textContent = "";
+          return;
+        }
+        pagesCountEl.textContent = "Открытых вкладок: " + String(count);
+      }
+
+      function setError(text) {
+        errorEl.textContent = text || "";
+      }
+
+      async function openUrl(url) {
+        const res = await fetch("/api/browser/open", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+
+        let payload = null;
+        try {
+          payload = await res.json();
+        } catch (e) {
+          // ignore
+        }
+
+        if (!res.ok) {
+          const msg =
+            (payload && payload.error) ||
+            ("HTTP " + res.status + " " + res.statusText);
+          throw new Error(msg);
+        }
+
+        if (!payload || !payload.ok) {
+          throw new Error((payload && payload.error) || "Неизвестная ошибка");
+        }
+
+        return payload.url || url;
+      }
+
+      async function refreshScreenshot() {
+        setError("");
+        try {
+          const res = await fetch("/api/browser/screenshot?ts=" + Date.now(), {
+            cache: "no-store",
+          });
+
+          if (!res.ok) {
+            let payload = null;
+            try {
+              payload = await res.json();
+            } catch (e) {
+              // ignore
+            }
+            const msg =
+              (payload && payload.error) ||
+              ("HTTP " + res.status + " " + res.statusText);
+            throw new Error(msg);
+          }
+
+          const blob = await res.blob();
+          const objectUrl = URL.createObjectURL(blob);
+
+          if (lastObjectUrl) URL.revokeObjectURL(lastObjectUrl);
+          lastObjectUrl = objectUrl;
+          imgEl.src = objectUrl;
+        } catch (err) {
+          setError(err && err.message ? err.message : String(err));
+        }
+      }
+
+      async function refreshPagesCount() {
+        try {
+          const res = await fetch("/api/browser/pages_count?ts=" + Date.now(), {
+            cache: "no-store",
+          });
+          const payload = await res.json();
+          if (!res.ok || !payload || !payload.ok) return;
+          setPagesCount(payload.count);
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      function startAutoRefresh() {
+        if (timer) return;
+        timer = setInterval(function () {
+          refreshScreenshot();
+          refreshPagesCount();
+        }, 5000);
+      }
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const url = (urlEl.value || "").trim();
+        if (!url) return;
+
+        btn.disabled = true;
+        setStatus("Открываю…");
+        setError("");
+
+        try {
+          const finalUrl = await openUrl(url);
+          urlEl.value = finalUrl;
+          setStatus("Открыто");
+          await refreshScreenshot();
+          await refreshPagesCount();
+          startAutoRefresh();
+        } catch (err) {
+          setStatus("");
+          setError(err && err.message ? err.message : String(err));
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      // Авто-обновление можно включать сразу, даже до "Открыть"
+      // (будет about:blank), но приятнее по кнопке.
+    })();
+  </script>
+{% endblock %}
+
+
