@@ -113,6 +113,9 @@
         background: #e0e2e9;
     }
 
+    /* Важно: hidden должен всегда скрывать панель, даже если у неё задан display в CSS */
+    [hidden] { display: none !important; }
+
     .panel-tab-content {
         flex: 1;
         min-height: 0;
