@@ -11,6 +11,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from playwright_tool.shared_page import set_shared_page, maybe_push_screenshot_to_front
+from playwright_tool.screenshot_pusher import start_screenshot_pusher, stop_screenshot_pusher
 
 # region Запуск браузера
 
@@ -26,6 +27,8 @@ def launch_browser(headless: bool = True) -> tuple[Playwright, Browser, Page]:
     set_shared_page(page)
     # Пушим первый кадр (если Flask запущен) — дальше кадры будут пушиться после действий (goto/click/wait).
     maybe_push_screenshot_to_front(min_interval_ms=0)
+    # Фоновый пуш кадров раз в 5 секунд (OS screenshot), независимо от действий Playwright.
+    start_screenshot_pusher(interval_s=5.0)
     print("Браузер успешно запущен")
     return pw, browser, page
 
@@ -79,6 +82,11 @@ def close_browser(playwright: Playwright, browser: Browser) -> None:
     try:
         browser.close()
     finally:
+        # Останавливаем фоновый таймер (best-effort).
+        try:
+            stop_screenshot_pusher()
+        except Exception:
+            pass
         playwright.stop()
 
 

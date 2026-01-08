@@ -38,7 +38,7 @@ app = Flask(__name__)
 
 # Абсолютные пути: не зависят от текущей рабочей директории.
 FRONT_DIR = Path(__file__).resolve().parent              # .../APSP_public/Apsp_front
-PROJECT_ROOT = FRONT_DIR.parent                         # .../APSP_public
+PROJECT_ROOT = FRONT_DIR.parent                          # .../APSP_public
 
 # Добавляем корень проекта в sys.path, чтобы можно было импортировать MainFuncAgent
 if str(PROJECT_ROOT) not in sys.path:

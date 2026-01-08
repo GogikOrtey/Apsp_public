@@ -124,7 +124,8 @@
     .browser-window-img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
+        flex: 1 1 auto;
         display: block;
     }
 
@@ -159,6 +160,7 @@
 
     .panel-body--image {
         display: flex;
+        overflow: hidden;
     }
 
     /* .browser-screenshot {
@@ -363,6 +365,43 @@
 
     // --- Вкладки: "Текущее окно браузера" / "Результат последней фазы" ---
     let __setNewPage2RightTab = null;
+
+    // --- Скриншот окна Playwright (каждые 5 секунд) ---
+    let __browserWindowScreenshotTimer = null;
+    function startBrowserWindowScreenshotLoop() {
+        const img = document.getElementById('browser_window_image');
+        if (!img) return;
+
+        // Привязываем обработчики один раз
+        if (!img.dataset || img.dataset.apspScreenshotBound !== '1') {
+            try {
+                img.addEventListener('load', function() {
+                    img.style.opacity = '1';
+                    img.removeAttribute('title');
+                });
+                img.addEventListener('error', function() {
+                    img.style.opacity = '0.25';
+                    img.title = 'Скриншот окна браузера пока недоступен (Playwright ещё не запущен?)';
+                });
+                if (img.dataset) img.dataset.apspScreenshotBound = '1';
+            } catch (e) {}
+        }
+
+        function refresh() {
+            // cache-busting: каждый раз уникальный query, чтобы браузер не кешировал картинку
+            img.src = '/api/browser_screenshot?t=' + Date.now();
+        }
+
+        refresh();
+        if (__browserWindowScreenshotTimer != null) return;
+        __browserWindowScreenshotTimer = setInterval(refresh, 5000);
+    }
+
+    function stopBrowserWindowScreenshotLoop() {
+        if (__browserWindowScreenshotTimer == null) return;
+        try { clearInterval(__browserWindowScreenshotTimer); } catch (e) {}
+        __browserWindowScreenshotTimer = null;
+    }
     function initNewPage2RightTabs() {
         const btnBrowser = document.getElementById('tab_btn_browser_window');
         const btnLastPhase = document.getElementById('tab_btn_last_phase_result');
@@ -511,35 +550,7 @@
         pollFrontMainStatus();
         setInterval(pollFrontMainStatus, 500);
 
-    //     // Скриншот браузера (Playwright): обновляем нечасто, чтобы не грузить CPU.
-    //     const screenshotImg = document.getElementById('browser_screenshot');
-    //     const screenshotPlaceholder = document.getElementById('browser_screenshot_placeholder');
-    //     const SCREENSHOT_POLL_MS = 5000; // можно поменять на 10000
-
-    //     function setScreenshotVisible(isVisible) {
-    //         if (!screenshotImg || !screenshotPlaceholder) return;
-    //         screenshotImg.style.display = isVisible ? 'block' : 'none';
-    //         screenshotPlaceholder.style.display = isVisible ? 'none' : 'flex';
-    //     }
-
-    //     async function refreshBrowserScreenshot() {
-    //         if (!screenshotImg) return;
-    //         // cache-busting: каждый раз уникальный query, чтобы браузер не кешировал картинку
-    //         screenshotImg.src = '/api/browser_screenshot?t=' + Date.now();
-    //     }
-
-    //     if (screenshotImg) {
-    //         screenshotImg.addEventListener('load', function() {
-    //             setScreenshotVisible(true);
-    //         });
-    //         screenshotImg.addEventListener('error', function() {
-    //             setScreenshotVisible(false);
-    //         });
-    //     }
-
-    //     // Первый запрос сразу + далее по таймеру
-    //     refreshBrowserScreenshot();
-    //     setInterval(refreshBrowserScreenshot, SCREENSHOT_POLL_MS);
+        startBrowserWindowScreenshotLoop();
     });
 
     // Если браузер восстанавливает страницу из bfcache (Back/Forward), DOMContentLoaded не сработает.
@@ -549,12 +560,14 @@
             if (typeof __setNewPage2RightTab === 'function') __setNewPage2RightTab('browser');
             resetCornerTimer();
             startCornerTimerLoop();
+            startBrowserWindowScreenshotLoop();
         }
     });
 
     // На всякий случай: при уходе со страницы прекращаем loop
     window.addEventListener('pagehide', function () {
         stopCornerTimerLoop();
+        stopBrowserWindowScreenshotLoop();
     });
 </script>
 {% endblock %}

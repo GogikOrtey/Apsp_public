@@ -159,6 +159,70 @@ def maybe_push_screenshot_to_front(
         return False
 
 
+def sleep_with_screenshot_push(
+    seconds: float,
+    *,
+    interval_s: float = 5.0,
+    base_url: str | None = None,
+    full_page: bool = False,
+    timeout_ms: int = 2_000,
+) -> None:
+    """
+    "Безопасный sleep" для отладки/ожиданий: пока мы ждём, каждые interval_s секунд
+    делаем новый PNG-скриншот и пушим его на фронт.
+
+    Зачем это нужно:
+    - когда в коде есть длинный time.sleep(...) (например, чтобы оставить окно браузера открытым)
+    - чтобы картинка на new_page_2.html продолжала обновляться каждые 5 секунд
+      даже без действий агента, и отражала ручные взаимодействия (скролл/клик) в окне.
+
+    Важно:
+    - вызывать ТОЛЬКО из owner-thread Playwright (того же, где создавался page),
+      иначе Playwright sync API может упасть/вернуть stale кадр.
+    """
+    try:
+        total = float(seconds)
+    except Exception:
+        total = 0.0
+    if total <= 0:
+        return
+
+    try:
+        interval = float(interval_s)
+    except Exception:
+        interval = 5.0
+    if interval <= 0:
+        interval = 5.0
+
+    deadline = time.time() + total
+    # Первый пуш сразу — чтобы UI не ждал 5 секунд
+    try:
+        maybe_push_screenshot_to_front(
+            min_interval_ms=0,
+            timeout_ms=int(timeout_ms),
+            full_page=bool(full_page),
+            base_url=base_url,
+        )
+    except Exception:
+        pass
+
+    while True:
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            break
+        time.sleep(min(interval, remaining))
+        try:
+            maybe_push_screenshot_to_front(
+                min_interval_ms=0,
+                timeout_ms=int(timeout_ms),
+                full_page=bool(full_page),
+                base_url=base_url,
+            )
+        except Exception:
+            # Не мешаем основному коду: это отладочный/сервисный хелпер
+            pass
+
+
 ChangeType = Literal["navigation", "dom_update", "none"]
 
 
