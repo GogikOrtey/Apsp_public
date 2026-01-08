@@ -34,7 +34,7 @@ from playwright_tool.shared_page import get_cached_screenshot_png
 # Явно фиксируем, что в этом файле под Response для HTTP-ответов используется именно flask.Response.
 from flask import Response as FlaskResponse
 
-app = Flask(__name__)
+app = Flask(__name__) 
 
 # Абсолютные пути: не зависят от текущей рабочей директории.
 FRONT_DIR = Path(__file__).resolve().parent              # .../APSP_public/Apsp_front
