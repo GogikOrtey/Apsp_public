@@ -48,7 +48,7 @@ PROJECT_ROOT = FRONT_DIR.parent                          # .../APSP_public
 # Добавляем корень проекта в sys.path, чтобы можно было импортировать MainFuncAgent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
-
+ 
 # Выходные файлы генерации (лежат в корне проекта).
 # Эти файлы пишет "бэк"/пайплайн генерации (например, `MAIN.py` и связанные модули),
 # а Flask только отдаёт их UI как текст/скачивание.
