@@ -317,6 +317,7 @@
 
 {% block extra_js %}
 <script>
+    const TASK_UID = (location.pathname.split('/').filter(Boolean).pop()) || '';
     const NEW_PAGE_2_FIELDS = [
         'reflection_text',
         'goal_text',
@@ -542,7 +543,8 @@
 
         try {
             globalLogRequestInFlight = true;
-            const response = await fetch(`/api/log?tail_bytes=${GLOBAL_LOG_TAIL_BYTES}`, { cache: 'no-store' });
+            if (!TASK_UID) return;
+            const response = await fetch(`/api/task/${TASK_UID}/logs/output?tail_bytes=${GLOBAL_LOG_TAIL_BYTES}`, { cache: 'no-store' });
             if (!response.ok) return;
             const text = await response.text();
 
@@ -573,7 +575,8 @@
 
         try {
             usefulLogRequestInFlight = true;
-            const response = await fetch(`/api/useful_log?tail_bytes=${USEFUL_LOG_TAIL_BYTES}`, { cache: 'no-store' });
+            if (!TASK_UID) return;
+            const response = await fetch(`/api/task/${TASK_UID}/logs/useful?tail_bytes=${USEFUL_LOG_TAIL_BYTES}`, { cache: 'no-store' });
             if (!response.ok) return;
             const text = await response.text();
 
@@ -596,17 +599,18 @@
         }
     }
 
-    // Когда main_funk_start_on_front() завершится в фоне — автоматически уходим на /new_page_3
+    // Когда задача завершится — автоматически уходим на /new_page_3/<uid>
     let redirectTriggered = false;
-    async function pollFrontMainStatus() {
+    async function pollTaskStatus() {
         if (redirectTriggered) return;
+        if (!TASK_UID) return;
         try {
-            const resp = await fetch('/api/front_main_status', { cache: 'no-store' });
+            const resp = await fetch(`/api/task/${TASK_UID}/status`, { cache: 'no-store' });
             if (!resp.ok) return;
             const status = await resp.json();
-            if (status && status.done) {
+            if (status && status.status === 'done') {
                 redirectTriggered = true;
-                window.location.href = '/new_page_3';
+                window.location.href = `/new_page_3/${TASK_UID}/`;
             }
         } catch (e) {
             // тихо игнорируем
@@ -628,8 +632,8 @@
         updateUsefulLogContent();
         setInterval(updateUsefulLogContent, USEFUL_LOG_POLL_MS);
 
-        pollFrontMainStatus();
-        setInterval(pollFrontMainStatus, 500);
+        pollTaskStatus();
+        setInterval(pollTaskStatus, 500);
 
         startBrowserWindowScreenshotLoop();
     });

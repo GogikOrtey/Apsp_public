@@ -28,8 +28,11 @@ if str(ROOT_DIR) not in sys.path:
 # Да, это не идеально (может переопределять имена), но так устроен текущий проект.
 from import_all_libraries import *
 from new_program.main_processer import *
+from task_runtime.task_registry import TaskRegistry, TaskInfo
+from task_runtime.task_context import set_current_task, clear_current_task
+from task_runtime.print_router import install_print_router, register_thread_io, unregister_thread_io
 # Скриншот текущей Playwright-страницы (если браузер запущен)
-from playwright_tool.shared_page import get_cached_screenshot_png
+from playwright_tool.shared_page import get_cached_screenshot_png, clear_shared_page, set_shared_page
 # Важно: `import *` выше может перетереть имя `Response` не-flask'овским классом.
 # Явно фиксируем, что в этом файле под Response для HTTP-ответов используется именно flask.Response.
 from flask import Response as FlaskResponse
@@ -53,6 +56,7 @@ MESSAGE_GLOBAL_FILE_PATH = RESULT_OUTPUT_DIR / 'message_global.txt'
 LOG_FILE_PATH = PROJECT_ROOT / 'output.log'
 USEFUL_LOG_FILE_PATH = PROJECT_ROOT / 'useful_log.log'
 NEW_PAGE_2_STATE_FILE_PATH = RESULT_OUTPUT_DIR / 'new_page_2_state.json'
+RESULT_TASKS_DIR = PROJECT_ROOT / "RESULT_TASKS"
 NEW_PAGE_2_ALLOWED_FIELDS = {
     "reflection_text",
     "goal_text",
@@ -83,6 +87,38 @@ PUSHED_SCREENSHOT_STATE = {
     "ts": None,    # float | None (time.time())
 }
 PUSHED_SCREENSHOT_LOCK = threading.Lock()
+
+# --- Task registry (до 10 параллельных заданий) ---
+install_print_router()
+TASKS = TaskRegistry(result_tasks_dir=RESULT_TASKS_DIR, max_workers=10, headless=True)
+
+
+def _run_task(browser, info: TaskInfo):
+    """
+    Запускает генерацию в контексте выделенного браузера/таба.
+    """
+    set_current_task(info.uid, info.task_dir)
+    info.task_dir.mkdir(parents=True, exist_ok=True)
+    out_file = open(info.task_dir / "output.log", "w", encoding="utf-8")
+    register_thread_io(out_file, out_file)
+
+    context = browser.new_context()
+    page = context.new_page()
+    set_shared_page(page)
+    try:
+        main_processer(info.url, uid=info.uid, task_dir=info.task_dir, page=page)
+    finally:
+        clear_shared_page()
+        try:
+            context.close()
+        except Exception:
+            pass
+        unregister_thread_io()
+        try:
+            out_file.close()
+        except Exception:
+            pass
+        clear_current_task()
 
 def sanitize_text(value):
     """
@@ -171,59 +207,32 @@ def new_page_1():
 
         # Если пусто — ничего не делаем (остаёмся на странице).
         if site_url.strip():
-            # При старте нового прогона очищаем состояние СРАЗУ (до запуска фонового потока),
-            # чтобы не было гонки: фон может успеть записать прогресс, а /new_page_2 потом сотрёт его.
-            try:
-                save_new_page_2_state({})
-            except Exception:
-                pass
-            # И очищаем общий лог, чтобы /api/log не отдавал хвосты предыдущего запуска.
-            try:
-                LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
-                with open(LOG_FILE_PATH, 'w', encoding='utf-8') as f:
-                    f.write('')
-            except Exception:
-                pass
-            # И очищаем полезный лог.
-            try:
-                USEFUL_LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
-                with open(USEFUL_LOG_FILE_PATH, 'w', encoding='utf-8') as f:
-                    f.write('')
-            except Exception:
-                pass
-            # Запускаем обработку в фоне, чтобы не блокировать переход на следующую страницу.
-            def runner_front(link: str):
-                try:
-                    from MAIN import main_funk_start_on_front
-                    main_funk_start_on_front(link)
-                except Exception as e:
-                    print(f"Ошибка в main_funk_start_on_front: {e}")
-                    set_front_main_state(running=False, done=False, error=str(e))
-                    return
-                set_front_main_state(running=False, done=True, error=None)
-
-            set_front_main_state(running=True, done=False, error=None)
-            threading.Thread(target=runner_front, args=(site_url,), daemon=True).start()
-            return redirect(url_for('new_page_2'))
+            task = TASKS.create(site_url)
+            TASKS.start(task.uid, _run_task)
+            return redirect(url_for('new_page_2_uid', uid=task.uid))
 
     return render_template('new_page_1.html', site_url=site_url)
 
 
-@app.route('/new_page_2', methods=['GET'])
-def new_page_2():
-    """
-    Широкая страница-дашборд (пока без логики; наполнение подключим позже).
-    """
-    return render_template('new_page_2.html')
+@app.route('/new_page_2/<uid>/', methods=['GET'])
+def new_page_2_uid(uid):
+    """Дашборд конкретной задачи."""
+    if not TASKS.exists(uid):
+        return redirect(url_for('new_page_1'))
+    return render_template('new_page_2.html', uid=uid)
 
 
-@app.route('/new_page_3', methods=['GET'])
-def new_page_3():
+@app.route('/new_page_3/<uid>/', methods=['GET'])
+def new_page_3_uid(uid):
     """
-    Отдельная страница: показать содержимое result_code_gen/result/result_code.ts
-    так же "красиво", как на step6 (построчно с подсветкой/номерами строк).
+    Страница результатов конкретной задачи.
     """
-    return render_template('new_page_3.html')
+    if not TASKS.exists(uid):
+        return redirect(url_for('new_page_1'))
+    info = TASKS.get(uid)
+    if info and info.status in {"running", "created"}:
+        return redirect(url_for('new_page_2_uid', uid=uid))
+    return render_template('new_page_3.html', uid=uid)
 
 @app.route('/example2', methods=['GET', 'POST'])
 def example2():
@@ -249,6 +258,159 @@ def content(filename):
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(str(FRONT_DIR / 'content'), 'favicon_2.png')
+
+
+def _get_task_info(uid: str) -> TaskInfo | None:
+    return TASKS.get(uid)
+
+
+def _read_text_file(path: Path, tail_bytes: int | None = None) -> FlaskResponse:
+    if not path.is_file():
+        resp = FlaskResponse('', mimetype='text/plain; charset=utf-8')
+        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp.headers["Pragma"] = "no-cache"
+        return resp
+
+    if tail_bytes is None:
+        content = path.read_text(encoding="utf-8")
+        resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
+        resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp.headers["Pragma"] = "no-cache"
+        return resp
+
+    if tail_bytes < 0:
+        tail_bytes = 0
+    if tail_bytes > 10_000_000:
+        tail_bytes = 10_000_000
+
+    truncated = False
+    with open(path, "rb") as f:
+        f.seek(0, 2)
+        size = f.tell()
+        if size and tail_bytes:
+            start = max(0, size - tail_bytes)
+            truncated = start > 0
+            f.seek(start)
+            chunk = f.read()
+            if truncated:
+                nl = chunk.find(b"\n")
+                if nl != -1:
+                    chunk = chunk[nl + 1:]
+        else:
+            chunk = b""
+    content = chunk.decode("utf-8", errors="replace")
+    resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    try:
+        resp.headers["X-Log-Tail-Bytes"] = str(tail_bytes)
+        resp.headers["X-Log-Truncated"] = "1" if truncated else "0"
+    except Exception:
+        pass
+    return resp
+
+
+@app.route('/api/task/<uid>/status')
+def api_task_status(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
+    return FlaskResponse(
+        json.dumps(
+            {
+                "uid": info.uid,
+                "url": info.url,
+                "status": info.status,
+                "error": info.error,
+            },
+            ensure_ascii=False,
+        ),
+        mimetype='application/json; charset=utf-8',
+    )
+
+
+@app.route('/api/task/<uid>/logs/output')
+def api_task_output_log(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
+    tail_bytes = request.args.get('tail_bytes', default=None, type=int)
+    return _read_text_file(info.task_dir / "output.log", tail_bytes=tail_bytes)
+
+
+@app.route('/api/task/<uid>/logs/useful')
+def api_task_useful_log(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
+    tail_bytes = request.args.get('tail_bytes', default=None, type=int)
+    return _read_text_file(info.task_dir / "useful_log.log", tail_bytes=tail_bytes)
+
+
+@app.route('/api/task/<uid>/logs/chat')
+def api_task_chat_log(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
+    tail_bytes = request.args.get('tail_bytes', default=None, type=int)
+    return _read_text_file(info.task_dir / "chat_output.log", tail_bytes=tail_bytes)
+
+
+@app.route('/api/task/<uid>/result_code')
+def api_task_result_code(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
+    path = info.task_dir / "result_code.ts"
+    if not path.is_file():
+        return FlaskResponse('', mimetype='text/plain; charset=utf-8', status=404)
+    return FlaskResponse(path.read_text(encoding="utf-8"), mimetype='text/plain; charset=utf-8')
+
+
+@app.route('/download/parser_ts/<uid>')
+def download_parser_ts_uid(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('Задача не найдена', mimetype='text/plain; charset=utf-8', status=404)
+    path = info.task_dir / "result_code.ts"
+    if not path.is_file():
+        return FlaskResponse('Файл result_code.ts не найден', mimetype='text/plain; charset=utf-8', status=404)
+    return send_file(
+        str(path),
+        as_attachment=True,
+        download_name='result_code.ts',
+        mimetype='text/plain; charset=utf-8'
+    )
+
+
+@app.route('/download/all_files_zip/<uid>')
+def download_all_files_zip_uid(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('Задача не найдена', mimetype='text/plain; charset=utf-8', status=404)
+
+    required = [
+        ('result_code.ts', info.task_dir / "result_code.ts"),
+        ('output.log', info.task_dir / "output.log"),
+        ('useful_log.log', info.task_dir / "useful_log.log"),
+        ('chat_output.log', info.task_dir / "chat_output.log"),
+    ]
+    missing = [name for name, p in required if not p.is_file()]
+    if missing:
+        return FlaskResponse('Не найдены файлы: ' + ', '.join(missing), mimetype='text/plain; charset=utf-8', status=404)
+
+    buf = BytesIO()
+    with zipfile.ZipFile(buf, mode='w', compression=zipfile.ZIP_STORED) as zf:
+        for arcname, full_path in required:
+            zf.write(str(full_path), arcname=arcname)
+    buf.seek(0)
+    ts = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name=f'APSP_gen_{uid}_{ts}.zip',
+        mimetype='application/zip'
+    )
 
 @app.route('/api/log')
 def get_log():

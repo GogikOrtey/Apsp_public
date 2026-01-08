@@ -17,39 +17,74 @@ from playwright.sync_api import Page, Response, Request
 from urllib.parse import urlparse, parse_qs
 import copy
 
-_current_page: Page | None = None
-_listeners_page: Page | None = None
+_contexts_lock = threading.Lock()
+_contexts: dict[int, dict[str, Any]] = {}
 
-_network_records_since_load: list[dict[str, Any]] = []
-_network_req_map_since_load: dict[int, dict[str, Any]] = {}
+
+def _ctx() -> dict[str, Any]:
+    """
+    Per-thread storage for Playwright objects/state.
+
+    Sync Playwright objects are thread-affine, so each worker thread MUST keep its own page/state.
+    """
+    tid = threading.get_ident()
+    with _contexts_lock:
+        c = _contexts.get(tid)
+        if c is None:
+            c = {
+                "current_page": None,
+                "listeners_page": None,
+                "network_records_since_load": [],
+                "network_req_map_since_load": {},
+                "last_screenshot_png": None,
+                "last_screenshot_ts": None,
+                "last_screenshot_error": None,
+                "playwright_owner_thread_id": None,
+                "last_pushed_screenshot_ts": None,
+                "state": None,  # PlaywrightContextState (lazy)
+            }
+            _contexts[tid] = c
+        if c.get("state") is None:
+            c["state"] = PlaywrightContextState()
+        return c
 _NETWORK_MAX_RECORDS: int = 2000
 _NETWORK_BODY_STORE_LIMIT: int = 1_000_000  # символов текста (best-effort), чтобы не раздувать память
 
-# Screenshot cache (for UI preview)
+# Screenshot cache (per-thread, stored in _ctx()).
 _screenshot_lock = threading.Lock()
-_last_screenshot_png: bytes | None = None
-_last_screenshot_ts: float | None = None
-_last_screenshot_error: str | None = None
-_playwright_owner_thread_id: int | None = None
-_last_pushed_screenshot_ts: float | None = None
 
 
 def set_shared_page(page: Page) -> None:
     """Store Playwright page for reuse across toolkit helpers."""
-    global _current_page, _playwright_owner_thread_id
-    _current_page = page
+    c = _ctx()
+    c["current_page"] = page
     # Playwright sync objects must be used only from the thread that created them.
-    _playwright_owner_thread_id = threading.get_ident()
+    c["playwright_owner_thread_id"] = threading.get_ident()
     _ensure_listeners(page)
 
 
 def get_shared_page() -> Page:
     """Return stored Playwright page or raise if it is not set."""
-    if _current_page is None:
+    page = _ctx().get("current_page")
+    if page is None:
         raise RuntimeError(
             "Playwright page is not initialized. Call set_shared_page(page) before using toolkit tools."
         )
-    return _current_page
+    return page
+
+
+def clear_shared_page() -> None:
+    """Clears per-thread stored page and related caches (best-effort)."""
+    c = _ctx()
+    c["current_page"] = None
+    c["listeners_page"] = None
+    c["network_records_since_load"] = []
+    c["network_req_map_since_load"] = {}
+    c["last_screenshot_png"] = None
+    c["last_screenshot_ts"] = None
+    c["last_screenshot_error"] = None
+    c["last_pushed_screenshot_ts"] = None
+    c["state"] = PlaywrightContextState()
 
 
 def get_cached_screenshot_png(
@@ -70,19 +105,19 @@ def get_cached_screenshot_png(
         (png_bytes, meta)
         meta: {ok, ts, age_ms, from_cache, error}
     """
-    global _last_screenshot_png, _last_screenshot_ts, _last_screenshot_error
+    c = _ctx()
 
     now = time.time()
     with _screenshot_lock:
         age_ms: int | None = None
-        if _last_screenshot_ts is not None:
-            age_ms = int(max(0.0, (now - _last_screenshot_ts) * 1000))
+        if c.get("last_screenshot_ts") is not None:
+            age_ms = int(max(0.0, (now - float(c.get("last_screenshot_ts"))) * 1000))
 
         # Fresh enough -> return cache
-        if _last_screenshot_png is not None and age_ms is not None and age_ms < int(min_interval_ms):
-            return _last_screenshot_png, {
+        if c.get("last_screenshot_png") is not None and age_ms is not None and age_ms < int(min_interval_ms):
+            return c.get("last_screenshot_png"), {
                 "ok": True,
-                "ts": _last_screenshot_ts,
+                "ts": c.get("last_screenshot_ts"),
                 "age_ms": age_ms,
                 "from_cache": True,
                 "error": None,
@@ -91,35 +126,35 @@ def get_cached_screenshot_png(
         # Need a refresh
         try:
             # Важно: sync Playwright нельзя дергать из другого thread (greenlet.error).
-            if _playwright_owner_thread_id is not None and threading.get_ident() != _playwright_owner_thread_id:
+            if c.get("playwright_owner_thread_id") is not None and threading.get_ident() != c.get("playwright_owner_thread_id"):
                 raise RuntimeError("playwright_screenshot_wrong_thread")
             page = get_shared_page()
             png = page.screenshot(type="png", timeout=int(timeout_ms), full_page=bool(full_page))
             if not isinstance(png, (bytes, bytearray)):
                 raise TypeError("page.screenshot() returned non-bytes")
-            _last_screenshot_png = bytes(png)
-            _last_screenshot_ts = time.time()
-            _last_screenshot_error = None
-            return _last_screenshot_png, {
+            c["last_screenshot_png"] = bytes(png)
+            c["last_screenshot_ts"] = time.time()
+            c["last_screenshot_error"] = None
+            return c.get("last_screenshot_png"), {
                 "ok": True,
-                "ts": _last_screenshot_ts,
+                "ts": c.get("last_screenshot_ts"),
                 "age_ms": 0,
                 "from_cache": False,
                 "error": None,
             }
         except Exception as exc:  # noqa: BLE001
-            _last_screenshot_error = str(exc)
+            c["last_screenshot_error"] = str(exc)
             # Fallback to previous screenshot if any
-            if _last_screenshot_png is not None and _last_screenshot_ts is not None:
-                fallback_age_ms = int(max(0.0, (now - _last_screenshot_ts) * 1000))
-                return _last_screenshot_png, {
+            if c.get("last_screenshot_png") is not None and c.get("last_screenshot_ts") is not None:
+                fallback_age_ms = int(max(0.0, (now - float(c.get("last_screenshot_ts"))) * 1000))
+                return c.get("last_screenshot_png"), {
                     "ok": True,
-                    "ts": _last_screenshot_ts,
+                    "ts": c.get("last_screenshot_ts"),
                     "age_ms": fallback_age_ms,
                     "from_cache": True,
-                    "error": _last_screenshot_error,
+                    "error": c.get("last_screenshot_error"),
                 }
-            return None, {"ok": False, "ts": None, "age_ms": None, "from_cache": False, "error": _last_screenshot_error}
+            return None, {"ok": False, "ts": None, "age_ms": None, "from_cache": False, "error": c.get("last_screenshot_error")}
 
 
 def maybe_push_screenshot_to_front(
@@ -137,14 +172,14 @@ def maybe_push_screenshot_to_front(
 
     Возвращает True, если "в целом ок" (уже было запушено / удалось запушить), иначе False.
     """
-    global _last_pushed_screenshot_ts
+    c = _ctx()
 
     png, meta = get_cached_screenshot_png(min_interval_ms=min_interval_ms, timeout_ms=timeout_ms, full_page=full_page)
     if not png or not isinstance(meta, dict) or not meta.get("ok"):
         return False
 
     ts = meta.get("ts")
-    if isinstance(ts, (int, float)) and _last_pushed_screenshot_ts == float(ts):
+    if isinstance(ts, (int, float)) and c.get("last_pushed_screenshot_ts") == float(ts):
         return True  # этот кадр уже отправляли
 
     try:
@@ -153,7 +188,7 @@ def maybe_push_screenshot_to_front(
 
         ok = push_browser_screenshot_png(png, base_url=(base_url or DEFAULT_FRONT_BASE_URL), timeout_s=0.5)
         if ok and isinstance(ts, (int, float)):
-            _last_pushed_screenshot_ts = float(ts)
+            c["last_pushed_screenshot_ts"] = float(ts)
         return ok
     except Exception:
         return False
@@ -248,13 +283,9 @@ class PlaywrightContextState:
     _last_document_ts: float | None = None
 
 
-_state = PlaywrightContextState()
-
-
 def reset_playwright_context_state() -> None:
     """Сбрасывает историю действий и last_change (полезно для тестов/перезапусков)."""
-    global _state
-    _state = PlaywrightContextState()
+    _ctx()["state"] = PlaywrightContextState()
 
 
 def _format_action_call(action: str, args: dict[str, Any] | None) -> str:
@@ -314,11 +345,12 @@ def record_playwright_action(
 
     Важно: это чисто диагностическая/контекстная история для промпта, не для персистентного логирования.
     """
+    state: PlaywrightContextState = _ctx()["state"]
     # История
     call = _format_action_call(action, args)
-    _state.actions_since_load.append(call)
-    if len(_state.actions_since_load) > max_actions:
-        _state.actions_since_load = _state.actions_since_load[-max_actions:]
+    state.actions_since_load.append(call)
+    if len(state.actions_since_load) > max_actions:
+        state.actions_since_load = state.actions_since_load[-max_actions:]
 
     # Кандидат на trigger для последующего wait_for_navigation_or_content
     interactive = {
@@ -331,11 +363,11 @@ def record_playwright_action(
         "page_restart",
     }
     if action in interactive:
-        _state._last_trigger_candidate = call
+        state._last_trigger_candidate = call
 
     # last_change: выставляем на wait_for_navigation_or_content (или сразу на явную навигацию)
     if action in {"goto_url", "page_restart"}:
-        _state.last_change = PlaywrightLastChange(
+        state.last_change = PlaywrightLastChange(
             type="navigation",
             trigger=call,
             delta_text=None,
@@ -363,8 +395,8 @@ def record_playwright_action(
             else:
                 delta_text = None
 
-        trigger = _state._last_trigger_candidate or "unknown"
-        _state.last_change = PlaywrightLastChange(
+        trigger = state._last_trigger_candidate or "unknown"
+        state.last_change = PlaywrightLastChange(
             type=change_type,
             trigger=trigger,
             delta_text=delta_text,
@@ -374,60 +406,63 @@ def record_playwright_action(
 
 def get_playwright_context_snapshot(*, max_actions: int = 10) -> dict[str, Any]:
     """Возвращает снапшот state в простом dict-формате (удобно для промптов)."""
-    actions = _state.actions_since_load[-max_actions:] if max_actions > 0 else []
+    state: PlaywrightContextState = _ctx()["state"]
+    actions = state.actions_since_load[-max_actions:] if max_actions > 0 else []
 
     load_state: str | None = None
     try:
-        if _current_page is not None:
+        page = _ctx().get("current_page")
+        if page is not None:
             # Единственный стабильный "геттер" состояния загрузки в sync API — через document.readyState.
-            load_state = _current_page.evaluate("() => document.readyState")
+            load_state = page.evaluate("() => document.readyState")
             if not isinstance(load_state, str):
                 load_state = str(load_state)
     except Exception:
         load_state = None
 
     return {
-        "current_url": _state.current_url,
-        "http_status": _state.http_status,
-        "page_version": _state.page_version,
-        "nav_count": _state.nav_count,
+        "current_url": state.current_url,
+        "http_status": state.http_status,
+        "page_version": state.page_version,
+        "nav_count": state.nav_count,
         "load_state": load_state,
         # Timestamp последнего document-ответа главного фрейма (top-level навигации).
         # По смыслу: "когда была загружена текущая версия страницы".
-        "last_document_ts": _state._last_document_ts,
+        "last_document_ts": state._last_document_ts,
         "last_change": {
-            "type": _state.last_change.type,
-            "trigger": _state.last_change.trigger,
-            "delta_text": _state.last_change.delta_text,
-            "reason": _state.last_change.reason,
-            "ts": _state.last_change.ts,
+            "type": state.last_change.type,
+            "trigger": state.last_change.trigger,
+            "delta_text": state.last_change.delta_text,
+            "reason": state.last_change.reason,
+            "ts": state.last_change.ts,
         },
         "actions_since_load": actions,
     }
 
 
 def _ensure_listeners(page: Page) -> None:
-    global _listeners_page
+    c = _ctx()
+    state: PlaywrightContextState = c["state"]
     # Если page уже та же самая — не вешаем второй раз.
-    if _listeners_page is page:
+    if c.get("listeners_page") is page:
         return
 
     # Новая Page (новый контекст) — начинаем с чистого сетевого буфера.
-    _network_records_since_load.clear()
-    _network_req_map_since_load.clear()
+    c["network_records_since_load"] = []
+    c["network_req_map_since_load"] = {}
 
     def _cap_network_size() -> None:
         # Защита от бесконечного роста. Редко используется, но лучше иметь.
-        if len(_network_records_since_load) <= _NETWORK_MAX_RECORDS:
+        if len(c["network_records_since_load"]) <= _NETWORK_MAX_RECORDS:
             return
         # Оставляем хвост (последние записи)
-        keep = _network_records_since_load[-_NETWORK_MAX_RECORDS:]
-        _network_records_since_load[:] = keep
-        _network_req_map_since_load.clear()
-        for rec in _network_records_since_load:
+        keep = c["network_records_since_load"][-_NETWORK_MAX_RECORDS:]
+        c["network_records_since_load"] = list(keep)
+        c["network_req_map_since_load"].clear()
+        for rec in c["network_records_since_load"]:
             rid = rec.get("request_id")
             if isinstance(rid, int):
-                _network_req_map_since_load[rid] = rec
+                c["network_req_map_since_load"][rid] = rec
 
     def _val(x: Any) -> Any:
         # В sync Playwright часть атрибутов — свойства, часть — методы.
@@ -481,11 +516,11 @@ def _ensure_listeners(page: Page) -> None:
 
     def _upsert_request(req: Request) -> dict[str, Any]:
         rid = id(req)
-        rec = _network_req_map_since_load.get(rid)
+        rec = c["network_req_map_since_load"].get(rid)
         if rec is None:
             rec = _mk_request_record(req)
-            _network_records_since_load.append(rec)
-            _network_req_map_since_load[rid] = rec
+            c["network_records_since_load"].append(rec)
+            c["network_req_map_since_load"][rid] = rec
             _cap_network_size()
         return rec
 
@@ -557,21 +592,21 @@ def _ensure_listeners(page: Page) -> None:
 
             # Любой document-ответ главного фрейма = новая версия страницы.
             if is_document_main_frame:
-                _state.page_version += 1
-                _state.nav_count += 1
+                state.page_version += 1
+                state.nav_count += 1
 
                 # Сбрасываем историю "since load" на каждую новую версию (включая reload/переход на тот же URL).
-                _state.actions_since_load = []
-                _state._last_trigger_candidate = None
-                _state._last_document_url = url
+                state.actions_since_load = []
+                state._last_trigger_candidate = None
+                state._last_document_url = url
 
-                _state._last_document_ts = time.time()
-                _state.current_url = url
-                _state.http_status = status
+                state._last_document_ts = time.time()
+                state.current_url = url
+                state.http_status = status
 
                 # С момента "перезагрузки страницы" начинаем новый сетевой буфер.
-                _network_records_since_load.clear()
-                _network_req_map_since_load.clear()
+                c["network_records_since_load"] = []
+                c["network_req_map_since_load"] = {}
 
             rec = _upsert_request(req)
             body_text, body_meta = _try_read_response_text(resp)
@@ -591,7 +626,7 @@ def _ensure_listeners(page: Page) -> None:
     page.on("request", _on_request)
     page.on("requestfailed", _on_request_failed)
     page.on("response", _on_response)
-    _listeners_page = page
+    c["listeners_page"] = page
 
 
 def get_network_requests_since_load() -> list[dict[str, Any]]:
@@ -601,9 +636,11 @@ def get_network_requests_since_load() -> list[dict[str, Any]]:
 
     Возвращаем копию, чтобы потребители не могли случайно испортить внутренний буфер.
     """
+    c = _ctx()
+    buf = c.get("network_records_since_load") or []
     try:
-        return copy.deepcopy(_network_records_since_load)
+        return copy.deepcopy(buf)
     except Exception:
         # Fallback: лучше вернуть хоть что-то, чем упасть.
-        return list(_network_records_since_load)
+        return list(buf)
 

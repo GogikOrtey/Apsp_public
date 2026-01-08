@@ -185,9 +185,15 @@ def set_parser_name(host):
 RESULT_OUTPUT_DIR = ROOT_DIR / "result_code_gen" / "result"
 RESULT_CODE_TS_PATH = RESULT_OUTPUT_DIR / "result_code.ts"
 
-def result_file_JS(result_code):
-    RESULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    RESULT_CODE_TS_PATH.write_text(result_code, encoding="utf-8")
+
+def result_file_JS(result_code, *, task_dir=None):
+    """
+    Записывает result_code.ts либо в папку задачи, либо в дефолтный каталог.
+    """
+    target_dir = Path(task_dir) if task_dir else RESULT_OUTPUT_DIR
+    target_path = target_dir / "result_code.ts"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(result_code, encoding="utf-8")
     print("📘 result_code успешно записан в result_code.ts")
 
 
@@ -241,7 +247,7 @@ def simple_makeRequest():
 
 # region build_final_code
 
-def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment, fields_descr):
+def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment, fields_descr, *, task_dir=None):
     # Добавляем 4 пробела в начало каждой строки
     parse_page_code_fragment = textwrap.indent(parse_page_code_fragment, '    ')
 
@@ -264,7 +270,7 @@ def build_final_code(host, parse_card_code_fragment, parse_page_code_fragment, f
     
     print(f"\n📗 Результат:\n")
     print(result)
-    result_file_JS(result) # Записываем результат в файл
+    result_file_JS(result, task_dir=task_dir) # Записываем результат в файл
 
     return result
 

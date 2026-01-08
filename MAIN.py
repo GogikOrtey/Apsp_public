@@ -74,7 +74,7 @@ https://dev.gogorey.ru/auto_gen_parsers/main
 # result_code = main_processer(link) 
 
 
-def main_funk_start_on_front(link):
+def main_funk_start_on_front(link, uid=None, task_dir=None, page=None):
     # print("Фронтовская функция запущена, link = " + link)
     # # Ленивая загрузка тяжёлых импортов, чтобы импорт MAIN.py был безопасным.
     # from new_program.main_processer import main_processer_base
@@ -115,7 +115,7 @@ def main_funk_start_on_front(link):
             pass
 
     try:
-        result_code = main_processer(link)
+        result_code = main_processer(link, uid=uid, task_dir=task_dir, page=page)
     except Exception:
         error_text = f"🟠 Ошибка генерации: 🟠\n\n" + traceback.format_exc()
         _write_error_to_result_code_ts(error_text)

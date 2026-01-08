@@ -41,6 +41,7 @@ from new_program.agent_step_7_build_code_parsePage import *
 from new_program.build_final_code import *
 from new_program.check_request_this_site_ok import *
 from new_program.agent_step_6_2_diginetica_and_custom_req_on_PP import *
+from playwright_tool.shared_page import set_shared_page, get_shared_page
 
 # region Задачи
 
@@ -147,20 +148,23 @@ https://apelsin.ru
 
 
 
-def main_processer(input_url):
+def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     start_time = time.time()
     # 0. Чистим URL, запускам браузер и переходим на него
 
     # Чистим входящий url - до host, что бы получить ссылку на главную страницы
     url_input = normalize_url(input_url)
 
-    # Запускаю браузер с видимым окном
-    # launch_browser(headless = False)
-    print_ul("Запускаем браузер")
-    launch_browser(headless = True)
+    # Если страница не передана — создадим через launch_browser (legacy single-task режим)
+    if page is None:
+        print_ul("Запускаем браузер")
+        pw, browser, page = launch_browser(headless=True)
+        set_shared_page(page)
+    else:
+        set_shared_page(page)
 
     print_ul("Переходим на страницу " + input_url)
-    goto_url( 
+    goto_url(
         url = url_input,
         wait_until = "load",
         timeout = 30_000
@@ -742,7 +746,7 @@ def main_processer(input_url):
     update_content_front_current_step("Шаг 10/10: Собираем итоговый код")
     print_ul("И далее собираем вместе весь готовый код")
 
-    result_final_code = build_final_code(url_input, parse_card_code_fragment, parse_page_code_fragment, fields_descr)
+    result_final_code = build_final_code(url_input, parse_card_code_fragment, parse_page_code_fragment, fields_descr, task_dir=task_dir)
 
     print("result_final_code:")
     print(result_final_code)
