@@ -51,6 +51,7 @@ RESULT_OUTPUT_DIR = PROJECT_ROOT / 'result_code_gen' / 'result'
 RESULT_CODE_FILE_PATH = RESULT_OUTPUT_DIR / 'result_code.ts'
 MESSAGE_GLOBAL_FILE_PATH = RESULT_OUTPUT_DIR / 'message_global.txt'
 LOG_FILE_PATH = PROJECT_ROOT / 'output.log'
+USEFUL_LOG_FILE_PATH = PROJECT_ROOT / 'useful_log.log'
 NEW_PAGE_2_STATE_FILE_PATH = RESULT_OUTPUT_DIR / 'new_page_2_state.json'
 NEW_PAGE_2_ALLOWED_FIELDS = {
     "reflection_text",
@@ -183,6 +184,13 @@ def new_page_1():
                     f.write('')
             except Exception:
                 pass
+            # И очищаем полезный лог.
+            try:
+                USEFUL_LOG_FILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+                with open(USEFUL_LOG_FILE_PATH, 'w', encoding='utf-8') as f:
+                    f.write('')
+            except Exception:
+                pass
             # Запускаем обработку в фоне, чтобы не блокировать переход на следующую страницу.
             def runner_front(link: str):
                 try:
@@ -285,6 +293,66 @@ def get_log():
                     chunk = f.read()
                     # Если читаем "не с начала" — режем до первой полной строки (после \n),
                     # чтобы не показывать пользователю "обрезанный" кусок строки.
+                    if truncated:
+                        nl = chunk.find(b'\n')
+                        if nl != -1:
+                            chunk = chunk[nl + 1:]
+            content = chunk.decode('utf-8', errors='replace')
+            resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["Pragma"] = "no-cache"
+            try:
+                resp.headers["X-Log-Tail-Bytes"] = str(tail_bytes)
+                resp.headers["X-Log-Truncated"] = "1" if truncated else "0"
+            except Exception:
+                pass
+            return resp
+        else:
+            resp = FlaskResponse('', mimetype='text/plain; charset=utf-8')
+            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+            resp.headers["Pragma"] = "no-cache"
+            return resp
+    except Exception as e:
+        return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+
+
+@app.route('/api/useful_log')
+def get_useful_log():
+    """
+    Возвращает содержимое файла `useful_log.log` (корень проекта).
+
+    UI может передавать `tail_bytes`, чтобы получать только хвост файла.
+    """
+    try:
+        if USEFUL_LOG_FILE_PATH.is_file():
+            tail_bytes = request.args.get('tail_bytes', default=None, type=int)
+            if tail_bytes is None:
+                with open(USEFUL_LOG_FILE_PATH, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
+                resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+                resp.headers["Pragma"] = "no-cache"
+                return resp
+
+            if tail_bytes < 0:
+                tail_bytes = 0
+            if tail_bytes > 10_000_000:
+                tail_bytes = 10_000_000
+
+            truncated = False
+            with open(USEFUL_LOG_FILE_PATH, 'rb') as f:
+                try:
+                    f.seek(0, 2)  # end
+                    size = f.tell()
+                except Exception:
+                    size = None
+                if not size or tail_bytes == 0:
+                    chunk = b""
+                else:
+                    start = max(0, size - tail_bytes)
+                    truncated = start > 0
+                    f.seek(start)
+                    chunk = f.read()
                     if truncated:
                         nl = chunk.find(b'\n')
                         if nl != -1:

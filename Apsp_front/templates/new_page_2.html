@@ -256,8 +256,17 @@
     <!-- Правая колонка -->
     <div class="col col--right">
         <div class="panel panel--high">
-            <div class="panel-title">Общий лог</div>
-            <textarea class="panel-body panel-body--log" id="global_log_text" readonly spellcheck="false">Логи будут отображаться здесь</textarea>
+            <div class="panel-tabs" role="tablist" aria-label="Переключение логов">
+                <button type="button" class="panel-tab is-active" id="tab_btn_global_log" role="tab" aria-selected="true" aria-controls="global_log_text">
+                    Общий лог
+                </button>
+                <button type="button" class="panel-tab" id="tab_btn_useful_log" role="tab" aria-selected="false" aria-controls="useful_log_text">
+                    Полезный лог
+                </button>
+            </div>
+
+            <textarea class="panel-body panel-body--log panel-tab-content" id="global_log_text" role="tabpanel" aria-labelledby="tab_btn_global_log" readonly spellcheck="false">Логи будут отображаться здесь</textarea>
+            <textarea class="panel-body panel-body--log panel-tab-content" id="useful_log_text" role="tabpanel" aria-labelledby="tab_btn_useful_log" readonly spellcheck="false" hidden>Полезный лог будет отображаться здесь</textarea>
         </div>
 
         <div class="panel panel--step">
@@ -322,6 +331,9 @@
     const GLOBAL_LOG_TAIL_BYTES = 500_000; // ~0.5MB хвоста лога вместо чтения всего файла
     const GLOBAL_LOG_POLL_MS = 1000;
     let globalLogRequestInFlight = false;
+    const USEFUL_LOG_TAIL_BYTES = 500_000;
+    const USEFUL_LOG_POLL_MS = 1000;
+    let usefulLogRequestInFlight = false;
 
     // --- Таймер (0.1s) ---
     let timerStartMs = 0;
@@ -365,6 +377,9 @@
 
     // --- Вкладки: "Текущее окно браузера" / "Результат последней фазы" ---
     let __setNewPage2RightTab = null;
+
+    // --- Вкладки: "Общий лог" / "Полезный лог" ---
+    let __setNewPage2LogTab = null;
 
     // --- Скриншот окна Playwright (каждые 5 секунд) ---
     let __browserWindowScreenshotTimer = null;
@@ -430,6 +445,33 @@
         __setNewPage2RightTab = setActive;
     }
 
+    function initNewPage2LogTabs() {
+        const btnGlobal = document.getElementById('tab_btn_global_log');
+        const btnUseful = document.getElementById('tab_btn_useful_log');
+        const panelGlobal = document.getElementById('global_log_text');
+        const panelUseful = document.getElementById('useful_log_text');
+        if (!btnGlobal || !btnUseful || !panelGlobal || !panelUseful) return;
+
+        function setActive(tabKey) {
+            const isGlobal = tabKey === 'global';
+
+            btnGlobal.classList.toggle('is-active', isGlobal);
+            btnUseful.classList.toggle('is-active', !isGlobal);
+
+            btnGlobal.setAttribute('aria-selected', isGlobal ? 'true' : 'false');
+            btnUseful.setAttribute('aria-selected', (!isGlobal) ? 'true' : 'false');
+
+            panelGlobal.hidden = !isGlobal;
+            panelUseful.hidden = isGlobal;
+        }
+
+        btnGlobal.addEventListener('click', () => setActive('global'));
+        btnUseful.addEventListener('click', () => setActive('useful'));
+
+        setActive('global');
+        __setNewPage2LogTab = setActive;
+    }
+
     function resetNewPage2Ui() {
         // Очищаем "карточки" (могут быть восстановлены браузером при Back/Forward)
         for (const id of NEW_PAGE_2_FIELDS) {
@@ -446,6 +488,11 @@
         if (logTextarea) {
             logTextarea.value = '';
             logTextarea.scrollTop = 0;
+        }
+        const usefulLogTextarea = document.getElementById('useful_log_text');
+        if (usefulLogTextarea) {
+            usefulLogTextarea.value = '';
+            usefulLogTextarea.scrollTop = 0;
         }
 
         // Форсируем первое применение state после очистки
@@ -519,6 +566,36 @@
         }
     }
 
+    async function updateUsefulLogContent() {
+        const logTextarea = document.getElementById('useful_log_text');
+        if (!logTextarea) return;
+        if (usefulLogRequestInFlight) return;
+
+        try {
+            usefulLogRequestInFlight = true;
+            const response = await fetch(`/api/useful_log?tail_bytes=${USEFUL_LOG_TAIL_BYTES}`, { cache: 'no-store' });
+            if (!response.ok) return;
+            const text = await response.text();
+
+            const currentScrollTop = logTextarea.scrollTop;
+            const isScrolledToBottom = logTextarea.scrollHeight - logTextarea.clientHeight <= currentScrollTop + 1;
+
+            if (logTextarea.value !== text) {
+                logTextarea.value = text;
+            }
+
+            if (isScrolledToBottom) {
+                logTextarea.scrollTop = logTextarea.scrollHeight;
+            } else {
+                logTextarea.scrollTop = currentScrollTop;
+            }
+        } catch (e) {
+            // тихо игнорируем
+        } finally {
+            usefulLogRequestInFlight = false;
+        }
+    }
+
     // Когда main_funk_start_on_front() завершится в фоне — автоматически уходим на /new_page_3
     let redirectTriggered = false;
     async function pollFrontMainStatus() {
@@ -539,6 +616,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         resetNewPage2Ui();
         initNewPage2RightTabs();
+        initNewPage2LogTabs();
         resetCornerTimer();
         startCornerTimerLoop();
         pollNewPage2State();
@@ -546,6 +624,9 @@
 
         updateGlobalLogContent();
         setInterval(updateGlobalLogContent, GLOBAL_LOG_POLL_MS);
+
+        updateUsefulLogContent();
+        setInterval(updateUsefulLogContent, USEFUL_LOG_POLL_MS);
 
         pollFrontMainStatus();
         setInterval(pollFrontMainStatus, 500);
@@ -558,6 +639,7 @@
         if (event && event.persisted) {
             resetNewPage2Ui();
             if (typeof __setNewPage2RightTab === 'function') __setNewPage2RightTab('browser');
+            if (typeof __setNewPage2LogTab === 'function') __setNewPage2LogTab('global');
             resetCornerTimer();
             startCornerTimerLoop();
             startBrowserWindowScreenshotLoop();
