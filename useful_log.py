@@ -37,7 +37,7 @@ def init_useful_log(log_path: str | Path | None = None, truncate: bool = True) -
         setattr(_tls, "path", path)
 
     path.parent.mkdir(parents=True, exist_ok=True)
-        mode = "w" if truncate else "a"
+    mode = "w" if truncate else "a"
     with open(path, mode, encoding="utf-8") as f:
         if truncate:
             now = datetime.now()
@@ -71,7 +71,11 @@ def print_ul(*values: Iterable[object], sep: str = " ", end: str = "\n") -> None
     print_useful_log(*values, sep=sep, end=end)
 
 
-# Ensure the log file is created/truncated on module import (once per process).
-init_useful_log(truncate=True)
+"""
+Важно:
+Раньше модуль создавал/трунил useful_log.log на import.
+Для многозадачности это плохо (можно затереть логи другой задачи), поэтому инициализацию
+делаем лениво при первом вызове print_ul/print_useful_log в конкретном task-thread.
+"""
 
 

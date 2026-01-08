@@ -14,14 +14,16 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Optional
 
+from task_runtime.task_context import get_current_task_uid, get_current_task_dir
+
 
 DEFAULT_FRONT_BASE_URL = os.environ.get("APSP_FRONT_BASE_URL", "http://127.0.0.1:5000")
 _DEBUG = os.environ.get("APSP_FRONT_CLIENT_DEBUG", "").strip() not in ("", "0", "false", "False")
 
-# Файл состояния, который читает Flask-роут /api/new_page_2_state (через load_new_page_2_state()).
-# Это fallback, если HTTP POST не прошёл (фронт не запущен / таймаут / порт не тот).
+# Файл состояния (fallback если HTTP POST не прошёл).
+# В многозадачном режиме пишем в RESULT_TASKS/<uid>/new_page_2_state.json,
+# иначе (legacy) — в result_code_gen/result/new_page_2_state.json.
 _PROJECT_ROOT = Path(__file__).resolve().parent
-_NEW_PAGE_2_STATE_FILE = _PROJECT_ROOT / "result_code_gen" / "result" / "new_page_2_state.json"
 _NEW_PAGE_2_ALLOWED_FIELDS = {
     "reflection_text",
     "goal_text",
@@ -76,11 +78,19 @@ def _post_json(
         return False
 
 
+def _resolve_state_file() -> Path:
+    task_dir = get_current_task_dir()
+    if task_dir:
+        return Path(task_dir) / "new_page_2_state.json"
+    return _PROJECT_ROOT / "result_code_gen" / "result" / "new_page_2_state.json"
+
+
 def _load_new_page_2_state_file() -> dict[str, Any]:
     try:
-        if not _NEW_PAGE_2_STATE_FILE.is_file():
+        path = _resolve_state_file()
+        if not path.is_file():
             return {}
-        with open(_NEW_PAGE_2_STATE_FILE, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
         return data if isinstance(data, dict) else {}
     except Exception as e:
@@ -94,11 +104,12 @@ def _load_new_page_2_state_file() -> dict[str, Any]:
 
 def _save_new_page_2_state_file(state: dict[str, Any]) -> bool:
     try:
-        _NEW_PAGE_2_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        tmp = _NEW_PAGE_2_STATE_FILE.with_suffix(_NEW_PAGE_2_STATE_FILE.suffix + ".tmp")
+        path = _resolve_state_file()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".tmp")
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(state, f, ensure_ascii=False, indent=2, sort_keys=True)
-        tmp.replace(_NEW_PAGE_2_STATE_FILE)
+        tmp.replace(path)
         return True
     except Exception as e:
         if _DEBUG:
@@ -135,7 +146,8 @@ def push_browser_screenshot_png(
     try:
         if not isinstance(png_bytes, (bytes, bytearray)) or not png_bytes:
             return False
-        url = base_url.rstrip("/") + "/api/browser_screenshot_push"
+        uid = get_current_task_uid()
+        url = base_url.rstrip("/") + ("/api/browser_screenshot_push" if not uid else f"/api/task/{uid}/browser_screenshot_push")
         req = urllib.request.Request(
             url,
             data=bytes(png_bytes),
@@ -155,8 +167,10 @@ def update_new_page_2_field(
     base_url: str = DEFAULT_FRONT_BASE_URL,
     timeout_s: float = 0.25,
 ) -> bool:
+    uid = get_current_task_uid()
+    path = "/api/new_page_2_state" if not uid else f"/api/task/{uid}/new_page_2_state"
     ok = _post_json(
-        "/api/new_page_2_state",
+        path,
         {"field": field_id, "value": _to_text(text)},
         base_url=base_url,
         timeout_s=timeout_s,

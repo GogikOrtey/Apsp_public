@@ -87,9 +87,11 @@ class PlaywrightPool:
         with self._lock:
             if self._started:
                 return
-            self._workers = [_Worker(headless=self._headless) for _ in range(self._max_workers)]
-            for w in self._workers:
-                w.start()
+            # Start with 1 worker (keeps 1 browser opened on service start),
+            # scale up on demand in submit().
+            w = _Worker(headless=self._headless)
+            w.start()
+            self._workers = [w]
             self._started = True
 
     def submit(self, fn: Callable[[Browser], Any]) -> Future:
@@ -99,6 +101,11 @@ class PlaywrightPool:
                 fut: Future = Future()
                 fut.set_exception(RuntimeError("pool_not_started"))
                 return fut
+            # scale up (best-effort): start a new worker per submitted task until max_workers
+            if len(self._workers) < self._max_workers:
+                nw = _Worker(headless=self._headless)
+                nw.start()
+                self._workers.append(nw)
             w = self._workers[self._rr % len(self._workers)]
             self._rr += 1
         return w.submit(fn)

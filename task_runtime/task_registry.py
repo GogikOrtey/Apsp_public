@@ -50,6 +50,10 @@ class TaskRegistry:
             self._tasks[uid] = info
         return info
 
+    def warmup(self) -> None:
+        """Start Playwright pool so at least one browser is opened with the service."""
+        self._pool.start()
+
     def get(self, uid: str) -> TaskInfo | None:
         with self._lock:
             return self._tasks.get(uid)

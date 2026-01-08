@@ -1,28 +1,13 @@
-import sys
+"""
+Legacy logging module.
 
-# Перехватывает весь текст, который выводится в консоль через print()
-# и записывает его в output.log
+Раньше этот файл глобально подменял sys.stdout и писал всё в output.log в корне проекта.
+Для параллельных UID-задач это опасно (логи смешиваются), поэтому теперь:
+- глобальные файлы логов не создаём
+- per-task вывод делается через task_runtime.print_router (регистрация файла на thread задачи)
+"""
 
-class Tee:
-    def __init__(self, *files):
-        self.files = files
+from task_runtime.print_router import install_print_router
 
-    def write(self, obj):
-        for f in self.files:
-            f.write(obj)
-            f.flush()
-
-    def flush(self):
-        for f in self.files:
-            f.flush()
-
-# Открываем файл для логов в режиме перезаписи
-log_file = open("output.log", "w", encoding="utf-8")
-
-# Подменяем stdout
-sys.stdout = Tee(sys.stdout, log_file)
-
-from datetime import datetime
-now = datetime.now()
-print(now.strftime("%d.%m.%Y %H:%M:%S"))
-print("")
+# Важно: безопасно вызывать много раз
+install_print_router()

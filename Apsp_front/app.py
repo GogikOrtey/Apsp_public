@@ -36,6 +36,7 @@ from playwright_tool.shared_page import get_cached_screenshot_png, clear_shared_
 # Важно: `import *` выше может перетереть имя `Response` не-flask'овским классом.
 # Явно фиксируем, что в этом файле под Response для HTTP-ответов используется именно flask.Response.
 from flask import Response as FlaskResponse
+import atexit
 
 app = Flask(__name__) 
 
@@ -91,6 +92,11 @@ PUSHED_SCREENSHOT_LOCK = threading.Lock()
 # --- Task registry (до 10 параллельных заданий) ---
 install_print_router()
 TASKS = TaskRegistry(result_tasks_dir=RESULT_TASKS_DIR, max_workers=10, headless=True)
+TASKS.warmup()
+atexit.register(TASKS.shutdown)
+
+TASK_SCREENSHOTS_STATE = {}
+TASK_SCREENSHOTS_LOCK = threading.Lock()
 
 
 def _run_task(browser, info: TaskInfo):
@@ -101,6 +107,18 @@ def _run_task(browser, info: TaskInfo):
     info.task_dir.mkdir(parents=True, exist_ok=True)
     out_file = open(info.task_dir / "output.log", "w", encoding="utf-8")
     register_thread_io(out_file, out_file)
+
+    # Create/truncate per-task logs at start (best-effort).
+    try:
+        from useful_log import init_useful_log
+        init_useful_log(truncate=True)
+    except Exception:
+        pass
+    try:
+        from reasoning_agent.chat_terminal import init_chat_channel
+        init_chat_channel(truncate=True)
+    except Exception:
+        pass
 
     context = browser.new_context()
     page = context.new_page()
@@ -329,6 +347,114 @@ def api_task_status(uid):
     )
 
 
+def _task_state_path(info: TaskInfo) -> Path:
+    return info.task_dir / "new_page_2_state.json"
+
+
+def _load_task_state(info: TaskInfo) -> dict:
+    default_state = {k: "" for k in NEW_PAGE_2_ALLOWED_FIELDS}
+    path = _task_state_path(info)
+    try:
+        if not path.is_file():
+            return default_state
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return default_state
+        for k in NEW_PAGE_2_ALLOWED_FIELDS:
+            if k in data:
+                default_state[k] = normalize_display_text(data.get(k))
+        return default_state
+    except Exception:
+        return default_state
+
+
+def _save_task_state(info: TaskInfo, state: dict) -> None:
+    path = _task_state_path(info)
+    safe_state = {k: normalize_display_text(state.get(k, "")) for k in NEW_PAGE_2_ALLOWED_FIELDS}
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(safe_state, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+
+
+@app.route('/api/task/<uid>/new_page_2_state', methods=['GET'])
+def api_task_new_page_2_state_get(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
+    state = _load_task_state(info)
+    return FlaskResponse(json.dumps(state, ensure_ascii=False), mimetype='application/json; charset=utf-8')
+
+
+@app.route('/api/task/<uid>/new_page_2_state', methods=['POST'])
+def api_task_new_page_2_state_post(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
+    payload = request.get_json(silent=True) or {}
+    if not isinstance(payload, dict):
+        return FlaskResponse('{"ok":false,"error":"invalid_json"}', mimetype='application/json; charset=utf-8', status=400)
+
+    state = _load_task_state(info)
+    if "field" in payload:
+        field = payload.get("field")
+        value = payload.get("value", "")
+        if field not in NEW_PAGE_2_ALLOWED_FIELDS:
+            return FlaskResponse('{"ok":false,"error":"unknown_field"}', mimetype='application/json; charset=utf-8', status=400)
+        state[field] = normalize_display_text(value)
+    else:
+        updated_any = False
+        for k in NEW_PAGE_2_ALLOWED_FIELDS:
+            if k in payload:
+                state[k] = normalize_display_text(payload.get(k))
+                updated_any = True
+        if not updated_any:
+            return FlaskResponse('{"ok":false,"error":"no_allowed_fields"}', mimetype='application/json; charset=utf-8', status=400)
+
+    try:
+        _save_task_state(info, state)
+    except Exception:
+        return FlaskResponse('{"ok":false,"error":"save_failed"}', mimetype='application/json; charset=utf-8', status=500)
+    return FlaskResponse('{"ok":true}', mimetype='application/json; charset=utf-8')
+
+
+@app.route('/api/task/<uid>/browser_screenshot', methods=['GET'])
+def api_task_browser_screenshot(uid):
+    if not TASKS.exists(uid):
+        return FlaskResponse("task_not_found", mimetype='text/plain; charset=utf-8', status=404)
+    with TASK_SCREENSHOTS_LOCK:
+        entry = TASK_SCREENSHOTS_STATE.get(uid) or {}
+        png = entry.get("png")
+        ts = entry.get("ts")
+    if png is None:
+        return FlaskResponse("screenshot_not_available", mimetype='text/plain; charset=utf-8', status=404)
+    resp = FlaskResponse(png, mimetype="image/png")
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    try:
+        resp.headers["X-Screenshot-Ts"] = str(ts or "")
+    except Exception:
+        pass
+    return resp
+
+
+@app.route('/api/task/<uid>/browser_screenshot_push', methods=['POST'])
+def api_task_browser_screenshot_push(uid):
+    if not TASKS.exists(uid):
+        return FlaskResponse('{"ok":false,"error":"task_not_found"}', mimetype='application/json; charset=utf-8', status=404)
+    try:
+        raw = request.get_data(cache=False) or b""
+    except Exception:
+        raw = b""
+    if not raw:
+        return FlaskResponse('{"ok":false,"error":"empty_body"}', mimetype='application/json; charset=utf-8', status=400)
+    if not (len(raw) >= 8 and raw[:8] == b"\x89PNG\r\n\x1a\n"):
+        return FlaskResponse('{"ok":false,"error":"not_png"}', mimetype='application/json; charset=utf-8', status=400)
+    if len(raw) > 8_000_000:
+        return FlaskResponse('{"ok":false,"error":"too_large"}', mimetype='application/json; charset=utf-8', status=413)
+    with TASK_SCREENSHOTS_LOCK:
+        TASK_SCREENSHOTS_STATE[uid] = {"png": raw, "ts": datetime.now().timestamp()}
+    return FlaskResponse('{"ok":true}', mimetype='application/json; charset=utf-8')
+
+
 @app.route('/api/task/<uid>/logs/output')
 def api_task_output_log(uid):
     info = _get_task_info(uid)
@@ -412,165 +538,33 @@ def download_all_files_zip_uid(uid):
         mimetype='application/zip'
     )
 
+def _gone_legacy():
+    return FlaskResponse('{"ok":false,"error":"use_uid_endpoints"}', mimetype='application/json; charset=utf-8', status=410)
+
+
 @app.route('/api/log')
 def get_log():
-    """
-    Возвращает содержимое файла `output.log`.
-
-    UI может передавать `tail_bytes`, чтобы получать только хвост файла
-    (иначе браузер/страница могут "упасть" на очень больших логах).
-    """
-    try:
-        if LOG_FILE_PATH.is_file():
-            tail_bytes = request.args.get('tail_bytes', default=None, type=int)
-            # Без tail_bytes — старое поведение (весь файл).
-            if tail_bytes is None:
-                with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
-                resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-                resp.headers["Pragma"] = "no-cache"
-                return resp
-
-            # С tail_bytes — отдаём только хвост файла (чтобы UI не умирал на сотнях тысяч строк).
-            # Ограничиваем верхнюю границу, чтобы не унести память/CPU по ошибке.
-            if tail_bytes < 0:
-                tail_bytes = 0
-            if tail_bytes > 10_000_000:
-                tail_bytes = 10_000_000
-
-            truncated = False
-            with open(LOG_FILE_PATH, 'rb') as f:
-                try:
-                    f.seek(0, 2)  # end
-                    size = f.tell()
-                except Exception:
-                    size = None
-                if not size or tail_bytes == 0:
-                    chunk = b""
-                else:
-                    start = max(0, size - tail_bytes)
-                    truncated = start > 0
-                    f.seek(start)
-                    chunk = f.read()
-                    # Если читаем "не с начала" — режем до первой полной строки (после \n),
-                    # чтобы не показывать пользователю "обрезанный" кусок строки.
-                    if truncated:
-                        nl = chunk.find(b'\n')
-                        if nl != -1:
-                            chunk = chunk[nl + 1:]
-            content = chunk.decode('utf-8', errors='replace')
-            resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
-            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            resp.headers["Pragma"] = "no-cache"
-            try:
-                resp.headers["X-Log-Tail-Bytes"] = str(tail_bytes)
-                resp.headers["X-Log-Truncated"] = "1" if truncated else "0"
-            except Exception:
-                pass
-            return resp
-        else:
-            resp = FlaskResponse('', mimetype='text/plain; charset=utf-8')
-            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            resp.headers["Pragma"] = "no-cache"
-            return resp
-    except Exception as e:
-        return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+    return _gone_legacy()
 
 
 @app.route('/api/useful_log')
 def get_useful_log():
-    """
-    Возвращает содержимое файла `useful_log.log` (корень проекта).
-
-    UI может передавать `tail_bytes`, чтобы получать только хвост файла.
-    """
-    try:
-        if USEFUL_LOG_FILE_PATH.is_file():
-            tail_bytes = request.args.get('tail_bytes', default=None, type=int)
-            if tail_bytes is None:
-                with open(USEFUL_LOG_FILE_PATH, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
-                resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-                resp.headers["Pragma"] = "no-cache"
-                return resp
-
-            if tail_bytes < 0:
-                tail_bytes = 0
-            if tail_bytes > 10_000_000:
-                tail_bytes = 10_000_000
-
-            truncated = False
-            with open(USEFUL_LOG_FILE_PATH, 'rb') as f:
-                try:
-                    f.seek(0, 2)  # end
-                    size = f.tell()
-                except Exception:
-                    size = None
-                if not size or tail_bytes == 0:
-                    chunk = b""
-                else:
-                    start = max(0, size - tail_bytes)
-                    truncated = start > 0
-                    f.seek(start)
-                    chunk = f.read()
-                    if truncated:
-                        nl = chunk.find(b'\n')
-                        if nl != -1:
-                            chunk = chunk[nl + 1:]
-            content = chunk.decode('utf-8', errors='replace')
-            resp = FlaskResponse(content, mimetype='text/plain; charset=utf-8')
-            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            resp.headers["Pragma"] = "no-cache"
-            try:
-                resp.headers["X-Log-Tail-Bytes"] = str(tail_bytes)
-                resp.headers["X-Log-Truncated"] = "1" if truncated else "0"
-            except Exception:
-                pass
-            return resp
-        else:
-            resp = FlaskResponse('', mimetype='text/plain; charset=utf-8')
-            resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-            resp.headers["Pragma"] = "no-cache"
-            return resp
-    except Exception as e:
-        return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+    return _gone_legacy()
 
 
 @app.route('/api/front_main_status')
 def front_main_status():
-    """Возвращает состояние выполнения main_funk_start_on_front() (MAIN.py)."""
-    return get_front_main_state()
+    return _gone_legacy()
+
 
 @app.route('/api/result_code')
 def get_result_code():
-    """Возвращает содержимое файла result_code.ts"""
-    try:
-        if RESULT_CODE_FILE_PATH.is_file():
-            with open(RESULT_CODE_FILE_PATH, 'r', encoding='utf-8') as f:
-                content = f.read()
-            return FlaskResponse(content, mimetype='text/plain; charset=utf-8')
-        else:
-            return FlaskResponse('', mimetype='text/plain; charset=utf-8')
-    except Exception as e:
-        return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+    return _gone_legacy()
 
 
 @app.route('/api/message_global')
 def get_message_global():
-    """Возвращает содержимое файла message_global.txt (с обрезкой переносов строк сверху/снизу)."""
-    try:
-        if MESSAGE_GLOBAL_FILE_PATH.is_file():
-            with open(MESSAGE_GLOBAL_FILE_PATH, 'r', encoding='utf-8') as f:
-                content = f.read()
-            # Удаляем переносы строк только сверху и снизу (внутренние переносы сохраняем)
-            content = content.strip('\r\n')
-            return FlaskResponse(content, mimetype='text/plain; charset=utf-8')
-        else:
-            return FlaskResponse('', mimetype='text/plain; charset=utf-8')
-    except Exception as e:
-        return FlaskResponse(f'Ошибка чтения файла: {str(e)}', mimetype='text/plain; charset=utf-8', status=500)
+    return _gone_legacy()
 
 
 @app.route('/api/new_page_2_state', methods=['GET'])
@@ -692,64 +686,12 @@ def api_browser_screenshot_push():
 
 @app.route('/download/parser_ts')
 def download_parser_ts():
-    """Скачать сгенерированный парсер .ts"""
-    if not RESULT_CODE_FILE_PATH.is_file():
-        return FlaskResponse('Файл result_code.ts не найден', mimetype='text/plain; charset=utf-8', status=404)
-
-    return send_file(
-        str(RESULT_CODE_FILE_PATH),
-        as_attachment=True,
-        download_name='result_code.ts',
-        mimetype='text/plain; charset=utf-8'
-    )
+    return _gone_legacy()
 
 
 @app.route('/download/all_files_zip')
 def download_all_files_zip():
-    """
-    Скачать все полезные выходные файлы одним .zip.
-
-    Делаем "store" (без сжатия), чтобы:
-    - не тратить CPU на сервере
-    - быстрее отдавать архив на больших файлах
-    """
-    required_files = [
-        ('result_code.ts', RESULT_CODE_FILE_PATH),
-        ('output.log', LOG_FILE_PATH),
-        ('message_global.txt', MESSAGE_GLOBAL_FILE_PATH),
-    ]
-
-    candidates = []
-    missing = []
-    for arcname, full_path in required_files:
-        if not full_path.is_file():
-            missing.append(arcname)
-        else:
-            candidates.append((arcname, full_path))
-
-    if missing:
-        return FlaskResponse(
-            'Не найдены файлы: ' + ', '.join(missing),
-            mimetype='text/plain; charset=utf-8',
-            status=404
-        )
-
-    buf = BytesIO()
-    # Без сжатия (store)
-    with zipfile.ZipFile(buf, mode='w', compression=zipfile.ZIP_STORED) as zf:
-        for arcname, full_path in candidates:
-            zf.write(str(full_path), arcname=arcname)
-
-    buf.seek(0)
-
-    # Имя архива: APSP_gen_ + timestamp (дата и время)
-    ts = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    return send_file(
-        buf,
-        as_attachment=True,
-        download_name=f'APSP_gen_{ts}.zip',
-        mimetype='application/zip'
-    )
+    return _gone_legacy()
 
 @app.route('/.well-known/appspecific/com.chrome.devtools.json')
 def chrome_devtools():
