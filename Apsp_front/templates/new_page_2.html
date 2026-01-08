@@ -75,6 +75,56 @@
         line-height: 1.2;
     }
 
+    /* Вкладки внутри панели (правый нижний блок) */
+    .panel-tabs {
+        display: flex;
+        gap: 8px;
+        /* margin-bottom: 10px; */
+        margin-bottom: 0px;
+        flex: 0 0 auto;
+    }
+
+    .panel-tab {
+        appearance: none;
+        border: 1px solid #e0e0e0;
+        background: #f7f7f7;
+        color: #444;
+        /* border-radius: 8px; */
+        border-radius: 8px 8px 0px 0px;
+        padding: 8px 10px;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1;
+        cursor: pointer;
+        user-select: none;
+        transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+        white-space: nowrap;
+    }
+
+    .panel-tab.is-active {
+        background: #ffffff;
+        /* border-color: #667eea; */
+        color: #667eea;
+    }
+
+    .panel-tab:hover {
+        outline: none;
+        /* box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.18); */
+        background: #e0e2e9;
+    }
+
+    .panel-tab-content {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .browser-window-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+    }
+
     /* Текущий шаг: только заголовок и он в 2 раза больше */
     .panel-title--big {
         font-size: 18px;
@@ -210,8 +260,27 @@
         </div>
 
         <div class="panel panel--medium">
-            <div class="panel-title">Результат последней фазы</div>
-            <div class="panel-body" id="last_phase_result_text"></div>
+            <div class="panel-tabs" role="tablist" aria-label="Переключение контента">
+                <button type="button" class="panel-tab is-active" id="tab_btn_browser_window" role="tab" aria-selected="true" aria-controls="tab_content_browser_window">
+                    Текущее окно браузера
+                </button>
+                <button type="button" class="panel-tab" id="tab_btn_last_phase_result" role="tab" aria-selected="false" aria-controls="tab_content_last_phase_result">
+                    Результат последней фазы
+                </button>
+            </div>
+
+            <div class="panel-body panel-body--image panel-tab-content" id="tab_content_browser_window" role="tabpanel" aria-labelledby="tab_btn_browser_window">
+                <img
+                    id="browser_window_image"
+                    class="browser-window-img"
+                    alt=""
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+                />
+            </div>
+
+            <div class="panel-body panel-tab-content" id="tab_content_last_phase_result" role="tabpanel" aria-labelledby="tab_btn_last_phase_result" hidden>
+                <div id="last_phase_result_text"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -287,6 +356,36 @@
         if (timerRafId == null) return;
         try { window.cancelAnimationFrame(timerRafId); } catch (e) {}
         timerRafId = null;
+    }
+
+    // --- Вкладки: "Текущее окно браузера" / "Результат последней фазы" ---
+    let __setNewPage2RightTab = null;
+    function initNewPage2RightTabs() {
+        const btnBrowser = document.getElementById('tab_btn_browser_window');
+        const btnLastPhase = document.getElementById('tab_btn_last_phase_result');
+        const panelBrowser = document.getElementById('tab_content_browser_window');
+        const panelLastPhase = document.getElementById('tab_content_last_phase_result');
+        if (!btnBrowser || !btnLastPhase || !panelBrowser || !panelLastPhase) return;
+
+        function setActive(tabKey) {
+            const isBrowser = tabKey === 'browser';
+
+            btnBrowser.classList.toggle('is-active', isBrowser);
+            btnLastPhase.classList.toggle('is-active', !isBrowser);
+
+            btnBrowser.setAttribute('aria-selected', isBrowser ? 'true' : 'false');
+            btnLastPhase.setAttribute('aria-selected', (!isBrowser) ? 'true' : 'false');
+
+            panelBrowser.hidden = !isBrowser;
+            panelLastPhase.hidden = isBrowser;
+        }
+
+        btnBrowser.addEventListener('click', () => setActive('browser'));
+        btnLastPhase.addEventListener('click', () => setActive('last_phase'));
+
+        // По умолчанию активна вкладка "Текущее окно браузера"
+        setActive('browser');
+        __setNewPage2RightTab = setActive;
     }
 
     function resetNewPage2Ui() {
@@ -397,6 +496,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         resetNewPage2Ui();
+        initNewPage2RightTabs();
         resetCornerTimer();
         startCornerTimerLoop();
         pollNewPage2State();
@@ -443,6 +543,7 @@
     window.addEventListener('pageshow', function (event) {
         if (event && event.persisted) {
             resetNewPage2Ui();
+            if (typeof __setNewPage2RightTab === 'function') __setNewPage2RightTab('browser');
             resetCornerTimer();
             startCornerTimerLoop();
         }
