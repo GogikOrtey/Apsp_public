@@ -1,20 +1,158 @@
-🟠 Ошибка генерации: 🟠
+import { getDefaultConf, defaultEditableConf, defaultOpts, getCacher } from "../Base-Custom/Constants";
+import { AsyncHTTPXRequestOptsCustom, defaultConf, editableConf, Item } from "../Base-Custom/Types";
+import { InvalidLinkError, NotFoundError } from "../Base-Custom/Errors";
+import { JS_Base_Custom } from "../Base-Custom/Base-Custom";
+import { getTimestamp } from "../Base-Custom/Utils";
+import { SetType, tools } from "a-parser-types";
+import { Cacher } from "../Base-Custom/Cache";
+import {
+    toArray, isBadLink,
+    name, price, stock, imageLink, article, category, link, timestamp
+} from "../Base-Custom/Fields"
+import * as cheerio from "cheerio";
 
-Traceback (most recent call last):
-  File "C:\Users\gogor\OneDrive\Рабочий стол\APSP_public\MAIN.py", line 114, in main_funk_start_on_front
-    result_code = main_processer(link)
-  File "C:\Users\gogor\OneDrive\Рабочий стол\APSP_public\new_program\main_processer.py", line 171, in main_processer
-    html_content = get_shared_page().content()
-  File "c:\Users\gogor\AppData\Local\Programs\Python\Python310\lib\site-packages\playwright\sync_api\_generated.py", line 8946, in content
-    return mapping.from_maybe_impl(self._sync(self._impl_obj.content()))
-  File "c:\Users\gogor\AppData\Local\Programs\Python\Python310\lib\site-packages\playwright\_impl\_sync_base.py", line 115, in _sync
-    return task.result()
-  File "c:\Users\gogor\AppData\Local\Programs\Python\Python310\lib\site-packages\playwright\_impl\_page.py", line 535, in content
-    return await self._main_frame.content()
-  File "c:\Users\gogor\AppData\Local\Programs\Python\Python310\lib\site-packages\playwright\_impl\_frame.py", line 475, in content
-    return await self._channel.send("content", None)
-  File "c:\Users\gogor\AppData\Local\Programs\Python\Python310\lib\site-packages\playwright\_impl\_connection.py", line 69, in send
-    return await self._connection.wrap_api_call(
-  File "c:\Users\gogor\AppData\Local\Programs\Python\Python310\lib\site-packages\playwright\_impl\_connection.py", line 559, in wrap_api_call
-    raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
-playwright._impl._errors.TargetClosedError: Page.content: Target page, context or browser has been closed
+//#region Кастомные типы данных
+type ResultItem = Item<typeof fields>
+
+//#region Константы
+const fields = {
+    name, price, stock, imageLink, article, category, link, timestamp
+}
+
+const HOST = "https://makitaclub.ru"
+
+export class JS_Base_makitaclubru extends JS_Base_Custom {
+    static defaultConf: defaultConf = {
+            ...getDefaultConf(toArray(fields), "ζ", [isBadLink]),
+            parsecodes: { 200: 1, 404: 1 },
+            proxyChecker: "fineproxy.org",
+            requestdelay: "3,5",
+            engine: "a-parser",
+            mode: "normal",
+        };
+
+    static editableConf: editableConf = [
+        ...defaultEditableConf
+    ];
+
+    //#region Точка входа
+    async parse(set: SetType, results: { [key: string]: any }) {
+        if (!set.type || set.type === "none") set.type = "page";
+        if (!set.region || set.region === "none") set.region = "";
+        try {
+            switch (set.type) {
+                case "page": {
+                    if (!set.page || set.page === "none") set.page = 1;
+                    await this.parsePage(set);
+                    results.success = 1;
+                    break;
+                }
+                case "card": {
+                    const cacher = getCacher<ResultItem>(this, set)
+                    let items = cacher.cache || await this.parseCard(set, cacher);
+                    items.forEach(item => results.items.addElement(item));
+                    results.success = 1;
+                    break;
+                }
+                default:
+                    this.logger.put("Указан неверный тип сбора")
+                    results.success = 0;
+            }
+        } catch (e: any) {
+            if (e instanceof NotFoundError || e instanceof InvalidLinkError) {
+                this.logger.put(e.message);
+                results.isBadLink = 1;
+                results.success = 1;
+            } else {
+                this.logger.put(`${e.name} >> ${e.message}   ${set.query}  type - ${set.type} page ${set.page} }`);
+                results.success = 0;
+            }
+        }
+        return results;
+    }
+
+    //#region Парсинг поиска
+        async parsePage(set: SetType) {
+        let url = new URL(`${HOST}/`)
+        url.searchParams.set("s", set.query)
+        url.searchParams.set("post_type", "product")
+        if (set.page && +set.page > 1) {
+          url = new URL(`${HOST}/page/${set.page}/`)
+          url.searchParams.set("s", set.query)
+          url.searchParams.set("post_type", "product")
+        }
+
+        const data = await this.makeRequest(url.href)
+        const $ = cheerio.load(data)
+
+        if (set.page === 1) {
+            let totalPages = Math.max(...$("nav.woocommerce-pagination .page-numbers").get().map(item => +$(item).text().trim()).filter(Boolean))
+            this.debugger.put(`totalPages = ${totalPages}`)
+            for (let page = 2; page <= Math.min(totalPages, +this.conf.pagesCount); page++) {
+                this.query.add({ ...set, query: set.query, type: "page", page: page, lvl: 1 });
+            }
+        }
+
+        let products = $('div.products .product-card a.stretched-link[href*="/products/"]')
+        if (products.length == 0) {
+            this.logger.put(`По запросу ${set.query} ничего не найдено`)
+            throw new NotFoundError()
+        }
+        products.slice(0, +this.conf.itemsCount).each((i, product) => {
+            let link = $(product)?.attr('href')
+            this.query.add({ ...set, query: link, type: "card", lvl: 1 })
+        })
+    }
+
+    //#region Парсинг товара
+    async parseCard(set: SetType, cacher: Cacher<ResultItem[]>) {
+        let items: ResultItem[] = []
+
+        const data = await this.makeRequest(set.query);
+        const $ = cheerio.load(data);
+
+        const name = $("h1.product_title.entry-title").text().trim()
+        const price = $("p.price .woocommerce-Price-amount").text().trim()?.replace(/[^\d]/g, "")
+        const stock = $("form.cart").text().trim()?.includes("В корзину") ? "InStock" : "OutOfStock"
+        const imageLinkRaw = $(".woocommerce-product-gallery img.wp-post-image")?.first()?.attr("src") || $(".woocommerce-product-gallery img.wp-post-image")?.first()?.attr("data-src") || ""
+        const imageLink = imageLinkRaw?.startsWith("http") ? imageLinkRaw : (imageLinkRaw ? (HOST + imageLinkRaw) : "")
+        const article = $(".product_meta .sku")?.first().text().trim()
+        const category = $(".product_meta .posted_in a")?.first().text().trim()
+        const link = set.query;
+        const timestamp = getTimestamp()
+
+        const item: ResultItem = {
+            name, price, stock, imageLink, article, category, link, timestamp
+        }
+        items.push(item);
+
+        // Отладочный вывод всех полей
+        if (this.conf.debug) items.forEach(elem => { Object.entries(elem).forEach(([key, value]) => { this.debugger.put(`🟩 ${key} = ${value}`) }) });
+
+        cacher.cache = items
+        return items;
+    }
+    
+
+    //#region Выполнение запроса
+    async makeRequest(url: string, urlPrams = {}) {
+        const opts: AsyncHTTPXRequestOptsCustom = {
+            ...defaultOpts,
+            engine: this.conf.engine,
+            mode: this.conf.mode,
+        };
+        this.debugger.put(opts)
+
+        const { success, headers, data } = await this.request("GET", url, urlPrams, opts);
+        this.debugger.put(data)
+
+        if (!success || typeof data !== "string") throw new Error("Неудачный запрос");
+        if (headers.Status === 404) throw new NotFoundError();
+
+        return data;
+    }
+}
+
+// Код сгенерирован Auto-gen parsers v1.0
+// Дата: 8 Янв 2026
+// © BrandPol

@@ -730,6 +730,8 @@ def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links):
 
     # print(task)
 
+    print_ul("Далее запускаем агента, который проверит каждый селектор на 3х страницах по порядку, убедится что он выдаёт нужные результаты, соответствующие семантике и правилам собираемого поля, и напишет строку кода для каждого поля, которая его собирает")
+
     # Генерирую схему/шаблон/план динамически, на основе входных полей
     dynamic_result_schema, dynamic_result_template = build_main_result_schema_and_template(used_fields_and_selectors, num_links=3)
     dynamic_main_plan = build_main_plan_for_parse_card(used_fields_and_selectors, num_links=3)

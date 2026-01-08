@@ -36,6 +36,7 @@ import os
 
 # Глобальные модули
 import module_logging
+from useful_log import print_useful_log, print_ul
 from YandexGPT import *
 from global_variable import *
 import global_variable

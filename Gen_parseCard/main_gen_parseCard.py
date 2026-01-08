@@ -393,7 +393,7 @@ n + 3: Проверить сгенерированный код извлечен
 # region main_gen_parseCard
 
 def main_gen_parseCard(input_15_links, host):
-    print("") # Убрать
+    print_ul("Начинаем собирать код для parseCard")
 
     # 1. Получаем 3 случайные ссылки
     (all_links, random_3_links) = merge_links_and_pick_random(input_15_links)
@@ -403,6 +403,9 @@ def main_gen_parseCard(input_15_links, host):
     print("Выбрали такие 3 случайные ссылки на товары:")
     for input_url in random_3_links:
         print(input_url)
+
+    print_ul("Выбрали 3 случайные ссылки из 15, с ними и будем работать")
+    print_ul("Извлекаем селекторы полей на этих трёх ссылках")
 
     # Извлекем селекторы на этих трёх ссылках
     results_extract_selectors_parseCard_from_GPT: List[Dict[str, Any]] = []
@@ -464,9 +467,13 @@ def main_gen_parseCard(input_15_links, host):
 
     print(f"\nresult_extract_selectors_parseCard_from_GPT:\n")
     print(result_extract_selectors_parseCard_from_GPT_str)
+    print_ul("Вот такие селекторы для таких полей нашли на страницах:")
+    print_ul(result_extract_selectors_parseCard_from_GPT_str)
 
     # Валидирую селекторы через агента
     result_get_parseCard_code = get_parseCard_code(result_extract_selectors_parseCard_from_GPT, host, random_3_links)
+
+    print_ul("Далее собираем провалидированный код для извлечения полей в одну функцию parseCard")
 
     # Собираю провалидированные поля в функцию parseCard
     (result, fields_descr) = build_parseCard(result_get_parseCard_code, result_extract_selectors_parseCard_from_GPT)
