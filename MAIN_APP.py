@@ -25,8 +25,6 @@ if __name__ == "__main__":
     # # ТЕСТ: ограничение в 1 задачу, чтобы проверить блокировку интерфейса
     # os.environ.setdefault("APSP_MAX_WORKERS", "1")
 
-    # Важно: импортируем Flask-приложение ПОСЛЕ выставления env,
-    # потому что `Apsp_front/app.py` создаёт TaskRegistry при импорте.
     from Apsp_front.app import run_dev_server
 
     host = os.environ.get("APSP_HOST", "127.0.0.1")

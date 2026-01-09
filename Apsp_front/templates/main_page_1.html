@@ -60,6 +60,29 @@
         bottom: auto;
     }
 
+    /* Таймер справа сверху */
+    .corner-timer--right-top {
+        right: 16px;
+        top: 16px;
+        left: auto;
+        bottom: auto;
+    }
+
+    /* Статусы сервера */
+    .status-online {
+        background: #4ade80 !important;
+        border-color: #22c55e !important;
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+
+    .status-offline {
+        background: #f87171 !important;
+        border-color: #ef4444 !important;
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+
     .limit-error {
         color: rgb(243, 68, 24);
         /* font-weight: bold; */
@@ -72,6 +95,10 @@
 {% block content %}
 <div class="corner-timer corner-timer--left-top" id="active_tasks_counter" title="Активные задачи / Максимум">
     <span id="active_tasks_value">...</span>
+</div>
+
+<div class="corner-timer corner-timer--right-top" id="server_status_indicator" title="Статус сервера">
+    <span id="server_status_value">Status: ...</span>
 </div>
 
 <form method="POST" class="example1-form" id="new_page_1_form">
@@ -100,10 +127,13 @@
         const input = document.getElementById('site_url');
         const errorDiv = document.getElementById('limit_error');
         const counterValue = document.getElementById('active_tasks_value');
+        const statusIndicator = document.getElementById('server_status_indicator');
+        const statusValue = document.getElementById('server_status_value');
         
         let currentActive = 0;
         let currentMax = 10;
         let isLoaded = false;
+        let isServerOnline = false;
 
         if (!form || !input) return;
 
@@ -117,13 +147,32 @@
                         currentActive = data.active;
                         currentMax = data.max;
                         isLoaded = true;
+                        isServerOnline = true;
+                        
                         if (counterValue) {
                             counterValue.textContent = `${currentActive}/${currentMax}`;
                         }
+                        
+                        // Обновляем статус сервера
+                        if (statusIndicator && statusValue) {
+                            statusValue.textContent = 'Status: Online';
+                            statusIndicator.classList.remove('status-offline');
+                            statusIndicator.classList.add('status-online');
+                        }
                     }
+                } else {
+                    throw new Error('Server responded with error');
                 }
             } catch (e) {
                 console.error(e);
+                isServerOnline = false;
+                
+                // Обновляем статус сервера на offline
+                if (statusIndicator && statusValue) {
+                    statusValue.textContent = 'Status: Offline';
+                    statusIndicator.classList.remove('status-online');
+                    statusIndicator.classList.add('status-offline');
+                }
             }
         }
 
