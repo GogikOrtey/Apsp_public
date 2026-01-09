@@ -74,7 +74,7 @@ from playwright_tool.shared_page import set_shared_page, get_shared_page, maybe_
 
 
 
-- Добавить потом fallback при неверной заданной ссылке на new_page_1
+- Добавить потом fallback при неверной заданной ссылке на main_page_1
 
 - Добавить возможность выполнения до 2х действий в оном вызове инструментов (они выполнятся последовательно)
 
@@ -191,7 +191,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     # update_content_front_current_step("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨")
     # # # time.sleep(50000)
     # # Во время ожидания продолжаем пушить скриншоты раз в 5 секунд,
-    # # чтобы окно на new_page_2.html обновлялось даже без действий.
+    # # чтобы окно на main_page_2.html обновлялось даже без действий.
     # from playwright_tool.shared_page import sleep_with_screenshot_push
     # sleep_with_screenshot_push(50000, interval_s=5)
 
@@ -203,7 +203,14 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
 
 
 
+    """ 
 
+    !!! ВАЖНО: !!!
+
+    1. Надо заменить all_fields_description.py на all_fields_description_MAIN.py
+    2. Раскомментировать запрос в extract_selectors_parseCard_from_GPT.py
+
+    """
 
 
 
@@ -725,6 +732,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
 
     update_content_front_current_step("Шаг 9/10: Валидируем селекторы для полей и собираем код parsePage")
 
+    print_ul("Начинаем собирать код для parseCard")
     (parse_card_code_fragment, fields_descr)  = main_gen_parseCard(result_agent_step_6_1_get_links_for_product, url_input)
     update_content_front_last_phase_result(parse_card_code_fragment) 
 

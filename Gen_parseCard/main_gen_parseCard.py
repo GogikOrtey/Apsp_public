@@ -393,8 +393,6 @@ n + 3: Проверить сгенерированный код извлечен
 # region main_gen_parseCard
 
 def main_gen_parseCard(input_15_links, host):
-    print_ul("Начинаем собирать код для parseCard")
-
     # 1. Получаем 3 случайные ссылки
     (all_links, random_3_links) = merge_links_and_pick_random(input_15_links)
 

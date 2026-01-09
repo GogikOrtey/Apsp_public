@@ -227,7 +227,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- <h1 class="page-title">new_page_2</h1> -->
+<!-- <h1 class="page-title">main_page_2</h1> -->
 
 <div class="main-grid">
     <!-- Левая колонка -->
@@ -601,7 +601,7 @@
         }
     }
 
-    // Когда задача завершится — автоматически уходим на /new_page_3/<uid>
+    // Когда задача завершится — автоматически уходим на /main_page_3/<uid>
     let redirectTriggered = false;
     async function pollTaskStatus() {
         if (redirectTriggered) return;
@@ -612,7 +612,7 @@
             const status = await resp.json();
             if (status && status.status === 'done') {
                 redirectTriggered = true;
-                window.location.href = `/new_page_3/${TASK_UID}/`;
+                window.location.href = `/main_page_3/${TASK_UID}/`;
             }
         } catch (e) {
             // тихо игнорируем

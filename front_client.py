@@ -181,35 +181,35 @@ def update_new_page_2_field(
     return _fallback_update_state_file(field_id, text)
 
 
-# --- Удобные обёртки под конкретные поля new_page_2.html ---
+# --- Удобные обёртки под конкретные поля main_page_2.html ---
 
 def update_content_front_reasoning(text: Any, *, base_url: str = DEFAULT_FRONT_BASE_URL, timeout_s: float = 0.25) -> bool:
-    """`new_page_2.html`: обновляет поле 'Размышление' (id=`reflection_text`)."""
+    """`main_page_2.html`: обновляет поле 'Размышление' (id=`reflection_text`)."""
     return update_new_page_2_field("reflection_text", text, base_url=base_url, timeout_s=timeout_s)
 
 
 def update_content_front_goal(text: Any, *, base_url: str = DEFAULT_FRONT_BASE_URL, timeout_s: float = 0.25) -> bool:
-    """`new_page_2.html`: обновляет поле 'Цель' (id=`goal_text`)."""
+    """`main_page_2.html`: обновляет поле 'Цель' (id=`goal_text`)."""
     return update_new_page_2_field("goal_text", text, base_url=base_url, timeout_s=timeout_s)
 
 
 def update_content_front_action(text: Any, *, base_url: str = DEFAULT_FRONT_BASE_URL, timeout_s: float = 0.25) -> bool:
-    """`new_page_2.html`: обновляет поле 'Действие' (id=`action_text`)."""
+    """`main_page_2.html`: обновляет поле 'Действие' (id=`action_text`)."""
     return update_new_page_2_field("action_text", text, base_url=base_url, timeout_s=timeout_s)
 
 
 def update_content_front_update_result(text: Any, *, base_url: str = DEFAULT_FRONT_BASE_URL, timeout_s: float = 0.25) -> bool:
-    """`new_page_2.html`: обновляет поле 'Update result' (id=`update_result_text`)."""
+    """`main_page_2.html`: обновляет поле 'Update result' (id=`update_result_text`)."""
     return update_new_page_2_field("update_result_text", text, base_url=base_url, timeout_s=timeout_s)
 
 
 def update_content_front_last_phase_result(text: Any, *, base_url: str = DEFAULT_FRONT_BASE_URL, timeout_s: float = 0.25) -> bool:
-    """`new_page_2.html`: обновляет поле 'Результат последней фазы' (id=`last_phase_result_text`)."""
+    """`main_page_2.html`: обновляет поле 'Результат последней фазы' (id=`last_phase_result_text`)."""
     return update_new_page_2_field("last_phase_result_text", text, base_url=base_url, timeout_s=timeout_s)
 
 
 def update_content_front_current_step(text: Any, *, base_url: str = DEFAULT_FRONT_BASE_URL, timeout_s: float = 0.25) -> bool:
-    """`new_page_2.html`: обновляет заголовок 'Текущий шаг' (id=`current_step_title`)."""
+    """`main_page_2.html`: обновляет заголовок 'Текущий шаг' (id=`current_step_title`)."""
     return update_new_page_2_field("current_step_title", text, base_url=base_url, timeout_s=timeout_s)
 
 

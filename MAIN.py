@@ -3,7 +3,7 @@
 Что бы точно её не потерять
 """
 
-# Утилиты для обновления текста на фронте (new_page_2.html).
+# Утилиты для обновления текста на фронте (main_page_2.html).
 # Важно: сами функции "молча" игнорируют ошибки соединения (если фронт не запущен).
 from front_client import (
     update_content_front_reasoning,
@@ -101,7 +101,7 @@ def main_funk_start_on_front(link, uid=None, task_dir=None, page=None):
 
     def _write_error_to_result_code_ts(text: str) -> None:
         """
-        Пишем в файл, который показывает фронт (new_page_3 /api/result_code):
+        Пишем в файл, который показывает фронт (main_page_3 /api/result_code):
         result_code_gen/result/result_code.ts
         """
         try:

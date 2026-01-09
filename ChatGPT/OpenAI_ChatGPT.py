@@ -137,7 +137,7 @@ _SESSION_HISTORY_INITIALIZED = False
 
 def _try_bump_new_page_2_timer_reset_seq() -> None:
     """
-    Best-effort сигнал для фронта (`/new_page_2`): инкрементит `timer_reset_seq`
+    Best-effort сигнал для фронта (`/main_page_2`): инкрементит `timer_reset_seq`
     в `result_code_gen/result/new_page_2_state.json`, чтобы UI мог сбросить таймер.
     """
     try:

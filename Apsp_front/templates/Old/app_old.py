@@ -72,7 +72,7 @@ CODE_GEN_STATE = {
 CODE_GEN_STATE_LOCK = threading.Lock()
 
 # Статус выполнения main_funk_start_on_front (MAIN.py), чтобы фронт мог понять,
-# когда фоновая задача завершилась и можно перейти на new_page_3.
+# когда фоновая задача завершилась и можно перейти на main_page_3.
 FRONT_MAIN_STATE = {
     "running": False,
     "done": False,
@@ -301,30 +301,30 @@ def start_code_generation():
         CODE_GEN_STATE["done"] = False
         CODE_GEN_STATE["error"] = None
 
-    # Чистим предыдущие результаты сразу, чтобы step6 не отображал старые файлы,
-    # пока поток с main_func ещё не запустился.
-    try:
-        from global_code import clear_result_outputs
-        clear_result_outputs()
-    except Exception as e:
-        print(f"Не удалось очистить выходные файлы перед запуском: {e}")
+    # # Чистим предыдущие результаты сразу, чтобы step6 не отображал старые файлы,
+    # # пока поток с main_func ещё не запустился.
+    # try:
+    #     from global_code import clear_result_outputs
+    #     clear_result_outputs()
+    # except Exception as e:
+    #     print(f"Не удалось очистить выходные файлы перед запуском: {e}")
 
-    def runner():
-        try:
-            from MainFuncAgent import main_func
-            main_func(is_print_status_on_log=False)
-            set_code_gen_state(running=False, done=True, error=None)
-        except Exception as e:
-            print(f"Ошибка при выполнении main_func: {e}")
-            set_code_gen_state(running=False, done=True, error=str(e))
+    # def runner():
+    #     try:
+    #         from MainFuncAgent import main_func
+    #         main_func(is_print_status_on_log=False)
+    #         set_code_gen_state(running=False, done=True, error=None)
+    #     except Exception as e:
+    #         print(f"Ошибка при выполнении main_func: {e}")
+    #         set_code_gen_state(running=False, done=True, error=str(e))
 
-    thread = threading.Thread(target=runner, daemon=True)
-    thread.start()
+    # thread = threading.Thread(target=runner, daemon=True)
+    # thread.start()
 
 @app.route('/')
 def index():
     """Главная страница"""
-    return redirect(url_for('new_page_1'))
+    return redirect(url_for('main_page_1'))
 
 #region step0
 @app.route('/step0')
@@ -729,9 +729,9 @@ def reset():
     
     return redirect(url_for('step0'))
 
-@app.route('/new_page_1', methods=['GET', 'POST'])
+@app.route('/main_page_1', methods=['GET', 'POST'])
 @app.route('/example1', methods=['GET', 'POST'])  # обратная совместимость
-def new_page_1():
+def main_page_1():
     """
     Простая отдельная форма (без шагов и без зависимостей от многошагового флоу).
     """
@@ -742,7 +742,7 @@ def new_page_1():
         # Если пусто — ничего не делаем (остаёмся на странице).
         if site_url.strip():
             # При старте нового прогона очищаем состояние СРАЗУ (до запуска фонового потока),
-            # чтобы не было гонки: фон может успеть записать прогресс, а /new_page_2 потом сотрёт его.
+            # чтобы не было гонки: фон может успеть записать прогресс, а /main_page_2 потом сотрёт его.
             try:
                 save_new_page_2_state({})
             except Exception:
@@ -767,26 +767,26 @@ def new_page_1():
 
             set_front_main_state(running=True, done=False, error=None)
             threading.Thread(target=runner_front, args=(site_url,), daemon=True).start()
-            return redirect(url_for('new_page_2'))
+            return redirect(url_for('main_page_2'))
 
-    return render_template('new_page_1.html', site_url=site_url)
+    return render_template('main_page_1.html', site_url=site_url)
 
 
-@app.route('/new_page_2', methods=['GET'])
-def new_page_2():
+@app.route('/main_page_2', methods=['GET'])
+def main_page_2():
     """
     Широкая страница-дашборд (пока без логики; наполнение подключим позже).
     """
-    return render_template('new_page_2.html')
+    return render_template('main_page_2.html')
 
 
-@app.route('/new_page_3', methods=['GET'])
-def new_page_3():
+@app.route('/main_page_3', methods=['GET'])
+def main_page_3():
     """
     Отдельная страница: показать содержимое result_code_gen/result/result_code.ts
     так же "красиво", как на step6 (построчно с подсветкой/номерами строк).
     """
-    return render_template('new_page_3.html')
+    return render_template('main_page_3.html')
 
 @app.route('/example2', methods=['GET', 'POST'])
 def example2():
@@ -917,7 +917,7 @@ def get_message_global():
 
 @app.route('/api/new_page_2_state', methods=['GET'])
 def api_new_page_2_state_get():
-    """Отдаёт JSON-состояние для `templates/new_page_2.html`."""
+    """Отдаёт JSON-состояние для `templates/main_page_2.html`."""
     state = load_new_page_2_state()
     return FlaskResponse(json.dumps(state, ensure_ascii=False), mimetype='application/json; charset=utf-8')
 
@@ -925,7 +925,7 @@ def api_new_page_2_state_get():
 @app.route('/api/new_page_2_state', methods=['POST'])
 def api_new_page_2_state_post():
     """
-    Обновляет состояние `new_page_2`.
+    Обновляет состояние `main_page_2`.
 
     Поддерживаем 2 формата:
     1) {"field": "reflection_text", "value": "..."}

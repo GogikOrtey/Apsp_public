@@ -2,7 +2,7 @@
 Flask-фронт APSP.
 
 Назначение:
-- UI страницы `new_page_1/new_page_2/new_page_3` (см. `Apsp_front/templates/*`)
+- UI страницы `main_page_1/main_page_2/main_page_3` (см. `Apsp_front/templates/*`)
 - API-эндпоинты для UI: лог, состояние прогресса, выдача результата, скриншоты
 
 Важно:
@@ -70,8 +70,8 @@ NEW_PAGE_2_ALLOWED_FIELDS = {
 }
 
 # Статус выполнения `main_funk_start_on_front()` (см. `MAIN.py`).
-# UI (`templates/new_page_2.html`) опрашивает `/api/front_main_status`, чтобы понять,
-# когда фоновая задача завершилась и можно перейти на new_page_3.
+# UI (`templates/main_page_2.html`) опрашивает `/api/front_main_status`, чтобы понять,
+# когда фоновая задача завершилась и можно перейти на main_page_3.
 FRONT_MAIN_STATE = {
     "running": False,
     "done": False,
@@ -212,10 +212,10 @@ def get_front_main_state():
 @app.route('/')
 def index():
     """Главная страница"""
-    return redirect(url_for('new_page_1'))
+    return redirect(url_for('main_page_1'))
 
-@app.route('/new_page_1', methods=['GET', 'POST'])
-def new_page_1():
+@app.route('/main_page_1', methods=['GET', 'POST'])
+def main_page_1():
     """
     Простая отдельная форма (без шагов и без зависимостей от многошагового флоу).
     """
@@ -227,30 +227,30 @@ def new_page_1():
         if site_url.strip():
             task = TASKS.create(site_url)
             TASKS.start(task.uid, _run_task)
-            return redirect(url_for('new_page_2_uid', uid=task.uid))
+            return redirect(url_for('main_page_2_uid', uid=task.uid))
 
-    return render_template('new_page_1.html', site_url=site_url)
+    return render_template('main_page_1.html', site_url=site_url)
 
 
-@app.route('/new_page_2/<uid>/', methods=['GET'])
-def new_page_2_uid(uid):
+@app.route('/main_page_2/<uid>/', methods=['GET'])
+def main_page_2_uid(uid):
     """Дашборд конкретной задачи."""
     if not TASKS.exists(uid):
-        return redirect(url_for('new_page_1'))
-    return render_template('new_page_2.html', uid=uid)
+        return redirect(url_for('main_page_1'))
+    return render_template('main_page_2.html', uid=uid)
 
 
-@app.route('/new_page_3/<uid>/', methods=['GET'])
-def new_page_3_uid(uid):
+@app.route('/main_page_3/<uid>/', methods=['GET'])
+def main_page_3_uid(uid):
     """
     Страница результатов конкретной задачи.
     """
     if not TASKS.exists(uid):
-        return redirect(url_for('new_page_1'))
+        return redirect(url_for('main_page_1'))
     info = TASKS.get(uid)
     if info and info.status in {"running", "created"}:
-        return redirect(url_for('new_page_2_uid', uid=uid))
-    return render_template('new_page_3.html', uid=uid)
+        return redirect(url_for('main_page_2_uid', uid=uid))
+    return render_template('main_page_3.html', uid=uid)
 
 @app.route('/example2', methods=['GET', 'POST'])
 def example2():
@@ -569,7 +569,7 @@ def get_message_global():
 
 @app.route('/api/new_page_2_state', methods=['GET'])
 def api_new_page_2_state_get():
-    """Отдаёт JSON-состояние для `templates/new_page_2.html`."""
+    """Отдаёт JSON-состояние для `templates/main_page_2.html`."""
     state = load_new_page_2_state()
     return FlaskResponse(json.dumps(state, ensure_ascii=False), mimetype='application/json; charset=utf-8')
 
@@ -577,7 +577,7 @@ def api_new_page_2_state_get():
 @app.route('/api/new_page_2_state', methods=['POST'])
 def api_new_page_2_state_post():
     """
-    Обновляет состояние `new_page_2`.
+    Обновляет состояние `main_page_2`.
 
     Поддерживаем 2 формата:
     1) {"field": "reflection_text", "value": "..."}
