@@ -61,8 +61,8 @@
     }
 
     .limit-error {
-        color: red;
-        font-weight: bold;
+        color: rgb(243, 68, 24);
+        /* font-weight: bold; */
         margin-top: 8px;
         display: none;
     }
@@ -86,7 +86,7 @@
             autocomplete="url"
             inputmode="url"
         >
-        <div id="limit_error" class="limit-error">
+        <div id="limit_error" class="limit-error" title="Нет, динамическая очередь задач ещё не реализована">
             Достигнут лимит одновременных задач. Пожалуйста, подождите завершения текущих.
         </div>
     </div>
@@ -144,7 +144,7 @@
                 e.preventDefault();
                 if (errorDiv) {
                     errorDiv.style.display = 'block';
-                    errorDiv.textContent = `Достигнут лимит задач (${currentActive}/${currentMax}). Пожалуйста, подождите.`;
+                    errorDiv.textContent = `Достигнут лимит задач (${currentActive}/${currentMax}). Пожалуйста, подождите завершения текущих.`;
                 }
                 return;
             }

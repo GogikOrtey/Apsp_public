@@ -10,7 +10,6 @@
 """
 
 import os
-from Apsp_front.app import run_dev_server
 
 def _env_bool(name: str, default: bool) -> bool:
     v = os.environ.get(name)
@@ -23,8 +22,12 @@ if __name__ == "__main__":
     # # Поменять переменную среды для теста можно так:
     # os.environ.setdefault("APSP_TASK_TIMEOUT_SECONDS", "5")
     
-    # ТЕСТ: ограничение в 1 задачу, чтобы проверить блокировку интерфейса
-    os.environ.setdefault("APSP_MAX_WORKERS", "1")
+    # # ТЕСТ: ограничение в 1 задачу, чтобы проверить блокировку интерфейса
+    # os.environ.setdefault("APSP_MAX_WORKERS", "1")
+
+    # Важно: импортируем Flask-приложение ПОСЛЕ выставления env,
+    # потому что `Apsp_front/app.py` создаёт TaskRegistry при импорте.
+    from Apsp_front.app import run_dev_server
 
     host = os.environ.get("APSP_HOST", "127.0.0.1")
     port = int(os.environ.get("APSP_PORT", "5000"))
