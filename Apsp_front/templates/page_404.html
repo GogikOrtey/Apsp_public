@@ -5,11 +5,8 @@
 {% block extra_css %}
 <style>
     body {
-        background-color: #0f1114;
-        background-image: url("{{ url_for('content', filename='404_full_3.webp') }}");
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: cover;
+        background-color: #ECECEC;
+        padding: 0;
     }
 
     /* Убираем "главный белый блок" (контейнер из layout.html) только на 404 */
@@ -17,14 +14,17 @@
         background: transparent;
         box-shadow: none;
         padding: 0;
+        max-width: none;
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
     }
 
     .notfound {
-        min-height: calc(100vh - 40px); /* учитываем body padding: 20px в layout */
+        min-height: 100vh;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .notfound__inner {
@@ -32,13 +32,40 @@
         text-align: center;
     }
 
+    .notfound__content {
+        padding: 24px 20px 12px;
+        padding-top: clamp(24px, 22vh, 110px);
+        display: flex;
+        justify-content: center;
+    }
+
+    .notfound__image-wrap {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        overflow: hidden;
+        padding: 0 0 0;
+    }
+
+    .notfound__image {
+        display: block;
+        height: auto;
+        max-height: 100%;
+        width: auto;
+        max-width: 100%;
+    }
+
     .notfound__code {
         font-size: 92px;
         font-weight: 800;
-        color: #727272;
+        /* color: #727272; */
+        color: rgba(77, 77, 77, 0.92);
         line-height: 1;
         margin-bottom: 10px;
-        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+        text-shadow: 0 2px 14px rgba(0, 0, 0, 0.2);
     }
 
     .notfound__title {
@@ -68,9 +95,8 @@
     }
 
     @media (max-width: 480px) {
-        .notfound {
-            padding: 12px;
-            min-height: calc(100vh - 24px);
+        .notfound__content {
+            padding: 18px 12px 10px;
         }
 
         .notfound__code {
@@ -86,15 +112,21 @@
 
 {% block content %}
 <div class="notfound">
-    <div class="notfound__inner">
-        <div class="notfound__code">404</div>
-        <h2 class="notfound__title">Упс! Такой страницы нет</h2>
-        <p class="notfound__text">
-            Похоже, вы перешли по неверному адресу. Нажмите кнопку ниже, чтобы вернуться на главную страницу.
-        </p>
-        <div class="notfound__actions">
-            <a class="btn btn-success notfound__btn" href="{{ url_for('index') }}">Перейти на главную</a>
+    <div class="notfound__content">
+        <div class="notfound__inner">
+            <div class="notfound__code">404</div>
+            <h2 class="notfound__title">Упс! Такой страницы нет</h2>
+            <p class="notfound__text">
+                Похоже, вы перешли по неверному адресу. Нажмите кнопку ниже, чтобы вернуться на главную страницу.
+            </p>
+            <div class="notfound__actions">
+                <a class="btn btn-success notfound__btn" href="{{ url_for('index') }}">Перейти на главную</a>
+            </div>
         </div>
+    </div>
+
+    <div class="notfound__image-wrap" aria-hidden="true">
+        <img class="notfound__image" src="{{ url_for('content', filename='404_full_4.webp') }}" alt="">
     </div>
 </div>
 {% endblock %}
