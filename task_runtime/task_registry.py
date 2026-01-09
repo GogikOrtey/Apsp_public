@@ -13,6 +13,7 @@ from uuid import uuid4
 
 from task_runtime.playwright_pool import PlaywrightPool
 from task_runtime.stop_store import UserStopException, clear_stop, get_stop_reason, USER_STOP_MESSAGE
+from task_runtime.timeout_store import TaskTimeoutException, TASK_TIMEOUT_MESSAGE
 
 
 @dataclass
@@ -285,6 +286,35 @@ class TaskRegistry:
                 self._write_final_error_result_code(info2, f"🟠{final_reason}\n")
                 try:
                     self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] stopped by user: {final_reason}")
+                except Exception:
+                    pass
+
+                try:
+                    self._update_meta_on_finish(uid, runtime_status="error", error=final_reason)
+                except Exception:
+                    pass
+
+                with self._lock:
+                    self._runners.pop(uid, None)
+                return
+
+            # Таймаут выполнения: без ретраев, сразу финальный error/FAILED.
+            if isinstance(exc, TaskTimeoutException) or (err_str == TASK_TIMEOUT_MESSAGE):
+                final_reason = err_str or TASK_TIMEOUT_MESSAGE
+
+                with self._lock:
+                    info2 = self._tasks.get(uid)
+                    if info2 is None:
+                        return
+                    info2.status = "error"
+                    info2.finished_at = self._now()
+                    info2.error = final_reason
+
+                # Пишем лаконичную ошибку в result_code.ts
+                self._write_final_error_result_code(info2, f"🟠{final_reason}\n")
+
+                try:
+                    self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] timeout: {final_reason}")
                 except Exception:
                     pass
 

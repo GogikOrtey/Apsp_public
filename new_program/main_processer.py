@@ -19,7 +19,8 @@ import time
 from typing import Any
 
 from front_client import update_content_front_current_step, update_content_front_last_phase_result
-from task_runtime.task_context import set_current_task, clear_current_task
+from task_runtime.task_context import set_current_task, clear_current_task, get_current_task_started_at_ts
+from task_runtime.timeout_store import raise_if_timeout, TASK_TIMEOUT_MESSAGE
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -179,22 +180,32 @@ https://apelsin.ru
 
 
 # region — MAIN_PROCESSER
-def main_processer(input_url, *, uid=None, task_dir=None, page=None):
+def main_processer(input_url, *, uid=None, task_dir=None, page=None, started_at_ts: float | None = None):
     ctx_set = False
+    # Определяем старт таймера: берём из аргумента/контекста, иначе текущий момент.
+    if started_at_ts is None:
+        try:
+            started_at_ts = get_current_task_started_at_ts()
+        except Exception:
+            started_at_ts = None
+    if started_at_ts is None:
+        started_at_ts = time.time()
+
     if uid and task_dir:
         try:
-            set_current_task(uid, task_dir)
+            set_current_task(uid, task_dir, started_at_ts=started_at_ts)
             ctx_set = True
         except Exception:
             pass
-    def _check_stop():
+    def _check_limits():
         try:
             raise_if_stop_requested(uid)
+            raise_if_timeout(uid=uid, started_at_ts=started_at_ts)
         except Exception:
             # propagate UserStopException as-is, let other exceptions bubble too
             raise
 
-    start_time = time.time()
+    start_time = float(started_at_ts)
     # 0. Чистим URL, запускам браузер и переходим на него
 
     # Чистим входящий url - до host, что бы получить ссылку на главную страницы
@@ -208,7 +219,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     else:
         set_shared_page(page)
 
-    _check_stop()
+    _check_limits()
     print_ul("Переходим на страницу " + input_url)
     goto_url(
         url = url_input,
@@ -226,18 +237,16 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
 
 
 
-    print("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨") 
-    update_content_front_current_step("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨")
-    # # time.sleep(50000)
-    # Во время ожидания продолжаем пушить скриншоты раз в 5 секунд,
-    # чтобы окно на main_page_2.html обновлялось даже без действий.
-    from playwright_tool.shared_page import sleep_with_screenshot_push
-    sleep_with_screenshot_push(50000, interval_s=5)
+    # print("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨") 
+    # update_content_front_current_step("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨")
+    # # # time.sleep(50000)
+    # # Во время ожидания продолжаем пушить скриншоты раз в 5 секунд,
+    # # чтобы окно на main_page_2.html обновлялось даже без действий.
+    # from playwright_tool.shared_page import sleep_with_screenshot_push
+    # sleep_with_screenshot_push(50000, interval_s=5)
 
-    # raise ValueError("Время для тестового прогона завершено")
+    # # raise ValueError("Время для тестового прогона завершено")
 
-
-    # ##### !Потом протестировать, что изображение в браузере реально меняется
 
 
 
@@ -270,7 +279,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     # save_page_html(html_content_zip, filename = "page_html_zip.html")
 
     # region Шаг 1 - HGF
-    _check_stop()
+    _check_limits()
     update_content_front_current_step("Шаг 1/10: Извлечение семантики сайта и селекторов поля ввода поискового запроса")
 
     print_ul("Отправляем главную страницу сайта в модуль HGF - он вытащит из неё селекторы поля ввода поискового запроса, кнопки старта поиска, а также топ-10 запросов из семантики сайта")
@@ -362,7 +371,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     # region Шаг 2 - Агент 
     update_content_front_current_step("Шаг 2/10: Переход на страницу результатов поисковой выдачи")
 
-    _check_stop()
+    _check_limits()
     print_ul("Запускаем агента - он должен нажать перейти по первому поисковому запросу из семантики")
     result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result, uid=uid, task_dir=task_dir)
     print("result_agent_answer_from_2_step:")

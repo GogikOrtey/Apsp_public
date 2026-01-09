@@ -13,6 +13,7 @@ if str(ROOT_DIR) not in sys.path:
 # Подключение всех библиотек и функций
 from import_all_libraries import * 
 from task_runtime.stop_store import raise_if_stop_requested
+from task_runtime.timeout_store import raise_if_timeout
 
 # Заружаем ключ OpenAI и инициализируем клиент
 load_dotenv()
@@ -164,6 +165,7 @@ def _openai_responses_with_heartbeat(
     while not done.wait(timeout=0.25):
         try:
             raise_if_stop_requested(None)
+            raise_if_timeout()
         except Exception:
             # Прерываем ожидание по запросу пользователя.
             raise

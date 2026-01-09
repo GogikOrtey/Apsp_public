@@ -215,7 +215,22 @@ def _run_task(browser, info: TaskInfo):
     """
     Запускает генерацию в контексте выделенного браузера/таба.
     """
-    set_current_task(info.uid, info.task_dir)
+    # Берём стартовый ts из meta (если есть) или из info.started_at (datetime).
+    started_at_ts = None
+    try:
+        meta_path = info.task_dir / "meta.json"
+        if meta_path.is_file():
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            started_at_ts = meta.get("started_at_ts")
+    except Exception:
+        started_at_ts = None
+    if started_at_ts is None:
+        try:
+            started_at_ts = info.started_at.timestamp() if info.started_at else None
+        except Exception:
+            started_at_ts = None
+
+    set_current_task(info.uid, info.task_dir, started_at_ts=started_at_ts)
     info.task_dir.mkdir(parents=True, exist_ok=True)
 
     # Важно для повторных попыток: не затираем логи на следующем запуске по тому же uid.
@@ -261,7 +276,13 @@ def _run_task(browser, info: TaskInfo):
     except Exception:
         pass
     try:
-        main_processer(info.url, uid=info.uid, task_dir=info.task_dir, page=page)
+        main_processer(
+            info.url,
+            uid=info.uid,
+            task_dir=info.task_dir,
+            page=page,
+            started_at_ts=started_at_ts,
+        )
     finally:
         try:
             from playwright_tool.screenshot_pusher import stop_screenshot_pusher  # noqa: WPS433
