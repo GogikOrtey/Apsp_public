@@ -23,6 +23,11 @@
 ## Важное:
 - Количество попыток на перезапуск задачи при падении с ошибкой задаётся в `task_runtime/task_registry.py` (TaskRegistry), по умолчанию = **1** (без автоповторов). Быстро вернуть ретраи можно через env `APSP_TASK_MAX_ATTEMPTS`.
 
+## Утилиты
+
+- `RESULT_TASKS/cleanup_folders_without_meta.py`: ручная чистка папки результатов — находит и удаляет подпапки без `meta.json` (есть режим `--dry-run`).
+- `RESULT_TASKS/cleanup_folders_status_work.py`: ручная чистка папки результатов — находит и удаляет подпапки, где в `meta.json` статус `"WORK"` (есть подтверждение, `--dry-run`, `--yes`).
+
 ## Фронт (Flask + Jinja)
 
 - **Фронт**: `Apsp_front/` (Flask + Jinja2).
