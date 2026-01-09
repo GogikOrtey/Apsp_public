@@ -255,30 +255,54 @@
         line-height: 1;
     }
 
+    /* Когда таймер внутри контейнера, сбрасываем его фиксированное позиционирование */
+    .corner-controls-right .corner-timer {
+        position: static;
+    }
+
     /* Таймер слева снизу (время с момента открытия main_page_2) */
     .corner-timer--left {
         left: 16px;
         right: auto;
     }
 
-    .corner-stop-btn {
+    /* Контейнер для кнопки и таймера справа снизу */
+    .corner-controls-right {
         position: fixed;
-        right: 146px;
+        right: 16px;
         bottom: 16px;
         z-index: 100000;
-        padding: 10px 14px;
-        border: none;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+    .corner-stop-btn {
+        padding: 8px 14px;
+        /* border: 2px solid #e53935; */
+        border: 2px solid #ec5b58;
         border-radius: 10px;
+        background: #fff;
+        /* color: #e53935; */
+        color: #0f0f0f;
+        font-weight: 700;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        line-height: 1;
+        font-size: 14px;
+    }
+
+    .corner-stop-btn:hover {
         background: #e53935;
         color: #fff;
-        font-weight: 700;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
-        cursor: pointer;
     }
 
     .corner-stop-btn:disabled {
-        opacity: 0.7;
+        opacity: 0.6;
         cursor: not-allowed;
+        border-color: #999;
+        color: #999;
     }
 
     /* Адаптив: на узких экранах — одна колонка */
@@ -367,14 +391,15 @@
     </div>
 </div>
 
-<!-- Кнопка остановки -->
-<button type="button" class="corner-stop-btn" id="stop_generation_btn" aria-label="Остановить генерацию">
-    Stop generation
-</button>
+<!-- Кнопки и таймер справа снизу -->
+<div class="corner-controls-right">
+    <button type="button" class="corner-stop-btn" id="stop_generation_btn" aria-label="Остановить генерацию">
+        Stop generation
+    </button>
 
-<!-- Таймер (секунды с 1 десятичным знаком) -->
-<div class="corner-timer" id="corner_timer" title="Количество секунд с последнего ответа ChatGPT">
-    <span id="corner_timer_value">0.0</span>
+    <div class="corner-timer" id="corner_timer" title="Количество секунд с последнего ответа ChatGPT">
+        <span id="corner_timer_value">0.0</span>
+    </div>
 </div>
 
 <!-- Общий таймер (с момента открытия main_page_2 до окончания генерации) -->
