@@ -46,6 +46,35 @@ from playwright_tool.shared_page import set_shared_page, get_shared_page, maybe_
 
 # region Задачи
 
+def _parse_llm_json_with_status_guard(raw: Any, *, step_name: str) -> dict:
+    """
+    Унифицированный парсер JSON-ответов LLM модулей.
+    Если в ответе есть поле status и оно != "ok" — сразу кидаем ошибку с текстом полного JSON.
+    """
+    if isinstance(raw, dict):
+        data = raw
+        raw_text = json.dumps(raw, ensure_ascii=False, indent=2, default=str)
+    else:
+        raw_text = raw if isinstance(raw, str) else str(raw)
+        try:
+            data = json.loads(raw_text)
+        except Exception as e:
+            raise ValueError(
+                f"{step_name}: LLM вернула невалидный JSON.\nRAW:\n{raw_text}"
+            ) from e
+
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"{step_name}: ожидали JSON object (dict), получили {type(data).__name__}.\nRAW:\n{raw_text}"
+        )
+
+    if "status" in data and data.get("status") != "ok":
+        raise ValueError(
+            f"{step_name}: status != 'ok'.\nJSON:\n{json.dumps(data, ensure_ascii=False, indent=2, default=str)}"
+        )
+
+    return data
+
 """ 
 
 Глобальный план:
@@ -313,13 +342,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     """
 
     # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
-    HGF_result = json.loads(HGF_result)
-
-    ############# Что делаеть при ошибке парсинга, когда HGF вернула невалидный ответ?
-
-    # Проверяем статус
-    if HGF_result.get("status") != "ok":
-        raise ValueError(f"Ошибка HGF - извлечение селекторов поля ввода и сбора семантики неудачно с сайта! \nПолный ответ: \n{HGF_result}")
+    HGF_result = _parse_llm_json_with_status_guard(HGF_result, step_name="HGF (Шаг 1)")
 
     # Удаляем первые 3 поля
     keys_to_remove = list(HGF_result.keys())[:3]
@@ -377,11 +400,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     update_content_front_last_phase_result(TNF_result)
 
     # Преобразует строку ответа в json
-    TNF_result = json.loads(TNF_result)
-
-    # Проверяем статус
-    if TNF_result.get("status") != "ok":
-        raise ValueError(f"Ошибка TNF - извлечение селекторов товара и пагинации неудачно с сайта! \nПолный ответ: \n{TNF_result}")
+    TNF_result = _parse_llm_json_with_status_guard(TNF_result, step_name="TNF (Шаг 3)")
 
     # Удаляем первые 3 поля
     keys_to_remove = list(TNF_result.keys())[:3]
@@ -753,6 +772,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     update_content_front_current_step("Шаг 9/10: Валидируем селекторы для полей и собираем код parsePage")
 
     print_ul("Начинаем собирать код для parseCard")
+    ######################################### > Тут 3 скрытых больших вызова
     (parse_card_code_fragment, fields_descr)  = main_gen_parseCard(result_agent_step_6_1_get_links_for_product, url_input)
     update_content_front_last_phase_result(parse_card_code_fragment) 
 
