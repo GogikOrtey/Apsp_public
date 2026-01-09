@@ -101,6 +101,16 @@ def main_funk_start_on_front(link, uid=None, task_dir=None, page=None):
         result_code_gen/result/result_code.ts
         """
         try:
+            # Пишем туда же, куда пишет успешная генерация (в папку задачи, если она есть).
+            from new_program.build_final_code import result_file_JS
+
+            result_file_JS(text, task_dir=task_dir)
+            return
+        except Exception:
+            pass
+
+        # Fallback (legacy): если task_dir не передали или импорт пайплайна упал.
+        try:
             target = Path(__file__).resolve().parent / "result_code_gen" / "result" / "result_code.ts"
             target.parent.mkdir(parents=True, exist_ok=True)
             tmp = target.with_suffix(target.suffix + ".tmp")

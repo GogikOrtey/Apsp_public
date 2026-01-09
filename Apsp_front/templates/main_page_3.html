@@ -292,7 +292,7 @@
                     showActions();
                 });
             } catch (e) {
-                const msg = 'Не удалось загрузить файл result_code_gen/result/result_code.ts';
+                const msg = 'Не удалось загрузить результат (/api/task/<uid>/result_code). Возможно, файл RESULT_TASKS/<uid>/result_code.ts ещё не создан.';
                 if (editor) {
                     editor.getDoc().setValue(msg);
                     setTimeout(adjustEditorHeight, 0);

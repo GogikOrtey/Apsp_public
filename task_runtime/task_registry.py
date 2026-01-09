@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import threading
+import traceback
 from typing import Any
 from uuid import uuid4
 
@@ -33,6 +34,7 @@ class TaskRegistry:
         self._lock = threading.Lock()
         self._uid_re = re.compile(r"^[0-9a-f]{12}$", re.IGNORECASE)
         self._meta_schema_version = 1
+        self._runners: dict[str, Any] = {}
 
     def _now(self) -> datetime:
         return datetime.now()
@@ -151,6 +153,116 @@ class TaskRegistry:
         meta.setdefault("uid", self._normalize_uid(uid))
         self._save_meta(uid, meta)
 
+    def _update_meta_last_error(self, uid: str, error: str | None) -> None:
+        """
+        Best-effort: обновляет last_error без смены runtime_status/status.
+        Нужен для отображения причины падения между ретраями, не переводя задачу в FAILED.
+        """
+        meta = self._load_meta(uid) or {}
+        meta["last_error"] = error
+        meta.setdefault("schema_version", self._meta_schema_version)
+        meta.setdefault("uid", self._normalize_uid(uid))
+        try:
+            self._save_meta(uid, meta)
+        except Exception:
+            pass
+
+    def _write_final_error_result_code(self, info: TaskInfo, error_text: str) -> None:
+        """
+        Пишет текст ошибки в result_code.ts (в папку задачи), чтобы UI и скачивание работали предсказуемо.
+        """
+        try:
+            from new_program.build_final_code import result_file_JS
+
+            result_file_JS(error_text, task_dir=info.task_dir)
+            return
+        except Exception:
+            pass
+
+        try:
+            info.task_dir.mkdir(parents=True, exist_ok=True)
+            (info.task_dir / "result_code.ts").write_text(error_text, encoding="utf-8")
+        except Exception:
+            pass
+
+    def _submit_run(self, uid: str, runner: Any, info: TaskInfo) -> None:
+        fut = self._pool.submit(lambda browser: runner(browser, info))
+
+        def _done_callback(f) -> None:
+            self._on_future_done(uid, runner, f)
+
+        fut.add_done_callback(_done_callback)
+
+    def _on_future_done(self, uid: str, runner: Any, f) -> None:
+        """
+        Обработчик завершения попытки запуска.
+
+        Важно: делаем до 3 попыток (1 запуск + 2 ретрая). Между попытками задача остаётся в статусе running,
+        чтобы UI не переходил на страницу результата раньше времени.
+        """
+        try:
+            _ = f.result()
+            with self._lock:
+                info2 = self._tasks.get(uid)
+                if info2 is None:
+                    return
+                info2.status = "done"
+                info2.finished_at = self._now()
+                info2.error = None
+            try:
+                self._update_meta_on_finish(uid, runtime_status="done", error=None)
+            except Exception:
+                pass
+            # runner больше не нужен
+            with self._lock:
+                self._runners.pop(uid, None)
+            return
+        except Exception as exc:  # noqa: BLE001
+            err_str = str(exc)
+            # Сохраняем причину последней ошибки, не переводя задачу в FAILED раньше времени
+            self._update_meta_last_error(uid, err_str)
+
+            # Пробуем ретрай (до 3 попыток суммарно)
+            try:
+                _, allowed = self._update_meta_on_start(uid)
+            except Exception:
+                allowed = False
+
+            if allowed:
+                # Оставляем задачу running и запускаем ещё раз
+                with self._lock:
+                    info2 = self._tasks.get(uid)
+                    if info2 is None:
+                        return
+                    info2.status = "running"
+                    info2.started_at = self._now()
+                    info2.error = err_str
+                self._submit_run(uid, runner, info2)
+                return
+
+            # Финальный фейл (3-я попытка уже исчерпана)
+            error_text = "🟠 Ошибка генерации: 🟠\n\n" + "".join(
+                traceback.format_exception(type(exc), exc, exc.__traceback__)
+            )
+            with self._lock:
+                info2 = self._tasks.get(uid)
+                if info2 is None:
+                    return
+                info2.status = "error"
+                info2.finished_at = self._now()
+                info2.error = err_str
+
+            # Пишем результат-ошибку в result_code.ts (чтобы main_page_3 и скачивание работали)
+            self._write_final_error_result_code(info2, error_text)
+
+            try:
+                self._update_meta_on_finish(uid, runtime_status="error", error=err_str)
+            except Exception:
+                pass
+
+            with self._lock:
+                self._runners.pop(uid, None)
+
     def _rehydrate_from_disk(self, uid: str) -> TaskInfo | None:
         """
         Best-effort восстановление TaskInfo по папке результатов.
@@ -263,6 +375,8 @@ class TaskRegistry:
                 return
             if info.status in {"done"}:
                 return
+            # Если задача была в error — разрешаем повторный старт по тому же uid (через новую попытку).
+            # Ограничение количества попыток контролируется _update_meta_on_start().
 
             # Обновляем meta.json и считаем попытки запуска (1..3).
             try:
@@ -275,37 +389,9 @@ class TaskRegistry:
             info.status = "running"
             info.started_at = self._now()
             info.error = None
+            self._runners[uid] = runner
 
-        fut = self._pool.submit(lambda browser: runner(browser, info))
-
-        def _done_callback(f) -> None:
-            try:
-                _ = f.result()
-                with self._lock:
-                    info2 = self._tasks.get(uid)
-                    if info2 is None:
-                        return
-                    info2.status = "done"
-                    info2.finished_at = self._now()
-                    info2.error = None
-                try:
-                    self._update_meta_on_finish(uid, runtime_status="done", error=None)
-                except Exception:
-                    pass
-            except Exception as exc:  # noqa: BLE001
-                with self._lock:
-                    info2 = self._tasks.get(uid)
-                    if info2 is None:
-                        return
-                    info2.status = "error"
-                    info2.finished_at = self._now()
-                    info2.error = str(exc)
-                try:
-                    self._update_meta_on_finish(uid, runtime_status="error", error=str(exc))
-                except Exception:
-                    pass
-
-        fut.add_done_callback(_done_callback)
+        self._submit_run(uid, runner, info)
 
     def shutdown(self) -> None:
         self._pool.close()
