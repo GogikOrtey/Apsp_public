@@ -10,9 +10,7 @@
 """
 
 import os
-
 from Apsp_front.app import run_dev_server
-
 
 def _env_bool(name: str, default: bool) -> bool:
     v = os.environ.get(name)
@@ -20,7 +18,6 @@ def _env_bool(name: str, default: bool) -> bool:
         return default
     v = v.strip().lower()
     return v in ("1", "true", "yes", "y", "on")
-
 
 if __name__ == "__main__":
     host = os.environ.get("APSP_HOST", "127.0.0.1")

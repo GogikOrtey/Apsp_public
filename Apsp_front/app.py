@@ -22,6 +22,7 @@ from datetime import datetime
 import time
 import shutil
 import stat
+from urllib.parse import urlparse
 
 # Корень репозитория (нужно для импорта модулей из верхнего уровня проекта).
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -376,6 +377,45 @@ def _render_invalid_uid_page(uid_state: str):
     return render_template('invalid_uid.html', uid_phrase=uid_phrase)
 
 
+def _extract_site_domain(raw_url: str) -> str:
+    """
+    Превращает URL/хост в домен для отображения в UI.
+    Примеры:
+      - https://domo-terra.ru/ -> domo-terra.ru
+      - domo-terra.ru/catalog -> domo-terra.ru
+    """
+    if not raw_url:
+        return ""
+    u = str(raw_url).strip()
+    if not u:
+        return ""
+
+    # urlparse плохо работает без схемы — добавим.
+    if "://" not in u:
+        u = "http://" + u
+
+    try:
+        p = urlparse(u)
+    except Exception:
+        return ""
+
+    host = (p.netloc or "").strip()
+    if not host:
+        # Иногда urlparse складывает всё в path (особенно для странных строк)
+        host = (p.path or "").split("/")[0].strip()
+
+    # user:pass@host:port -> host
+    if "@" in host:
+        host = host.split("@", 1)[1]
+    if ":" in host:
+        host = host.split(":", 1)[0]
+
+    if host.startswith("www."):
+        host = host[4:]
+
+    return host
+
+
 @app.route('/main_page_2', methods=['GET'])
 @app.route('/main_page_2/', methods=['GET'])
 def main_page_2_no_uid():
@@ -385,9 +425,24 @@ def main_page_2_no_uid():
 @app.route('/main_page_2/<uid>/', methods=['GET'])
 def main_page_2_uid(uid):
     """Дашборд конкретной задачи."""
-    if _get_task_info(uid) is None:
+    info = _get_task_info(uid)
+    if info is None:
         return _render_invalid_uid_page("invalid")
-    return render_template('main_page_2.html', uid=uid)
+
+    # Заголовок страницы: берём URL из meta.json текущей задачи (best-effort).
+    meta_url = ""
+    try:
+        meta_path = info.task_dir / "meta.json"
+        if meta_path.is_file():
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            meta_url = (meta or {}).get("url") or ""
+    except Exception:
+        meta_url = ""
+
+    site_domain = _extract_site_domain(meta_url)
+    page_heading = f"Генерируем парсер для сайта {site_domain}" if site_domain else "Генерируем парсер"
+
+    return render_template('main_page_2.html', uid=uid, page_heading=page_heading, site_domain=site_domain)
 
 @app.route('/main_page_3', methods=['GET'])
 @app.route('/main_page_3/', methods=['GET'])

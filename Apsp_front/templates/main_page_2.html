@@ -35,8 +35,12 @@
     }
 
     .page-title {
-        margin: 0 0 14px 0;
+        margin: -14px 0 10px 0;
         flex: 0 0 auto;
+        text-align: center;
+        font-size: 20px;
+        font-weight: 700;
+        color: #222;
     }
 
     .col {
@@ -48,11 +52,13 @@
 
     .col--left {
         /* grid-template-rows: 3fr 1fr 2fr 3fr; */
-        grid-template-rows: 210px 120px 160px 234px;
+        /* grid-template-rows: 210px 120px 160px 234px; */
+        grid-template-rows: 210px 120px 160px 220px;
     }
 
     .col--right {
-        grid-template-rows: 390px 80px 275px ;
+        /* grid-template-rows: 390px 80px 275px ; */
+        grid-template-rows: 376px 80px 275px ;
     }
 
     /* Карточки */
@@ -233,7 +239,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- <h1 class="page-title">main_page_2</h1> -->
+<h1 class="page-title">{{ page_heading or "Генерируем парсер" }}</h1>
 
 <div class="main-grid">
     <!-- Левая колонка -->
