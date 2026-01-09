@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import re
 import threading
 from typing import Any
 from uuid import uuid4
@@ -29,6 +30,51 @@ class TaskRegistry:
         self._pool = PlaywrightPool(max_workers=max_workers, headless=headless)
         self._tasks: dict[str, TaskInfo] = {}
         self._lock = threading.Lock()
+        self._uid_re = re.compile(r"^[0-9a-f]{12}$", re.IGNORECASE)
+
+    def _normalize_uid(self, uid: str) -> str:
+        return (uid or "").strip().lower()
+
+    def _is_valid_uid(self, uid: str) -> bool:
+        uid_norm = self._normalize_uid(uid)
+        return bool(self._uid_re.match(uid_norm))
+
+    def _task_dir_for_uid(self, uid: str) -> Path:
+        return self._result_tasks_dir / self._normalize_uid(uid)
+
+    def _rehydrate_from_disk(self, uid: str) -> TaskInfo | None:
+        """
+        Best-effort восстановление TaskInfo по папке результатов.
+
+        Нужен для сценария: сервер перезапустили, а RESULTS_TASKS/<uid> уже есть.
+        """
+        if not self._is_valid_uid(uid):
+            return None
+        task_dir = self._task_dir_for_uid(uid)
+        if not task_dir.is_dir():
+            return None
+
+        # Мы не знаем точный статус (done/error) без отдельного мета-файла,
+        # поэтому считаем, что задача завершена и даём UI доступ к артефактам.
+        try:
+            mtime = datetime.fromtimestamp(task_dir.stat().st_mtime)
+        except Exception:
+            mtime = None
+
+        info = TaskInfo(
+            uid=self._normalize_uid(uid),
+            url="",
+            task_dir=task_dir,
+            status="done",
+            created_at=None,
+            started_at=None,
+            finished_at=mtime,
+            error=None,
+        )
+        with self._lock:
+            # Не перетираем существующий runtime-task, если он уже есть.
+            self._tasks.setdefault(info.uid, info)
+            return self._tasks.get(info.uid)
 
     @property
     def result_tasks_dir(self) -> Path:
@@ -55,17 +101,28 @@ class TaskRegistry:
         self._pool.start()
 
     def get(self, uid: str) -> TaskInfo | None:
+        uid_norm = self._normalize_uid(uid)
         with self._lock:
-            return self._tasks.get(uid)
+            info = self._tasks.get(uid_norm)
+        if info is not None:
+            return info
+        return self._rehydrate_from_disk(uid_norm)
 
     def exists(self, uid: str) -> bool:
+        uid_norm = self._normalize_uid(uid)
         with self._lock:
-            return uid in self._tasks
+            if uid_norm in self._tasks:
+                return True
+        # fallback: после рестарта реестр в памяти пуст, но папка результатов может существовать
+        if not self._is_valid_uid(uid_norm):
+            return False
+        return self._task_dir_for_uid(uid_norm).is_dir()
 
     def start(self, uid: str, runner: Any) -> None:
         """
         runner: Callable[[Browser, TaskInfo], Any]
         """
+        uid = self._normalize_uid(uid)
         with self._lock:
             info = self._tasks.get(uid)
             if info is None:

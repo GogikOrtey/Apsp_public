@@ -245,7 +245,7 @@ def main_page_1():
 @app.route('/main_page_2/<uid>/', methods=['GET'])
 def main_page_2_uid(uid):
     """Дашборд конкретной задачи."""
-    if not TASKS.exists(uid):
+    if _get_task_info(uid) is None:
         return redirect(url_for('main_page_1'))
     return render_template('main_page_2.html', uid=uid)
 
@@ -255,7 +255,7 @@ def main_page_3_uid(uid):
     """
     Страница результатов конкретной задачи.
     """
-    if not TASKS.exists(uid):
+    if _get_task_info(uid) is None:
         return redirect(url_for('main_page_1'))
     info = TASKS.get(uid)
     if info and info.status in {"running", "created"}:
@@ -289,6 +289,8 @@ def favicon():
 
 
 def _get_task_info(uid: str) -> TaskInfo | None:
+    # `TaskRegistry.get()` умеет best-effort восстанавливать задачу по папке RESULT_TASKS/<uid>,
+    # поэтому после рестарта Flask можно открывать старые UID и читать их артефакты.
     return TASKS.get(uid)
 
 
