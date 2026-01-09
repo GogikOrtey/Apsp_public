@@ -38,7 +38,7 @@
 - **Основные страницы** (см. `Apsp_front/app.py` и `Apsp_front/templates/`):
   - `main_page_1`: ввод URL сайта
   - `main_page_2/<uid>`: наблюдение за генерацией (в UX — 10 шагов; процесс длительный, ~15 минут)
-  - `main_page_3/<uid>`: выдача результата
+  - `main_page_3/<uid>`: выдача результата (код + статистика выполнения)
   - для `main_page_2`/`main_page_3`: отдельная страница, если UID не указан или указан неверно (см. `Apsp_front/templates/invalid_uid.html`)
   - `404`: стандартная страница "не найдено" для любых неправильных URL (кнопка возврата на `/`)
   - служебный: `check_task_status/<uid>`: отдаёт `RESULT_TASKS/<uid>/meta.json`
@@ -121,7 +121,7 @@
 - **`GET /main_page_2`** и **`GET /main_page_2/`**: если UID не указан — рендерит `templates/invalid_uid.html` (uid “не указан”).
 - **`GET /main_page_2/<uid>/`**: “дашборд” задачи; если UID неизвестен — `invalid_uid.html`, иначе `templates/main_page_2.html`.
 - **`GET /main_page_3`** и **`GET /main_page_3/`**: если UID не указан — `invalid_uid.html` (uid “не указан”).
-- **`GET /main_page_3/<uid>/`**: страница результата; если задача ещё в работе — редирект на `GET /main_page_2/<uid>/`, если UID неизвестен — `invalid_uid.html`, иначе `templates/main_page_3.html`.
+- **`GET /main_page_3/<uid>/`**: страница результата (статистика из `meta.json` + код); если задача ещё в работе — редирект на `GET /main_page_2/<uid>/`, если UID неизвестен — `invalid_uid.html`, иначе `templates/main_page_3.html`.
 - **`GET|POST /example2`**: тестовая/примерная форма без запуска пайплайна; рендерит `templates/example2.html`.
 
 ### Системные / служебные / API

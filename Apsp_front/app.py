@@ -482,7 +482,16 @@ def main_page_3_uid(uid):
     info = TASKS.get(uid)
     if info and info.status in {"running", "created"}:
         return redirect(url_for('main_page_2_uid', uid=uid))
-    return render_template('main_page_3.html', uid=uid)
+
+    meta = {}
+    try:
+        meta_path = info.task_dir / "meta.json"
+        if meta_path.is_file():
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+
+    return render_template('main_page_3.html', uid=uid, meta=meta)
 
 
 # --- Service / debug endpoints ---
