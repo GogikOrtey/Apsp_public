@@ -1030,6 +1030,7 @@ def orchestrate(
             ctx_set = False
 
     start = time.time()
+    last_model_summary: str | None = None
 
     try:
         # Гарантируем, что chat_print будет писать в per-task файл (если task_context установлен).
@@ -1119,6 +1120,7 @@ def orchestrate(
                 f"{'   🔶 args: ' + args_text if args_text != '—' else ''}"
                 f"\n"
             )
+            last_model_summary = model_summary
 
             update_content_front_reasoning(step_reply.get("reasoning") or "—")
             update_content_front_goal(step_reply.get("target") or "—")
@@ -1226,6 +1228,9 @@ def orchestrate(
                     reason = "Причина не указана (ожидалось args.reason: string)"
 
                 result_text = safe_json_dumps(get_result(), indent=4)
+                result_preview = result_text
+                if isinstance(result_preview, str) and len(result_preview) > 4000:
+                    result_preview = result_preview[:4000] + "\n…(truncated)…"
                 failed_payload = {
                     "status": "failed",
                     "reason": reason,
@@ -1233,10 +1238,16 @@ def orchestrate(
                     "message": f"FAILED: {reason}",
                 }
                 add_history_entry({"role": "tool", "name": "FAILED", "result": failed_payload})
-                final_text = safe_json_dumps(failed_payload, indent=4)
-                print(f"❌ Агент завершил задачу с ошибкой/недостижимостью: {reason}\nТекущий result:\n{result_text}")
+                error_text = (
+                    f"❌ Agent FAILED: {reason}"
+                    f"{f' (uid={uid})' if uid else ''}\n"
+                    f"\n--- LAST MODEL SUMMARY ---\n{last_model_summary or '—'}"
+                    f"\n--- RESULT (preview) ---\n{result_preview}"
+                )
+                print(error_text)
+                chat_print(error_text)
                 emit_execution_time(start, emit=print, print_time_smile=True)
-                return final_text
+                raise RuntimeError(error_text)
 
             # 6.3 Вызов инструмента
             tool_result = run_tool(tool_name, tool_args)

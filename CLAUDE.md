@@ -82,6 +82,7 @@
   - `reasoning_agent/agent_tools.py`: `RESULT/RESULT_SCHEMA` — `threading.local()`
   - `reasoning_agent/runtime_state.py`: `main_plan/long_term_memory` для tools — `threading.local()`
   - `orchestrate(..., uid, task_dir)` умеет (опционально) выставлять `task_runtime.task_context`, чтобы логи/UI-state писались в `RESULT_TASKS/<uid>/...`
+  - Если модель завершает шаг действием `FAILED`, `orchestrate()` **рейзит исключение** (а не возвращает JSON), чтобы пайплайн воспринимал это как обычную ошибку. В тексте ошибки есть последний `model_summary`.
 
 ## Интеграция с Playwright (`playwright_tool/`)
 
