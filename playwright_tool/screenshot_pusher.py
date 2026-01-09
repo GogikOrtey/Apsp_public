@@ -22,8 +22,13 @@ from typing import Optional
 
 
 _state_lock = threading.Lock()
-_stop_event: Optional[threading.Event] = None
-_thread: Optional[threading.Thread] = None
+# key -> {"stop_event": threading.Event, "thread": threading.Thread}
+_pushers: dict[str, dict[str, object]] = {}
+
+
+def _pusher_key(uid: str | None) -> str:
+    u = (uid or "").strip()
+    return f"uid:{u}" if u else "__global__"
 
 
 def _grab_desktop_png_bytes(*, max_width: int = 1280) -> bytes | None:
@@ -57,7 +62,7 @@ def _grab_desktop_png_bytes(*, max_width: int = 1280) -> bytes | None:
         return None
 
 
-def _push_loop(*, stop_event: threading.Event, interval_s: float) -> None:
+def _push_loop(*, stop_event: threading.Event, interval_s: float, uid: str | None) -> None:
     # Lazy import: keeps import graph light and avoids hard failures if front_client isn't used.
     try:
         from front_client import DEFAULT_FRONT_BASE_URL, push_browser_screenshot_png
@@ -74,7 +79,7 @@ def _push_loop(*, stop_event: threading.Event, interval_s: float) -> None:
             png = _grab_desktop_png_bytes(max_width=1280)
             if png:
                 try:
-                    push_browser_screenshot_png(png, base_url=base_url, timeout_s=0.5)
+                    push_browser_screenshot_png(png, base_url=base_url, timeout_s=0.5, uid=uid)
                 except Exception:
                     pass
             last_push_ts = now
@@ -83,37 +88,44 @@ def _push_loop(*, stop_event: threading.Event, interval_s: float) -> None:
         stop_event.wait(timeout=0.2)
 
 
-def start_screenshot_pusher(*, interval_s: float = 5.0) -> None:
+def start_screenshot_pusher(*, interval_s: float = 5.0, uid: str | None = None) -> None:
     """
     Starts a daemon background thread that pushes screenshots every interval_s seconds.
     Safe to call multiple times (will only start once).
     """
-    global _stop_event, _thread
+    key = _pusher_key(uid)
     with _state_lock:
-        if _thread is not None and _thread.is_alive():
+        existing = _pushers.get(key) or {}
+        th = existing.get("thread")
+        if isinstance(th, threading.Thread) and th.is_alive():
             return
-        _stop_event = threading.Event()
-        _thread = threading.Thread(
+
+        stop_event = threading.Event()
+        thread = threading.Thread(
             target=_push_loop,
-            kwargs={"stop_event": _stop_event, "interval_s": float(interval_s)},
+            kwargs={"stop_event": stop_event, "interval_s": float(interval_s), "uid": uid},
             daemon=True,
-            name="apsp_screenshot_pusher",
+            name=("apsp_screenshot_pusher" if not uid else f"apsp_screenshot_pusher_{uid}"),
         )
-        _thread.start()
+        _pushers[key] = {"stop_event": stop_event, "thread": thread}
+        thread.start()
 
 
-def stop_screenshot_pusher() -> None:
+def stop_screenshot_pusher(*, uid: str | None = None) -> None:
     """
     Stops the background screenshot pusher thread (best-effort).
     """
-    global _stop_event, _thread
+    key = _pusher_key(uid)
+    stop_event: threading.Event | None = None
     with _state_lock:
-        if _stop_event is not None:
-            try:
-                _stop_event.set()
-            except Exception:
-                pass
-        _stop_event = None
-        _thread = None
+        st = _pushers.pop(key, None) or {}
+        ev = st.get("stop_event")
+        if isinstance(ev, threading.Event):
+            stop_event = ev
+    if stop_event is not None:
+        try:
+            stop_event.set()
+        except Exception:
+            pass
 
 

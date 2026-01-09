@@ -305,16 +305,6 @@
 </div>
 {% endblock %}
 
-<!-- <div class="panel panel--medium">
-    <div class="panel-title">Окно браузера</div>
-    <div class="panel-body panel-body--image" id="browser_window"> -->
-        <!-- <img id="browser_screenshot" class="browser-screenshot" alt="Playwright screenshot" /> -->
-        <!-- <div class="image-placeholder" id="browser_screenshot_placeholder">Скриншот появится после запуска Playwright</div> -->
-        <!-- <div class="image-placeholder" id="browser_screenshot_placeholder"> - </div>
-    </div>
-</div> -->
-
-
 {% block extra_js %}
 <script>
     const TASK_UID = (location.pathname.split('/').filter(Boolean).pop()) || '';
@@ -454,6 +444,13 @@
         const panelUseful = document.getElementById('useful_log_text');
         if (!btnGlobal || !btnUseful || !panelGlobal || !panelUseful) return;
 
+        function scrollTextareaToBottom(textareaEl) {
+            if (!textareaEl) return;
+            try {
+                textareaEl.scrollTop = textareaEl.scrollHeight;
+            } catch (e) {}
+        }
+
         function setActive(tabKey) {
             const isGlobal = tabKey === 'global';
 
@@ -465,6 +462,13 @@
 
             panelGlobal.hidden = !isGlobal;
             panelUseful.hidden = isGlobal;
+
+            if (isGlobal) {
+                // Важно: дёргаем прокрутку после показа textarea (и ещё раз "после кадра")
+                scrollTextareaToBottom(panelGlobal);
+                try { window.requestAnimationFrame(() => scrollTextareaToBottom(panelGlobal)); } catch (e) {}
+                try { setTimeout(() => scrollTextareaToBottom(panelGlobal), 0); } catch (e) {}
+            }
         }
 
         btnGlobal.addEventListener('click', () => setActive('global'));

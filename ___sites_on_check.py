@@ -1,7 +1,7 @@
 """
-https://makitaclub.ru
-https://domo-terra.ru/
-https://domplitok.ru
+https://makitaclub.ru - Ок
+https://domo-terra.ru/ - Ок
+https://domplitok.ru - сайт жутко лагает, но работает. Потом проверить на автомате
 https://makitatrading.ru
 https://galleryceramics.ru
 https://kotel-nasos.ru

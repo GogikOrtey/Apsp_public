@@ -170,9 +170,21 @@ def _run_task(browser, info: TaskInfo):
     context = browser.new_context()
     page = context.new_page()
     set_shared_page(page)
+    # Фоновый пуш скриншотов (OS screenshot) в UID-эндпоинт раз в 5 секунд,
+    # чтобы превью на main_page_2 обновлялось даже без действий Playwright.
+    try:
+        from playwright_tool.screenshot_pusher import start_screenshot_pusher  # noqa: WPS433
+        start_screenshot_pusher(interval_s=5.0, uid=info.uid)
+    except Exception:
+        pass
     try:
         main_processer(info.url, uid=info.uid, task_dir=info.task_dir, page=page)
     finally:
+        try:
+            from playwright_tool.screenshot_pusher import stop_screenshot_pusher  # noqa: WPS433
+            stop_screenshot_pusher(uid=info.uid)
+        except Exception:
+            pass
         clear_shared_page()
         try:
             context.close()

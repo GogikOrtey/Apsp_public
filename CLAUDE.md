@@ -89,6 +89,10 @@
 
 - Инструменты взаимодействия агента с браузером: `playwright_tool/`.
 - Ключевой файл: `playwright_tool/playwright_toolkit.py` — набор tools для “живого” управления страницей (переходы, клики, ожидания, поиск, чтение HTML и т.д.).
+- Для обновления превью-скриншота на `main_page_2` без действий Playwright используется фоновый pusher:
+  - `playwright_tool/screenshot_pusher.py`: делает OS-level screenshot (Pillow `ImageGrab`) и пушит PNG в Flask
+  - в режиме UID — в `/api/task/<uid>/browser_screenshot_push` (см. `_run_task()` в `Apsp_front/app.py`)
+- Вызовы OpenAI в `ChatGPT/OpenAI_ChatGPT.py` обёрнуты heartbeat-циклом: пока ждём ответ, раз в ~5 секунд пушится Playwright-скриншот через `maybe_push_screenshot_to_front`, чтобы превью обновлялось даже во время долгих LLM-запросов.
 
 ## TODO для будущих дополнений (когда будет время)
 

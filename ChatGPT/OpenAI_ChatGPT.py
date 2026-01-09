@@ -126,6 +126,57 @@ def _openai_responses_create_with_retry(params: dict, *, max_attempts: int | Non
     raise RuntimeError("OpenAI request failed for unknown reason")
 
 
+def _openai_responses_with_heartbeat(
+    params: dict,
+    *,
+    max_attempts: int | None = None,
+    heartbeat_interval_s: float = 5.0,
+) -> "OpenAI.Response":
+    """
+    Запускает OpenAI-запрос в отдельном потоке и, пока ждём ответ,
+    раз в heartbeat_interval_s пытается пушить скриншот Playwright в UI.
+
+    Важно: пуш скриншота делается в текущем (owner) thread, чтобы не ловить greenlet.error.
+    Если Playwright недоступен — просто игнорируем ошибку.
+    """
+    import threading
+    import time as _time
+
+    result_holder: dict[str, object] = {}
+    error_holder: dict[str, BaseException] = {}
+    done = threading.Event()
+
+    def _worker():
+        try:
+            result_holder["resp"] = _openai_responses_create_with_retry(params, max_attempts=max_attempts)
+        except BaseException as exc:  # noqa: BLE001
+            error_holder["err"] = exc
+        finally:
+            done.set()
+
+    t = threading.Thread(target=_worker, daemon=True, name="apsp_openai_request")
+    t.start()
+
+    last_push = _time.monotonic()
+    interval = max(0.5, float(heartbeat_interval_s))
+
+    while not done.wait(timeout=0.25):
+        now = _time.monotonic()
+        if now - last_push >= interval:
+            last_push = now
+            try:
+                from playwright_tool.shared_page import maybe_push_screenshot_to_front  # noqa: WPS433
+
+                maybe_push_screenshot_to_front(min_interval_ms=0, timeout_ms=2000)
+            except Exception:
+                # Не ломаем ожидание OpenAI, если Playwright недоступен.
+                pass
+
+    if "err" in error_holder:
+        raise error_holder["err"]
+    return result_holder.get("resp")
+
+
 
 CHATGPT_HISTORY_PATH = ROOT_DIR / "ChatGPT_history.log"
 CHATGPT_HISTORY_GLOBAL_PATH = ROOT_DIR / "ChatGPT_history_global.log"
@@ -460,7 +511,7 @@ def sendMessageToChatGPT_simple(prompt: str, is_print = True, model = "gpt-5.2")
         print(f"\n💫Запрос к ChatGPT, модель {model}\nPROMPT:\n{prompt}\n")
 
     start = time.time()
-    response = _openai_responses_create_with_retry(
+    response = _openai_responses_with_heartbeat(
         {
             "model": model,
             "input": prompt,
@@ -509,7 +560,7 @@ def send_message_to_ChatGPT(
         if temperature is not None:
             params["temperature"] = temperature
 
-        response = _openai_responses_create_with_retry(params)
+        response = _openai_responses_with_heartbeat(params)
         answer_text = response.output_text
 
         # Подсчёт токенов для входа/выхода
@@ -557,7 +608,7 @@ def send_message_to_ChatGPT(
     if temperature is not None:
         params["temperature"] = temperature
 
-    response = _openai_responses_create_with_retry(params)
+    response = _openai_responses_with_heartbeat(params)
     answer_text = response.output_text
 
     # Подсчёт токенов для входа/выхода
