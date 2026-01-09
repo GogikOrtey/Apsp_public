@@ -148,7 +148,7 @@ https://apelsin.ru
 
 
 
-
+# region — MAIN_PROCESSER
 def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     ctx_set = False
     if uid and task_dir:
@@ -183,7 +183,8 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
         pass
 
 
-
+    # time.sleep(5)
+    # raise ValueError("Тестовая ошибка")
 
 
 

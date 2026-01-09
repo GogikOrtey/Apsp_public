@@ -610,7 +610,7 @@
             const resp = await fetch(`/api/task/${TASK_UID}/status`, { cache: 'no-store' });
             if (!resp.ok) return;
             const status = await resp.json();
-            if (status && status.status === 'done') {
+            if (status && (status.status === 'done' || status.status === 'error')) {
                 redirectTriggered = true;
                 window.location.href = `/main_page_3/${TASK_UID}/`;
             }

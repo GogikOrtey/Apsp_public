@@ -185,6 +185,17 @@ class TaskRegistry:
         except Exception:
             pass
 
+    def _append_task_output_log(self, info: TaskInfo, text: str) -> None:
+        try:
+            info.task_dir.mkdir(parents=True, exist_ok=True)
+            with open(info.task_dir / "output.log", "a", encoding="utf-8") as f:
+                f.write(text)
+                if not text.endswith("\n"):
+                    f.write("\n")
+                f.flush()
+        except Exception:
+            pass
+
     def _submit_run(self, uid: str, runner: Any, info: TaskInfo) -> None:
         fut = self._pool.submit(lambda browser: runner(browser, info))
 
@@ -222,6 +233,19 @@ class TaskRegistry:
             # Сохраняем причину последней ошибки, не переводя задачу в FAILED раньше времени
             self._update_meta_last_error(uid, err_str)
 
+            # Запишем в per-task output.log маркер падения (чтобы в UI было видно, что была попытка/ошибка).
+            try:
+                info_tmp = self.get(uid)
+                if info_tmp is not None:
+                    meta_tmp = self._load_meta(uid) or {}
+                    attempt_no = meta_tmp.get("attempts")
+                    self._append_task_output_log(
+                        info_tmp,
+                        f"[{self._dt_human(self._now())}] attempt {attempt_no}/3 failed: {err_str}",
+                    )
+            except Exception:
+                pass
+
             # Пробуем ретрай (до 3 попыток суммарно)
             try:
                 _, allowed = self._update_meta_on_start(uid)
@@ -237,6 +261,10 @@ class TaskRegistry:
                     info2.status = "running"
                     info2.started_at = self._now()
                     info2.error = err_str
+                try:
+                    self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] retrying...")
+                except Exception:
+                    pass
                 self._submit_run(uid, runner, info2)
                 return
 
@@ -254,6 +282,10 @@ class TaskRegistry:
 
             # Пишем результат-ошибку в result_code.ts (чтобы main_page_3 и скачивание работали)
             self._write_final_error_result_code(info2, error_text)
+            try:
+                self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] final failure (attempts exhausted)")
+            except Exception:
+                pass
 
             try:
                 self._update_meta_on_finish(uid, runtime_status="error", error=err_str)

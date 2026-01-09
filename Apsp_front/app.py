@@ -134,18 +134,36 @@ def _run_task(browser, info: TaskInfo):
     """
     set_current_task(info.uid, info.task_dir)
     info.task_dir.mkdir(parents=True, exist_ok=True)
-    out_file = open(info.task_dir / "output.log", "w", encoding="utf-8")
+
+    # Важно для ретраев: не затираем логи на 2/3 попытке.
+    attempt_n = 1
+    try:
+        meta_path = info.task_dir / "meta.json"
+        if meta_path.is_file():
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            attempt_n = int((meta or {}).get("attempts") or 1)
+    except Exception:
+        attempt_n = 1
+
+    out_mode = "w" if attempt_n <= 1 else "a"
+    out_file = open(info.task_dir / "output.log", out_mode, encoding="utf-8")
+    if attempt_n > 1:
+        try:
+            out_file.write(f"\n\n--- RETRY attempt {attempt_n}/3 ---\n")
+            out_file.flush()
+        except Exception:
+            pass
     register_thread_io(out_file, out_file)
 
     # Create/truncate per-task logs at start (best-effort).
     try:
         from useful_log import init_useful_log
-        init_useful_log(truncate=True)
+        init_useful_log(truncate=(attempt_n <= 1))
     except Exception:
         pass
     try:
         from reasoning_agent.chat_terminal import init_chat_channel
-        init_chat_channel(truncate=True)
+        init_chat_channel(truncate=(attempt_n <= 1))
     except Exception:
         pass
 
