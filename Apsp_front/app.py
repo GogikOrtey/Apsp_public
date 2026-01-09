@@ -42,6 +42,25 @@ import atexit
 app = Flask(__name__) 
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    """
+    Стандартная страница 404 для любых неправильных URL.
+    Для /api/* оставляем машинный JSON-ответ.
+    """
+    try:
+        if request.path.startswith("/api/"):
+            return FlaskResponse(
+                '{"ok":false,"error":"not_found"}',
+                mimetype='application/json; charset=utf-8',
+                status=404
+            )
+    except Exception:
+        # best-effort: если request недоступен по какой-то причине — покажем HTML
+        pass
+    return render_template("page_404.html"), 404
+
+
 def run_dev_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = True) -> None:
     """
     Запуск dev-сервера Flask.
@@ -261,6 +280,33 @@ def main_page_3_uid(uid):
     if info and info.status in {"running", "created"}:
         return redirect(url_for('main_page_2_uid', uid=uid))
     return render_template('main_page_3.html', uid=uid)
+
+
+# --- Service / debug endpoints ---
+@app.route('/check_task_status/<uid>/', methods=['GET'])
+def check_task_status(uid):
+    """
+    Служебный эндпоинт: отдаёт meta.json по UID.
+
+    Использовать для быстрой проверки статуса задачи после рестарта сервера.
+    """
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"task_not_found"}', mimetype='application/json; charset=utf-8', status=404)
+
+    meta_path = info.task_dir / "meta.json"
+    if not meta_path.is_file():
+        return FlaskResponse('{"ok":false,"error":"meta_not_found"}', mimetype='application/json; charset=utf-8', status=404)
+
+    try:
+        payload = meta_path.read_text(encoding="utf-8")
+    except Exception:
+        return FlaskResponse('{"ok":false,"error":"meta_read_failed"}', mimetype='application/json; charset=utf-8', status=500)
+
+    resp = FlaskResponse(payload, mimetype='application/json; charset=utf-8')
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 @app.route('/example2', methods=['GET', 'POST'])
 def example2():
@@ -533,6 +579,10 @@ def download_all_files_zip_uid(uid):
         ('useful_log.log', info.task_dir / "useful_log.log"),
         ('chat_output.log', info.task_dir / "chat_output.log"),
     ]
+    # meta.json добавляем best-effort: старые задачи могли быть сгенерированы без него.
+    optional = [
+        ('meta.json', info.task_dir / "meta.json"),
+    ]
     missing = [name for name, p in required if not p.is_file()]
     if missing:
         return FlaskResponse('Не найдены файлы: ' + ', '.join(missing), mimetype='text/plain; charset=utf-8', status=404)
@@ -541,6 +591,12 @@ def download_all_files_zip_uid(uid):
     with zipfile.ZipFile(buf, mode='w', compression=zipfile.ZIP_STORED) as zf:
         for arcname, full_path in required:
             zf.write(str(full_path), arcname=arcname)
+        for arcname, full_path in optional:
+            try:
+                if full_path.is_file():
+                    zf.write(str(full_path), arcname=arcname)
+            except Exception:
+                pass
     buf.seek(0)
     ts = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     return send_file(

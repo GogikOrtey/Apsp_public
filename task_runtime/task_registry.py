@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+import json
 from pathlib import Path
 import re
 import threading
@@ -31,6 +32,17 @@ class TaskRegistry:
         self._tasks: dict[str, TaskInfo] = {}
         self._lock = threading.Lock()
         self._uid_re = re.compile(r"^[0-9a-f]{12}$", re.IGNORECASE)
+        self._meta_schema_version = 1
+
+    def _now(self) -> datetime:
+        return datetime.now()
+
+    def _dt_human(self, dt: datetime) -> str:
+        # Человекочитаемо и стабильно (без таймзон — проект сейчас работает локально).
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    def _dt_ts(self, dt: datetime) -> float:
+        return float(dt.timestamp())
 
     def _normalize_uid(self, uid: str) -> str:
         return (uid or "").strip().lower()
@@ -41,6 +53,103 @@ class TaskRegistry:
 
     def _task_dir_for_uid(self, uid: str) -> Path:
         return self._result_tasks_dir / self._normalize_uid(uid)
+
+    def _meta_path_for_uid(self, uid: str) -> Path:
+        return self._task_dir_for_uid(uid) / "meta.json"
+
+    def _runtime_to_meta_status(self, runtime_status: str) -> str:
+        # meta.json должен содержать только WORK/COMPLETED/FAILED
+        if runtime_status in {"done"}:
+            return "COMPLETED"
+        if runtime_status in {"error"}:
+            return "FAILED"
+        return "WORK"
+
+    def _load_meta(self, uid: str) -> dict[str, Any] | None:
+        path = self._meta_path_for_uid(uid)
+        try:
+            if not path.is_file():
+                return None
+            data = json.loads(path.read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else None
+        except Exception:
+            return None
+
+    def _save_meta(self, uid: str, meta: dict[str, Any]) -> None:
+        path = self._meta_path_for_uid(uid)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        # Best-effort атомарность
+        tmp = path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(meta, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+        tmp.replace(path)
+
+    def _init_meta(self, *, uid: str, url: str) -> None:
+        now = self._now()
+        meta = {
+            "schema_version": self._meta_schema_version,
+            "uid": self._normalize_uid(uid),
+            "url": str(url or ""),
+            # Время создания/регистрации задачи (доп. поле)
+            "created_at_human": self._dt_human(now),
+            "created_at_ts": self._dt_ts(now),
+            # Требуемые поля
+            "started_at_human": "",
+            "started_at_ts": None,
+            "finished_at_human": "",
+            "finished_at_ts": None,
+            "status": "WORK",
+            "attempts": 0,
+            # Доп. полезные поля
+            "runtime_status": "created",
+            "last_error": None,
+        }
+        self._save_meta(uid, meta)
+
+    def _update_meta_on_start(self, uid: str) -> tuple[dict[str, Any], bool]:
+        now = self._now()
+        meta = self._load_meta(uid) or {}
+
+        attempts = meta.get("attempts")
+        try:
+            attempts = int(attempts)
+        except Exception:
+            attempts = 0
+        # Ограничение по ТЗ: 1..3 попытки запуска
+        if attempts >= 3:
+            meta["attempts"] = 3
+            meta.setdefault("schema_version", self._meta_schema_version)
+            meta.setdefault("uid", self._normalize_uid(uid))
+            self._save_meta(uid, meta)
+            return meta, False
+
+        attempts += 1
+
+        # started_at — первый старт, last_started_at — последний (доп. поле)
+        if not meta.get("started_at_ts"):
+            meta["started_at_human"] = self._dt_human(now)
+            meta["started_at_ts"] = self._dt_ts(now)
+        meta["last_started_at_human"] = self._dt_human(now)
+        meta["last_started_at_ts"] = self._dt_ts(now)
+
+        meta["attempts"] = attempts
+        meta["status"] = "WORK"
+        meta["runtime_status"] = "running"
+        meta.setdefault("schema_version", self._meta_schema_version)
+        meta.setdefault("uid", self._normalize_uid(uid))
+        self._save_meta(uid, meta)
+        return meta, True
+
+    def _update_meta_on_finish(self, uid: str, *, runtime_status: str, error: str | None) -> None:
+        now = self._now()
+        meta = self._load_meta(uid) or {}
+        meta["finished_at_human"] = self._dt_human(now)
+        meta["finished_at_ts"] = self._dt_ts(now)
+        meta["status"] = self._runtime_to_meta_status(runtime_status)
+        meta["runtime_status"] = runtime_status
+        meta["last_error"] = error
+        meta.setdefault("schema_version", self._meta_schema_version)
+        meta.setdefault("uid", self._normalize_uid(uid))
+        self._save_meta(uid, meta)
 
     def _rehydrate_from_disk(self, uid: str) -> TaskInfo | None:
         """
@@ -54,22 +163,40 @@ class TaskRegistry:
         if not task_dir.is_dir():
             return None
 
-        # Мы не знаем точный статус (done/error) без отдельного мета-файла,
-        # поэтому считаем, что задача завершена и даём UI доступ к артефактам.
+        meta = self._load_meta(uid) or {}
+        url = str(meta.get("url") or "")
+        runtime_status = str(meta.get("runtime_status") or "")
+        if runtime_status not in {"created", "running", "done", "error"}:
+            # fallback для старых задач без meta.json
+            runtime_status = ""
+
+        finished_at = None
         try:
-            mtime = datetime.fromtimestamp(task_dir.stat().st_mtime)
+            ts = meta.get("finished_at_ts")
+            if isinstance(ts, (int, float)):
+                finished_at = datetime.fromtimestamp(float(ts))
         except Exception:
-            mtime = None
+            finished_at = None
+
+        if finished_at is None:
+            try:
+                finished_at = datetime.fromtimestamp(task_dir.stat().st_mtime)
+            except Exception:
+                finished_at = None
+
+        # Если статус неизвестен — считаем done (как раньше), чтобы UI мог открыть результаты.
+        if not runtime_status:
+            runtime_status = "done"
 
         info = TaskInfo(
             uid=self._normalize_uid(uid),
-            url="",
+            url=url,
             task_dir=task_dir,
-            status="done",
+            status=runtime_status,
             created_at=None,
             started_at=None,
-            finished_at=mtime,
-            error=None,
+            finished_at=finished_at,
+            error=(str(meta.get("last_error")) if meta.get("last_error") else None),
         )
         with self._lock:
             # Не перетираем существующий runtime-task, если он уже есть.
@@ -84,13 +211,18 @@ class TaskRegistry:
         uid = uuid4().hex[:12]
         task_dir = self._result_tasks_dir / uid
         task_dir.mkdir(parents=True, exist_ok=True)
+        # meta.json создаём сразу, чтобы задача была видна после рестарта.
+        try:
+            self._init_meta(uid=uid, url=str(url))
+        except Exception:
+            pass
 
         info = TaskInfo(
             uid=uid,
             url=str(url),
             task_dir=task_dir,
             status="created",
-            created_at=datetime.now(),
+            created_at=self._now(),
         )
         with self._lock:
             self._tasks[uid] = info
@@ -129,8 +261,19 @@ class TaskRegistry:
                 raise KeyError(uid)
             if info.status in {"running"}:
                 return
+            if info.status in {"done"}:
+                return
+
+            # Обновляем meta.json и считаем попытки запуска (1..3).
+            try:
+                _, allowed = self._update_meta_on_start(uid)
+                if not allowed:
+                    return
+            except Exception:
+                pass
+
             info.status = "running"
-            info.started_at = datetime.now()
+            info.started_at = self._now()
             info.error = None
 
         fut = self._pool.submit(lambda browser: runner(browser, info))
@@ -143,16 +286,24 @@ class TaskRegistry:
                     if info2 is None:
                         return
                     info2.status = "done"
-                    info2.finished_at = datetime.now()
+                    info2.finished_at = self._now()
                     info2.error = None
+                try:
+                    self._update_meta_on_finish(uid, runtime_status="done", error=None)
+                except Exception:
+                    pass
             except Exception as exc:  # noqa: BLE001
                 with self._lock:
                     info2 = self._tasks.get(uid)
                     if info2 is None:
                         return
                     info2.status = "error"
-                    info2.finished_at = datetime.now()
+                    info2.finished_at = self._now()
                     info2.error = str(exc)
+                try:
+                    self._update_meta_on_finish(uid, runtime_status="error", error=str(exc))
+                except Exception:
+                    pass
 
         fut.add_done_callback(_done_callback)
 

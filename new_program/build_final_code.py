@@ -190,11 +190,23 @@ def result_file_JS(result_code, *, task_dir=None):
     """
     Записывает result_code.ts либо в папку задачи, либо в дефолтный каталог.
     """
+    if task_dir is None:
+        # Если вызывающий код забыл передать task_dir, пробуем взять его из task-context
+        # (он выставляется в `main_processer()` / Flask runner).
+        try:
+            from task_runtime.task_context import get_current_task_dir
+            ctx_dir = get_current_task_dir()
+            if ctx_dir:
+                task_dir = ctx_dir
+        except Exception:
+            pass
+
     target_dir = Path(task_dir) if task_dir else RESULT_OUTPUT_DIR
     target_path = target_dir / "result_code.ts"
     target_dir.mkdir(parents=True, exist_ok=True)
     target_path.write_text(result_code, encoding="utf-8")
-    print("📘 result_code успешно записан в result_code.ts")
+    # Важно: в некоторых окружениях (например, Windows cmd cp1251) emoji в print ломают вывод.
+    print(f"result_code written: {target_path}")
 
 
 
