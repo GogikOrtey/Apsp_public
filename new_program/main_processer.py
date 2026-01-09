@@ -330,7 +330,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     update_content_front_current_step("Шаг 2/10: Переход на страницу результатов поисковой выдачи")
 
     print_ul("Запускаем агента - он должен нажать перейти по первому поисковому запросу из семантики")
-    result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result)
+    result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result, uid=uid, task_dir=task_dir)
     print("result_agent_answer_from_2_step:")
     update_content_front_last_phase_result(result_agent_answer_from_2_step)
     print(result_agent_answer_from_2_step)
@@ -459,7 +459,14 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
 
         print_ul("Ого, кажется на сайте дигинетика в запросах на поиск. Попробуем её обработать")
 
-        parse_page_code_fragment = agent_step_6_2_diginetica_and_custom_req_on_PP(TNF_result, search_request, semantics, result_agent_answer_from_2_step.get("second_html")).get("result_code")
+        parse_page_code_fragment = agent_step_6_2_diginetica_and_custom_req_on_PP(
+            TNF_result,
+            search_request,
+            semantics,
+            result_agent_answer_from_2_step.get("second_html"),
+            uid=uid,
+            task_dir=task_dir,
+        ).get("result_code")
         update_content_front_last_phase_result(json.dumps(parse_page_code_fragment, ensure_ascii=False, indent=4))
     
     else:
@@ -469,7 +476,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
         print("Запуск result_agent_step_4_product")
         update_content_front_current_step("Шаг 4/10: Генерация фрагмента кода извлечения ссылки на товары для parsePage")
         print_ul("Запускаем агента, который проверяет что селектор на извлечение ссылки товара со страницы поиска - верный")
-        result_agent_step_4_product = agent_step_4_product(TNF_result, search_request)
+        result_agent_step_4_product = agent_step_4_product(TNF_result, search_request, uid=uid, task_dir=task_dir)
         update_content_front_last_phase_result(json.dumps(result_agent_step_4_product, ensure_ascii=False, indent=4))
         """ 
         Формируент фрагмент кода для вставки в PC - обработка извлечения ссылки на товар
@@ -484,7 +491,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
         print("Запуск result_agent_step_5_pagination")
         update_content_front_current_step("Шаг 5/10: Генерация фрагмента кода пагинации по страницам для parsePage")
         print_ul("Запускаем агента, который собирает фрагмент кода для пагинации - перехода по страницам поисковой выдачи, основываясь на селекторах которые мы нашли на шаге TNF")
-        result_agent_step_5_pagination = agent_step_5_pagination(TNF_result, search_request)
+        result_agent_step_5_pagination = agent_step_5_pagination(TNF_result, search_request, uid=uid, task_dir=task_dir)
         update_content_front_last_phase_result(json.dumps(result_agent_step_5_pagination, ensure_ascii=False, indent=4))
         """ 
         Формируент фрагмент кода для вставки в PC - обработка извлечения максимального количества страниц пагинации
@@ -497,7 +504,14 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
         print("Запуск result_agent_step_6_URL_construct")
         update_content_front_current_step("Шаг 6/10: Генерация фрагмента кода формирования URL поиска для parsePage")
         print_ul("Запускаем агента, который подберёт логику перехода по разным запросам на поиск")
-        result_agent_step_6_URL_construct = agent_step_6_URL_construct(TNF_result, search_request, semantics, url_input)   
+        result_agent_step_6_URL_construct = agent_step_6_URL_construct(
+            TNF_result,
+            search_request,
+            semantics,
+            url_input,
+            uid=uid,
+            task_dir=task_dir,
+        )   
         update_content_front_last_phase_result(json.dumps(result_agent_step_6_URL_construct, ensure_ascii=False, indent=4)) 
         """ 
         Формируент фрагмент кода для вставки в PC - обработка создания URL на основе кастомного запроса и номера страницы выдачи
@@ -566,7 +580,12 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
 
     print_ul("Далее нам нужно получить 15 ссылок на товары. Мы собираем их из 3х страниц выдачи, на которых мы уже были")
 
-    result_agent_step_6_1_get_links_for_product = agent_step_6_1_get_links_for_product(input_data_for_3_links, search_request)
+    result_agent_step_6_1_get_links_for_product = agent_step_6_1_get_links_for_product(
+        input_data_for_3_links,
+        search_request,
+        uid=uid,
+        task_dir=task_dir,
+    )
     update_content_front_last_phase_result(json.dumps(result_agent_step_6_1_get_links_for_product, ensure_ascii=False, indent=4)) 
 
     """

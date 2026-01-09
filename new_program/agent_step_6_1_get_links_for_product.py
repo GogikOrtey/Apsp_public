@@ -457,7 +457,7 @@ main_plan = {
 
 
 # region Основная функция
-def agent_step_6_1_get_links_for_product_agent(input_data, search_request):
+def agent_step_6_1_get_links_for_product_agent(input_data, search_request, *, uid: str | None = None, task_dir: str | Path | None = None):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -479,13 +479,15 @@ def agent_step_6_1_get_links_for_product_agent(input_data, search_request):
         result_template = main_result_template,
         plan = main_plan,
         step_by_step_running = False, # Разрешаем агенту работать автоматически
+        uid = uid,
+        task_dir = task_dir,
     ) 
 
     result_task = get_result()
     return result_task
 
 
-def agent_step_6_1_get_links_for_product(input_data, search_request):
+def agent_step_6_1_get_links_for_product(input_data, search_request, *, uid: str | None = None, task_dir: str | Path | None = None):
     """
     Обёртка над агентом:
     - сначала пытаемся собрать ссылки без LLM (через обычные запросы + парсинг html + проверка URL),
@@ -511,7 +513,12 @@ def agent_step_6_1_get_links_for_product(input_data, search_request):
         patched["third_url"] = first_url
         agent_input_data = patched
 
-    agent_res = agent_step_6_1_get_links_for_product_agent(input_data=agent_input_data, search_request=search_request)
+    agent_res = agent_step_6_1_get_links_for_product_agent(
+        input_data=agent_input_data,
+        search_request=search_request,
+        uid=uid,
+        task_dir=task_dir,
+    )
     if one_url_mode and isinstance(agent_res, dict):
         merged: list[str] = []
         for k in ("five_links_1", "five_links_2", "five_links_3"):

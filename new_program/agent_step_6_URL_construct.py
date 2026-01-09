@@ -300,7 +300,7 @@ main_plan = {
 
 
 
-def agent_step_6_URL_construct(input_data, search_request, semantics, host_value):
+def agent_step_6_URL_construct(input_data, search_request, semantics, host_value, *, uid: str | None = None, task_dir: str | Path | None = None):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -332,6 +332,8 @@ def agent_step_6_URL_construct(input_data, search_request, semantics, host_value
         result_template = main_result_template,
         plan = main_plan,
         step_by_step_running = False, # Разрешаем агенту работать автоматически
+        uid = uid,
+        task_dir = task_dir,
     ) 
 
     result_task = get_result()

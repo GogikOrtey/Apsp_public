@@ -194,7 +194,7 @@ main_plan = {
 }
 
 
-def agent_step_4_product(input_data, search_request):
+def agent_step_4_product(input_data, search_request, *, uid: str | None = None, task_dir: str | Path | None = None):
     # Приводим input_data к строке
     if isinstance(input_data, str):
         input_data_str = input_data
@@ -216,6 +216,8 @@ def agent_step_4_product(input_data, search_request):
         result_template = main_result_template,
         plan = main_plan,
         step_by_step_running = False, # Разрешаем агенту работать автоматически
+        uid = uid,
+        task_dir = task_dir,
     ) 
 
     result_task = get_result()

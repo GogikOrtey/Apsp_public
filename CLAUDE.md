@@ -77,6 +77,11 @@
   - задают **result schema** + **result template** (поля, которые агент должен заполнить)
   - задают **план шагов** (если не задан — генерируется)
   - дальше агент сам выбирает инструменты, выполняет шаги и заполняет result; завершает `DONE|FAILED`
+- В многозадачном режиме (параллельные UID) **runtime-состояние агента изолировано по потокам**:
+  - `reasoning_agent/agent_main.py`: `history/long_term_memory/steps_future` — `threading.local()`
+  - `reasoning_agent/agent_tools.py`: `RESULT/RESULT_SCHEMA` — `threading.local()`
+  - `reasoning_agent/runtime_state.py`: `main_plan/long_term_memory` для tools — `threading.local()`
+  - `orchestrate(..., uid, task_dir)` умеет (опционально) выставлять `task_runtime.task_context`, чтобы логи/UI-state писались в `RESULT_TASKS/<uid>/...`
 
 ## Интеграция с Playwright (`playwright_tool/`)
 

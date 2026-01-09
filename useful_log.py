@@ -58,7 +58,8 @@ def print_useful_log(*values: Iterable[object], sep: str = " ", end: str = "\n")
         # ensure file exists
         path.parent.mkdir(parents=True, exist_ok=True)
 
-    message = sep.join(str(v) for v in values) + end
+    start_str = "> "
+    message = start_str + sep.join(str(v) for v in values) + end
     with open(path, "a", encoding="utf-8") as log_file:
         log_file.write(message)
         log_file.flush()

@@ -2,6 +2,7 @@
 
 import json
 import copy
+import threading
 from typing import Any
 
 from pathlib import Path
@@ -74,33 +75,52 @@ from reasoning_agent.runtime_state import (
 
 
 # Текущая схема и текущий результат, который агент постепенно заполняет.
-# Инициализация делается через init_result(...) (см. ниже).
+# Важно: в многозадачном режиме (параллельные UID) состояние должно быть изолировано по потоку.
+_tls = threading.local()
+
+# Legacy globals (оставлены для совместимости/отладки; в коде используем thread-local).
 RESULT_SCHEMA: dict[str, Any] = {}
 RESULT: dict[str, Any] = {}
+
+
+def _ensure_result_state() -> None:
+    if not hasattr(_tls, "result_schema"):
+        _tls.result_schema = {}
+    if not hasattr(_tls, "result"):
+        _tls.result = {}
 
 
 def init_result(schema: dict[str, Any] | None = None, template: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Инициализирует (или переинициализирует) схему результата и сам результат.
     """
-    global RESULT_SCHEMA, RESULT
     if not isinstance(schema, dict) or not schema:
         raise ValueError("init_result: result_schema должен быть передан явно и не может быть пустым")
     if not isinstance(template, dict) or not template:
         raise ValueError("init_result: result_template должен быть передан явно и не может быть пустым")
-    RESULT_SCHEMA = copy.deepcopy(schema)
-    RESULT = copy.deepcopy(template)
-    return {"status": "ok", "result_schema": RESULT_SCHEMA, "result": RESULT}
+    _ensure_result_state()
+    _tls.result_schema = copy.deepcopy(schema)
+    _tls.result = copy.deepcopy(template)
+    # Обновим legacy globals best-effort (не используем для логики).
+    try:
+        global RESULT_SCHEMA, RESULT
+        RESULT_SCHEMA = _tls.result_schema
+        RESULT = _tls.result
+    except Exception:
+        pass
+    return {"status": "ok", "result_schema": _tls.result_schema, "result": _tls.result}
 
 
 def get_result() -> dict[str, Any]:
     """Возвращает текущий объект результата (для оркестратора/промпта)."""
-    return RESULT
+    _ensure_result_state()
+    return _tls.result
 
 
 def get_result_schema() -> dict[str, Any]:
     """Возвращает текущую схему результата (для оркестратора/промпта)."""
-    return RESULT_SCHEMA
+    _ensure_result_state()
+    return _tls.result_schema
 
 
 
@@ -286,32 +306,34 @@ def get_tools_annotations(as_json: bool = True):
     }
 )
 def update_result(field: str | None = None, value: Any = None, updates: Any = None):
-    global RESULT, RESULT_SCHEMA
+    _ensure_result_state()
+    result_obj = _tls.result
+    schema_obj = _tls.result_schema
 
     def _apply_one_update(one_field: Any, one_value: Any) -> dict[str, Any]:
         if not isinstance(one_field, str) or not one_field.strip():
-            return {"status": "error", "result": RESULT, "error": "field должен быть непустой строкой"}
+            return {"status": "error", "result": result_obj, "error": "field должен быть непустой строкой"}
 
         path = [p for p in one_field.strip().split(".") if p]
         if not path:
-            return {"status": "error", "result": RESULT, "error": "Некорректный путь поля"}
+            return {"status": "error", "result": result_obj, "error": "Некорректный путь поля"}
 
         # Минимальная валидация: первый сегмент должен существовать в схеме (если схема dict)
-        if isinstance(RESULT_SCHEMA, dict) and path[0] not in RESULT_SCHEMA:
+        if isinstance(schema_obj, dict) and path[0] not in schema_obj:
             return {
                 "status": "error",
-                "result": RESULT,
+                "result": result_obj,
                 "error": f"Поле '{path[0]}' отсутствует в result_schema"
             }
 
-        node = RESULT
+        node = result_obj
         for key in path[:-1]:
             if key not in node or not isinstance(node.get(key), dict):
                 node[key] = {}
             node = node[key]
 
         node[path[-1]] = one_value
-        return {"status": "ok", "result": RESULT, "error": None}
+        return {"status": "ok", "result": result_obj, "error": None}
 
     # Собираем список обновлений из (updates) и/или (field/value)
     updates_list: list[dict[str, Any]] = []
@@ -326,7 +348,7 @@ def update_result(field: str | None = None, value: Any = None, updates: Any = No
         else:
             return {
                 "status": "error",
-                "result": RESULT,
+                "result": result_obj,
                 "error": "updates должен быть dict или list"
             }
 
@@ -336,7 +358,7 @@ def update_result(field: str | None = None, value: Any = None, updates: Any = No
     if not updates_list:
         return {
             "status": "error",
-            "result": RESULT,
+            "result": result_obj,
             "error": "Нужно передать либо (field и value), либо updates"
         }
 
@@ -345,7 +367,7 @@ def update_result(field: str | None = None, value: Any = None, updates: Any = No
         if not isinstance(item, dict):
             return {
                 "status": "error",
-                "result": RESULT,
+                "result": result_obj,
                 "error": "Каждый элемент updates должен быть объектом вида {'field': ..., 'value': ...}"
             }
         one_field = item.get("field")
@@ -357,8 +379,15 @@ def update_result(field: str | None = None, value: Any = None, updates: Any = No
         updated += 1
 
     # update_content_front_update_result(str(RESULT))
-    update_content_front_update_result(json.dumps(RESULT, ensure_ascii=False, indent=4))
-    return {"status": "ok", "result": RESULT, "updated": updated}
+    update_content_front_update_result(json.dumps(result_obj, ensure_ascii=False, indent=4))
+    # Обновим legacy globals best-effort (не используем для логики).
+    try:
+        global RESULT_SCHEMA, RESULT
+        RESULT_SCHEMA = schema_obj
+        RESULT = result_obj
+    except Exception:
+        pass
+    return {"status": "ok", "result": result_obj, "updated": updated}
 
 # Примечание: поддерживаются вложенные пути через точку, например "meta.url" или "b.c"
 # Но сейчас не используются в сценариях использования агента

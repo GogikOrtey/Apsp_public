@@ -10,6 +10,7 @@ import json
 import copy
 import traceback
 import time
+import threading
 from typing import Any
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -152,15 +153,46 @@ HISTORY_WINDOW = 12         # = 6 шагов - это сколько после�
 MAX_STEPS = 30              # Максимальное количество шагов агента для решения задачи
 INVALID_JSON_RETRIES = 1    # Повторяем запрос шага при невалидном JSON ответа
 
-long_term_memory = []       # Долговременная память, в которую агент может записать данные, при помощи memory_updates
-steps_future_value = ""     # Описание следующих шагов, которые наметила себе модель
+_tls_state = threading.local()
+
+
+def _ensure_agent_state() -> threading.local:
+    """
+    Гарантирует, что runtime-состояние агента существует в текущем потоке.
+
+    Важно: проект поддерживает параллельные задачи по UID, поэтому состояние должно быть thread-local.
+    """
+    if not hasattr(_tls_state, "history"):
+        _tls_state.history = []
+    if not hasattr(_tls_state, "count_of_step_on_history"):
+        _tls_state.count_of_step_on_history = 0
+    if not hasattr(_tls_state, "long_term_memory"):
+        _tls_state.long_term_memory = []
+    if not hasattr(_tls_state, "steps_future_value"):
+        _tls_state.steps_future_value = ""
+    return _tls_state
+
+
+def _get_history() -> list[Any]:
+    return _ensure_agent_state().history
+
+
+def _get_long_term_memory() -> list[Any]:
+    return _ensure_agent_state().long_term_memory
+
+
+def _get_steps_future_value() -> Any:
+    return _ensure_agent_state().steps_future_value
+
+
+def _set_steps_future_value(value: Any) -> None:
+    _ensure_agent_state().steps_future_value = value
 
 # region Собираю аннотации инструментов
 tools_annotation = get_tools_annotations()
 
 # region Обработчик хранения истории
-history = [] # Хранилище всей истории шагов
-count_of_step_on_history = 0 # Текущий номер шага в истории шагов
+# В многопоточном режиме history хранится в thread-local (см. _get_history()).
 
 # region Reset state между запусками
 def reset_agent_state(*, clear_history: bool = True, clear_memory: bool = True, clear_steps_future: bool = True) -> None:
@@ -172,21 +204,17 @@ def reset_agent_state(*, clear_history: bool = True, clear_memory: bool = True, 
     - RESULT/result_schema сбрасываются отдельно через init_result(...) внутри orchestrate().
     - clear_memory=True очищает long_term_memory in-place (runtime_state хранит ссылку на список).
     """
-    global count_of_step_on_history, steps_future_value, main_plan
+    st = _ensure_agent_state()
 
     if clear_history:
-        history.clear()
-        count_of_step_on_history = 0
+        st.history.clear()
+        st.count_of_step_on_history = 0
 
     if clear_memory:
-        long_term_memory.clear()
+        st.long_term_memory.clear()
 
     if clear_steps_future:
-        steps_future_value = ""
-
-    # main_plan всё равно будет переопределён внутри orchestrate(),
-    # но на всякий случай сбрасываем ссылку, чтобы не вводить в заблуждение отладку.
-    main_plan = None
+        st.steps_future_value = ""
 
 # Запускаю второй терминал для кастомного чата
 CHAT_LOG_PATH = init_chat_channel()
@@ -210,9 +238,9 @@ def safe_json_dumps(obj: Any, *, indent: int | None = None) -> str:
 
 # Добавляет запись в историю с автоинкрементом порядкового номера
 def add_history_entry(entry: dict[str, Any]) -> None:
-    global count_of_step_on_history
-    count_of_step_on_history += 1
-    history.append({"step": count_of_step_on_history, **entry})
+    st = _ensure_agent_state()
+    st.count_of_step_on_history += 1
+    st.history.append({"step": st.count_of_step_on_history, **entry})
 
 
 
@@ -592,8 +620,6 @@ History actions since load on this page:
 
 
 def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any]) -> str:
-    global steps_future_value, long_term_memory
-
     # История шагов
     # Копируем элементы, чтобы не трогать оригинальную history
     history_for_prompt = []
@@ -624,11 +650,11 @@ def build_step_prompt(task, history, tools_json: str, main_plan: dict[str, Any])
 
 
     # Шаги на будущее
-    steps_future_for_prompt = steps_future_value or []
+    steps_future_for_prompt = _get_steps_future_value() or []
     steps_future_text = safe_json_dumps(steps_future_for_prompt, indent=4)
 
     # Долговременная память
-    long_term_memory_value = safe_json_dumps(long_term_memory, indent=4)
+    long_term_memory_value = safe_json_dumps(_get_long_term_memory(), indent=4)
 
 
     # Элементы, которые будут удалены на следующем шаге
@@ -986,267 +1012,265 @@ def orchestrate(
     result_schema: dict[str, Any] | None = None,
     result_template: dict[str, Any] | None = None,
     plan: dict[str, Any] | None = None,
-    step_by_step_running = True # Если = True то после каждого шага агента он ожидает нажатия Enter в консоли
+    step_by_step_running = True, # Если = True то после каждого шага агента он ожидает нажатия Enter в консоли
+    uid: str | None = None,
+    task_dir: str | Path | None = None,
 ) -> str:
-    global steps_future_value, long_term_memory, main_plan, tools_annotation
+    # Важно: orchestrate может запускаться параллельно для разных UID.
+    # Поэтому всё runtime-состояние агента должно быть изолировано (thread-local),
+    # а вывод/артефакты — привязаны к контексту задачи (task_context).
+    ctx_set = False
+    if uid and task_dir:
+        try:
+            from task_runtime.task_context import get_current_task_uid, set_current_task  # noqa: WPS433
+            if not get_current_task_uid():
+                set_current_task(uid, task_dir)
+                ctx_set = True
+        except Exception:
+            ctx_set = False
+
     start = time.time()
 
-    # Сбрасываем состояние между независимыми запусками orchestrate, чтобы не было "утечек" history/memory.
-    # RESULT/result_schema сбрасываются ниже через init_result(...).
-    reset_agent_state(clear_history=True, clear_memory=True, clear_steps_future=True)
-
-    # Обновляем аннотации инструментов перед запуском, чтобы подхватить
-    # все модули с @tool, которые могли быть импортированы до вызова orchestrate.
-    tools_annotation = get_tools_annotations()
-
-    # Выбираем схему и шаблон результата для текущего запуска (обязательно переданы снаружи)
-    schema_to_use = copy.deepcopy(result_schema or main_result_schema)
-    template_to_use = copy.deepcopy(result_template or main_result_template)
-
-    # Инициализируем объект результата для текущего запуска
-    init_result(schema_to_use, template_to_use)
-
-    # Формируем план: приоритет — явно переданный, иначе генерируем из текущей задачи и схемы
-    if plan is not None:
-        main_plan = copy.deepcopy(plan)
-    else:
-        main_plan = None
-
-    if not isinstance(main_plan, dict):
-        _plan_resp = create_main_plan_from_task(task, schema_to_use)
-        if isinstance(_plan_resp, dict) and _plan_resp.get("status") == "ok":
-            generated_plan = _plan_resp.get("plan")
-            if isinstance(generated_plan, dict):
-                main_plan = generated_plan
-
-    # Фоллбэк на шаблон, если плана нет или пришёл в неверном формате
-    if not isinstance(main_plan, dict):
-        main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
-
-    # Делаем main_plan доступным инструментам (через runtime_state) без циклических импортов
     try:
-        _set_runtime_main_plan(main_plan)
-    except Exception:
-        pass
-
-    # Делаем long_term_memory доступной инструментам (через runtime_state) без циклических импортов
-    try:
-        _set_runtime_long_term_memory(long_term_memory)
-    except Exception:
-        pass
-
-    # Синхронизируем прогресс плана с уже предзаполненным result (например, из result_template)
-    try:
-        update_main_plan_progress(main_plan)
-    except Exception:
-        pass
-
-    for step in range(1, max_steps + 1):
-        step_banner = f"\n———————————   Шаг {step}   ———————————\n"
-        print(step_banner)
-        chat_print(step_banner)
-
-        # 1. Формируем запрос для текущего шага
-        prompt = build_step_prompt(task, history, tools_annotation, main_plan)
-
-        # 2. Отправляем его в ChatGPT и получаем ответ
-        result = send_message_to_ChatGPT(
-            prompt=prompt,
-            system_prompt=SYSTEM_PROMPT,
-            chat_id=None,  # без истории на стороне модели, храним сами
-            model="gpt-5.2",
-            is_print=True
-        )
-
-        # 3. Валидируем ответ
-        step_reply = parse_step_response(result.answer, prompt, INVALID_JSON_RETRIES)
-
-        # Краткий вывод ответа модели
-        args_text = "—"
-        model_args = step_reply.get("args")
-        if model_args:
-            args_text = safe_json_dumps(model_args)
-
-        model_summary = (
-            f"🟢 reasoning: {step_reply.get('reasoning') or '—'}\n"     # Рассуждения модели
-            f"🔵 target: {step_reply.get('target') or '—'}\n"    # Действие, которое агент собирается выполнить
-            f"🟡 action: {step_reply.get('action') or '—'}\n"           # Вызывает инструмент
-            f"{'   🔶 args: ' + args_text if args_text != '—' else ''}" # С аргументами
-            f"\n"
-        )
-
-        update_content_front_reasoning(step_reply.get('reasoning') or '—')
-        update_content_front_goal(step_reply.get('target') or '—')
-        update_content_front_action((step_reply.get('action') + ((f"\nаргументы:\n" + args_text) if args_text != '—' else '')) or '—')
-
-
-        """ 
-        update_content_front_reasoning,
-        update_content_front_goal,
-        update_content_front_action,
-        update_content_front_update_result,
-        update_content_front_last_phase_result,
-        """
-
-
-
-        chat_print(model_summary)
-        print(model_summary)
-
-
-        if step_by_step_running:
-            # Перед каждым следующим шагом ждем подтверждения пользователем
-            input(f"\n-----> Нажмите Enter чтобы продолжить")
-            print("")
-
-
-        """
-            На текущем шаге получаем ответ модели вида:
-            {
-                "target": "",  // Краткое описание действия, которое агент собирается выполнить на этом шаге
-                "action": "search_in_file", // Инструмент, который он вызывает
-                "args": {                   // Аргументы для этого инструмента, либо {}
-                    "file": "config.yaml",
-                    "substring": "timeout"
-                },
-                "reasoning": "",   // Рассуждения модели
-                "steps_future": [  // Шаги, которые модель наметила себе на будущее
-                  "Найти упоминания таймаута в других конфигурационных файлах",
-                  "Сравнить значения с дефолтными настройками",
-                  "Сохранить результаты в память"
-                ],
-                "memory_updates": [  // Добавление записи в долговременную память 
-                    "timeout найден в config.yaml и равен 30",
-                    ...
-                ],
-                "development_feedback": [
-                  {
-                    "type": "tool_gap",
-                    "description": "Нужен инструмент глобального поиска подстроки по всем файлам"
-                  }
-                ]
-            }
-
-
-            Правила обработки этих объектов, пришедших с ответом модели:
-
-            target, action, args, reasoning - обязательные поля, должны быть в каждом ответе
-            также они все полностью сохраняются в историю шагов, в одном объекте текущего шага
-
-            steps_future, memory_updates, development_feedback - опциональные поля, их может не быть
-            они не сохраняются в массив history
-
-            Как работает:
-            На каждом шаге выполняется action с переданными args
-
-            steps_future - обновляется на каждом шаге, и передаётся в запросе шага
-            
-            memory_updates - добавляет переданные строки в массив long_term_memory
-
-            development_feedback - модель может сказать мне как разработчику, что ей не хватает какого-то функционала (без прерывания выполнения задачи)
-
-
-            Результат пошагово записывается в result, при помощи вызова инструмента update_result
-            Перед началом работы надо задать верную схему результата (result_schema) и шаблон результата, который будет заполнять модель, и который будет передаваться ей в каждом запросе шага, в фрагменте 
-            текущий результат (result)
-
-            Оркестратор сам двигает план по фазам, т.к. сам проверяет их выполнение при каждом шаге, и в методе format_main_plan_for_prompt он сам проставляет какая фаза активна на текущий момент
-
-        """
-
-
-        # 4. Сохраняем ответ модели в history
-        add_history_entry({"role": "assistant", "content": step_reply})
-
-
-        # 5. Обработчик дополнительных действий
-
-        new_steps_future = step_reply.get("steps_future")
-        if new_steps_future is not None:
-            # Обновляем глобальный план даже если он пустой (модель могла очистить его)
-            steps_future_value = new_steps_future
-
-        memory_updates = step_reply.get("memory_updates") or []
-        if memory_updates:
-            # Дополняем долговременную память новыми фактами от модели
-            long_term_memory.extend(memory_updates)
-
-        # Если есть development_feedback, выводит его и дописывает в лог
-        log_development_feedback(step_reply.get("development_feedback"))
-
-
-
-        # 6. Выполнение действия 
-        tool_name = step_reply.get("action")
-        tool_args = step_reply.get("args") or {}
-
-        # 6.1 Обработка завершения работы агента
-        if tool_name == "DONE":
-            # Нет формальной проверки на то, закрыты ли все шаги плана, перед завершением задачи
-            completion_text = ""
-
-            # 2) Новый режим: возвращаем накопленный result
-            if not completion_text:
-                completion_text = safe_json_dumps(get_result(), indent=4)
-
-            done_result = {"status": "done", "result": get_result(), "message": completion_text}
-            add_history_entry({"role": "tool", "name": "DONE", "result": done_result})
-            print(f"✅ Агент завершил задачу: {completion_text}")
-            emit_execution_time(start, emit=print, print_time_smile=True)
-            return completion_text
-
-        # 6.2 Обработка провала (недостижимость цели)
-        if tool_name == "FAILED":
-            reason = None
-            if isinstance(tool_args, dict):
-                reason = tool_args.get("reason")
-            if not isinstance(reason, str) or not reason.strip():
-                reason = "Причина не указана (ожидалось args.reason: string)"
-
-            result_text = safe_json_dumps(get_result(), indent=4)
-
-            failed_payload = {
-                "status": "failed",
-                "reason": reason,
-                "result": get_result(),
-                "message": f"FAILED: {reason}"
-            }
-            add_history_entry({"role": "tool", "name": "FAILED", "result": failed_payload})
-
-            final_text = ""
-            final_text = safe_json_dumps(failed_payload, indent=4)
-
-            print(f"❌ Агент завершил задачу с ошибкой/недостижимостью: {reason}\nТекущий result:\n{result_text}")
-            emit_execution_time(start, emit=print, print_time_smile=True)
-            return final_text
-
-        # 6.3 Вызов инструмента
-        tool_result = run_tool(tool_name, tool_args)
-        tool_log = f"🛠️  {tool_name}({tool_args})"
-        print(tool_log)
-        chat_print(tool_log)
-
+        # Гарантируем, что chat_print будет писать в per-task файл (если task_context установлен).
         try:
-            tool_result_text = safe_json_dumps(tool_result)
-        except Exception:  # noqa: BLE001
-            tool_result_text = str(tool_result)
+            init_chat_channel(truncate=False)
+        except Exception:
+            pass
 
-        tool_result_log = f"Инструмент вернул результат: {tool_result_text}"
-        print(tool_result_log)
-        chat_print(tool_result_log)
+        # Сбрасываем состояние между независимыми запусками orchestrate, чтобы не было "утечек" history/memory.
+        # RESULT/result_schema сбрасываются ниже через init_result(...).
+        reset_agent_state(clear_history=True, clear_memory=True, clear_steps_future=True)
 
-        # Запись результатов инструмента в историю
-        add_history_entry({"role": "tool", "name": tool_name, "result": tool_result})
+        # Обновляем аннотации инструментов перед запуском, чтобы подхватить
+        # все модули с @tool, которые могли быть импортированы до вызова orchestrate.
+        tools_annotation = get_tools_annotations()
 
-        # После каждого действия пробуем продвинуть план (особенно важно после update_result)
+        # Выбираем схему и шаблон результата для текущего запуска
+        schema_to_use = copy.deepcopy(result_schema or main_result_schema)
+        template_to_use = copy.deepcopy(result_template or main_result_template)
+
+        # Инициализируем объект результата для текущего запуска
+        init_result(schema_to_use, template_to_use)
+
+        # Формируем план: приоритет — явно переданный, иначе генерируем из текущей задачи и схемы
+        if plan is not None:
+            main_plan = copy.deepcopy(plan)
+        else:
+            main_plan = None
+
+        if not isinstance(main_plan, dict):
+            _plan_resp = create_main_plan_from_task(task, schema_to_use)
+            if isinstance(_plan_resp, dict) and _plan_resp.get("status") == "ok":
+                generated_plan = _plan_resp.get("plan")
+                if isinstance(generated_plan, dict):
+                    main_plan = generated_plan
+
+        # Фоллбэк на шаблон, если плана нет или пришёл в неверном формате
+        if not isinstance(main_plan, dict):
+            main_plan = copy.deepcopy(MAIN_PLAN_TEMPLATE)
+
+        # Делаем main_plan и long_term_memory доступными инструментам (через runtime_state) без циклических импортов
+        try:
+            _set_runtime_main_plan(main_plan)
+        except Exception:
+            pass
+        try:
+            _set_runtime_long_term_memory(_get_long_term_memory())
+        except Exception:
+            pass
+
+        # Синхронизируем прогресс плана с уже предзаполненным result (например, из result_template)
         try:
             update_main_plan_progress(main_plan)
         except Exception:
             pass
 
-    print("⚠️ Достигнут лимит шагов без финального ответа.")
-    emit_execution_time(start, emit=print, print_time_smile=True)
-    return "Лимит шагов исчерпан без решения"
+        for step in range(1, max_steps + 1):
+            step_banner = f"\n———————————   Шаг {step}   ———————————\n"
+            print(step_banner)
+            chat_print(step_banner)
+
+            # 1. Формируем запрос для текущего шага
+            prompt = build_step_prompt(task, _get_history(), tools_annotation, main_plan)
+
+            # 2. Отправляем его в ChatGPT и получаем ответ
+            result = send_message_to_ChatGPT(
+                prompt=prompt,
+                system_prompt=SYSTEM_PROMPT,
+                chat_id=None,  # без истории на стороне модели, храним сами
+                model="gpt-5.2",
+                is_print=True
+            )
+
+            # 3. Валидируем ответ
+            step_reply = parse_step_response(result.answer, prompt, INVALID_JSON_RETRIES)
+
+            # Краткий вывод ответа модели
+            args_text = "—"
+            model_args = step_reply.get("args")
+            if model_args:
+                args_text = safe_json_dumps(model_args)
+
+            model_summary = (
+                f"🟢 reasoning: {step_reply.get('reasoning') or '—'}\n"
+                f"🔵 target: {step_reply.get('target') or '—'}\n"
+                f"🟡 action: {step_reply.get('action') or '—'}\n"
+                f"{'   🔶 args: ' + args_text if args_text != '—' else ''}"
+                f"\n"
+            )
+
+            update_content_front_reasoning(step_reply.get("reasoning") or "—")
+            update_content_front_goal(step_reply.get("target") or "—")
+            update_content_front_action(
+                (step_reply.get("action") + ((f"\nаргументы:\n" + args_text) if args_text != "—" else "")) or "—"
+            )
+
+            chat_print(model_summary)
+            print(model_summary)
+
+            if step_by_step_running:
+                input(f"\n-----> Нажмите Enter чтобы продолжить")
+                print("")
+
+            """
+                На текущем шаге получаем ответ модели вида:
+                {
+                    "target": "",  // Краткое описание действия, которое агент собирается выполнить на этом шаге
+                    "action": "search_in_file", // Инструмент, который он вызывает
+                    "args": {                   // Аргументы для этого инструмента, либо {}
+                        "file": "config.yaml",
+                        "substring": "timeout"
+                    },
+                    "reasoning": "",   // Рассуждения модели
+                    "steps_future": [  // Шаги, которые модель наметила себе на будущее
+                    "Найти упоминания таймаута в других конфигурационных файлах",
+                    "Сравнить значения с дефолтными настройками",
+                    "Сохранить результаты в память"
+                    ],
+                    "memory_updates": [  // Добавление записи в долговременную память 
+                        "timeout найден в config.yaml и равен 30",
+                        ...
+                    ],
+                    "development_feedback": [
+                    {
+                        "type": "tool_gap",
+                        "description": "Нужен инструмент глобального поиска подстроки по всем файлам"
+                    }
+                    ]
+                }
+
+
+                Правила обработки этих объектов, пришедших с ответом модели:
+
+                target, action, args, reasoning - обязательные поля, должны быть в каждом ответе
+                также они все полностью сохраняются в историю шагов, в одном объекте текущего шага
+
+                steps_future, memory_updates, development_feedback - опциональные поля, их может не быть
+                они не сохраняются в массив history
+
+                Как работает:
+                На каждом шаге выполняется action с переданными args
+
+                steps_future - обновляется на каждом шаге, и передаётся в запросе шага
+                
+                memory_updates - добавляет переданные строки в массив long_term_memory
+
+                development_feedback - модель может сказать мне как разработчику, что ей не хватает какого-то 
+                функционала (без прерывания выполнения задачи)
+
+
+                Результат пошагово записывается в result, при помощи вызова инструмента update_result
+                Перед началом работы надо задать верную схему результата (result_schema) и шаблон результата, 
+                который будет заполнять модель, и который будет передаваться ей в каждом запросе шага, в фрагменте 
+                текущий результат (result)
+
+                Оркестратор сам двигает план по фазам, т.к. сам проверяет их выполнение при каждом шаге, и в 
+                методе format_main_plan_for_prompt он сам проставляет какая фаза активна на текущий момент
+
+            """
+
+            # 4. Сохраняем ответ модели в history
+            add_history_entry({"role": "assistant", "content": step_reply})
+
+            # 5. Обработчик дополнительных действий
+            new_steps_future = step_reply.get("steps_future")
+            if new_steps_future is not None:
+                _set_steps_future_value(new_steps_future)
+
+            memory_updates = step_reply.get("memory_updates") or []
+            if memory_updates:
+                _get_long_term_memory().extend(memory_updates)
+
+            log_development_feedback(step_reply.get("development_feedback"))
+
+            # 6. Выполнение действия
+            tool_name = step_reply.get("action")
+            tool_args = step_reply.get("args") or {}
+
+            # 6.1 Завершение
+            if tool_name == "DONE":
+                completion_text = safe_json_dumps(get_result(), indent=4)
+                done_result = {"status": "done", "result": get_result(), "message": completion_text}
+                add_history_entry({"role": "tool", "name": "DONE", "result": done_result})
+                print(f"✅ Агент завершил задачу: {completion_text}")
+                emit_execution_time(start, emit=print, print_time_smile=True)
+                return completion_text
+
+            # 6.2 Провал
+            if tool_name == "FAILED":
+                reason = None
+                if isinstance(tool_args, dict):
+                    reason = tool_args.get("reason")
+                if not isinstance(reason, str) or not reason.strip():
+                    reason = "Причина не указана (ожидалось args.reason: string)"
+
+                result_text = safe_json_dumps(get_result(), indent=4)
+                failed_payload = {
+                    "status": "failed",
+                    "reason": reason,
+                    "result": get_result(),
+                    "message": f"FAILED: {reason}",
+                }
+                add_history_entry({"role": "tool", "name": "FAILED", "result": failed_payload})
+                final_text = safe_json_dumps(failed_payload, indent=4)
+                print(f"❌ Агент завершил задачу с ошибкой/недостижимостью: {reason}\nТекущий result:\n{result_text}")
+                emit_execution_time(start, emit=print, print_time_smile=True)
+                return final_text
+
+            # 6.3 Вызов инструмента
+            tool_result = run_tool(tool_name, tool_args)
+            tool_log = f"🛠️  {tool_name}({tool_args})"
+            print(tool_log)
+            chat_print(tool_log)
+
+            try:
+                tool_result_text = safe_json_dumps(tool_result)
+            except Exception:  # noqa: BLE001
+                tool_result_text = str(tool_result)
+
+            tool_result_log = f"Инструмент вернул результат: {tool_result_text}"
+            print(tool_result_log)
+            chat_print(tool_result_log)
+
+            add_history_entry({"role": "tool", "name": tool_name, "result": tool_result})
+
+            # После каждого действия пробуем продвинуть план (особенно важно после update_result)
+            try:
+                update_main_plan_progress(main_plan)
+            except Exception:
+                pass
+
+        print("⚠️ Достигнут лимит шагов без финального ответа.")
+        emit_execution_time(start, emit=print, print_time_smile=True)
+        return "Лимит шагов исчерпан без решения"
+    finally:
+        if ctx_set:
+            try:
+                from task_runtime.task_context import clear_current_task  # noqa: WPS433
+                clear_current_task()
+            except Exception:
+                pass
 
 
 

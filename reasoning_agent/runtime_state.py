@@ -9,21 +9,20 @@
 
 from __future__ import annotations
 
+import threading
 from typing import Any
 
-_MAIN_PLAN: dict[str, Any] | None = None
-_LONG_TERM_MEMORY: list[Any] | None = None
+_tls = threading.local()
 
 
 def set_main_plan(plan: dict[str, Any] | None) -> None:
     """Устанавливает текущий main_plan (ссылка сохраняется)."""
-    global _MAIN_PLAN
-    _MAIN_PLAN = plan if isinstance(plan, dict) else None
+    _tls.main_plan = plan if isinstance(plan, dict) else None
 
 
 def get_main_plan() -> dict[str, Any] | None:
     """Возвращает текущий main_plan (или None, если он ещё не установлен)."""
-    return _MAIN_PLAN
+    return getattr(_tls, "main_plan", None)
 
 
 def set_long_term_memory(memory: list[Any] | None) -> None:
@@ -32,12 +31,11 @@ def set_long_term_memory(memory: list[Any] | None) -> None:
 
     Важно: должна быть именно ссылка на list, который мутируется in-place (append/extend).
     """
-    global _LONG_TERM_MEMORY
-    _LONG_TERM_MEMORY = memory if isinstance(memory, list) else None
+    _tls.long_term_memory = memory if isinstance(memory, list) else None
 
 
 def get_long_term_memory() -> list[Any] | None:
     """Возвращает текущую long_term_memory (или None, если она ещё не установлена)."""
-    return _LONG_TERM_MEMORY
+    return getattr(_tls, "long_term_memory", None)
 
 
