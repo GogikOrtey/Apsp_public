@@ -219,6 +219,20 @@ class TaskRegistry:
         except Exception:
             pass
 
+    def _write_status_file(self, info: TaskInfo, status: str) -> None:
+        """
+        Creates a status text file in the task directory based on the outcome.
+        status: "success" or "failed"
+        """
+        try:
+            info.task_dir.mkdir(parents=True, exist_ok=True)
+            if status == "success":
+                (info.task_dir / "RESULT_SUCSESS.txt").write_text("RESULT_SUCSESS. Генерация успешна", encoding="utf-8")
+            elif status == "failed":
+                (info.task_dir / "RESULT_FAILED.txt").write_text("RESULT_FAILED. Генерация неудачна. Причины - описаны в result_code.ts", encoding="utf-8")
+        except Exception:
+            pass
+
     def _append_task_output_log(self, info: TaskInfo, text: str) -> None:
         try:
             info.task_dir.mkdir(parents=True, exist_ok=True)
@@ -254,6 +268,9 @@ class TaskRegistry:
                 info2.status = "done"
                 info2.finished_at = self._now()
                 info2.error = None
+            
+            self._write_status_file(info2, "success")
+
             try:
                 self._update_meta_on_finish(uid, runtime_status="done", error=None)
             except Exception:
@@ -281,6 +298,8 @@ class TaskRegistry:
                     info2.status = "error"
                     info2.finished_at = self._now()
                     info2.error = final_reason
+
+                self._write_status_file(info2, "failed")
 
                 # Пишем лаконичную ошибку в result_code.ts
                 self._write_final_error_result_code(info2, f"🟠{final_reason}\n")
@@ -322,6 +341,8 @@ class TaskRegistry:
                     info2.status = "error"
                     info2.finished_at = self._now()
                     info2.error = final_reason
+
+                self._write_status_file(info2, "failed")
 
                 # Пишем лаконичную ошибку в result_code.ts
                 self._write_final_error_result_code(info2, f"🟠{final_reason}\n")
@@ -389,6 +410,8 @@ class TaskRegistry:
                 info2.status = "error"
                 info2.finished_at = self._now()
                 info2.error = err_str
+
+            self._write_status_file(info2, "failed")
 
             # Пишем результат-ошибку в result_code.ts (чтобы main_page_3 и скачивание работали)
             self._write_final_error_result_code(info2, error_text)

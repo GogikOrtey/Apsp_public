@@ -60,6 +60,7 @@
   - `result_code.ts` кладётся в `RESULT_TASKS/<uid>/result_code.ts`:
     - при успешной генерации — итоговый TypeScript код
     - при падении пайплайна — stacktrace/текст ошибки, чтобы страница результата и скачивание работали предсказуемо
+  - По завершении создаётся `RESULT_SUCSESS.txt` (при успехе) или `RESULT_FAILED.txt` (при ошибке), которые попадают в итоговый ZIP.
 
 ## Точка входа генерации
 
@@ -147,7 +148,7 @@
 #### Скачивание (по UID задачи)
 
 - **`GET /download/parser_ts/<uid>`**: скачивает `result_code.ts` как attachment.
-- **`GET /download/all_files_zip/<uid>`**: скачивает ZIP (`result_code.ts`, `output.log`, `useful_log.log`, `chat_output.log`, + optional `meta.json`).
+- **`GET /download/all_files_zip/<uid>`**: скачивает ZIP (`result_code.ts`, `output.log`, `useful_log.log`, `chat_output.log`, + optional `meta.json`, `RESULT_SUCSESS.txt` / `RESULT_FAILED.txt`).
 
 #### Legacy / совместимость (всегда 410)
 

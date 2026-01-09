@@ -808,6 +808,8 @@ def download_all_files_zip_uid(uid):
     # meta.json добавляем best-effort: старые задачи могли быть сгенерированы без него.
     optional = [
         ('meta.json', info.task_dir / "meta.json"),
+        ('RESULT_SUCSESS.txt', info.task_dir / "RESULT_SUCSESS.txt"),
+        ('RESULT_FAILED.txt', info.task_dir / "RESULT_FAILED.txt"),
     ]
     missing = [name for name, p in required if not p.is_file()]
     if missing:
