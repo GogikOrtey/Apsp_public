@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block title %}Неверная страница — UID{% endblock %}
+
+{% block extra_css %}
+<style>
+    .uid-error {
+        text-align: center;
+    }
+
+    .uid-error__title {
+        font-size: 22px;
+        margin-bottom: 14px;
+    }
+
+    .uid-error__text {
+        color: #444;
+        line-height: 1.6;
+        margin: 0 auto;
+        max-width: 560px;
+    }
+
+    .uid-error__actions {
+        margin-top: 22px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .uid-error__btn {
+        width: 100%;
+        max-width: 520px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="uid-error">
+    <h1 class="uid-error__title">Вы перешли на неверную страницу - UID задачи {{ uid_phrase }}</h1>
+    <p class="uid-error__text">
+        В этом сервисе каждой задаче присваивается уникальный UID. Кажется, вы перешли на страницу, без него, либо с указанием неправильного UID задачи. Данные генерации хранятся в системе 7 дней, после чего удаляются. Попробуйте запустить генерацию для нужного сайта заново
+    </p>
+    <div class="uid-error__actions">
+        <a class="btn btn-secondary uid-error__btn" href="/">Перейти на главную страницу</a>
+    </div>
+</div>
+{% endblock %}
+
+

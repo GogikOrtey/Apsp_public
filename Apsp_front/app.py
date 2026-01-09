@@ -260,13 +260,28 @@ def main_page_1():
 
     return render_template('main_page_1.html', site_url=site_url)
 
+def _render_invalid_uid_page(uid_state: str):
+    uid_phrase = "не указан" if uid_state == "missing" else "указан неверно"
+    return render_template('invalid_uid.html', uid_phrase=uid_phrase)
+
+
+@app.route('/main_page_2', methods=['GET'])
+@app.route('/main_page_2/', methods=['GET'])
+def main_page_2_no_uid():
+    return _render_invalid_uid_page("missing")
+
 
 @app.route('/main_page_2/<uid>/', methods=['GET'])
 def main_page_2_uid(uid):
     """Дашборд конкретной задачи."""
     if _get_task_info(uid) is None:
-        return redirect(url_for('main_page_1'))
+        return _render_invalid_uid_page("invalid")
     return render_template('main_page_2.html', uid=uid)
+
+@app.route('/main_page_3', methods=['GET'])
+@app.route('/main_page_3/', methods=['GET'])
+def main_page_3_no_uid():
+    return _render_invalid_uid_page("missing")
 
 
 @app.route('/main_page_3/<uid>/', methods=['GET'])
@@ -275,7 +290,7 @@ def main_page_3_uid(uid):
     Страница результатов конкретной задачи.
     """
     if _get_task_info(uid) is None:
-        return redirect(url_for('main_page_1'))
+        return _render_invalid_uid_page("invalid")
     info = TASKS.get(uid)
     if info and info.status in {"running", "created"}:
         return redirect(url_for('main_page_2_uid', uid=uid))

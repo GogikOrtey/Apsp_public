@@ -27,6 +27,7 @@
   - `main_page_1`: ввод URL сайта
   - `main_page_2/<uid>`: наблюдение за генерацией (в UX — 10 шагов; процесс длительный, ~15 минут)
   - `main_page_3/<uid>`: выдача результата
+  - для `main_page_2`/`main_page_3`: отдельная страница, если UID не указан или указан неверно (см. `Apsp_front/templates/invalid_uid.html`)
   - `404`: стандартная страница "не найдено" для любых неправильных URL (кнопка возврата на `/`)
   - служебный: `check_task_status/<uid>`: отдаёт `RESULT_TASKS/<uid>/meta.json`
 
@@ -82,4 +83,54 @@
 - описать контракт “Agent ↔ Tools”
 - зафиксировать API-эндпоинты, которые использует `main_page_2` для статуса/логов/скриншотов
 
+
+## Роуты Flask (`Apsp_front/app.py`)
+
+### Основные (UI)
+
+- **`GET /`**: редирект на `GET /main_page_1`.
+- **`GET|POST /main_page_1`**: форма ввода URL; на `POST` с непустым URL создаёт задачу (UID) и редиректит на `GET /main_page_2/<uid>/`, иначе рендерит `templates/main_page_1.html`.
+- **`GET /main_page_2`** и **`GET /main_page_2/`**: если UID не указан — рендерит `templates/invalid_uid.html` (uid “не указан”).
+- **`GET /main_page_2/<uid>/`**: “дашборд” задачи; если UID неизвестен — `invalid_uid.html`, иначе `templates/main_page_2.html`.
+- **`GET /main_page_3`** и **`GET /main_page_3/`**: если UID не указан — `invalid_uid.html` (uid “не указан”).
+- **`GET /main_page_3/<uid>/`**: страница результата; если задача ещё в работе — редирект на `GET /main_page_2/<uid>/`, если UID неизвестен — `invalid_uid.html`, иначе `templates/main_page_3.html`.
+- **`GET|POST /example2`**: тестовая/примерная форма без запуска пайплайна; рендерит `templates/example2.html`.
+
+### Системные / служебные / API
+
+- **`404 handler`**: для URL вида `/api/*` возвращает JSON `{"ok":false,"error":"not_found"}` (404), иначе рендерит `templates/page_404.html`.
+- **`GET /check_task_status/<uid>/`**: отдаёт `RESULT_TASKS/<uid>/meta.json` (JSON, no-cache). Ошибки: `task_not_found/meta_not_found/meta_read_failed`.
+
+- **`GET /content/<path:filename>`**: отдаёт статические файлы из `Apsp_front/content/`.
+- **`GET /favicon.ico`**: отдаёт `Apsp_front/content/favicon_2.png`.
+- **`GET /.well-known/appspecific/com.chrome.devtools.json`**: отдаёт `{}` (JSON) чтобы убрать 404-предупреждения Chrome DevTools.
+
+#### API (по UID задачи)
+
+- **`GET /api/task/<uid>/status`**: JSON со статусом задачи: `uid`, `url`, `status`, `error` (или 404 `{"ok":false,"error":"not_found"}`).
+- **`GET /api/task/<uid>/new_page_2_state`**: JSON состояния `main_page_2` из `RESULT_TASKS/<uid>/new_page_2_state.json` (или 404).
+- **`POST /api/task/<uid>/new_page_2_state`**: обновляет состояние (либо `{field,value}`, либо массово разрешёнными полями); возвращает `{"ok":true}` или JSON-ошибку.
+- **`GET /api/task/<uid>/browser_screenshot`**: отдаёт `image/png` из `task_runtime.screenshot_store` (или 404 текстом `task_not_found/screenshot_not_available`).
+- **`POST /api/task/<uid>/browser_screenshot_push`**: принимает raw PNG-байты и сохраняет в `task_runtime.screenshot_store`; возвращает `{"ok":true}` или JSON-ошибку.
+- **`GET /api/task/<uid>/logs/output`**: текст `RESULT_TASKS/<uid>/output.log` (поддерживает `?tail_bytes=...`, no-cache).
+- **`GET /api/task/<uid>/logs/useful`**: текст `RESULT_TASKS/<uid>/useful_log.log` (поддерживает `?tail_bytes=...`, no-cache).
+- **`GET /api/task/<uid>/logs/chat`**: текст `RESULT_TASKS/<uid>/chat_output.log` (поддерживает `?tail_bytes=...`, no-cache).
+- **`GET /api/task/<uid>/result_code`**: текст `RESULT_TASKS/<uid>/result_code.ts` (или 404).
+
+#### Скачивание (по UID задачи)
+
+- **`GET /download/parser_ts/<uid>`**: скачивает `result_code.ts` как attachment.
+- **`GET /download/all_files_zip/<uid>`**: скачивает ZIP (`result_code.ts`, `output.log`, `useful_log.log`, `chat_output.log`, + optional `meta.json`).
+
+#### Legacy / совместимость (всегда 410)
+
+- **`GET /api/log`**, **`GET /api/useful_log`**, **`GET /api/front_main_status`**, **`GET /api/result_code`**, **`GET /api/message_global`**: всегда `410` JSON `{"ok":false,"error":"use_uid_endpoints"}`.
+- **`GET /download/parser_ts`**, **`GET /download/all_files_zip`**: всегда `410` JSON `{"ok":false,"error":"use_uid_endpoints"}`.
+
+#### API без UID (глобальные файлы/состояния)
+
+- **`GET /api/new_page_2_state`**: JSON-состояние из `result_code_gen/result/new_page_2_state.json` (используется legacy-флоу).
+- **`POST /api/new_page_2_state`**: обновляет это состояние; возвращает `{"ok":true}` или JSON-ошибку.
+- **`GET /api/browser_screenshot`**: отдаёт последний (или актуальный) PNG-скриншот текущей вкладки Playwright (через пуш-кадр или `shared_page`); 404 `browser_not_started`.
+- **`POST /api/browser_screenshot_push`**: принимает raw PNG-байты и сохраняет как “последний кадр” для `GET /api/browser_screenshot`; возвращает `{"ok":true}` или JSON-ошибку.
 
