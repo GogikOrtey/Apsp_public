@@ -5,7 +5,7 @@ https://domplitok.ru - сайт жутко лагает, но работает. 
 https://makitatrading.ru
 https://galleryceramics.ru
 https://kotel-nasos.ru
-https://makita.one
+https://makita.one - Есть всплывающее окно (но оно проходится). Сам сайт не работает - поиск выдаёт ошибку Bitrix\Main\DB\Mysql
 https://makita-land.ru
 https://makitatrading.ru
 https://systemarf.ru
@@ -67,11 +67,9 @@ https://trial-market.ru
 
 ————————————————————————
 
-Не справился (запускал в параллеле):
+Проблемные:
 
-https://domo-terra.ru/
 
-Также не обновляются скриншоты окон при параллеле
 
 
 

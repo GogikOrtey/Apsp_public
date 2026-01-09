@@ -348,8 +348,8 @@ SYSTEM_PROMPT = """
 - 5. Ты НИКОГДА не выполняешь следующий шаг сам.
 """
 
-print(f"SYSTEM_PROMPT = {SYSTEM_PROMPT}")
-chat_print(f"SYSTEM_PROMPT = {SYSTEM_PROMPT}")
+# print(f"SYSTEM_PROMPT = {SYSTEM_PROMPT}")
+# chat_print(f"SYSTEM_PROMPT = {SYSTEM_PROMPT}")
 
 
 

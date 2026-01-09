@@ -189,13 +189,30 @@ _SESSION_HISTORY_INITIALIZED = False
 def _try_bump_new_page_2_timer_reset_seq() -> None:
     """
     Best-effort сигнал для фронта (`/main_page_2`): инкрементит `timer_reset_seq`
-    в `result_code_gen/result/new_page_2_state.json`, чтобы UI мог сбросить таймер.
+    в state-файле текущей задачи (UID) или (legacy) в `result_code_gen/result/new_page_2_state.json`,
+    чтобы UI мог сбросить таймер.
     """
     try:
         import json
         import os
 
-        state_path = ROOT_DIR / "result_code_gen" / "result" / "new_page_2_state.json"
+        # В многозадачном режиме (UID) пишем в RESULT_TASKS/<uid>/new_page_2_state.json
+        # (контекст выставляется в `Apsp_front/app.py` через `set_current_task(...)`).
+        try:
+            from task_runtime.task_context import get_current_task_dir  # noqa: WPS433
+        except Exception:
+            get_current_task_dir = None
+
+        task_dir = None
+        try:
+            task_dir = get_current_task_dir() if get_current_task_dir else None
+        except Exception:
+            task_dir = None
+
+        if task_dir:
+            state_path = task_dir / "new_page_2_state.json"
+        else:
+            state_path = ROOT_DIR / "result_code_gen" / "result" / "new_page_2_state.json"
 
         try:
             with state_path.open("r", encoding="utf-8") as f:

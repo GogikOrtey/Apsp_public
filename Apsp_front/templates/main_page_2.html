@@ -218,6 +218,12 @@
         line-height: 1;
     }
 
+    /* Таймер слева снизу (время с момента открытия main_page_2) */
+    .corner-timer--left {
+        left: 16px;
+        right: auto;
+    }
+
     /* Адаптив: на узких экранах — одна колонка */
     @media (max-width: 1100px) {
         .container { max-width: 900px !important; }
@@ -300,8 +306,13 @@
 </div>
 
 <!-- Таймер (секунды с 1 десятичным знаком) -->
-<div class="corner-timer" id="corner_timer" title="Таймер (сбрасывается при завершении вызова ChatGPT)">
+<div class="corner-timer" id="corner_timer" title="Количество секунд с последнего ответа ChatGPT">
     <span id="corner_timer_value">0.0</span>
+</div>
+
+<!-- Общий таймер (с момента открытия main_page_2 до окончания генерации) -->
+<div class="corner-timer corner-timer--left" id="corner_total_timer" title="Общее время с начала генерации">
+    <span id="corner_total_timer_value">0 сек.</span>
 </div>
 {% endblock %}
 
@@ -364,6 +375,52 @@
         if (timerRafId == null) return;
         try { window.cancelAnimationFrame(timerRafId); } catch (e) {}
         timerRafId = null;
+    }
+
+    // --- Общий таймер (с начала main_page_2, без десятых) ---
+    let totalTimerStartMs = 0;
+    let totalTimerRafId = null;
+    let totalTimerLastWholeSecond = null;
+
+    function _formatTotalSeconds(seconds) {
+        const s = Math.max(0, Math.floor(Number(seconds) || 0));
+        if (s < 60) return `${s} сек.`;
+        const m = Math.floor(s / 60);
+        const r = s % 60;
+        return `${m} мин. ${r} сек.`;
+    }
+
+    function initTotalTimerStart() {
+        if (totalTimerStartMs > 0) return; // не сбрасываем
+        totalTimerStartMs = _nowMs();
+        totalTimerLastWholeSecond = null;
+        paintTotalTimer();
+    }
+
+    function paintTotalTimer() {
+        const el = document.getElementById('corner_total_timer_value');
+        if (!el) return;
+        if (!totalTimerStartMs) return;
+        const elapsedS = Math.max(0, (_nowMs() - totalTimerStartMs) / 1000);
+        const whole = Math.floor(elapsedS + 1e-6);
+        if (totalTimerLastWholeSecond === whole) return;
+        totalTimerLastWholeSecond = whole;
+        el.textContent = _formatTotalSeconds(whole);
+    }
+
+    function startTotalTimerLoop() {
+        if (totalTimerRafId != null) return;
+        const loop = () => {
+            paintTotalTimer();
+            totalTimerRafId = window.requestAnimationFrame(loop);
+        };
+        totalTimerRafId = window.requestAnimationFrame(loop);
+    }
+
+    function stopTotalTimerLoop() {
+        if (totalTimerRafId == null) return;
+        try { window.cancelAnimationFrame(totalTimerRafId); } catch (e) {}
+        totalTimerRafId = null;
     }
 
     // --- Вкладки: "Текущее окно браузера" / "Результат последней фазы" ---
@@ -629,6 +686,8 @@
         initNewPage2LogTabs();
         resetCornerTimer();
         startCornerTimerLoop();
+        initTotalTimerStart();
+        startTotalTimerLoop();
         pollNewPage2State();
         setInterval(pollNewPage2State, 250);
 
@@ -652,6 +711,8 @@
             if (typeof __setNewPage2LogTab === 'function') __setNewPage2LogTab('global');
             resetCornerTimer();
             startCornerTimerLoop();
+            initTotalTimerStart();
+            startTotalTimerLoop();
             startBrowserWindowScreenshotLoop();
         }
     });
@@ -659,6 +720,7 @@
     // На всякий случай: при уходе со страницы прекращаем loop
     window.addEventListener('pagehide', function () {
         stopCornerTimerLoop();
+        stopTotalTimerLoop();
         stopBrowserWindowScreenshotLoop();
     });
 </script>
