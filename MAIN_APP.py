@@ -22,6 +22,9 @@ def _env_bool(name: str, default: bool) -> bool:
 if __name__ == "__main__":
     # # Поменять переменную среды для теста можно так:
     # os.environ.setdefault("APSP_TASK_TIMEOUT_SECONDS", "5")
+    
+    # ТЕСТ: ограничение в 1 задачу, чтобы проверить блокировку интерфейса
+    os.environ.setdefault("APSP_MAX_WORKERS", "1")
 
     host = os.environ.get("APSP_HOST", "127.0.0.1")
     port = int(os.environ.get("APSP_PORT", "5000"))

@@ -36,7 +36,7 @@
 
 - **Фронт**: `Apsp_front/` (Flask + Jinja2).
 - **Основные страницы** (см. `Apsp_front/app.py` и `Apsp_front/templates/`):
-  - `main_page_1`: ввод URL сайта
+  - `main_page_1`: ввод URL сайта (добавлен счётчик активных задач в углу)
   - `main_page_2/<uid>`: наблюдение за генерацией (в UX — 10 шагов; процесс длительный, ~15 минут)
   - `main_page_3/<uid>`: выдача результата (код + статистика выполнения)
   - для `main_page_2`/`main_page_3`: отдельная страница, если UID не указан или указан неверно (см. `Apsp_front/templates/invalid_uid.html`)
@@ -49,7 +49,7 @@
 - Каждая генерация получает **уникальный UID**.
 - Реестр задач: `task_runtime/task_registry.py` (`TaskRegistry`).
   - UID формируется как первые 12 символов `uuid4().hex`.
-  - Задача запускается через пул воркеров (внутри используется Playwright pool); лимит параллелизма задаётся `max_workers` (сейчас 10).
+  - Задача запускается через пул воркеров (внутри используется Playwright pool); лимит параллелизма задаётся `max_workers` (по умолчанию 10, можно переопределить через `APSP_MAX_WORKERS`).
   - При ошибке пайплайна делается до **max_attempts попыток** (по умолчанию 1). Только после исчерпания попыток задача становится `FAILED`.
   - После перезапуска Flask `TaskRegistry.get/exists` умеет **best-effort восстановить** задачу по папке `RESULT_TASKS/<uid>` (чтобы можно было открывать страницу результатов по старому UID).
   - В папке задачи пишется `meta.json` (в `RESULT_TASKS/<uid>/meta.json`):
@@ -132,6 +132,10 @@
 - **`GET /content/<path:filename>`**: отдаёт статические файлы из `Apsp_front/content/`.
 - **`GET /favicon.ico`**: отдаёт `Apsp_front/content/favicon_2.png`.
 - **`GET /.well-known/appspecific/com.chrome.devtools.json`**: отдаёт `{}` (JSON) чтобы убрать 404-предупреждения Chrome DevTools.
+
+#### API (общие / статистика)
+
+- **`GET /api/tasks/active_count`**: JSON `{"ok":true,"active":N,"max":M}` — количество текущих задач в статусе `running` и максимальный лимит.
 
 #### API (по UID задачи)
 

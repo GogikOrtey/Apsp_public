@@ -67,6 +67,14 @@ class TaskRegistry:
     def max_attempts(self) -> int:
         return int(self._max_attempts)
 
+    @property
+    def max_workers(self) -> int:
+        return self._pool._max_workers
+
+    def get_active_count(self) -> int:
+        with self._lock:
+            return sum(1 for t in self._tasks.values() if t.status == "running")
+
     def _now(self) -> datetime:
         return datetime.now()
 

@@ -33,10 +33,47 @@
     .example1-form {
         width: 400px;
     }
+
+    /* Таймер (фиксированный блок справа снизу, поверх всего) */
+    .corner-timer {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 99999;
+        background: #ffffff;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 8px 12px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        color: #222;
+        user-select: none;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1;
+    }
+
+    /* Таймер слева сверху */
+    .corner-timer--left-top {
+        left: 16px;
+        top: 16px;
+        right: auto;
+        bottom: auto;
+    }
+
+    .limit-error {
+        color: red;
+        font-weight: bold;
+        margin-top: 8px;
+        display: none;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<div class="corner-timer corner-timer--left-top" id="active_tasks_counter" title="Активные задачи / Максимум">
+    <span id="active_tasks_value">...</span>
+</div>
+
 <form method="POST" class="example1-form" id="new_page_1_form">
     <div class="form-group">
         <label for="site_url" class="example1-label">Введите адрес сайта</label>
@@ -49,6 +86,9 @@
             autocomplete="url"
             inputmode="url"
         >
+        <div id="limit_error" class="limit-error">
+            Достигнут лимит одновременных задач. Пожалуйста, подождите завершения текущих.
+        </div>
     </div>
 
     <button type="submit" class="btn btn-success btn-full" id="new_page_1_submit">Generate</button>
@@ -58,10 +98,57 @@
     (function () {
         const form = document.getElementById('new_page_1_form');
         const input = document.getElementById('site_url');
+        const errorDiv = document.getElementById('limit_error');
+        const counterValue = document.getElementById('active_tasks_value');
+        
+        let currentActive = 0;
+        let currentMax = 10;
+        let isLoaded = false;
+
         if (!form || !input) return;
+
+        // Опрос статуса
+        async function pollStatus() {
+            try {
+                const res = await fetch('/api/tasks/active_count');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.ok) {
+                        currentActive = data.active;
+                        currentMax = data.max;
+                        isLoaded = true;
+                        if (counterValue) {
+                            counterValue.textContent = `${currentActive}/${currentMax}`;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // Запускаем опрос
+        pollStatus();
+        setInterval(pollStatus, 1000);
+
+        // При вводе скрываем ошибку
+        input.addEventListener('input', function() {
+            if (errorDiv) errorDiv.style.display = 'none';
+        });
 
         form.addEventListener('submit', function (e) {
             const v = (input.value || '').trim();
+            
+            // Проверка лимита
+            if (isLoaded && currentActive >= currentMax) {
+                e.preventDefault();
+                if (errorDiv) {
+                    errorDiv.style.display = 'block';
+                    errorDiv.textContent = `Достигнут лимит задач (${currentActive}/${currentMax}). Пожалуйста, подождите.`;
+                }
+                return;
+            }
+
             if (!v) {
                 // По требованию: если пусто — по нажатию кнопки "ничего не происходит"
                 e.preventDefault();

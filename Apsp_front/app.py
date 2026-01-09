@@ -204,7 +204,14 @@ try:
 except Exception:
     # best-effort: не блокируем старт фронта из-за очистки
     pass
-TASKS = TaskRegistry(result_tasks_dir=RESULT_TASKS_DIR, max_workers=10, headless=True)
+
+def _get_max_workers():
+    try:
+        return int(os.environ.get("APSP_MAX_WORKERS", "10"))
+    except:
+        return 10
+
+TASKS = TaskRegistry(result_tasks_dir=RESULT_TASKS_DIR, max_workers=_get_max_workers(), headless=True)
 TASKS.warmup()
 atexit.register(TASKS.shutdown)
 
@@ -636,6 +643,16 @@ def api_task_status(uid):
             ensure_ascii=False,
         ),
         mimetype='application/json; charset=utf-8',
+    )
+
+
+@app.route('/api/tasks/active_count')
+def api_tasks_active_count():
+    active = TASKS.get_active_count()
+    max_w = TASKS.max_workers
+    return FlaskResponse(
+        json.dumps({"ok": True, "active": active, "max": max_w}, ensure_ascii=False),
+        mimetype='application/json; charset=utf-8'
     )
 
 
