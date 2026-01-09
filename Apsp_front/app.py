@@ -13,11 +13,15 @@ Flask-фронт APSP.
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, send_file
 import json
 import sys
+import os
 import threading
 import zipfile
 from pathlib import Path
 from io import BytesIO
 from datetime import datetime
+import time
+import shutil
+import stat
 
 # Корень репозитория (нужно для импорта модулей из верхнего уровня проекта).
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -87,7 +91,77 @@ MESSAGE_GLOBAL_FILE_PATH = RESULT_OUTPUT_DIR / 'message_global.txt'
 LOG_FILE_PATH = PROJECT_ROOT / 'output.log'
 USEFUL_LOG_FILE_PATH = PROJECT_ROOT / 'useful_log.log'
 NEW_PAGE_2_STATE_FILE_PATH = RESULT_OUTPUT_DIR / 'new_page_2_state.json'
-RESULT_TASKS_DIR = PROJECT_ROOT / "RESULT_TASKS"
+
+
+def _resolve_result_tasks_dir() -> Path:
+    """
+    На Linux (контейнер) складываем результаты в /RESULT_TASKS.
+    На Windows — на уровень выше папки проекта (рядом с репозиторием).
+    """
+    if os.name == "nt":
+        return PROJECT_ROOT.parent / "RESULT_TASKS"
+    return Path("/RESULT_TASKS")
+
+
+RESULT_TASKS_DIR = _resolve_result_tasks_dir()
+
+
+def _on_rm_error(func, path, exc_info):
+    # Best-effort handling for Windows read-only files.
+    try:
+        os.chmod(path, stat.S_IWRITE)
+    except Exception:
+        pass
+    try:
+        func(path)
+    except Exception:
+        raise
+
+
+def _cleanup_result_tasks_older_than(days: int = 7) -> int:
+    """
+    Удаляет подпапки в RESULT_TASKS, у которых в meta.json указано,
+    что они созданы старше N дней (по полю created_at_ts).
+
+    Возвращает количество успешно удалённых папок.
+    """
+    root = RESULT_TASKS_DIR
+    if not root.exists() or not root.is_dir():
+        return 0
+
+    cutoff_ts = time.time() - float(days) * 24.0 * 60.0 * 60.0
+    deleted = 0
+
+    for child in root.iterdir():
+        if not child.is_dir():
+            continue
+
+        meta_path = child / "meta.json"
+        if not meta_path.is_file():
+            continue
+
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+
+        created_at_ts = (meta or {}).get("created_at_ts")
+        try:
+            created_at_ts_f = float(created_at_ts)
+        except Exception:
+            continue
+
+        if created_at_ts_f >= cutoff_ts:
+            continue
+
+        try:
+            shutil.rmtree(child, onerror=_on_rm_error)
+            deleted += 1
+        except Exception:
+            # best-effort: не блокируем старт фронта из-за одной плохой папки
+            pass
+
+    return deleted
 NEW_PAGE_2_ALLOWED_FIELDS = {
     "reflection_text",
     "goal_text",
@@ -121,6 +195,13 @@ PUSHED_SCREENSHOT_LOCK = threading.Lock()
 
 # --- Task registry (до 10 параллельных заданий) ---
 install_print_router()
+try:
+    deleted_old = _cleanup_result_tasks_older_than(days=7)
+    if deleted_old > 0:
+        print(f"RESULT_TASKS cleanup: deleted {deleted_old} folder(s) older than 7 days")
+except Exception:
+    # best-effort: не блокируем старт фронта из-за очистки
+    pass
 TASKS = TaskRegistry(result_tasks_dir=RESULT_TASKS_DIR, max_workers=10, headless=True)
 TASKS.warmup()
 atexit.register(TASKS.shutdown)
