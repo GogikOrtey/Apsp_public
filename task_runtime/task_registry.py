@@ -13,7 +13,7 @@ from uuid import uuid4
 
 from task_runtime.playwright_pool import PlaywrightPool
 from task_runtime.stop_store import UserStopException, clear_stop, get_stop_reason, USER_STOP_MESSAGE
-from task_runtime.timeout_store import TaskTimeoutException, TASK_TIMEOUT_MESSAGE
+from task_runtime.timeout_store import TaskTimeoutException, TASK_TIMEOUT_MESSAGE, _normalize_timeout_seconds
 
 
 @dataclass
@@ -300,7 +300,20 @@ class TaskRegistry:
 
             # Таймаут выполнения: без ретраев, сразу финальный error/FAILED.
             if isinstance(exc, TaskTimeoutException) or (err_str == TASK_TIMEOUT_MESSAGE):
-                final_reason = err_str or TASK_TIMEOUT_MESSAGE
+                # Добавляем инфо о длительности (в минутах)
+                try:
+                    limit_s = _normalize_timeout_seconds(None)
+                    limit_min = int(limit_s / 60)
+                    msg_suffix = f" ({limit_min} мин)"
+                except Exception:
+                    msg_suffix = ""
+
+                base_reason = err_str or TASK_TIMEOUT_MESSAGE
+                # Если в тексте ошибки уже есть минуты — не дублируем (на случай если текст поменяется в будущем)
+                if "мин)" not in base_reason:
+                    final_reason = f"{base_reason}{msg_suffix}"
+                else:
+                    final_reason = base_reason
 
                 with self._lock:
                     info2 = self._tasks.get(uid)
