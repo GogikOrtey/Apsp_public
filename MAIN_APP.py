@@ -20,10 +20,8 @@ def _env_bool(name: str, default: bool) -> bool:
     return v in ("1", "true", "yes", "y", "on")
 
 if __name__ == "__main__":
-    # Для быстрого теста таймаута можно задать лимит тут (в секундах).
-    # Внешняя переменная окружения (если задана) имеет приоритет.
-    # Пример для теста: "10" (10 секунд). Для прод: "1800" (30 минут).
-    os.environ.setdefault("APSP_TASK_TIMEOUT_SECONDS", "30")
+    # # Поменять переменную среды для теста можно так:
+    # os.environ.setdefault("APSP_TASK_TIMEOUT_SECONDS", "5")
 
     host = os.environ.get("APSP_HOST", "127.0.0.1")
     port = int(os.environ.get("APSP_PORT", "5000"))

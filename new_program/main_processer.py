@@ -245,7 +245,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None, started_at_
     # from playwright_tool.shared_page import sleep_with_screenshot_push
     # sleep_with_screenshot_push(50000, interval_s=5)
 
-    # # raise ValueError("Время для тестового прогона завершено")
+    # raise ValueError("Время для тестового прогона завершено")
 
 
 
