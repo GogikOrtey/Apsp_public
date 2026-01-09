@@ -9,15 +9,16 @@
     <div style="margin-bottom: 10px; color: #2c2c2c; font-size: 15px;">
     <!-- <div style="margin-bottom: 10px; font-size: 14px;"> -->
         {% set status_text = "успешна" if meta.get('status') == 'COMPLETED' else "неудачна" %}
+        {% set status_icon = "🟩" if meta.get('status') == 'COMPLETED' else "🟠" %}
         
-        {% set start_time = meta.get('started_at_human', '—') %}
+        {% set start_time = meta.get('started_at_display', '—') %}
         
         {% set duration = 0 %}
         {% if meta.get('finished_at_ts') and meta.get('started_at_ts') %}
             {% set duration = ((meta.finished_at_ts - meta.started_at_ts) / 60)|round(1) %}
         {% endif %}
         
-        Генерация {{ status_text }}, время начала - {{ start_time }}, время генерации {{ duration }} минут
+        {{ status_icon }} Генерация {{ status_text }}, время начала - {{ start_time }}, время генерации {{ duration }} минут
     </div>
 {% endif %}
 

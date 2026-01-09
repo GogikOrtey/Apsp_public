@@ -488,6 +488,28 @@ def main_page_3_uid(uid):
         meta_path = info.task_dir / "meta.json"
         if meta_path.is_file():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
+
+        # Format date for display: DD.MM.YYYY HH:MM
+        ts = meta.get("started_at_ts")
+        if ts:
+            try:
+                dt = datetime.fromtimestamp(float(ts))
+                meta["started_at_display"] = dt.strftime("%d.%m.%Y %H:%M")
+            except Exception:
+                meta["started_at_display"] = "—"
+        else:
+            # Fallback to parsing human string if ts missing
+            human = meta.get("started_at_human", "")
+            if human:
+                try:
+                    # Expecting "YYYY-MM-DD HH:MM:SS"
+                    dt = datetime.strptime(human, "%Y-%m-%d %H:%M:%S")
+                    meta["started_at_display"] = dt.strftime("%d.%m.%Y %H:%M")
+                except Exception:
+                    meta["started_at_display"] = human
+            else:
+                meta["started_at_display"] = "—"
+
     except Exception:
         pass
 
