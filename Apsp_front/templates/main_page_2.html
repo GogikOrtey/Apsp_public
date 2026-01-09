@@ -34,13 +34,44 @@
         min-height: 0;
     }
 
-    .page-title {
+    /* Шапка страницы: заголовок (центр) + GIF поверх слоёв (НЕ влияет на layout) */
+    .page-header {
         margin: -14px 0 10px 0;
         flex: 0 0 auto;
+        text-align: center;
+    }
+
+    /* Обёртка под заголовок: центрируем текст и рисуем GIF абсолютно справа от текста */
+    .page-title-wrap {
+        display: inline-block;
+        position: relative;
+        /* Сдвиг влево на половину ширины GIF (40px / 2 = 20px) */
+        transform: translateX(-20px);
+    }
+
+    .page-title {
+        margin: 0;
+        display: inline-block;
         text-align: center;
         font-size: 20px;
         font-weight: 700;
         color: #222;
+        line-height: 1.2;
+    }
+
+    /* GIF-лоадер: абсолютно справа от текста, не занимает место в потоке */
+    .page-title-loader {
+        position: absolute;
+        left: calc(100% + 8px);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        max-width: 40px;
+        max-height: 40px;
+        object-fit: contain;
+        pointer-events: none;
+        user-select: none;
     }
 
     .col {
@@ -239,7 +270,12 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="page-title">{{ page_heading or "Генерируем парсер" }}</h1>
+<div class="page-header">
+    <div class="page-title-wrap">
+        <h1 class="page-title">{{ page_heading or "Генерируем парсер" }}</h1>
+        <img class="page-title-loader" src="{{ url_for('content', filename='loading_gif_1.gif') }}" alt="" aria-hidden="true" />
+    </div>
+</div>
 
 <div class="main-grid">
     <!-- Левая колонка -->
