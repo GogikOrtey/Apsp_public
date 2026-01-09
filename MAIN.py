@@ -1,10 +1,13 @@
 """ 
 Глобальная основная точка входа в проект
 Что бы точно её не потерять
+
+Для запуска проекта нужно запустить MAIN_APP.py
+И зайти на http://127.0.0.1:5000
+
 """
 
 # Утилиты для обновления текста на фронте (main_page_2.html).
-# Важно: сами функции "молча" игнорируют ошибки соединения (если фронт не запущен).
 from front_client import (
     update_content_front_reasoning,
     update_content_front_goal,
@@ -27,13 +30,6 @@ from new_program.main_processer import *
 
 
 """ 
-
-
-
-Для запуска проекта нужно запустить app.py
-И зайти на http://127.0.0.1:5000
-
-
 
 https://dev.gogorey.ru/auto_gen_parsers/start
 https://dev.gogorey.ru/auto_gen_parsers/main

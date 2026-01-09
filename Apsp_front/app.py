@@ -41,6 +41,16 @@ import atexit
 
 app = Flask(__name__) 
 
+
+def run_dev_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = True) -> None:
+    """
+    Запуск dev-сервера Flask.
+
+    Важно: отключаем reloader, чтобы весь вывод стабильно попадал в одно окно/процесс
+    (особенно при запуске из IDE/DebugPy).
+    """
+    app.run(debug=debug, host=host, port=port, use_reloader=False)
+
 # Абсолютные пути: не зависят от текущей рабочей директории.
 FRONT_DIR = Path(__file__).resolve().parent              # .../APSP_public/Apsp_front
 PROJECT_ROOT = FRONT_DIR.parent                          # .../APSP_public
@@ -704,5 +714,5 @@ if __name__ == '__main__':
     # после чего родительский процесс завершается (в терминале снова появляется приглашение),
     # а все request-логи (GET/POST) и print() оказываются в другом процессе/консоли.
     # Отключаем reloader, чтобы весь вывод стабильно попадал в одно окно.
-    app.run(debug=True, host='127.0.0.1', port=5000, use_reloader=False)
+    run_dev_server(host="127.0.0.1", port=5000, debug=True)
 
