@@ -135,7 +135,7 @@ def _run_task(browser, info: TaskInfo):
     set_current_task(info.uid, info.task_dir)
     info.task_dir.mkdir(parents=True, exist_ok=True)
 
-    # Важно для ретраев: не затираем логи на 2/3 попытке.
+    # Важно для повторных попыток: не затираем логи на следующем запуске по тому же uid.
     attempt_n = 1
     try:
         meta_path = info.task_dir / "meta.json"
@@ -149,7 +149,7 @@ def _run_task(browser, info: TaskInfo):
     out_file = open(info.task_dir / "output.log", out_mode, encoding="utf-8")
     if attempt_n > 1:
         try:
-            out_file.write(f"\n\n--- RETRY attempt {attempt_n}/3 ---\n")
+            out_file.write(f"\n\n--- RETRY attempt {attempt_n}/{TASKS.max_attempts} ---\n")
             out_file.flush()
         except Exception:
             pass

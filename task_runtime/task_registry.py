@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+import os
 import json
 from pathlib import Path
 import re
@@ -26,7 +27,14 @@ class TaskInfo:
 
 
 class TaskRegistry:
-    def __init__(self, *, result_tasks_dir: Path, max_workers: int = 10, headless: bool = True) -> None:
+    def __init__(
+        self,
+        *,
+        result_tasks_dir: Path,
+        max_workers: int = 10,
+        headless: bool = True,
+        max_attempts: int | None = None,
+    ) -> None:
         self._result_tasks_dir = Path(result_tasks_dir)
         self._result_tasks_dir.mkdir(parents=True, exist_ok=True)
         self._pool = PlaywrightPool(max_workers=max_workers, headless=headless)
@@ -35,6 +43,27 @@ class TaskRegistry:
         self._uid_re = re.compile(r"^[0-9a-f]{12}$", re.IGNORECASE)
         self._meta_schema_version = 1
         self._runners: dict[str, Any] = {}
+        self._max_attempts = self._normalize_max_attempts(max_attempts)
+
+    def _normalize_max_attempts(self, max_attempts: int | None) -> int:
+        """
+        Максимальное количество попыток на один UID.
+
+        По умолчанию — 1 (без автоповторов).
+        Чтобы быстро вернуть ретраи: выставить env `APSP_TASK_MAX_ATTEMPTS=3`
+        (или передать max_attempts при создании TaskRegistry).
+        """
+        if max_attempts is None:
+            max_attempts = os.getenv("APSP_TASK_MAX_ATTEMPTS", "1")
+        try:
+            max_attempts = int(max_attempts)
+        except Exception:
+            max_attempts = 1
+        return max(1, int(max_attempts))
+
+    @property
+    def max_attempts(self) -> int:
+        return int(self._max_attempts)
 
     def _now(self) -> datetime:
         return datetime.now()
@@ -91,6 +120,7 @@ class TaskRegistry:
             "schema_version": self._meta_schema_version,
             "uid": self._normalize_uid(uid),
             "url": str(url or ""),
+            "max_attempts": self.max_attempts,
             # Время создания/регистрации задачи (доп. поле)
             "created_at_human": self._dt_human(now),
             "created_at_ts": self._dt_ts(now),
@@ -116,9 +146,10 @@ class TaskRegistry:
             attempts = int(attempts)
         except Exception:
             attempts = 0
-        # Ограничение по ТЗ: 1..3 попытки запуска
-        if attempts >= 3:
-            meta["attempts"] = 3
+        # Ограничение: 1..max_attempts попыток запуска (по умолчанию 1)
+        if attempts >= self.max_attempts:
+            meta["attempts"] = self.max_attempts
+            meta["max_attempts"] = self.max_attempts
             meta.setdefault("schema_version", self._meta_schema_version)
             meta.setdefault("uid", self._normalize_uid(uid))
             self._save_meta(uid, meta)
@@ -134,6 +165,7 @@ class TaskRegistry:
         meta["last_started_at_ts"] = self._dt_ts(now)
 
         meta["attempts"] = attempts
+        meta["max_attempts"] = self.max_attempts
         meta["status"] = "WORK"
         meta["runtime_status"] = "running"
         meta.setdefault("schema_version", self._meta_schema_version)
@@ -208,8 +240,8 @@ class TaskRegistry:
         """
         Обработчик завершения попытки запуска.
 
-        Важно: делаем до 3 попыток (1 запуск + 2 ретрая). Между попытками задача остаётся в статусе running,
-        чтобы UI не переходил на страницу результата раньше времени.
+        Важно: делаем до `max_attempts` попыток (по умолчанию 1, т.е. без ретраев).
+        Между попытками задача остаётся в статусе running, чтобы UI не переходил на страницу результата раньше времени.
         """
         try:
             _ = f.result()
@@ -241,12 +273,12 @@ class TaskRegistry:
                     attempt_no = meta_tmp.get("attempts")
                     self._append_task_output_log(
                         info_tmp,
-                        f"[{self._dt_human(self._now())}] attempt {attempt_no}/3 failed: {err_str}",
+                        f"[{self._dt_human(self._now())}] attempt {attempt_no}/{self.max_attempts} failed: {err_str}",
                     )
             except Exception:
                 pass
 
-            # Пробуем ретрай (до 3 попыток суммарно)
+            # Пробуем ретрай (до max_attempts попыток суммарно)
             try:
                 _, allowed = self._update_meta_on_start(uid)
             except Exception:
@@ -268,7 +300,7 @@ class TaskRegistry:
                 self._submit_run(uid, runner, info2)
                 return
 
-            # Финальный фейл (3-я попытка уже исчерпана)
+            # Финальный фейл (попытки исчерпаны)
             error_text = "🟠 Ошибка генерации: 🟠\n\n" + "".join(
                 traceback.format_exception(type(exc), exc, exc.__traceback__)
             )
@@ -410,7 +442,7 @@ class TaskRegistry:
             # Если задача была в error — разрешаем повторный старт по тому же uid (через новую попытку).
             # Ограничение количества попыток контролируется _update_meta_on_start().
 
-            # Обновляем meta.json и считаем попытки запуска (1..3).
+            # Обновляем meta.json и считаем попытки запуска (1..max_attempts).
             try:
                 _, allowed = self._update_meta_on_start(uid)
                 if not allowed:
