@@ -65,10 +65,10 @@
         left: calc(100% + 8px);
         top: 50%;
         transform: translateY(-50%);
-        width: 40px;
-        height: 40px;
-        max-width: 40px;
-        max-height: 40px;
+        width: 30px;
+        height: 30px;
+        max-width: 30px;
+        max-height: 30px;
         object-fit: contain;
         pointer-events: none;
         user-select: none;
@@ -261,6 +261,26 @@
         right: auto;
     }
 
+    .corner-stop-btn {
+        position: fixed;
+        right: 146px;
+        bottom: 16px;
+        z-index: 100000;
+        padding: 10px 14px;
+        border: none;
+        border-radius: 10px;
+        background: #e53935;
+        color: #fff;
+        font-weight: 700;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+    }
+
+    .corner-stop-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
     /* Адаптив: на узких экранах — одна колонка */
     @media (max-width: 1100px) {
         .container { max-width: 900px !important; }
@@ -347,6 +367,11 @@
     </div>
 </div>
 
+<!-- Кнопка остановки -->
+<button type="button" class="corner-stop-btn" id="stop_generation_btn" aria-label="Остановить генерацию">
+    Stop generation
+</button>
+
 <!-- Таймер (секунды с 1 десятичным знаком) -->
 <div class="corner-timer" id="corner_timer" title="Количество секунд с последнего ответа ChatGPT">
     <span id="corner_timer_value">0.0</span>
@@ -378,6 +403,7 @@
     const USEFUL_LOG_TAIL_BYTES = 500_000;
     const USEFUL_LOG_POLL_MS = 1000;
     let usefulLogRequestInFlight = false;
+    let stopRequestInFlight = false;
 
     // --- Таймер (0.1s) ---
     let timerStartMs = 0;
@@ -722,6 +748,33 @@
         }
     }
 
+    async function stopGeneration() {
+        if (!TASK_UID) return;
+        if (stopRequestInFlight) return;
+        const btn = document.getElementById('stop_generation_btn');
+        stopRequestInFlight = true;
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Stopping...';
+        }
+        try {
+            const resp = await fetch(`/api/task/${TASK_UID}/stop`, { method: 'POST' });
+            if (!resp.ok) {
+                throw new Error('stop_failed');
+            }
+            if (btn) {
+                btn.textContent = 'Stopped';
+            }
+        } catch (e) {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Stop generation';
+            }
+        } finally {
+            stopRequestInFlight = false;
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         resetNewPage2Ui();
         initNewPage2RightTabs();
@@ -743,6 +796,11 @@
         setInterval(pollTaskStatus, 500);
 
         startBrowserWindowScreenshotLoop();
+
+        const stopBtn = document.getElementById('stop_generation_btn');
+        if (stopBtn) {
+            stopBtn.addEventListener('click', stopGeneration);
+        }
     });
 
     // Если браузер восстанавливает страницу из bfcache (Back/Forward), DOMContentLoaded не сработает.

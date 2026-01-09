@@ -27,7 +27,8 @@ if str(ROOT_DIR) not in sys.path:
 
 # Подключение всех библиотек и функций
 from Gen_parseCard.main_gen_parseCard import *
-from import_all_libraries import *
+from import_all_libraries import * 
+from task_runtime.stop_store import raise_if_stop_requested, USER_STOP_MESSAGE
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
 from new_program.html_toolkit import *
@@ -186,6 +187,13 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
             ctx_set = True
         except Exception:
             pass
+    def _check_stop():
+        try:
+            raise_if_stop_requested(uid)
+        except Exception:
+            # propagate UserStopException as-is, let other exceptions bubble too
+            raise
+
     start_time = time.time()
     # 0. Чистим URL, запускам браузер и переходим на него
 
@@ -200,6 +208,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     else:
         set_shared_page(page)
 
+    _check_stop()
     print_ul("Переходим на страницу " + input_url)
     goto_url(
         url = url_input,
@@ -261,6 +270,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     # save_page_html(html_content_zip, filename = "page_html_zip.html")
 
     # region Шаг 1 - HGF
+    _check_stop()
     update_content_front_current_step("Шаг 1/10: Извлечение семантики сайта и селекторов поля ввода поискового запроса")
 
     print_ul("Отправляем главную страницу сайта в модуль HGF - он вытащит из неё селекторы поля ввода поискового запроса, кнопки старта поиска, а также топ-10 запросов из семантики сайта")
@@ -352,6 +362,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None):
     # region Шаг 2 - Агент 
     update_content_front_current_step("Шаг 2/10: Переход на страницу результатов поисковой выдачи")
 
+    _check_stop()
     print_ul("Запускаем агента - он должен нажать перейти по первому поисковому запросу из семантики")
     result_agent_answer_from_2_step = use_agent_for_step_2_gen_parsePage(HGF_result, uid=uid, task_dir=task_dir)
     print("result_agent_answer_from_2_step:")

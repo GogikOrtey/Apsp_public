@@ -12,6 +12,7 @@ from typing import Any
 from uuid import uuid4
 
 from task_runtime.playwright_pool import PlaywrightPool
+from task_runtime.stop_store import UserStopException, clear_stop, get_stop_reason, USER_STOP_MESSAGE
 
 
 @dataclass
@@ -262,6 +263,40 @@ class TaskRegistry:
             return
         except Exception as exc:  # noqa: BLE001
             err_str = str(exc)
+
+            # Пользовательская остановка: без ретраев, сразу финальный error/FAILED.
+            stop_reason = None
+            try:
+                stop_reason = get_stop_reason(uid)
+            except Exception:
+                stop_reason = None
+
+            if isinstance(exc, UserStopException) or (stop_reason and stop_reason in err_str) or (err_str == USER_STOP_MESSAGE):
+                final_reason = stop_reason or (err_str or USER_STOP_MESSAGE)
+                with self._lock:
+                    info2 = self._tasks.get(uid)
+                    if info2 is None:
+                        return
+                    info2.status = "error"
+                    info2.finished_at = self._now()
+                    info2.error = final_reason
+
+                # Пишем лаконичную ошибку в result_code.ts
+                self._write_final_error_result_code(info2, f"🟠{final_reason}\n")
+                try:
+                    self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] stopped by user: {final_reason}")
+                except Exception:
+                    pass
+
+                try:
+                    self._update_meta_on_finish(uid, runtime_status="error", error=final_reason)
+                except Exception:
+                    pass
+
+                with self._lock:
+                    self._runners.pop(uid, None)
+                return
+
             # Сохраняем причину последней ошибки, не переводя задачу в FAILED раньше времени
             self._update_meta_last_error(uid, err_str)
 
@@ -387,6 +422,11 @@ class TaskRegistry:
         uid = uuid4().hex[:12]
         task_dir = self._result_tasks_dir / uid
         task_dir.mkdir(parents=True, exist_ok=True)
+        # На всякий случай сбрасываем стоп-флаг для нового UID.
+        try:
+            clear_stop(uid)
+        except Exception:
+            pass
         # meta.json создаём сразу, чтобы задача была видна после рестарта.
         try:
             self._init_meta(uid=uid, url=str(url))
@@ -447,6 +487,12 @@ class TaskRegistry:
                 _, allowed = self._update_meta_on_start(uid)
                 if not allowed:
                     return
+            except Exception:
+                pass
+
+            # Перед новой попыткой сбрасываем стоп-флаг, чтобы можно было рестартовать.
+            try:
+                clear_stop(uid)
             except Exception:
                 pass
 

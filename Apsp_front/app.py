@@ -34,6 +34,7 @@ if str(ROOT_DIR) not in sys.path:
 from import_all_libraries import *
 from new_program.main_processer import *
 from task_runtime.task_registry import TaskRegistry, TaskInfo
+from task_runtime.stop_store import request_stop, USER_STOP_MESSAGE
 from task_runtime.task_context import set_current_task, clear_current_task
 from task_runtime.screenshot_store import TASK_SCREENSHOTS_STATE, TASK_SCREENSHOTS_LOCK
 from task_runtime.print_router import install_print_router, register_thread_io, unregister_thread_io
@@ -584,6 +585,29 @@ def api_task_status(uid):
         ),
         mimetype='application/json; charset=utf-8',
     )
+
+
+@app.route('/api/task/<uid>/stop', methods=['POST'])
+def api_task_stop(uid):
+    info = _get_task_info(uid)
+    if info is None:
+        return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
+
+    try:
+        request_stop(uid, reason=USER_STOP_MESSAGE)
+    except Exception:
+        return FlaskResponse('{"ok":false,"error":"stop_failed"}', mimetype='application/json; charset=utf-8', status=500)
+
+    # best-effort лог в output.log, чтобы видно было в UI.
+    try:
+        log_path = info.task_dir / "output.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] stop requested by user\n")
+    except Exception:
+        pass
+
+    return FlaskResponse('{"ok":true}', mimetype='application/json; charset=utf-8')
 
 
 def _task_state_path(info: TaskInfo) -> Path:

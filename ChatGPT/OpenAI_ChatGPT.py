@@ -12,6 +12,7 @@ if str(ROOT_DIR) not in sys.path:
 
 # Подключение всех библиотек и функций
 from import_all_libraries import * 
+from task_runtime.stop_store import raise_if_stop_requested
 
 # Заружаем ключ OpenAI и инициализируем клиент
 load_dotenv()
@@ -161,6 +162,11 @@ def _openai_responses_with_heartbeat(
     interval = max(0.5, float(heartbeat_interval_s))
 
     while not done.wait(timeout=0.25):
+        try:
+            raise_if_stop_requested(None)
+        except Exception:
+            # Прерываем ожидание по запросу пользователя.
+            raise
         now = _time.monotonic()
         if now - last_push >= interval:
             last_push = now
