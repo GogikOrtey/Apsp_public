@@ -390,13 +390,27 @@ def _run_task(browser, info: TaskInfo):
     context = browser.new_context()
     page = context.new_page()
     set_shared_page(page)
-    # Фоновый пуш скриншотов (OS screenshot) в UID-эндпоинт раз в 5 секунд,
-    # чтобы превью на main_page_2 обновлялось даже без действий Playwright.
+    # Важно:
+    # `playwright_tool/screenshot_pusher.py` делает ОС-скриншот (ImageGrab) и поэтому
+    # на `main_page_2` может отображаться "рабочий стол" вместо страницы Playwright.
+    # Кроме того, при внешнем домене (например, ngrok) это может сильно грузить сеть.
+    #
+    # По умолчанию desktop-screenshot pusher ВЫКЛЮЧЕН. Включить можно только явно:
+    #   APSP_ENABLE_DESKTOP_SCREENSHOT_PUSHER=1
+    # Интервал (сек): APSP_DESKTOP_SCREENSHOT_PUSHER_INTERVAL_S (по умолчанию 5.0)
+    _enable_desktop_pusher = str(os.environ.get("APSP_ENABLE_DESKTOP_SCREENSHOT_PUSHER", "")).strip() == "1"
+    _desktop_pusher_interval_s = 5.0
     try:
-        from playwright_tool.screenshot_pusher import start_screenshot_pusher  # noqa: WPS433
-        start_screenshot_pusher(interval_s=5.0, uid=info.uid)
+        if os.environ.get("APSP_DESKTOP_SCREENSHOT_PUSHER_INTERVAL_S") is not None:
+            _desktop_pusher_interval_s = float(os.environ.get("APSP_DESKTOP_SCREENSHOT_PUSHER_INTERVAL_S") or 5.0)
     except Exception:
-        pass
+        _desktop_pusher_interval_s = 5.0
+    if _enable_desktop_pusher:
+        try:
+            from playwright_tool.screenshot_pusher import start_screenshot_pusher  # noqa: WPS433
+            start_screenshot_pusher(interval_s=_desktop_pusher_interval_s, uid=info.uid)
+        except Exception:
+            pass
     try:
         main_processer(
             info.url,
@@ -406,11 +420,12 @@ def _run_task(browser, info: TaskInfo):
             started_at_ts=started_at_ts,
         )
     finally:
-        try:
-            from playwright_tool.screenshot_pusher import stop_screenshot_pusher  # noqa: WPS433
-            stop_screenshot_pusher(uid=info.uid)
-        except Exception:
-            pass
+        if _enable_desktop_pusher:
+            try:
+                from playwright_tool.screenshot_pusher import stop_screenshot_pusher  # noqa: WPS433
+                stop_screenshot_pusher(uid=info.uid)
+            except Exception:
+                pass
         clear_shared_page()
         try:
             context.close()

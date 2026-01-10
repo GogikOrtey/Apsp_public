@@ -415,6 +415,13 @@
 {% block extra_js %}
 <script>
     const TASK_UID = (location.pathname.split('/').filter(Boolean).pop()) || '';
+    const __APSP_IS_REMOTE_HOST = !(['127.0.0.1', 'localhost'].includes((location.hostname || '').toLowerCase()));
+
+    // На внешних доменах (ngrok) слишком частый polling может "убить" туннель.
+    // Поэтому делаем интервалы более щадящими.
+    const __APSP_POLL_NEW_PAGE_2_STATE_MS = __APSP_IS_REMOTE_HOST ? 1000 : 250;
+    const __APSP_POLL_TASK_STATUS_MS = __APSP_IS_REMOTE_HOST ? 2000 : 500;
+    const __APSP_SCREENSHOT_REFRESH_MS = __APSP_IS_REMOTE_HOST ? 10000 : 5000;
     const NEW_PAGE_2_FIELDS = [
         'reflection_text',
         'goal_text',
@@ -426,11 +433,11 @@
 
     let lastStateJson = null;
     let lastTimerResetSeq = null;
-    const GLOBAL_LOG_TAIL_BYTES = 500_000; // ~0.5MB хвоста лога вместо чтения всего файла
-    const GLOBAL_LOG_POLL_MS = 1000;
+    const GLOBAL_LOG_TAIL_BYTES = __APSP_IS_REMOTE_HOST ? 200_000 : 500_000; // ~0.2MB/0.5MB хвоста лога вместо чтения всего файла
+    const GLOBAL_LOG_POLL_MS = __APSP_IS_REMOTE_HOST ? 2000 : 1000;
     let globalLogRequestInFlight = false;
-    const USEFUL_LOG_TAIL_BYTES = 500_000;
-    const USEFUL_LOG_POLL_MS = 1000;
+    const USEFUL_LOG_TAIL_BYTES = __APSP_IS_REMOTE_HOST ? 200_000 : 500_000;
+    const USEFUL_LOG_POLL_MS = __APSP_IS_REMOTE_HOST ? 2000 : 1000;
     let usefulLogRequestInFlight = false;
     let stopRequestInFlight = false;
 
@@ -555,7 +562,7 @@
 
         refresh();
         if (__browserWindowScreenshotTimer != null) return;
-        __browserWindowScreenshotTimer = setInterval(refresh, 5000);
+        __browserWindowScreenshotTimer = setInterval(refresh, __APSP_SCREENSHOT_REFRESH_MS);
     }
 
     function stopBrowserWindowScreenshotLoop() {
@@ -813,7 +820,7 @@
         initTotalTimerStart();
         startTotalTimerLoop();
         pollNewPage2State();
-        setInterval(pollNewPage2State, 250);
+        setInterval(pollNewPage2State, __APSP_POLL_NEW_PAGE_2_STATE_MS);
 
         updateGlobalLogContent();
         setInterval(updateGlobalLogContent, GLOBAL_LOG_POLL_MS);
@@ -822,7 +829,7 @@
         setInterval(updateUsefulLogContent, USEFUL_LOG_POLL_MS);
 
         pollTaskStatus();
-        setInterval(pollTaskStatus, 500);
+        setInterval(pollTaskStatus, __APSP_POLL_TASK_STATUS_MS);
 
         startBrowserWindowScreenshotLoop();
 

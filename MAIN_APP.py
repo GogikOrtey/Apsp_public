@@ -91,8 +91,8 @@ if __name__ == "__main__":
     #         Это параллельный поток.
     #         """
 
-    # #         telegram_connect.try_send_to_log_chat("Текст для отправки в Log chat")
-    # #         telegram_connect.try_send_to_info_chat("Текст для отправки в Info chat")
+    #         telegram_connect.try_send_to_log_chat("Текст для отправки в Log chat")
+    #         telegram_connect.try_send_to_info_chat("Текст для отправки в Info chat")
             
     #     except Exception as e:
     #         print(e)

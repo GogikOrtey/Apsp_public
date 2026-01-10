@@ -134,10 +134,13 @@
 
 - Инструменты взаимодействия агента с браузером: `playwright_tool/`.
 - Ключевой файл: `playwright_tool/playwright_toolkit.py` — набор tools для “живого” управления страницей (переходы, клики, ожидания, поиск, чтение HTML и т.д.).
-- Для обновления превью-скриншота на `main_page_2` без действий Playwright используется фоновый pusher:
-  - `playwright_tool/screenshot_pusher.py`: делает OS-level screenshot (Pillow `ImageGrab`) и пушит PNG в Flask
-  - в режиме UID — в `/api/task/<uid>/browser_screenshot_push` (см. `_run_task()` в `Apsp_front/app.py`)
-- Вызовы OpenAI в `ChatGPT/OpenAI_ChatGPT.py` обёрнуты heartbeat-циклом: пока ждём ответ, раз в ~5 секунд пушится Playwright-скриншот через `maybe_push_screenshot_to_front`, чтобы превью обновлялось даже во время долгих LLM-запросов.
+- Превью-скриншот на `main_page_2` берётся из `GET /api/task/<uid>/browser_screenshot` (сервер хранит последний кадр в `task_runtime/screenshot_store.py`).
+- Playwright-скриншоты делаются через `playwright_tool/shared_page.py:maybe_push_screenshot_to_front(...)` (в т.ч. в heartbeat-цикле OpenAI-запросов в `ChatGPT/OpenAI_ChatGPT.py`, раз в ~5 секунд во время ожидания ответа).
+  - Скриншоты автоматически **уменьшаются/оптимизируются** (env `APSP_SCREENSHOT_MAX_WIDTH`, по умолчанию 900) для экономии трафика (важно для ngrok).
+  - По умолчанию скриншоты **не пушатся по HTTP на внешний домен** (ngrok и т.п.), чтобы не создавать лишний трафик “сервер → ngrok → сервер”. Включить можно env `APSP_ALLOW_EXTERNAL_SCREENSHOT_PUSH=1`.
+- `playwright_tool/screenshot_pusher.py` (desktop `ImageGrab`) — вспомогательный debug-pusher, который показывает **рабочий стол**, а не страницу Playwright.
+  - По умолчанию **выключен**; включается только env `APSP_ENABLE_DESKTOP_SCREENSHOT_PUSHER=1` (интервал: `APSP_DESKTOP_SCREENSHOT_PUSHER_INTERVAL_S`, по умолчанию 5.0).
+- На `Apsp_front/templates/main_page_2.html` polling автоматически “замедляется” на внешних доменах (ngrok): реже опрашиваются state/status/logs и реже обновляется скриншот, чтобы не перегружать туннель.
 
 ## Система аккаунтов (куки на стороне клиента)
 

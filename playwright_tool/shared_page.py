@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 import time
 import threading
 from typing import Any, Literal
+import os
+import io
 
 from playwright.sync_api import Page, Response, Request
 from urllib.parse import urlparse, parse_qs
@@ -52,6 +54,52 @@ _NETWORK_BODY_STORE_LIMIT: int = 1_000_000  # символов текста (bes
 
 # Screenshot cache (per-thread, stored in _ctx()).
 _screenshot_lock = threading.Lock()
+
+
+def _shrink_png_bytes(png: bytes, *, max_width: int) -> bytes:
+    """
+    Best-effort уменьшение PNG по ширине + оптимизация размера.
+
+    Зачем:
+    - через внешние домены (ngrok) большие PNG и частые опросы быстро забивают канал
+    - и в локале это экономит CPU/память в `screenshot_store`
+
+    Если Pillow недоступен или вход не PNG — вернёт исходные байты.
+    """
+    try:
+        if not isinstance(png, (bytes, bytearray)) or not png:
+            return png
+        mw = int(max_width or 0)
+        if mw <= 0:
+            return bytes(png)
+        # PNG magic
+        if not (len(png) >= 8 and bytes(png[:8]) == b"\x89PNG\r\n\x1a\n"):
+            return bytes(png)
+
+        from PIL import Image  # type: ignore
+
+        img = Image.open(io.BytesIO(bytes(png)))
+        w, h = img.size
+        if isinstance(w, int) and w > mw and mw > 0:
+            ratio = mw / float(w)
+            new_size = (mw, max(1, int(h * ratio)))
+            img = img.resize(new_size, resample=getattr(Image, "LANCZOS", Image.BICUBIC))
+        out = io.BytesIO()
+        # optimize=True иногда сильно уменьшает размер, но не всегда (best-effort)
+        img.save(out, format="PNG", optimize=True)
+        data = out.getvalue()
+        return data if isinstance(data, (bytes, bytearray)) and data else bytes(png)
+    except Exception:
+        return bytes(png)
+
+
+def _is_local_base_url(base_url: str) -> bool:
+    try:
+        host = urlparse(str(base_url)).hostname or ""
+    except Exception:
+        host = ""
+    host = host.strip().lower()
+    return host in {"127.0.0.1", "localhost"}
 
 
 def set_shared_page(page: Page) -> None:
@@ -132,7 +180,15 @@ def get_cached_screenshot_png(
             png = page.screenshot(type="png", timeout=int(timeout_ms), full_page=bool(full_page))
             if not isinstance(png, (bytes, bytearray)):
                 raise TypeError("page.screenshot() returned non-bytes")
-            c["last_screenshot_png"] = bytes(png)
+
+            # Downscale/optimize to reduce payload (especially for ngrok).
+            max_w = 900
+            try:
+                if os.environ.get("APSP_SCREENSHOT_MAX_WIDTH") is not None:
+                    max_w = int(os.environ.get("APSP_SCREENSHOT_MAX_WIDTH") or 500)
+            except Exception:
+                max_w = 900
+            c["last_screenshot_png"] = _shrink_png_bytes(bytes(png), max_width=max_w)
             c["last_screenshot_ts"] = time.time()
             c["last_screenshot_error"] = None
             return c.get("last_screenshot_png"), {
@@ -199,11 +255,30 @@ def maybe_push_screenshot_to_front(
     if isinstance(ts, (int, float)) and c.get("last_pushed_screenshot_ts") == float(ts):
         return True  # этот кадр уже отправляли
 
+    # По умолчанию НЕ пушим скриншоты по HTTP на внешний домен (ngrok и т.п.):
+    # - это лишний исходящий трафик "сервер -> ngrok -> сервер"
+    # - часто приводит к зависаниям/таймаутам туннеля и нагружает сеть
+    #
+    # Если нужно (например, отдельный фронт), включить можно так:
+    #   APSP_ALLOW_EXTERNAL_SCREENSHOT_PUSH=1
+    allow_external = str(os.environ.get("APSP_ALLOW_EXTERNAL_SCREENSHOT_PUSH", "")).strip() == "1"
+    resolved_base_url = base_url
+    try:
+        if not resolved_base_url:
+            resolved_base_url = os.environ.get("APSP_FRONT_BASE_URL")
+    except Exception:
+        resolved_base_url = resolved_base_url
+
     try:
         # Ленивая загрузка, чтобы не тянуть сеть при импорте.
         from front_client import DEFAULT_FRONT_BASE_URL, push_browser_screenshot_png  # noqa: WPS433
 
-        ok = push_browser_screenshot_png(png, base_url=(base_url or DEFAULT_FRONT_BASE_URL), timeout_s=0.5, uid=effective_uid)
+        target_base_url = (resolved_base_url or DEFAULT_FRONT_BASE_URL)
+        if (not allow_external) and (not _is_local_base_url(str(target_base_url))):
+            # Считаем "ок" (скрин уже сохранён в `screenshot_store` и будет отдан по GET /api/task/<uid>/browser_screenshot)
+            ok = True
+        else:
+            ok = push_browser_screenshot_png(png, base_url=target_base_url, timeout_s=0.5, uid=effective_uid)
         if ok and isinstance(ts, (int, float)):
             c["last_pushed_screenshot_ts"] = float(ts)
         return ok
