@@ -134,6 +134,33 @@
 
 - **`POST /api/account/logout`**: удаляет куку `user_account` через `clear_user_account_cookie()` и возвращает `{"ok": true}`.
 
+## Привязка Telegram-аккаунта через бота (deep-link + webhook)
+
+Есть страница `GET /login_page` (`Apsp_front/templates/login_page.html`) для привязки Telegram.
+
+### Как работает
+
+- На странице логина пользователь нажимает кнопку **"Привязать аккаунт Телеграм"**.
+- Фронт вызывает `POST /api/telegram/auth/start`, получает `token` и ссылку вида `https://t.me/<bot_username>?start=<token>` и открывает Telegram.
+- Пользователь нажимает **Start** у бота → в Telegram приходит сообщение `/start <token>`.
+- Бот отправляет апдейт в наш webhook `POST /api/telegram/webhook/<secret>`.
+- Сервер помечает token как **authorized**, отправляет пользователю сообщение **"Авторизация успешна"** и сохраняет данные пользователя.
+- Браузер опрашивает `GET /api/telegram/auth/status?token=...`, затем вызывает `POST /api/telegram/auth/finish` и получает куки:
+  - `user_account` (для UI; строка вида `@username` или `tg_<id>`)
+  - `user_telegram_id` (HttpOnly; Telegram ID пользователя)
+
+### Где лежит реализация
+
+- Логика Telegram: `telegram_connect.py`
+- Flask API: `Apsp_front/app.py`
+
+### Переменные окружения
+
+- `APSP_TELEGRAM_BOT_TOKEN`: токен бота от BotFather
+- `APSP_TELEGRAM_BOT_USERNAME`: username бота (без `@`)
+- `APSP_TELEGRAM_WEBHOOK_SECRET`: секрет в URL вебхука
+- `APSP_BASE_URL`: базовый URL сервиса (используется в ссылках в сообщениях, по умолчанию `http://127.0.0.1:5000`)
+
 ## TODO для будущих дополнений (когда будет время)
 
 - описать точный пайплайн “10 шагов” и какие артефакты создаются

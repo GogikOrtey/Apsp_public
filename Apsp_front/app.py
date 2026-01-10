@@ -25,6 +25,8 @@ import stat
 from urllib.parse import urlparse
 import re
 
+import telegram_connect
+
 # Корень репозитория (нужно для импорта модулей из верхнего уровня проекта).
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -111,6 +113,18 @@ def _resolve_result_tasks_dir() -> Path:
 
 RESULT_TASKS_DIR = _resolve_result_tasks_dir()
 
+# ============================================================================
+# Telegram connect config (bot auth + messaging)
+# ============================================================================
+
+TELEGRAM_BOT_TOKEN = os.environ.get("APSP_TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_BOT_USERNAME = os.environ.get("APSP_TELEGRAM_BOT_USERNAME", "").strip().lstrip("@")
+TELEGRAM_WEBHOOK_SECRET = os.environ.get("APSP_TELEGRAM_WEBHOOK_SECRET", "").strip()
+APSP_BASE_URL = os.environ.get("APSP_BASE_URL", "http://127.0.0.1:5000").strip()
+
+TELEGRAM_AUTH_DIR = PROJECT_ROOT / "Apsp_front" / "_telegram_auth"
+TELEGRAM_USERS_DIR = PROJECT_ROOT / "Apsp_front" / "_telegram_users"
+
 
 # ============================================================================
 # Централизованные функции для работы с кукой аккаунта
@@ -160,6 +174,49 @@ def clear_user_account_cookie(response):
         response с удалённой кукой
     """
     response.set_cookie('user_account', '', max_age=0)
+    return response
+
+
+# ============================================================================
+# Telegram user cookie helpers
+# ============================================================================
+
+def set_user_telegram_id_cookie(response, tg_id: int, max_age_days: int = 365):
+    """
+    Сохраняем Telegram ID в отдельной куке.
+
+    Примечание по безопасности:
+    - Для продакшена лучше хранить сессии/привязки на сервере и/или подписывать cookie.
+    - Здесь кука используется в основном для UX и уведомлений.
+    """
+    try:
+        tg_id_str = str(int(tg_id))
+    except Exception:
+        tg_id_str = ""
+
+    response.set_cookie(
+        'user_telegram_id',
+        tg_id_str,
+        max_age=max_age_days * 24 * 60 * 60,
+        httponly=True,   # JS не нужен доступ к tg_id
+        secure=False,    # установить True для HTTPS в продакшене
+        samesite='Lax'
+    )
+    return response
+
+
+def get_user_telegram_id_from_cookie() -> int | None:
+    v = request.cookies.get('user_telegram_id')
+    if not v:
+        return None
+    try:
+        return int(v)
+    except Exception:
+        return None
+
+
+def clear_user_telegram_id_cookie(response):
+    response.set_cookie('user_telegram_id', '', max_age=0)
     return response
 
 
@@ -571,6 +628,25 @@ def main_page_1():
                 # Нет готовых результатов или ошибка проверки — создаём новую задачу
                 task = TASKS.create(site_url)
                 TASKS.start(task.uid, _run_task)
+
+                # Best-effort: уведомление в Telegram, если пользователь уже привязан
+                try:
+                    tg_id = get_user_telegram_id_from_cookie()
+                    if tg_id and TELEGRAM_BOT_TOKEN:
+                        domain = _extract_site_domain(site_url) or site_url
+                        msg = (
+                            f"Запустили генерацию парсера для: {domain}\n"
+                            f"UID: {task.uid}\n"
+                            f"Прогресс: {APSP_BASE_URL}/main_page_2/{task.uid}/"
+                        )
+                        threading.Thread(
+                            target=telegram_connect.send_bot_message,
+                            kwargs={"bot_token": TELEGRAM_BOT_TOKEN, "chat_id": int(tg_id), "text": msg},
+                            daemon=True,
+                        ).start()
+                except Exception:
+                    pass
+
                 return redirect(url_for('main_page_2_uid', uid=task.uid))
 
     # Создаём response
@@ -618,6 +694,25 @@ def parser_exists_new_generation():
     # Создаём новую задачу без проверки на существующие результаты
     task = TASKS.create(site_url)
     TASKS.start(task.uid, _run_task)
+
+    # Best-effort: уведомление в Telegram, если пользователь уже привязан
+    try:
+        tg_id = get_user_telegram_id_from_cookie()
+        if tg_id and TELEGRAM_BOT_TOKEN:
+            domain = _extract_site_domain(site_url) or site_url
+            msg = (
+                f"Запустили генерацию парсера для: {domain}\n"
+                f"UID: {task.uid}\n"
+                f"Прогресс: {APSP_BASE_URL}/main_page_2/{task.uid}/"
+            )
+            threading.Thread(
+                target=telegram_connect.send_bot_message,
+                kwargs={"bot_token": TELEGRAM_BOT_TOKEN, "chat_id": int(tg_id), "text": msg},
+                daemon=True,
+            ).start()
+    except Exception:
+        pass
+
     return redirect(url_for('main_page_2_uid', uid=task.uid))
 
 
@@ -1069,7 +1164,114 @@ def api_account_logout():
         mimetype='application/json; charset=utf-8'
     )
     clear_user_account_cookie(response)
+    clear_user_telegram_id_cookie(response)
     return response
+
+
+@app.route('/api/telegram/auth/start', methods=['POST'])
+def api_telegram_auth_start():
+    """
+    Старт Telegram-авторизации:
+    - генерируем временный token
+    - отдаём deep-link на бота: https://t.me/<bot>?start=<token>
+    """
+    if not TELEGRAM_BOT_USERNAME:
+        return FlaskResponse(
+            json.dumps({"ok": False, "error": "bot_username_not_configured"}, ensure_ascii=False),
+            mimetype='application/json; charset=utf-8',
+            status=500,
+        )
+
+    token = telegram_connect.create_auth_token()
+    telegram_connect.create_pending_auth(TELEGRAM_AUTH_DIR, token)
+    telegram_url = f"https://t.me/{TELEGRAM_BOT_USERNAME}?start={token}"
+
+    return FlaskResponse(
+        json.dumps({"ok": True, "token": token, "telegram_url": telegram_url}, ensure_ascii=False),
+        mimetype='application/json; charset=utf-8',
+    )
+
+
+@app.route('/api/telegram/auth/status', methods=['GET'])
+def api_telegram_auth_status():
+    token = (request.args.get("token") or "").strip()
+    payload = telegram_connect.get_auth_status(TELEGRAM_AUTH_DIR, token)
+    return FlaskResponse(json.dumps(payload, ensure_ascii=False), mimetype='application/json; charset=utf-8')
+
+
+@app.route('/api/telegram/auth/finish', methods=['POST'])
+def api_telegram_auth_finish():
+    payload = request.get_json(silent=True) or {}
+    token = (payload.get("token") or "").strip()
+
+    status = telegram_connect.get_auth_status(TELEGRAM_AUTH_DIR, token)
+    if not status.get("ok") or status.get("status") != "authorized":
+        return FlaskResponse(
+            json.dumps({"ok": False, "error": "not_authorized", "status": status.get("status")}, ensure_ascii=False),
+            mimetype='application/json; charset=utf-8',
+            status=400,
+        )
+
+    user = status.get("user") or {}
+    tg_id = user.get("id")
+    tg_username = user.get("username")
+    try:
+        tg_id_int = int(tg_id)
+    except Exception:
+        return FlaskResponse(
+            json.dumps({"ok": False, "error": "bad_user_id"}, ensure_ascii=False),
+            mimetype='application/json; charset=utf-8',
+            status=500,
+        )
+
+    # UI ожидает "username" строкой в user_account cookie (как сейчас в main_page_1.html)
+    if isinstance(tg_username, str) and tg_username.strip():
+        display_username = "@" + tg_username.strip().lstrip("@")
+    else:
+        display_username = f"tg_{tg_id_int}"
+
+    resp = FlaskResponse(
+        json.dumps({"ok": True, "username": display_username, "tg_id": tg_id_int}, ensure_ascii=False),
+        mimetype='application/json; charset=utf-8',
+    )
+    set_user_account_cookie(resp, display_username)
+    set_user_telegram_id_cookie(resp, tg_id_int)
+
+    # Одноразовый токен больше не нужен
+    telegram_connect.consume_auth_token(TELEGRAM_AUTH_DIR, token)
+    return resp
+
+
+@app.route('/api/telegram/webhook/<secret>', methods=['POST'])
+def api_telegram_webhook(secret: str):
+    """
+    Webhook для Telegram Bot API.
+
+    Секрет в URL нужен как простая защита от "случайных" запросов.
+    """
+    if not TELEGRAM_WEBHOOK_SECRET:
+        return FlaskResponse(
+            '{"ok":false,"error":"webhook_not_configured"}',
+            mimetype='application/json; charset=utf-8',
+            status=404,
+        )
+    if secret != TELEGRAM_WEBHOOK_SECRET:
+        return FlaskResponse('{"ok":false,"error":"forbidden"}', mimetype='application/json; charset=utf-8', status=403)
+
+    update = request.get_json(silent=True) or {}
+    try:
+        result = telegram_connect.handle_telegram_update(
+            update,
+            auth_dir=TELEGRAM_AUTH_DIR,
+            users_dir=TELEGRAM_USERS_DIR,
+            bot_token=TELEGRAM_BOT_TOKEN,
+            base_url=APSP_BASE_URL,
+        )
+    except Exception:
+        # Telegram ожидает 200; ошибки лучше не эскалировать
+        result = {"ok": True, "handled": False, "error": "exception"}
+
+    return FlaskResponse(json.dumps(result, ensure_ascii=False), mimetype='application/json; charset=utf-8')
 
 
 @app.route('/api/task/<uid>/stop', methods=['POST'])

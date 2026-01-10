@@ -11,21 +11,10 @@
         Для авторизации - нажмите кнопку ниже, и начните диалог с ботом.
     </p>
 
-    <form id="login-form" method="POST" action="#">
-        <div class="input-group">
-            <input 
-                type="text" 
-                id="telegram-login" 
-                name="telegram_login" 
-                class="login-input" 
-                placeholder="@username"
-                required
-                autocomplete="off"
-            >
-        </div>
-
-        <button type="submit" class="submit-btn">Подтвердить</button>
-    </form>
+    <div class="login-actions">
+        <button type="button" id="telegram-bind-btn" class="submit-btn">Привязать аккаунт Телеграм</button>
+        <div id="telegram-bind-status" class="bind-status" hidden></div>
+    </div>
 
     <p class="info-text">
         После нажатия кнопки нужно будет начать диалог с ботом. Первым сообщением он напишет "Авторизация успешна", и после этого в браузере автоматически произойдёт редирект на 1 страницу Автогенератора. 
@@ -100,6 +89,10 @@
         margin-bottom: 20px;
     }
 
+    .login-actions {
+        margin-top: 10px;
+    }
+
     .login-input {
         width: 100%;
         padding: 14px 18px;
@@ -147,6 +140,17 @@
         background: #6c757d;
         cursor: not-allowed;
         filter: brightness(0.9);
+    }
+
+    .bind-status {
+        margin-top: 12px;
+        padding: 10px 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #fafafa;
+        color: #444;
+        font-size: 14px;
+        line-height: 1.4;
     }
 
     .info-text {
@@ -238,34 +242,131 @@
 {% block extra_js %}
 <script>
     (function () {
-        const form = document.getElementById('login-form');
-        const input = document.getElementById('telegram-login');
-        const submitBtn = form.querySelector('.submit-btn');
+        const bindBtn = document.getElementById('telegram-bind-btn');
+        const statusEl = document.getElementById('telegram-bind-status');
+        if (!bindBtn || !statusEl) return;
 
-        if (!form || !input || !submitBtn) return;
+        function setStatus(text) {
+            statusEl.textContent = text || '';
+            statusEl.hidden = !text;
+        }
 
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            
-            const login = input.value.trim();
-            if (!login) {
-                alert('Пожалуйста, введите логин Телеграма');
+        async function startAuth() {
+            bindBtn.disabled = true;
+            bindBtn.textContent = 'Открываем Telegram...';
+            setStatus('Готовим ссылку для авторизации...');
+
+            try {
+                const res = await fetch('/api/telegram/auth/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data || !data.ok) {
+                    throw new Error((data && data.error) || 'auth_start_failed');
+                }
+
+                if (data.token) {
+                    try {
+                        localStorage.setItem('apsp_tg_auth_token', data.token);
+                        localStorage.setItem('apsp_tg_auth_started_ts', String(Date.now()));
+                    } catch (e) {}
+                }
+
+                setStatus('Откройте Telegram и нажмите “Start” у бота. Ждём подтверждение...');
+
+                // Редиректим в Telegram (веб/приложение)
+                if (data.telegram_url) {
+                    window.location.href = data.telegram_url;
+                } else {
+                    throw new Error('telegram_url_missing');
+                }
+            } catch (err) {
+                console.error(err);
+                bindBtn.disabled = false;
+                bindBtn.textContent = 'Привязать аккаунт Телеграм';
+                setStatus('Не удалось начать авторизацию. Проверьте настройки бота и попробуйте снова.');
+            }
+        }
+
+        async function pollStatusOnce(token) {
+            const url = '/api/telegram/auth/status?token=' + encodeURIComponent(token);
+            const res = await fetch(url, { method: 'GET' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data || !data.ok) return null;
+            return data;
+        }
+
+        async function finishAuth(token) {
+            const res = await fetch('/api/telegram/auth/finish', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data || !data.ok) return null;
+            return data;
+        }
+
+        async function maybeResumeAuth() {
+            let token = null;
+            try { token = localStorage.getItem('apsp_tg_auth_token'); } catch (e) {}
+            if (!token) return;
+
+            bindBtn.disabled = true;
+            bindBtn.textContent = 'Ожидаем подтверждение...';
+            setStatus('Ожидаем подтверждение от бота... (можно вернуться в Telegram и нажать “Start”)');
+
+            const startedTs = (() => {
+                try { return Number(localStorage.getItem('apsp_tg_auth_started_ts') || '0'); } catch (e) { return 0; }
+            })();
+
+            const startedAgeMs = startedTs ? (Date.now() - startedTs) : 0;
+            if (startedTs && startedAgeMs > 30 * 60 * 1000) {
+                // Если токен старый — сбрасываем, чтобы не висеть вечно
+                try { localStorage.removeItem('apsp_tg_auth_token'); } catch (e) {}
+                try { localStorage.removeItem('apsp_tg_auth_started_ts'); } catch (e) {}
+                bindBtn.disabled = false;
+                bindBtn.textContent = 'Привязать аккаунт Телеграм';
+                setStatus('Прошло слишком много времени. Нажмите кнопку ещё раз, чтобы начать заново.');
                 return;
             }
 
-            // TODO: Здесь будет логика отправки на сервер
-            console.log('Telegram login:', login);
-            
-            // Временная заглушка
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Обработка...';
-            
-            setTimeout(() => {
-                alert('Логика авторизации будет реализована позже');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Подтвердить';
-            }, 1000);
-        });
+            let pollTimer = null;
+            const poll = async () => {
+                try {
+                    const st = await pollStatusOnce(token);
+                    if (!st) return;
+                    if (st.status === 'authorized') {
+                        setStatus('Подтверждено. Завершаем авторизацию...');
+                        const fin = await finishAuth(token);
+                        if (fin) {
+                            try { localStorage.removeItem('apsp_tg_auth_token'); } catch (e) {}
+                            try { localStorage.removeItem('apsp_tg_auth_started_ts'); } catch (e) {}
+                            setStatus('Авторизация успешна. Перенаправляем...');
+                            window.location.href = '/main_page_1';
+                        }
+                        return;
+                    }
+                    if (st.status === 'expired') {
+                        try { localStorage.removeItem('apsp_tg_auth_token'); } catch (e) {}
+                        try { localStorage.removeItem('apsp_tg_auth_started_ts'); } catch (e) {}
+                        bindBtn.disabled = false;
+                        bindBtn.textContent = 'Привязать аккаунт Телеграм';
+                        setStatus('Токен истёк. Нажмите кнопку ещё раз.');
+                        return;
+                    }
+                } catch (e) {
+                    console.error(e);
+                } finally {
+                    pollTimer = setTimeout(poll, 1500);
+                }
+            };
+            pollTimer = setTimeout(poll, 300);
+        }
+
+        bindBtn.addEventListener('click', startAuth);
 
         // "Узнать больше" — раскрыть дополнительный текст и спрятать кнопку
         const learnMoreBtn = document.getElementById('learn-more-btn');
@@ -277,9 +378,9 @@
             });
         }
 
-        // Автофокус на поле ввода
+        // Если пользователь уже нажал кнопку раньше — продолжаем ожидание
         document.addEventListener('DOMContentLoaded', function () {
-            input.focus();
+            maybeResumeAuth();
         });
     })();
 </script>
