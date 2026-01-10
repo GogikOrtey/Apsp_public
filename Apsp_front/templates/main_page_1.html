@@ -282,9 +282,10 @@
     }
 
     .account-dropdown__logout {
-        background: #ff7518;
-        color: #ffffff;
-        border: none;
+        background: #ffffff;
+        /* color: #ff7518; */
+        color: #555;
+        border: 2px solid #ff7518;
         border-radius: 6px;
         padding: 8px 14px;
         font-size: 13px;
@@ -292,10 +293,12 @@
         cursor: pointer;
         width: 100%;
         text-align: center;
+        transition: background 0.2s, color 0.2s;
     }
 
     .account-dropdown__logout:hover {
-        background: #e6661a;
+        background: #ff7518;
+        color: #ffffff;
     }
 </style>
 {% endblock %}
@@ -306,7 +309,7 @@
 
 <!-- Выпадающее меню -->
 <div class="account-dropdown" id="account_dropdown">
-    <div class="account-dropdown__label">Аккаунт:</div>
+    <div class="account-dropdown__label"><b>Аккаунт:</b></div>
     <div class="account-dropdown__username">@GogikOrtey</div>
     <button class="account-dropdown__logout" id="logout_button">Выйти из аккаунта</button>
 </div>
