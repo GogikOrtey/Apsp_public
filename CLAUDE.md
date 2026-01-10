@@ -106,6 +106,34 @@
   - в режиме UID — в `/api/task/<uid>/browser_screenshot_push` (см. `_run_task()` в `Apsp_front/app.py`)
 - Вызовы OpenAI в `ChatGPT/OpenAI_ChatGPT.py` обёрнуты heartbeat-циклом: пока ждём ответ, раз в ~5 секунд пушится Playwright-скриншот через `maybe_push_screenshot_to_front`, чтобы превью обновлялось даже во время долгих LLM-запросов.
 
+## Система аккаунтов (куки на стороне клиента)
+
+Аккаунт пользователя хранится в куке `user_account` на стороне клиента.
+
+### Серверные функции (`Apsp_front/app.py`)
+
+- **`set_user_account_cookie(response, username, max_age_days=365)`**: устанавливает куку `user_account` с именем пользователя. Параметры: `httponly=False` (доступна из JS), `secure=False` (для HTTP), `samesite='Lax'`.
+- **`get_user_account_from_cookie() -> str | None`**: получает имя пользователя из куки (возвращает `None`, если не установлена).
+- **`clear_user_account_cookie(response)`**: удаляет куку `user_account` (устанавливает пустое значение с `max_age=0`).
+
+### Клиентские функции (JavaScript в `main_page_1.html`)
+
+- **`setCookie(name, value, days)`**: установка куки на заданное количество дней.
+- **`getCookie(name)`**: получение значения куки.
+- **`deleteCookie(name)`**: удаление куки.
+- **`window.setUserAccount(username)`**: глобальная функция для установки аккаунта (устанавливает куку + обновляет UI).
+- **`updateAccountUI()`**: автоматически обновляет интерфейс на основе значения куки при загрузке страницы.
+
+### UI элементы (`main_page_1`)
+
+- **Кнопка аккаунта** (справа сверху): показывает имя пользователя (голубой фон) или `"no_account"` (серый фон с голубой границей).
+- **Выпадающее меню**: при клике на кнопку появляется меню с именем пользователя и кнопкой "Выйти из аккаунта".
+- **Кнопка "Выйти из аккаунта"**: вызывает API-эндпоинт `/api/account/logout` для серверной очистки куки, затем обновляет UI клиентской функцией.
+
+### API эндпоинты
+
+- **`POST /api/account/logout`**: удаляет куку `user_account` через `clear_user_account_cookie()` и возвращает `{"ok": true}`.
+
 ## TODO для будущих дополнений (когда будет время)
 
 - описать точный пайплайн “10 шагов” и какие артефакты создаются
@@ -145,6 +173,7 @@
 #### API (общие / статистика)
 
 - **`GET /api/tasks/active_count`**: JSON `{"ok":true,"active":N,"max":M}` — количество текущих задач в статусе `running` и максимальный лимит.
+- **`POST /api/account/logout`**: удаляет куку `user_account` через `clear_user_account_cookie()` и возвращает `{"ok": true}`.
 
 #### API (по UID задачи)
 

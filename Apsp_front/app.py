@@ -112,6 +112,60 @@ def _resolve_result_tasks_dir() -> Path:
 RESULT_TASKS_DIR = _resolve_result_tasks_dir()
 
 
+# ============================================================================
+# Централизованные функции для работы с кукой аккаунта
+# ============================================================================
+
+def set_user_account_cookie(response, username: str, max_age_days: int = 365):
+    """
+    Устанавливает куку user_account в переданный response.
+    
+    Args:
+        response: Flask response объект
+        username: имя пользователя для сохранения в куке
+        max_age_days: срок жизни куки в днях (по умолчанию 365)
+    
+    Returns:
+        response с установленной кукой
+    """
+    response.set_cookie(
+        'user_account',
+        username,
+        max_age=max_age_days * 24 * 60 * 60,
+        httponly=False,  # должна быть доступна из JavaScript
+        secure=False,    # установить True для HTTPS в продакшене
+        samesite='Lax'
+    )
+    return response
+
+
+def get_user_account_from_cookie() -> str | None:
+    """
+    Получает имя пользователя из куки user_account.
+    
+    Returns:
+        Имя пользователя или None, если кука не установлена
+    """
+    return request.cookies.get('user_account')
+
+
+def clear_user_account_cookie(response):
+    """
+    Удаляет куку user_account из переданного response.
+    
+    Args:
+        response: Flask response объект
+    
+    Returns:
+        response с удалённой кукой
+    """
+    response.set_cookie('user_account', '', max_age=0)
+    return response
+
+
+# ============================================================================
+
+
 def _on_rm_error(func, path, exc_info):
     # Best-effort handling for Windows read-only files.
     try:
@@ -517,11 +571,11 @@ def main_page_1():
     # Создаём response
     response = make_response(render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found))
     
+    ###################################################################################### Убрать
 
-    ######################################################################################### Потом убрать
     # Устанавливаем тестовый аккаунт в куку (для демонстрации)
     # В продакшене это должно устанавливаться после авторизации пользователя
-    response.set_cookie('user_account', '@GogikOrtey', max_age=365*24*60*60)  # на 1 год
+    set_user_account_cookie(response, '@GogikOrtey')
     
     return response
 
@@ -999,6 +1053,20 @@ def api_tasks_active_count():
         json.dumps({"ok": True, "active": active, "max": max_w}, ensure_ascii=False),
         mimetype='application/json; charset=utf-8'
     )
+
+
+@app.route('/api/account/logout', methods=['POST'])
+def api_account_logout():
+    """
+    API эндпоинт для выхода из аккаунта.
+    Удаляет куку user_account.
+    """
+    response = FlaskResponse(
+        json.dumps({"ok": True}, ensure_ascii=False),
+        mimetype='application/json; charset=utf-8'
+    )
+    clear_user_account_cookie(response)
+    return response
 
 
 @app.route('/api/task/<uid>/stop', methods=['POST'])

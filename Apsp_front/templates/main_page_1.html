@@ -447,8 +447,29 @@
 
         // Обработка кнопки выхода
         if (logoutButton) {
-            logoutButton.addEventListener('click', function() {
+            logoutButton.addEventListener('click', async function() {
                 console.log('Выход из аккаунта');
+                
+                // Вызываем серверный API для очистки куки
+                try {
+                    const response = await fetch('/api/account/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.ok) {
+                            console.log('Выход выполнен успешно');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Ошибка при выходе:', error);
+                }
+                
+                // Также удаляем куку на клиенте для немедленного обновления UI
                 deleteCookie('user_account');
                 accountDropdown.classList.remove('show');
                 updateAccountUI();
