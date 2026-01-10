@@ -10,6 +10,7 @@
 """
 
 import os
+from pathlib import Path
 
 def _env_bool(name: str, default: bool) -> bool:
     v = os.environ.get(name)
@@ -19,30 +20,58 @@ def _env_bool(name: str, default: bool) -> bool:
     return v in ("1", "true", "yes", "y", "on")
 
 if __name__ == "__main__":
+    # ============================================================================
+    # Загрузка .env файла (если есть)
+    # ============================================================================
+    # Для локальной разработки можно использовать .env файл.
+    # Для Docker/продакшена переменные задаются через docker-compose / env контейнера.
+    try:
+        from dotenv import load_dotenv
+        env_path = Path(__file__).parent / '.env'
+        if env_path.is_file():
+            load_dotenv(env_path)
+            print(f"Loaded .env from {env_path}")
+    except ImportError:
+        # python-dotenv не установлен - ничего страшного, переменные могут быть заданы системно
+        pass
+    
+    # ============================================================================
+    # Telegram бот: настройки авторизации и уведомлений
+    # ============================================================================
+    # Переменные читаются из окружения (из .env файла или системных env).
+    # Если переменная не задана - используется дефолтное значение.
+    
+    # Токен бота от @BotFather
+    os.environ.setdefault(
+        "APSP_TELEGRAM_BOT_TOKEN",
+        os.getenv("APSP_TELEGRAM_BOT_TOKEN", "")
+    )
+    
+    # Username бота без @ (например: auto_gen_parsers_info_bot)
+    os.environ.setdefault(
+        "APSP_TELEGRAM_BOT_USERNAME",
+        os.getenv("APSP_TELEGRAM_BOT_USERNAME", "auto_gen_parsers_info_bot")
+    )
+    
+    # Секрет для webhook URL (любая строка, которую знаете только вы)
+    os.environ.setdefault(
+        "APSP_TELEGRAM_WEBHOOK_SECRET",
+        os.getenv("APSP_TELEGRAM_WEBHOOK_SECRET", "")
+    )
+    
+    # Базовый URL сервиса
+    os.environ.setdefault(
+        "APSP_BASE_URL",
+        os.getenv("APSP_BASE_URL", "http://127.0.0.1:5000")
+    )
+    
+    # ============================================================================
+    # Прочие настройки (опциональные)
+    # ============================================================================
     # # Поменять переменную среды для теста можно так:
     # os.environ.setdefault("APSP_TASK_TIMEOUT_SECONDS", "5")    
     # # Ограничение в 1 задачу, чтобы проверить блокировку интерфейса
     # os.environ.setdefault("APSP_MAX_WORKERS", "1")
-
-    # ============================================================================
-    # Telegram бот: настройки авторизации и уведомлений
-    # ============================================================================
-    # ВАЖНО: Для продакшена замените значения ниже на реальные или задайте через env.
-    # Эти дефолты нужны для локальной разработки и тестирования.
-    
-    # Токен бота от @BotFather
-    os.environ.setdefault("APSP_TELEGRAM_BOT_TOKEN", _) # auto_gen_parsers_info_bot_access_token из env 
-    
-    # Username бота без @ (например: auto_gen_parsers_info_bot)
-    os.environ.setdefault("APSP_TELEGRAM_BOT_USERNAME", "auto_gen_parsers_info_bot")
-    
-    # Секрет для webhook URL (любая строка, которую знаете только вы)
-    os.environ.setdefault("APSP_TELEGRAM_WEBHOOK_SECRET", _) # auto_gen_parsers_info_bot_secret_keyphrase из env
-    
-    # Базовый URL сервиса (для локальной разработки http://127.0.0.1:5000, 
-    # для ngrok - замените на https://xxxx.ngrok-free.app,
-    # для продакшена - ваш реальный домен)
-    os.environ.setdefault("APSP_BASE_URL", "http://127.0.0.1:5000")
     
     # ============================================================================
 
