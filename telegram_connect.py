@@ -25,6 +25,60 @@ from urllib.parse import urlencode
 DEFAULT_TOKEN_TTL_SECONDS = 30 * 60  # 30 минут
 
 
+def _escape_html(text: str) -> str:
+    if text is None:
+        return ""
+    s = str(text)
+    # Минимальный набор для Telegram HTML
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _extract_error_snippet_from_text(text: str) -> str:
+    """
+    Похоже на логику в `Apsp_front/app.py` (tooltip на all_tasks):
+    ищем последнюю строку с Error/Exception/... и берём её + всё что после (только непустые).
+    """
+    if not text or not isinstance(text, str):
+        return ""
+    lines = text.strip().split("\n")
+    if not lines:
+        return ""
+    markers = ["Error:", "Exception:", "ValueError:", "TypeError:", "KeyError:", "AttributeError:"]
+    exception_index = -1
+    for i in range(len(lines) - 1, -1, -1):
+        line = lines[i].strip()
+        if line and any(m in line for m in markers):
+            exception_index = i
+            break
+    if exception_index >= 0:
+        out: list[str] = []
+        for i in range(exception_index, len(lines)):
+            if lines[i].strip():
+                out.append(lines[i].strip())
+        return "\n".join(out).strip()
+    # fallback: последняя непустая строка
+    for line in reversed(lines):
+        if line.strip():
+            return line.strip()
+    return ""
+
+
+def _trim_to_max_chars(text: str, max_chars: int) -> str:
+    """
+    Обрезает строку до max_chars, добавляя '…' если было обрезание.
+    """
+    if text is None:
+        return ""
+    s = str(text)
+    if max_chars <= 0:
+        return ""
+    if len(s) <= max_chars:
+        return s
+    if max_chars <= 1:
+        return "…"
+    return s[: max_chars - 1] + "…"
+
+
 def send_message_to_user(*, bot_token: str, user_telegram_id: int, text: str) -> dict[str, Any]:
     """
     Публичная функция-обёртка для отправки сообщения конкретному пользователю.
@@ -37,6 +91,147 @@ def send_message_to_user(*, bot_token: str, user_telegram_id: int, text: str) ->
     except Exception:
         return {"ok": False, "error": "bad_user_telegram_id"}
     return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "")
+
+
+def send_document_to_user(
+    *,
+    bot_token: str,
+    user_telegram_id: int,
+    filename: str,
+    content: bytes,
+    caption: str | None = None,
+    parse_mode: str | None = None,
+) -> dict[str, Any]:
+    """
+    Публичная функция-обёртка для отправки файла (document) конкретному пользователю.
+
+    Использует Telegram Bot API: sendDocument.
+    """
+    try:
+        chat_id = int(user_telegram_id)
+    except Exception:
+        return {"ok": False, "error": "bad_user_telegram_id"}
+    return send_bot_document(
+        bot_token=bot_token,
+        chat_id=chat_id,
+        filename=str(filename or "file.bin"),
+        content=content or b"",
+        caption=caption,
+        parse_mode=parse_mode,
+    )
+
+
+def try_notify_task_finished(
+    *,
+    task_dir: Path,
+    uid: str,
+    site_url: str,
+    ok: bool,
+    bot_token: str,
+    base_url: str,
+    zip_bytes: bytes | None,
+    zip_filename: str | None = None,
+    error_text: str | None = None,
+) -> None:
+    """
+    Best-effort: читает RESULT_TASKS/<uid>/meta.json и отправляет пользователю сообщение о завершении генерации.
+    В обоих случаях пытается прикрепить ZIP-архив (document).
+    Ничего не рейзит.
+    """
+    try:
+        meta_path = Path(task_dir) / "meta.json"
+        if not meta_path.is_file():
+            return
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        if not isinstance(meta, dict):
+            return
+        tg_id = meta.get("user_telegram_id")
+        if tg_id is None:
+            return
+        tg_id_int = int(tg_id)
+
+        domain = str(site_url or "").strip()
+        base_url_norm = str(base_url or "").strip() or "http://127.0.0.1:5000"
+        base_url_norm = base_url_norm.rstrip("/")
+
+        status_line = "🟩 Генерация успешна" if ok else "🟠 Генерация завершилась с ошибкой"
+
+        extracted_err = ""
+        if not ok:
+            # 1) Пробуем извлечь из result_code.ts (наиболее информативно)
+            try:
+                rc_path = Path(task_dir) / "result_code.ts"
+                if rc_path.is_file():
+                    extracted_err = _extract_error_snippet_from_text(rc_path.read_text(encoding="utf-8"))
+            except Exception:
+                extracted_err = ""
+            # 2) fallback: из переданного error_text
+            if not extracted_err and error_text:
+                extracted_err = _extract_error_snippet_from_text(str(error_text))
+
+        # Telegram ограничивает длину caption для документов, поэтому:
+        # - успех: обычный короткий caption (plain text)
+        # - ошибка: HTML caption с <pre>...</pre>, но с обрезанием
+        if ok:
+            caption_lines = [
+                status_line,
+                f"Сайт: {domain}",
+                f"UID: {uid}",
+                f"Результат: {base_url_norm}/main_page_3/{uid}/",
+                f"ZIP (ссылка): {base_url_norm}/download/all_files_zip/{uid}",
+            ]
+            caption = "\n".join(caption_lines).strip()
+            caption_parse_mode = None
+        else:
+            # Базовая часть caption (HTML)
+            base_caption = "\n".join(
+                [
+                    _escape_html(status_line),
+                    f"Сайт: {_escape_html(domain)}",
+                    f"UID: {_escape_html(uid)}",
+                    f"Результат: {_escape_html(base_url_norm + '/main_page_3/' + str(uid) + '/')}",
+                    f"ZIP (ссылка): {_escape_html(base_url_norm + '/download/all_files_zip/' + str(uid))}",
+                ]
+            ).strip()
+
+            err_for_block = extracted_err or (str(error_text).strip() if error_text else "")
+            err_for_block = err_for_block.strip()
+            # Держим запас под теги <pre></pre> и остальной текст.
+            # Лимит Telegram caption ≈ 1024 символа; берём чуть меньше, чтобы точно влезло.
+            max_caption = 950
+            overhead = len(base_caption) + len("\n\nОшибка:\n<pre></pre>")
+            remaining = max(0, max_caption - overhead)
+            err_trimmed = _trim_to_max_chars(err_for_block, remaining)
+            caption = f"{base_caption}\n\nОшибка:\n<pre>{_escape_html(err_trimmed)}</pre>".strip()
+            caption_parse_mode = "HTML"
+
+        if zip_bytes:
+            fname = str(zip_filename or f"APSP_gen_{uid}.zip")
+            resp = send_document_to_user(
+                bot_token=bot_token,
+                user_telegram_id=tg_id_int,
+                filename=fname,
+                content=zip_bytes,
+                caption=caption,
+                parse_mode=caption_parse_mode,
+            )
+            # если документ не ушёл — хотя бы текст
+            if not isinstance(resp, dict) or not resp.get("ok"):
+                send_bot_message(
+                    bot_token=bot_token,
+                    chat_id=tg_id_int,
+                    text=caption,
+                    parse_mode=caption_parse_mode,
+                )
+        else:
+            send_bot_message(
+                bot_token=bot_token,
+                chat_id=tg_id_int,
+                text=caption,
+                parse_mode=caption_parse_mode,
+            )
+    except Exception:
+        return
 
 
 def try_notify_task_started(*, task_dir: Path, uid: str, site_url: str, bot_token: str, base_url: str) -> None:
@@ -226,7 +421,7 @@ def store_telegram_user(users_dir: Path, tg_user: TelegramUser) -> None:
         pass
 
 
-def send_bot_message(*, bot_token: str, chat_id: int, text: str) -> dict[str, Any]:
+def send_bot_message(*, bot_token: str, chat_id: int, text: str, parse_mode: str | None = None) -> dict[str, Any]:
     """
     Отправка сообщения через Telegram Bot API без внешних зависимостей (requests не нужен).
     """
@@ -238,13 +433,14 @@ def send_bot_message(*, bot_token: str, chat_id: int, text: str) -> dict[str, An
         text = ""
 
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    body = urlencode(
-        {
-            "chat_id": str(int(chat_id)),
-            "text": text,
-            "disable_web_page_preview": "true",
-        }
-    ).encode("utf-8")
+    payload = {
+        "chat_id": str(int(chat_id)),
+        "text": text,
+        "disable_web_page_preview": "true",
+    }
+    if parse_mode:
+        payload["parse_mode"] = str(parse_mode)
+    body = urlencode(payload).encode("utf-8")
 
     req = urllib_request.Request(
         url,
@@ -254,6 +450,81 @@ def send_bot_message(*, bot_token: str, chat_id: int, text: str) -> dict[str, An
     )
     try:
         with urllib_request.urlopen(req, timeout=10) as resp:
+            raw = resp.read().decode("utf-8", errors="replace")
+    except HTTPError as e:
+        try:
+            raw = e.read().decode("utf-8", errors="replace")
+        except Exception:
+            raw = ""
+        return {"ok": False, "error": f"http_{getattr(e, 'code', '')}", "raw": raw}
+    except URLError as e:
+        return {"ok": False, "error": "network_error", "details": str(e)}
+    except Exception as e:
+        return {"ok": False, "error": "send_failed", "details": str(e)}
+
+    try:
+        data = json.loads(raw)
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+    return {"ok": False, "error": "bad_response", "raw": raw}
+
+
+def send_bot_document(
+    *,
+    bot_token: str,
+    chat_id: int,
+    filename: str,
+    content: bytes,
+    caption: str | None = None,
+    parse_mode: str | None = None,
+    content_type: str = "application/zip",
+) -> dict[str, Any]:
+    """
+    Отправка файла (document) через Telegram Bot API без внешних зависимостей (requests не нужен).
+    """
+    if not bot_token:
+        return {"ok": False, "error": "bot_token_missing"}
+    if not chat_id:
+        return {"ok": False, "error": "chat_id_missing"}
+    if content is None:
+        content = b""
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
+    boundary = "----apsp_boundary_" + secrets.token_hex(16)
+
+    def _field(name: str, value: str | None) -> bytes:
+        v = "" if value is None else str(value)
+        return (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="{name}"\r\n\r\n'
+            f"{v}\r\n"
+        ).encode("utf-8")
+
+    head = b"".join(
+        [
+            _field("chat_id", str(int(chat_id))),
+            (_field("caption", caption) if caption else b""),
+            (_field("parse_mode", parse_mode) if parse_mode else b""),
+            (
+                f"--{boundary}\r\n"
+                f'Content-Disposition: form-data; name="document"; filename="{filename}"\r\n'
+                f"Content-Type: {content_type}\r\n\r\n"
+            ).encode("utf-8"),
+        ]
+    )
+    tail = f"\r\n--{boundary}--\r\n".encode("utf-8")
+    body = head + content + tail
+
+    req = urllib_request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        method="POST",
+    )
+    try:
+        with urllib_request.urlopen(req, timeout=30) as resp:
             raw = resp.read().decode("utf-8", errors="replace")
     except HTTPError as e:
         try:

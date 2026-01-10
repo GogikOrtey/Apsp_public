@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from io import BytesIO
 import os
 import json
 from pathlib import Path
@@ -10,6 +11,7 @@ import threading
 import traceback
 from typing import Any
 from uuid import uuid4
+import zipfile
 
 from task_runtime.playwright_pool import PlaywrightPool
 from task_runtime.stop_store import UserStopException, clear_stop, get_stop_reason, USER_STOP_MESSAGE
@@ -263,6 +265,102 @@ class TaskRegistry:
         except Exception:
             pass
 
+    def _ensure_zip_required_files(self, info: TaskInfo) -> None:
+        """
+        Best-effort: гарантирует наличие файлов, которые считаются "обязательными" для ZIP.
+        Это нужно, чтобы скачивание ZIP и отправка ZIP в Telegram были предсказуемыми даже при ранних падениях.
+        """
+        try:
+            info.task_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            return
+
+        # Логи могут отсутствовать при ранних исключениях — создаём пустые, чтобы ZIP не ломался.
+        for name in ("output.log", "useful_log.log", "chat_output.log"):
+            try:
+                p = info.task_dir / name
+                if not p.is_file():
+                    p.write_text("", encoding="utf-8")
+            except Exception:
+                pass
+
+        # result_code.ts должен существовать (и в успехе, и в фейле). Если нет — пишем заглушку.
+        try:
+            p = info.task_dir / "result_code.ts"
+            if not p.is_file():
+                p.write_text("// result_code.ts missing\n", encoding="utf-8")
+        except Exception:
+            pass
+
+    def _build_task_zip_bytes(self, info: TaskInfo) -> bytes | None:
+        """
+        Собирает ZIP в памяти по тому же составу файлов, что `/download/all_files_zip/<uid>`.
+        Возвращает bytes или None (если что-то пошло не так).
+        """
+        try:
+            required = [
+                ("result_code.ts", info.task_dir / "result_code.ts"),
+                ("output.log", info.task_dir / "output.log"),
+                ("useful_log.log", info.task_dir / "useful_log.log"),
+                ("chat_output.log", info.task_dir / "chat_output.log"),
+            ]
+            optional = [
+                ("meta.json", info.task_dir / "meta.json"),
+                ("RESULT_SUCSESS.txt", info.task_dir / "RESULT_SUCSESS.txt"),
+                ("RESULT_FAILED.txt", info.task_dir / "RESULT_FAILED.txt"),
+            ]
+            missing = [name for name, p in required if not p.is_file()]
+            if missing:
+                # после _ensure_zip_required_files() не должно случаться, но оставляем safety
+                return None
+
+            buf = BytesIO()
+            with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_STORED) as zf:
+                for arcname, full_path in required:
+                    zf.write(str(full_path), arcname=arcname)
+                for arcname, full_path in optional:
+                    try:
+                        if full_path.is_file():
+                            zf.write(str(full_path), arcname=arcname)
+                    except Exception:
+                        pass
+            return buf.getvalue()
+        except Exception:
+            return None
+
+    def _try_notify_task_finished_telegram(self, info: TaskInfo, *, ok: bool, error_text: str | None) -> None:
+        """
+        Best-effort: отправляет уведомление о завершении + ZIP в Telegram, если:
+        - есть APSP_TELEGRAM_BOT_TOKEN
+        - в meta.json есть user_telegram_id
+        """
+        try:
+            bot_token = (os.environ.get("APSP_TELEGRAM_BOT_TOKEN", "") or "").strip()
+            if not bot_token:
+                return
+            base_url = (os.environ.get("APSP_BASE_URL", "http://127.0.0.1:5000") or "").strip()
+
+            self._ensure_zip_required_files(info)
+            zip_bytes = self._build_task_zip_bytes(info)
+            ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            zip_name = f"APSP_gen_{info.uid}_{ts}.zip"
+
+            import telegram_connect
+
+            telegram_connect.try_notify_task_finished(
+                task_dir=info.task_dir,
+                uid=str(info.uid),
+                site_url=str(info.url),
+                ok=bool(ok),
+                bot_token=bot_token,
+                base_url=base_url,
+                zip_bytes=zip_bytes,
+                zip_filename=zip_name,
+                error_text=error_text,
+            )
+        except Exception:
+            return
+
     def _submit_run(self, uid: str, runner: Any, info: TaskInfo) -> None:
         fut = self._pool.submit(lambda browser: runner(browser, info))
 
@@ -294,6 +392,9 @@ class TaskRegistry:
                 self._update_meta_on_finish(uid, runtime_status="done", error=None)
             except Exception:
                 pass
+
+            # Best-effort: уведомление в Telegram + ZIP
+            self._try_notify_task_finished_telegram(info2, ok=True, error_text=None)
             # runner больше не нужен
             with self._lock:
                 self._runners.pop(uid, None)
@@ -331,6 +432,9 @@ class TaskRegistry:
                     self._update_meta_on_finish(uid, runtime_status="error", error=final_reason)
                 except Exception:
                     pass
+
+                # Best-effort: уведомление в Telegram + ZIP
+                self._try_notify_task_finished_telegram(info2, ok=False, error_text=final_reason)
 
                 with self._lock:
                     self._runners.pop(uid, None)
@@ -375,6 +479,9 @@ class TaskRegistry:
                     self._update_meta_on_finish(uid, runtime_status="error", error=final_reason)
                 except Exception:
                     pass
+
+                # Best-effort: уведомление в Telegram + ZIP
+                self._try_notify_task_finished_telegram(info2, ok=False, error_text=final_reason)
 
                 with self._lock:
                     self._runners.pop(uid, None)
@@ -443,6 +550,9 @@ class TaskRegistry:
                 self._update_meta_on_finish(uid, runtime_status="error", error=err_str)
             except Exception:
                 pass
+
+            # Best-effort: уведомление в Telegram + ZIP
+            self._try_notify_task_finished_telegram(info2, ok=False, error_text=err_str)
 
             with self._lock:
                 self._runners.pop(uid, None)

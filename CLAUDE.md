@@ -20,6 +20,39 @@
 
 По смыслу это запуск Flask-фронта через `MAIN_APP.py` и переход на `http://127.0.0.1:5000`.
 
+## Старт и финиш задачи генерации (человеческая схема)
+
+### Старт (кнопка **Generate** на `main_page_1`)
+
+- Пользователь нажимает **Generate** на `Apsp_front/templates/main_page_1.html` → отправляется форма `POST /main_page_1` с полем `site_url`.
+- Сервер (`Apsp_front/app.py`, `main_page_1`):
+  - Если `site_url` выглядит как UID (12 hex символов) → **генерация не запускается**, просто открывается существующая задача:
+    - `WORK/RUNNING` → редирект на `GET /main_page_2/<uid>/`
+    - `COMPLETED/FAILED` → редирект на `GET /main_page_3/<uid>/`
+    - UID не найден → ошибка на `main_page_1`
+  - Если это URL:
+    - Если для этого URL уже есть `COMPLETED` результат → редирект на `GET /parser_exists` (выбор: открыть готовое / запустить заново)
+    - Иначе создаётся и запускается новая задача:
+      - `TASKS.create(url, user_telegram_id, user_account)` → создаёт UID, папку `RESULT_TASKS/<uid>/`, пишет `meta.json`
+      - `TASKS.start(uid, _run_task)` → отправляет выполнение в пул воркеров (Playwright pool)
+      - Редирект на `GET /main_page_2/<uid>/` (страница наблюдения за прогрессом)
+
+### Финиш (успех или ошибка) и “результат для 3-й страницы”
+
+- Реальная работа выполняется в runner’е `_run_task(...)` (`Apsp_front/app.py`): создаётся Playwright page и вызывается `new_program/main_processer.py:main_processer(...)`.
+- Финальная точка “задача завершена” находится в `task_runtime/task_registry.py` → `TaskRegistry._on_future_done(...)` (callback на завершение future):
+  - **Успех**: `main_processer` завершился без исключения → `runtime_status="done"`, в `meta.json` ставится `finished_at_*` и `status=COMPLETED`, создаётся `RESULT_SUCSESS.txt`.
+  - **Ошибка/остановка/таймаут**: исключение ловится в `_on_future_done` → `runtime_status="error"`, `status=FAILED`, создаётся `RESULT_FAILED.txt`, и (важно) **всегда** записывается `RESULT_TASKS/<uid>/result_code.ts` с текстом ошибки (чтобы UI и скачивание работали предсказуемо).
+
+### Как показывается результат на `main_page_3`
+
+- `GET /main_page_3/<uid>/` рендерит страницу результата и подтягивает статистику из `RESULT_TASKS/<uid>/meta.json`.
+- Сам текст “окна результата” (код или текст ошибки) читается из файла `RESULT_TASKS/<uid>/result_code.ts` через API `GET /api/task/<uid>/result_code`.
+
+Примечание: `MAIN.py:main_funk_start_on_front(...)` — это обёртка вокруг `main_processer` из старого/ручного запуска и **не используется** в актуальном пути кнопки `Generate` (текущий путь идёт через `TaskRegistry` → `_run_task`).
+
+Все финальные исходы сходятся в TaskRegistry._on_future_done() (success / stop / timeout / final failure)
+
 ## Важное:
 - Количество попыток на перезапуск задачи при падении с ошибкой задаётся в `task_runtime/task_registry.py` (TaskRegistry), по умолчанию = **1** (без автоповторов). Быстро вернуть ретраи можно через env `APSP_TASK_MAX_ATTEMPTS`.
 - Дедлайн выполнения задачи — **30 минут** (env `APSP_TASK_TIMEOUT_SECONDS`). При превышении кидается `TaskTimeoutException`, задача сразу переводится в `FAILED` без ретраев, в `result_code.ts` пишется лаконичное сообщение об ошибке.
@@ -190,6 +223,11 @@
 - Сообщение о старте генерации отправляется из пайплайна, а не из Flask:
   - вызов добавлен в `new_program/main_processer.py` (после успешного `goto_url`)
   - реализация/обёртка отправки: `telegram_connect.py` (`send_message_to_user`, `try_notify_task_started`), читает `meta.json` и отправляет пользователю сообщение по `user_telegram_id`.
+- Сообщение о завершении генерации отправляется из `task_runtime/task_registry.py` (центральная точка завершения задачи: `TaskRegistry._on_future_done(...)`):
+  - два варианта текста: **🟩 успех** или **🟠 ошибка/остановка/таймаут**
+  - вместе с сообщением **прикрепляется ZIP-архив** (тот же состав файлов, что и кнопка “Скачать все файлы .zip” на `main_page_3`)
+  - при ошибке/остановке/таймауте **в этом же сообщении (caption)** добавляется причина в виде **code block** (`<pre>...</pre>`)
+  - реализация/обёртка: `telegram_connect.py` (`try_notify_task_finished`, `send_bot_document/sendDocument`)
 
 ## TODO для будущих дополнений (когда будет время)
 

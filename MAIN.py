@@ -1,4 +1,5 @@
 """ 
+[Устарело]
 Глобальная основная точка входа в проект
 Что бы точно её не потерять
 
@@ -74,6 +75,13 @@ https://dev.gogorey.ru/auto_gen_parsers/main
 # result_code = main_processer(link) 
 
 
+
+
+
+
+
+
+# Это LEGACY обёртка для запуска main_processer, сейчас не используется при запуске задач.
 def main_funk_start_on_front(link, uid=None, task_dir=None, page=None):
     # print("Фронтовская функция запущена, link = " + link)
     # # Ленивая загрузка тяжёлых импортов, чтобы импорт MAIN.py был безопасным.
