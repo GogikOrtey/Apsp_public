@@ -460,31 +460,61 @@ def index():
 def main_page_1():
     """
     Простая отдельная форма (без шагов и без зависимостей от многошагового флоу).
+    Теперь поддерживает ввод UID для проверки существующих задач.
     """
     site_url = ''
+    uid_not_found = request.args.get('uid_not_found', 'false') == 'true'
+    
     if request.method == 'POST':
         site_url = sanitize_text(request.form.get('site_url', ''))
 
         # Если пусто — ничего не делаем (остаёмся на странице).
         if site_url.strip():
-            # Нормализуем URL и проверяем наличие готовых результатов
-            try:
-                normalized_url = _normalize_url_for_check(site_url)
-                existing_uid = _find_existing_completed_task(normalized_url)
+            # Проверяем, не является ли введённое значение UID (12 hex символов)
+            uid_pattern = re.compile(r'^[a-f0-9]{12}$', re.IGNORECASE)
+            if uid_pattern.match(site_url.strip()):
+                # Это UID — проверяем существование задачи
+                uid = site_url.strip().lower()
                 
-                if existing_uid:
-                    # Есть готовый результат — показываем страницу выбора
-                    return redirect(url_for('parser_exists', url=site_url, existing_uid=existing_uid))
-            except Exception as e:
-                # Если проверка не удалась — продолжаем как обычно
-                print(f"Ошибка при проверке существующих результатов: {e}")
-            
-            # Нет готовых результатов или ошибка проверки — создаём новую задачу
-            task = TASKS.create(site_url)
-            TASKS.start(task.uid, _run_task)
-            return redirect(url_for('main_page_2_uid', uid=task.uid))
+                if TASKS.exists(uid):
+                    # Задача найдена — проверяем её статус
+                    task_info = TASKS.get(uid)
+                    if task_info and task_info.status:
+                        status = task_info.status.upper()
+                        if status == 'WORK' or status == 'RUNNING':
+                            # Задача в работе — открываем страницу 2
+                            return redirect(url_for('main_page_2_uid', uid=uid))
+                        elif status == 'COMPLETED' or status == 'FAILED':
+                            # Задача завершена — открываем страницу 3
+                            return redirect(url_for('main_page_3_uid', uid=uid))
+                        else:
+                            # Неизвестный статус — открываем страницу 2
+                            return redirect(url_for('main_page_2_uid', uid=uid))
+                    else:
+                        # Не удалось получить информацию — всё равно пытаемся открыть
+                        return redirect(url_for('main_page_2_uid', uid=uid))
+                else:
+                    # UID не найден — редиректим на GET с параметром ошибки
+                    return redirect(url_for('main_page_1', uid_not_found='true'))
+            else:
+                # Это обычный URL — проверяем наличие готовых результатов
+                try:
+                    normalized_url = _normalize_url_for_check(site_url)
+                    existing_uid = _find_existing_completed_task(normalized_url)
+                    
+                    if existing_uid:
+                        # Есть готовый результат — показываем страницу выбора
+                        return redirect(url_for('parser_exists', url=site_url, existing_uid=existing_uid))
+                except Exception as e:
+                    # Если проверка не удалась — продолжаем как обычно
+                    print(f"Ошибка при проверке существующих результатов: {e}")
+                
+                # Нет готовых результатов или ошибка проверки — создаём новую задачу
+                task = TASKS.create(site_url)
+                TASKS.start(task.uid, _run_task)
+                return redirect(url_for('main_page_2_uid', uid=task.uid))
 
-    return render_template('main_page_1.html', site_url=site_url)
+    return render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found)
 
 
 @app.route('/parser_exists', methods=['GET'])
@@ -859,7 +889,13 @@ def example2():
     if request.method == 'POST':
         site_url = sanitize_text(request.form.get('site_url', ''))
         regions = sanitize_text(request.form.get('regions', ''))
-
+        # Редирект на GET для избежания предупреждения о повторной отправке формы
+        return redirect(url_for('example2', site_url=site_url, regions=regions))
+    
+    # GET: берём параметры из query string
+    site_url = request.args.get('site_url', '')
+    regions = request.args.get('regions', '')
+    
     return render_template('example2.html', site_url=site_url, regions=regions)
 
 @app.route('/content/<path:filename>')

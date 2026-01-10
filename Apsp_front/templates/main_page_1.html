@@ -91,6 +91,69 @@
         display: none;
     }
 
+    .uid-not-found-error {
+        color: #ff7518;
+        margin-top: 8px;
+        display: none;
+    }
+
+    .btn-uid-check {
+        background: #4169E1 !important;
+        color: #fff;
+    }
+
+    .btn-uid-check:hover {
+        background: #3557C7 !important;
+    }
+
+    .uid-tooltip {
+        display: inline;
+        position: relative;
+        cursor: help;
+    }
+
+    .uid-underline {
+        /* border-bottom: 1px solid #999; */
+        border-bottom: 1px solid #bebebe;
+        display: inline-block;
+    }
+
+    .uid-tooltip .uid-tooltip-text {
+        visibility: hidden;
+        width: 320px;
+        background-color: #555;
+        color: #fff;
+        text-align: left;
+        border-radius: 6px;
+        padding: 10px;
+        position: absolute;
+        z-index: 10000;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -160px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: normal;
+    }
+
+    .uid-tooltip .uid-tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #555 transparent transparent transparent;
+    }
+
+    .uid-tooltip:hover .uid-tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+
     /* Блок статуса слева сверху */
     .status-block {
         position: fixed;
@@ -184,7 +247,14 @@
 
 <form method="POST" class="example1-form" id="new_page_1_form">
     <div class="form-group">
-        <label for="site_url" class="example1-label">Введите адрес сайта</label>
+        <label for="site_url" class="example1-label">
+            <!-- Введите адрес сайта <span style="color: #999;">или  -->
+            Введите адрес сайта <span style="color: #bebebe;">или 
+            <span class="uid-tooltip">
+                <span class="uid-underline">UID задачи</span>
+                <span class="uid-tooltip-text">UID - это идентификатор задачи в текущем сервисе. Пример UID задач: ab366d8a3185, 824d6e8aba5e, f73cd2508ab0</span>
+            </span></span>
+        </label>
         <input
             type="text"
             id="site_url"
@@ -197,6 +267,9 @@
         <div id="limit_error" class="limit-error" title="Нет, динамическая очередь задач ещё не реализована">
             Достигнут лимит одновременных задач. Пожалуйста, подождите завершения текущих.
         </div>
+        <div id="uid_not_found_error" class="uid-not-found-error">
+            Задача не найдена по введённому UID
+        </div>
     </div>
 
     <button type="submit" class="btn btn-success btn-full" id="new_page_1_submit">Generate</button>
@@ -207,6 +280,8 @@
         const form = document.getElementById('new_page_1_form');
         const input = document.getElementById('site_url');
         const errorDiv = document.getElementById('limit_error');
+        const uidNotFoundError = document.getElementById('uid_not_found_error');
+        const submitButton = document.getElementById('new_page_1_submit');
         const counterValue = document.getElementById('active_tasks_value');
         const statusIndicator = document.getElementById('server_status_indicator');
         const statusValue = document.getElementById('server_status_value');
@@ -217,8 +292,29 @@
         let currentMax = 10;
         let isLoaded = false;
         let isServerOnline = false;
+        const uidNotFoundFromBackend = {{ 'true' if uid_not_found else 'false' }}; // Игнорировать эту ошибку линтера
 
         if (!form || !input) return;
+
+        // Проверка на UID (12 hex символов)
+        function isUID(value) {
+            const trimmed = value.trim();
+            return /^[a-f0-9]{12}$/i.test(trimmed);
+        }
+
+        // Обновление стиля кнопки в зависимости от содержимого
+        function updateButtonStyle() {
+            const value = input.value || '';
+            if (isUID(value)) {
+                submitButton.textContent = 'Проверить задачу по UID';
+                submitButton.classList.remove('btn-success');
+                submitButton.classList.add('btn-uid-check');
+            } else {
+                submitButton.textContent = 'Generate';
+                submitButton.classList.remove('btn-uid-check');
+                submitButton.classList.add('btn-success');
+            }
+        }
 
         // Синхронизация ширины кнопки с блоком
         function syncButtonWidth() {
@@ -276,16 +372,26 @@
         pollStatus();
         setInterval(pollStatus, 1000);
 
-        // При вводе скрываем ошибку
+        // При вводе скрываем ошибки и обновляем стиль кнопки
         input.addEventListener('input', function() {
             if (errorDiv) errorDiv.style.display = 'none';
+            if (uidNotFoundError) uidNotFoundError.style.display = 'none';
+            updateButtonStyle();
         });
+
+        // Инициализация стиля кнопки при загрузке
+        updateButtonStyle();
+
+        // Показываем ошибку, если UID не найден (передано из backend)
+        if (uidNotFoundFromBackend && uidNotFoundError) {
+            uidNotFoundError.style.display = 'block';
+        }
 
         form.addEventListener('submit', function (e) {
             const v = (input.value || '').trim();
             
-            // Проверка лимита
-            if (isLoaded && currentActive >= currentMax) {
+            // Проверка лимита (только для не-UID)
+            if (!isUID(v) && isLoaded && currentActive >= currentMax) {
                 e.preventDefault();
                 if (errorDiv) {
                     errorDiv.style.display = 'block';
@@ -299,7 +405,7 @@
                 e.preventDefault();
             }
         });
-    })();
+    })(); // Игнорировать эту ошибку линтера
 </script>
 {% endblock %}
 
