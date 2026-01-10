@@ -90,16 +90,84 @@
         margin-top: 8px;
         display: none;
     }
+
+    /* Блок статуса слева сверху */
+    .status-block {
+        position: fixed;
+        left: 16px;
+        top: 16px;
+        z-index: 99999;
+        background: #ffffff;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px 16px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        color: #222;
+        user-select: none;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1.5;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .status-block__server {
+        background: #ffffff;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 14px;
+        line-height: 1;
+    }
+
+    .status-block__tasks {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .status-block__tasks-label {
+        color: #555;
+    }
+
+    .status-block__tasks-value {
+        font-weight: 600;
+        color: #222;
+    }
+
+    .status-block__button {
+        margin-top: 4px;
+        padding: 8px 12px;
+        background: #667eea;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        text-align: center;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .status-block__button:hover {
+        background: #5568d3;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="corner-timer corner-timer--left-top" id="active_tasks_counter" title="Активные задачи / Максимум">
-    <span id="active_tasks_value">...</span>
-</div>
-
-<div class="corner-timer corner-timer--right-top" id="server_status_indicator" title="Статус сервера">
-    <span id="server_status_value">Status: ...</span>
+<div class="status-block">
+    <div class="status-block__server" id="server_status_indicator" title="Статус сервера">
+        <span id="server_status_value">Status: ...</span>
+    </div>
+    <div class="status-block__tasks">
+        <span class="status-block__tasks-label">Запущено задач: </span>
+        <span class="status-block__tasks-value" id="active_tasks_value">...</span>
+    </div>
+    <a href="{{ url_for('all_tasks') }}" class="status-block__button">Просмотреть все задачи</a>
 </div>
 
 <form method="POST" class="example1-form" id="new_page_1_form">
@@ -121,10 +189,6 @@
 
     <button type="submit" class="btn btn-success btn-full" id="new_page_1_submit">Generate</button>
 </form>
-
-<div style="margin-top: 20px; text-align: center;">
-    <a href="{{ url_for('all_tasks') }}" style="color: #667eea; text-decoration: none; font-size: 14px;">Все задачи →</a>
-</div>
 
 <script>
     (function () {
