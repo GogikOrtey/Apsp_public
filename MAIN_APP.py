@@ -82,24 +82,23 @@ if __name__ == "__main__":
     port = int(os.environ.get("APSP_PORT", "5000"))
     debug = _env_bool("APSP_DEBUG", True)
     
-    def test_code():
-        try:            
-            _time.sleep(1.0)  # Дать серверу подняться
+    # def test_code():
+    #     try:            
+    #         _time.sleep(1.0)  # Дать серверу подняться
 
-            """
-            Вот тут можно написать код для теста. Он выполнится после поднятия сервера.
-            Это параллельный поток.
-            """
+    #         """
+    #         Вот тут можно написать код для теста. Он выполнится после поднятия сервера.
+    #         Это параллельный поток.
+    #         """
 
-            telegram_connect.try_send_to_log_chat("Текст для отправки в Log chat")
-            telegram_connect.try_send_to_info_chat("Текст для отправки в Info chat")
+    # #         telegram_connect.try_send_to_log_chat("Текст для отправки в Log chat")
+    # #         telegram_connect.try_send_to_info_chat("Текст для отправки в Info chat")
             
-        except Exception as e:
-            print(e)
-    threading.Thread(target=test_code, daemon=True).start()
+    #     except Exception as e:
+    #         print(e)
+    # threading.Thread(target=test_code, daemon=True).start()
 
     run_dev_server(host=host, port=port, debug=debug)
-    # Ниже код не дописывать: старт сервера блокирует поток
 
     # Установка аккаунта в куки реализована в Apsp_front/app.py
     # в роуте main_page_1() через response.set_cookie('user_account', '@GogikOrtey')
