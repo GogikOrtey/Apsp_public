@@ -163,7 +163,6 @@
         background: #ffffff;
         border: 2px solid #e0e0e0;
         border-radius: 10px;
-        /* padding: 12px 16px; */
         padding: 16px 20px;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
         color: #222;
@@ -205,11 +204,9 @@
     .status-block__button {
         position: fixed;
         left: 16px;
-        /* top: 130px; */
         top: 118px;
         z-index: 99999;
         padding: 8px 12px;
-        /* padding: 8px 7px; */
         background: #667eea;
         color: #ffffff;
         border: none;
@@ -229,10 +226,91 @@
     .status-block__button:hover {
         background: #5568d3;
     }
+
+    /* Элемент аккаунта справа сверху */
+    .account-button {
+        position: fixed;
+        right: 16px;
+        top: 16px;
+        z-index: 99999;
+        background: #667eea;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        user-select: none;
+    }
+
+    .account-button:hover {
+        background: #5568d3;
+    }
+
+    /* Выпадающее меню */
+    .account-dropdown {
+        position: fixed;
+        right: 16px;
+        top: 16px;
+        z-index: 100000;
+        background: #ffffff;
+        border: 2px solid #667eea;
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        display: none;
+        min-width: 200px;
+    }
+
+    .account-dropdown.show {
+        display: block;
+    }
+
+    .account-dropdown__label {
+        color: #555;
+        font-size: 16px;
+        margin-bottom: 6px;
+    }
+
+    .account-dropdown__username {
+        color: #667eea;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 14px;
+    }
+
+    .account-dropdown__logout {
+        background: #ff7518;
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        text-align: center;
+    }
+
+    .account-dropdown__logout:hover {
+        background: #e6661a;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Элемент аккаунта справа сверху -->
+<div class="account-button" id="account_button">@GogikOrtey</div>
+
+<!-- Выпадающее меню -->
+<div class="account-dropdown" id="account_dropdown">
+    <div class="account-dropdown__label">Аккаунт:</div>
+    <div class="account-dropdown__username">@GogikOrtey</div>
+    <button class="account-dropdown__logout" id="logout_button">Выйти из аккаунта</button>
+</div>
+
 <div class="status-block">
     <div class="status-block__server" id="server_status_indicator" title="Статус сервера">
         <span id="server_status_value">Status: ...</span>
@@ -248,7 +326,6 @@
 <form method="POST" class="example1-form" id="new_page_1_form">
     <div class="form-group">
         <label for="site_url" class="example1-label">
-            <!-- Введите адрес сайта <span style="color: #999;">или  -->
             Введите адрес сайта <span style="color: #bebebe;">или 
             <span class="uid-tooltip">
                 <span class="uid-underline">UID задачи</span>
@@ -276,6 +353,41 @@
 </form>
 
 <script>
+    // ====== Управление меню аккаунта ======
+    (function() {
+        const accountButton = document.getElementById('account_button');
+        const accountDropdown = document.getElementById('account_dropdown');
+        const logoutButton = document.getElementById('logout_button');
+
+        if (!accountButton || !accountDropdown) return;
+
+        // Показываем/скрываем меню при клике на кнопку
+        accountButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            accountDropdown.classList.toggle('show');
+        });
+
+        // Скрываем меню при клике вне его
+        document.addEventListener('click', function(e) {
+            if (!accountDropdown.contains(e.target) && e.target !== accountButton) {
+                accountDropdown.classList.remove('show');
+            }
+        });
+
+        // Предотвращаем закрытие при клике внутри меню
+        accountDropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Обработка кнопки выхода (логика будет добавлена позже)
+        if (logoutButton) {
+            logoutButton.addEventListener('click', function() {
+                console.log('Выход из аккаунта');
+                // TODO: добавить логику выхода
+            });
+        }
+    })();
+
     (function () {
         const form = document.getElementById('new_page_1_form');
         const input = document.getElementById('site_url');
