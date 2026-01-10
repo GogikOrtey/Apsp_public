@@ -14,7 +14,6 @@ APSP Front UI style guide (быстрые заметки, чтобы не пло
 .uid-tooltip {
     display: inline;
     position: relative;
-    cursor: help;
 }
 .uid-underline {
     border-bottom: 1px solid #bebebe;
@@ -54,7 +53,7 @@ APSP Front UI style guide (быстрые заметки, чтобы не пло
     opacity: 1;
 }
 
-Паттерны интерактива (hover/active) из login_page.html:
+Паттерны интерактива (hover/active):
 - Hover на интерактивных элементах: filter: brightness(0.95);
 - Active (нажатие): transform: scale(0.99);
 -->
@@ -271,6 +270,53 @@ APSP Front UI style guide (быстрые заметки, чтобы не пло
             font-size: 64px;
             color: #4caf50;
             margin-bottom: 20px;
+        }
+
+        /* Tooltip (используется на страницах, например login_page.html) */
+        .uid-tooltip {
+            display: inline;
+            position: relative;
+        }
+
+        .uid-underline {
+            border-bottom: 1px solid #bebebe;
+            display: inline-block;
+        }
+
+        .uid-tooltip .uid-tooltip-text {
+            visibility: hidden;
+            width: 320px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -160px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 13px;
+            line-height: 1.4;
+            font-weight: normal;
+        }
+
+        .uid-tooltip .uid-tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .uid-tooltip:hover .uid-tooltip-text {
+            visibility: visible;
+            opacity: 1;
         }
     </style>
     {% block extra_css %}{% endblock %}

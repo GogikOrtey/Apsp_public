@@ -24,6 +24,10 @@
         display: block;
     }
 
+    .btn-full:active {
+        transform: scale(0.99);
+    }
+
     .form-group {
         /* height: 350px; */
         width: 400px;
@@ -70,23 +74,19 @@
 
     /* Статусы сервера */
     .status-online {
-        /* background: #14eb31 !important; */
-        background: #47d14c !important;
-        /* border-color: #22c55e !important; */
+        background: #22c55e !important;
         color: #ffffff !important;
         font-weight: 600;
     }
 
     .status-offline {
         background: #ff7518 !important;
-        /* border-color: #ef4444 !important; */
         color: #ffffff !important;
         font-weight: 600;
     }
 
     .limit-error {
-        color: rgb(243, 68, 24);
-        /* font-weight: bold; */
+        color: #ff7518;
         margin-top: 8px;
         display: none;
     }
@@ -98,18 +98,21 @@
     }
 
     .btn-uid-check {
-        background: #4169E1 !important;
+        background: #667eea !important;
         color: #fff;
     }
 
     .btn-uid-check:hover {
-        background: #3557C7 !important;
+        background: #5568d3 !important;
+    }
+
+    .btn-uid-check:active {
+        transform: scale(0.99);
     }
 
     .uid-tooltip {
         display: inline;
         position: relative;
-        
     }
 
     .uid-underline {
@@ -224,7 +227,11 @@
     }
 
     .status-block__button:hover {
-        background: #5568d3;
+        filter: brightness(0.95);
+    }
+
+    .status-block__button:active {
+        transform: scale(0.99);
     }
 
     /* Элемент аккаунта справа сверху */
@@ -246,7 +253,11 @@
     }
 
     .account-button:hover {
-        background: #5568d3;
+        filter: brightness(0.95);
+    }
+
+    .account-button:active {
+        transform: scale(0.99);
     }
 
     /* Стиль для состояния "нет аккаунта" */
@@ -258,7 +269,11 @@
     }
 
     .account-button--no-account:hover {
-        background: #ececec;
+        filter: brightness(0.95);
+    }
+
+    .account-button--no-account:active {
+        transform: scale(0.99);
     }
 
     /* Выпадающее меню */
@@ -295,7 +310,6 @@
 
     .account-dropdown__logout {
         background: #ffffff;
-        /* color: #ff7518; */
         color: #555;
         border: 2px solid #ff7518;
         border-radius: 6px;
@@ -313,10 +327,13 @@
         color: #ffffff;
     }
 
+    .account-dropdown__logout:active {
+        transform: scale(0.99);
+    }
+
     /* Стиль для кнопки входа (зелёная, когда нет аккаунта) */
     .account-dropdown__logout--login {
         background: #ffffff;
-        /* color: #22c55e; */
         color: #555;
         border: 2px solid #22c55e;
     }
@@ -324,6 +341,10 @@
     .account-dropdown__logout--login:hover {
         background: #22c55e;
         color: #ffffff;
+    }
+
+    .account-dropdown__logout--login:active {
+        transform: scale(0.99);
     }
 </style>
 {% endblock %}
