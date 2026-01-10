@@ -33,6 +33,30 @@
         и после этого автоматически произойдёт редирект на 1ю страницу Автогенератора. 
         Аккаунт будет сохраняться в текущем браузере (на других устройствах нужно будет зайти заново).
     </p>
+
+    <button type="button" id="learn-more-btn" class="learn-more-btn">Узнать больше</button>
+    <div id="learn-more-text" class="learn-more-text" hidden>
+        <p class="learn-more-paragraph" style="padding-top: 20px; border-top: 1px solid #e0e0e0;">
+            В чат с этим ботом Вам будут приходить сообщения о:
+        </p>
+        <p class="learn-more-paragraph">
+            - Старте задачи с указанием сайта, на который пишется парсер, и ссылкой на UID задачи в автогенераторе, при переходе на которую можно будет посмотреть текущий прогресс.
+        </p>
+        <p class="learn-more-paragraph">
+            Задачи выполняются достаточно долго, 15-20 минут, и соединение с телеграмом нужно для удобства, что бы не потерять ссылку на генерацию, и не держать всё время вкладку открытой.
+        </p>
+        <p class="learn-more-paragraph">
+            - Когда генерация завершится, Вам также придёт сообщение, с ссылкой на результаты.
+        </p>
+        <p class="learn-more-paragraph" style="padding-top: 20px; border-top: 1px solid #e0e0e0;">
+            Мы не используем пароль: "аккаунт" в сервисе — это привязка к вашему Telegram‑логину и подтверждение через чат с ботом.
+            После подтверждения имя аккаунта сохраняется в куке браузера.
+        </p>
+        <p class="learn-more-paragraph">
+            Если бот не написал в течение 1–2 минут — проверьте, что вы указали логин без лишних пробелов,
+            и что в Телеграме разрешены сообщения от ботов. При необходимости попробуйте снова или зайдите с другого устройства.
+        </p>
+    </div>
 </div>
 {% endblock %}
 
@@ -127,6 +151,42 @@
         text-align: left;
     }
 
+    .learn-more-btn {
+        width: 100%;
+        margin-top: 12px;
+        padding: 8px 18px;
+        background: #f2f2f2;
+        border: 2px solid #cfcfcf;
+        border-radius: 8px;
+        color: #2c2c2c;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: filter 0.2s, transform 0.06s, background 0.2s;
+        user-select: none;
+    }
+
+    .learn-more-btn:hover {
+        filter: brightness(0.98);
+        background: #ededed;
+    }
+
+    .learn-more-btn:active {
+        transform: scale(0.99);
+    }
+
+    .learn-more-text {
+        margin-top: 14px;
+        color: #6f6f6f;
+        font-size: 14px;
+        line-height: 1.6;
+        text-align: left;
+    }
+
+    .learn-more-paragraph {
+        margin: 0 0 10px 0;
+    }
+
     /* Адаптивность для мобильных устройств */
     @media (max-width: 768px) {
         .login-container {
@@ -152,6 +212,15 @@
         }
 
         .info-text {
+            font-size: 13px;
+        }
+
+        .learn-more-btn {
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+
+        .learn-more-text {
             font-size: 13px;
         }
     }
@@ -189,6 +258,16 @@
                 submitBtn.textContent = 'Подтвердить';
             }, 1000);
         });
+
+        // "Узнать больше" — раскрыть дополнительный текст и спрятать кнопку
+        const learnMoreBtn = document.getElementById('learn-more-btn');
+        const learnMoreText = document.getElementById('learn-more-text');
+        if (learnMoreBtn && learnMoreText) {
+            learnMoreBtn.addEventListener('click', function () {
+                learnMoreBtn.style.display = 'none';
+                learnMoreText.hidden = false;
+            });
+        }
 
         // Автофокус на поле ввода
         document.addEventListener('DOMContentLoaded', function () {
