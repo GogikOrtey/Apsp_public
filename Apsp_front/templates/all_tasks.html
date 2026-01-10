@@ -5,6 +5,13 @@
 {% block content %}
 <h1>Все задачи</h1>
 
+<p class="p-gray">
+    Здесь показаны все задачи, которые были запущены в данном сервисе. Сверху отображаются задачи, находящиеся в работе.
+</p>
+<p class="p-gray">
+    Нажав на UID задачи можно быстро перейти на 2ю страницу, если она ещё в работе, и на 3ю страницу, если результат уже готов.
+</p>
+
 {% if active_tasks or completed_tasks %}
 <div class="tasks-table-container" style="margin-top: 30px;">
     <table class="tasks-table">
@@ -199,6 +206,10 @@
     .back-button:hover {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         transform: translateY(-1px);
+    }
+
+    .p-gray {
+        color: #505050;
     }
 </style>
 {% endblock %}
