@@ -26,6 +26,65 @@ from urllib.parse import urlencode
 DEFAULT_TOKEN_TTL_SECONDS = 30 * 60  # 30 минут
 
 
+def _get_env_int(name: str) -> int | None:
+    try:
+        v = (os.environ.get(name, "") or "").strip()
+        if not v:
+            return None
+        return int(v)
+    except Exception:
+        return None
+
+
+def _is_diagnostic_chat_id(chat_id: int) -> bool:
+    """
+    Возвращает True, если chat_id совпадает с log_chat или info_chat из env.
+    Нужно, чтобы:
+    - не дублировать диагностические сообщения обратно в log_chat
+    - не зациклиться (log_chat -> send_bot_message -> duplicate -> log_chat -> ...)
+    """
+    try:
+        cid = int(chat_id)
+    except Exception:
+        return False
+    log_id = _get_env_int("APSP_TELEGRAM_LOG_CHAT_ID")
+    info_id = _get_env_int("APSP_TELEGRAM_INFO_CHAT_ID")
+    return (log_id is not None and cid == log_id) or (info_id is not None and cid == info_id)
+
+
+def _format_user_label(*, user_telegram_id: int, user_account: str | None = None) -> str:
+    acct = (user_account or "").strip()
+    if acct:
+        return f"{acct} (tg_id={int(user_telegram_id)})"
+    return f"tg_id={int(user_telegram_id)}"
+
+
+def _dup_outgoing_to_log_chat(
+    *,
+    header: str,
+    body: str | None = None,
+    bot_token: str | None = None,
+) -> None:
+    """
+    Централизованное best-effort дублирование исходящих уведомлений в log_chat.
+
+    Формат выдерживаем простой и расширяемый:
+    - первая строка: "Пользователь/Пользователю ..."
+    - дальше (опционально) "body" (укороченный)
+    """
+    try:
+        msg = (header or "").strip()
+        if not msg:
+            return
+        if body:
+            body_trim = _trim_to_max_chars(str(body), 1500).strip()
+            if body_trim:
+                msg = f"{msg}\n{body_trim}"
+        try_send_to_log_chat(msg, bot_token=bot_token)
+    except Exception:
+        return
+
+
 def _escape_html(text: str) -> str:
     if text is None:
         return ""
@@ -80,7 +139,13 @@ def _trim_to_max_chars(text: str, max_chars: int) -> str:
     return s[: max_chars - 1] + "…"
 
 
-def send_message_to_user(*, bot_token: str, user_telegram_id: int, text: str) -> dict[str, Any]:
+def send_message_to_user(
+    *,
+    bot_token: str,
+    user_telegram_id: int,
+    text: str,
+    dup_to_log: bool = True,
+) -> dict[str, Any]:
     """
     Публичная функция-обёртка для отправки сообщения конкретному пользователю.
 
@@ -91,7 +156,7 @@ def send_message_to_user(*, bot_token: str, user_telegram_id: int, text: str) ->
         chat_id = int(user_telegram_id)
     except Exception:
         return {"ok": False, "error": "bad_user_telegram_id"}
-    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "")
+    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "", dup_to_log=dup_to_log)
 
 
 def send_message_to_log_chat(*, bot_token: str, log_chat_id: int, text: str) -> dict[str, Any]:
@@ -104,7 +169,7 @@ def send_message_to_log_chat(*, bot_token: str, log_chat_id: int, text: str) -> 
         chat_id = int(log_chat_id)
     except Exception:
         return {"ok": False, "error": "bad_log_chat_id"}
-    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "")
+    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "", dup_to_log=False)
 
 
 def send_message_to_info_chat(*, bot_token: str, info_chat_id: int, text: str) -> dict[str, Any]:
@@ -115,7 +180,7 @@ def send_message_to_info_chat(*, bot_token: str, info_chat_id: int, text: str) -
         chat_id = int(info_chat_id)
     except Exception:
         return {"ok": False, "error": "bad_info_chat_id"}
-    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "")
+    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "", dup_to_log=False)
 
 
 def try_send_to_log_chat(text: str, *, bot_token: str | None = None, log_chat_id: int | None = None) -> None:
@@ -174,6 +239,7 @@ def send_document_to_user(
     content: bytes,
     caption: str | None = None,
     parse_mode: str | None = None,
+    dup_to_log: bool = True,
 ) -> dict[str, Any]:
     """
     Публичная функция-обёртка для отправки файла (document) конкретному пользователю.
@@ -191,6 +257,7 @@ def send_document_to_user(
         content=content or b"",
         caption=caption,
         parse_mode=parse_mode,
+        dup_to_log=dup_to_log,
     )
 
 
@@ -222,12 +289,19 @@ def try_notify_task_finished(
         if tg_id is None:
             return
         tg_id_int = int(tg_id)
+        user_account = meta.get("user_account")
 
         domain = str(site_url or "").strip()
         base_url_norm = str(base_url or "").strip() or "http://127.0.0.1:5000"
         base_url_norm = base_url_norm.rstrip("/")
 
         status_line = "🟩 Генерация успешно завершена" if ok else "🟠 Генерация завершилась с ошибкой"
+        user_label = _format_user_label(user_telegram_id=tg_id_int, user_account=str(user_account) if user_account else None)
+        _dup_outgoing_to_log_chat(
+            header=f"Пользователь {user_label} завершил генерацию:",
+            body=f"{status_line}\nСайт: {domain}\nUID: {uid}",
+            bot_token=bot_token,
+        )
 
         extracted_err = ""
         if not ok:
@@ -287,6 +361,7 @@ def try_notify_task_finished(
                 content=zip_bytes,
                 caption=caption,
                 parse_mode=caption_parse_mode,
+                dup_to_log=False,
             )
             # если документ не ушёл — хотя бы текст
             if not isinstance(resp, dict) or not resp.get("ok"):
@@ -295,6 +370,7 @@ def try_notify_task_finished(
                     chat_id=tg_id_int,
                     text=caption,
                     parse_mode=caption_parse_mode,
+                    dup_to_log=False,
                 )
         else:
             send_bot_message(
@@ -302,6 +378,7 @@ def try_notify_task_finished(
                 chat_id=tg_id_int,
                 text=caption,
                 parse_mode=caption_parse_mode,
+                dup_to_log=False,
             )
     except Exception:
         return
@@ -323,6 +400,7 @@ def try_notify_task_started(*, task_dir: Path, uid: str, site_url: str, bot_toke
         if tg_id is None:
             return
         tg_id_int = int(tg_id)
+        user_account = meta.get("user_account")
         domain = str(site_url or "").strip()
         msg = (
             f"🚀 Запустили генерацию парсера для: {domain}\n"
@@ -331,7 +409,13 @@ def try_notify_task_started(*, task_dir: Path, uid: str, site_url: str, bot_toke
             f"Наблюдать за прогрессом можно по ссылке: {str(base_url).rstrip('/')}/main_page_2/{uid}/\n"
             f"После завершения генерации сюда также придёт сообщение с результатами"
         )
-        send_message_to_user(bot_token=bot_token, user_telegram_id=tg_id_int, text=msg)
+        user_label = _format_user_label(user_telegram_id=tg_id_int, user_account=str(user_account) if user_account else None)
+        _dup_outgoing_to_log_chat(
+            header=f"Пользователь {user_label} начал генерацию:",
+            body=f"Сайт: {domain}\nUID: {uid}",
+            bot_token=bot_token,
+        )
+        send_message_to_user(bot_token=bot_token, user_telegram_id=tg_id_int, text=msg, dup_to_log=False)
     except Exception:
         return
 
@@ -495,7 +579,14 @@ def store_telegram_user(users_dir: Path, tg_user: TelegramUser) -> None:
         pass
 
 
-def send_bot_message(*, bot_token: str, chat_id: int, text: str, parse_mode: str | None = None) -> dict[str, Any]:
+def send_bot_message(
+    *,
+    bot_token: str,
+    chat_id: int,
+    text: str,
+    parse_mode: str | None = None,
+    dup_to_log: bool = True,
+) -> dict[str, Any]:
     """
     Отправка сообщения через Telegram Bot API без внешних зависимостей (requests не нужен).
     """
@@ -515,6 +606,14 @@ def send_bot_message(*, bot_token: str, chat_id: int, text: str, parse_mode: str
     if parse_mode:
         payload["parse_mode"] = str(parse_mode)
     body = urlencode(payload).encode("utf-8")
+
+    # best-effort: дубль в log_chat (для всех сообщений "не в диагностические чаты")
+    if dup_to_log and not _is_diagnostic_chat_id(chat_id):
+        _dup_outgoing_to_log_chat(
+            header=f"Пользователю tg_id={int(chat_id)} ушло сообщение:",
+            body=text,
+            bot_token=bot_token,
+        )
 
     req = urllib_request.Request(
         url,
@@ -554,6 +653,7 @@ def send_bot_document(
     caption: str | None = None,
     parse_mode: str | None = None,
     content_type: str = "application/zip",
+    dup_to_log: bool = True,
 ) -> dict[str, Any]:
     """
     Отправка файла (document) через Telegram Bot API без внешних зависимостей (requests не нужен).
@@ -567,6 +667,18 @@ def send_bot_document(
 
     url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
     boundary = "----apsp_boundary_" + secrets.token_hex(16)
+
+    # best-effort: дубль в log_chat (для всех документов "не в диагностические чаты")
+    if dup_to_log and not _is_diagnostic_chat_id(chat_id):
+        cap = (caption or "").strip()
+        body = f"Файл: {filename}"
+        if cap:
+            body += f"\nCaption:\n{cap}"
+        _dup_outgoing_to_log_chat(
+            header=f"Пользователю tg_id={int(chat_id)} ушёл документ:",
+            body=body,
+            bot_token=bot_token,
+        )
 
     def _field(name: str, value: str | None) -> bytes:
         v = "" if value is None else str(value)
