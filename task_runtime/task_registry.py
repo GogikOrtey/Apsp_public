@@ -124,7 +124,7 @@ class TaskRegistry:
         tmp.write_text(json.dumps(meta, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(path)
 
-    def _init_meta(self, *, uid: str, url: str) -> None:
+    def _init_meta(self, *, uid: str, url: str, user_telegram_id: int | None = None, user_account: str | None = None) -> None:
         now = self._now()
         meta = {
             "schema_version": self._meta_schema_version,
@@ -145,6 +145,17 @@ class TaskRegistry:
             "runtime_status": "created",
             "last_error": None,
         }
+        # Связь с аккаунтом пользователя (best-effort, для уведомлений)
+        if user_telegram_id is not None:
+            try:
+                meta["user_telegram_id"] = int(user_telegram_id)
+            except Exception:
+                meta["user_telegram_id"] = None
+        if user_account is not None:
+            try:
+                meta["user_account"] = str(user_account)
+            except Exception:
+                meta["user_account"] = None
         self._save_meta(uid, meta)
 
     def _update_meta_on_start(self, uid: str) -> tuple[dict[str, Any], bool]:
@@ -492,7 +503,7 @@ class TaskRegistry:
     def result_tasks_dir(self) -> Path:
         return self._result_tasks_dir
 
-    def create(self, url: str) -> TaskInfo:
+    def create(self, url: str, *, user_telegram_id: int | None = None, user_account: str | None = None) -> TaskInfo:
         uid = uuid4().hex[:12]
         task_dir = self._result_tasks_dir / uid
         task_dir.mkdir(parents=True, exist_ok=True)
@@ -503,7 +514,7 @@ class TaskRegistry:
             pass
         # meta.json создаём сразу, чтобы задача была видна после рестарта.
         try:
-            self._init_meta(uid=uid, url=str(url))
+            self._init_meta(uid=uid, url=str(url), user_telegram_id=user_telegram_id, user_account=user_account)
         except Exception:
             pass
 

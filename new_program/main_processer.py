@@ -32,6 +32,8 @@ from import_all_libraries import *
 from task_runtime.stop_store import raise_if_stop_requested, USER_STOP_MESSAGE
 from ChatGPT.OpenAI_ChatGPT import send_message_to_ChatGPT
 
+import telegram_connect
+
 from new_program.html_toolkit import *
 from new_program.HGF_main_page_selector_and_semantic_handler import *
 from new_program.TNF_extract_data_from_search_page import *
@@ -205,6 +207,8 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None, started_at_
             # propagate UserStopException as-is, let other exceptions bubble too
             raise
 
+    # Начинаем генерацию
+
     start_time = float(started_at_ts)
     # 0. Чистим URL, запускам браузер и переходим на него
 
@@ -228,6 +232,21 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None, started_at_
     )
     try:
         maybe_push_screenshot_to_front(min_interval_ms=0, uid=uid)
+    except Exception:
+        pass
+
+    # Best-effort: сообщение пользователю о старте генерации (tg_id берём из meta.json)
+    try:
+        bot_token = os.environ.get("APSP_TELEGRAM_BOT_TOKEN", "").strip()
+        base_url = os.environ.get("APSP_BASE_URL", "http://127.0.0.1:5000").strip()
+        if bot_token and uid and task_dir:
+            telegram_connect.try_notify_task_started(
+                task_dir=Path(task_dir),
+                uid=str(uid),
+                site_url=str(input_url),
+                bot_token=bot_token,
+                base_url=base_url,
+            )
     except Exception:
         pass
 

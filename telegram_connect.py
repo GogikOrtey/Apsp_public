@@ -7,14 +7,6 @@ Telegram connect / auth helpers for APSP_public.
 - бот получает /start <token> и шлёт апдейт в наш webhook
 - сервер помечает token как authorized, сохраняет tg_user (id/username)
 - браузер опрашивает /api/telegram/auth/status и затем /api/telegram/auth/finish, чтобы поставить куки
-
-
-
-Имя и usernamne бота = auto_gen_parsers_info_bot
-
-Use this token to access the HTTP API:
-ТОКЕН
-
 """
 
 from __future__ import annotations
@@ -31,6 +23,48 @@ from urllib.parse import urlencode
 
 
 DEFAULT_TOKEN_TTL_SECONDS = 30 * 60  # 30 минут
+
+
+def send_message_to_user(*, bot_token: str, user_telegram_id: int, text: str) -> dict[str, Any]:
+    """
+    Публичная функция-обёртка для отправки сообщения конкретному пользователю.
+
+    - user_telegram_id: Telegram ID пользователя (число)
+    - text: текст сообщения
+    """
+    try:
+        chat_id = int(user_telegram_id)
+    except Exception:
+        return {"ok": False, "error": "bad_user_telegram_id"}
+    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "")
+
+
+def try_notify_task_started(*, task_dir: Path, uid: str, site_url: str, bot_token: str, base_url: str) -> None:
+    """
+    Best-effort: читает RESULT_TASKS/<uid>/meta.json и отправляет пользователю сообщение о старте генерации.
+    Ничего не рейзит.
+    """
+    try:
+        meta_path = Path(task_dir) / "meta.json"
+        if not meta_path.is_file():
+            return
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        if not isinstance(meta, dict):
+            return
+        tg_id = meta.get("user_telegram_id")
+        if tg_id is None:
+            return
+        tg_id_int = int(tg_id)
+        domain = str(site_url or "").strip()
+        msg = (
+            f"🚀 Запустили генерацию парсера для: {domain}\n"
+            f"UID: {uid}\n"
+            f"Наблюдат за прогрессом можно по ссылке: {str(base_url).rstrip('/')}/main_page_2/{uid}/\n"
+            f"После завершения генерации сюда также придёт сообщение с результатами"
+        )
+        send_message_to_user(bot_token=bot_token, user_telegram_id=tg_id_int, text=msg)
+    except Exception:
+        return
 
 
 @dataclass(frozen=True)

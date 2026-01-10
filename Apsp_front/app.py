@@ -626,26 +626,19 @@ def main_page_1():
                     print(f"Ошибка при проверке существующих результатов: {e}")
                 
                 # Нет готовых результатов или ошибка проверки — создаём новую задачу
-                task = TASKS.create(site_url)
-                TASKS.start(task.uid, _run_task)
-
-                # Best-effort: уведомление в Telegram, если пользователь уже привязан
+                tg_id = None
                 try:
                     tg_id = get_user_telegram_id_from_cookie()
-                    if tg_id and TELEGRAM_BOT_TOKEN:
-                        domain = _extract_site_domain(site_url) or site_url
-                        msg = (
-                            f"Запустили генерацию парсера для: {domain}\n"
-                            f"UID: {task.uid}\n"
-                            f"Прогресс: {APSP_BASE_URL}/main_page_2/{task.uid}/"
-                        )
-                        threading.Thread(
-                            target=telegram_connect.send_bot_message,
-                            kwargs={"bot_token": TELEGRAM_BOT_TOKEN, "chat_id": int(tg_id), "text": msg},
-                            daemon=True,
-                        ).start()
                 except Exception:
-                    pass
+                    tg_id = None
+                user_account = None
+                try:
+                    user_account = get_user_account_from_cookie()
+                except Exception:
+                    user_account = None
+
+                task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account)
+                TASKS.start(task.uid, _run_task)
 
                 return redirect(url_for('main_page_2_uid', uid=task.uid))
 
@@ -692,26 +685,19 @@ def parser_exists_new_generation():
         return redirect(url_for('index'))
     
     # Создаём новую задачу без проверки на существующие результаты
-    task = TASKS.create(site_url)
-    TASKS.start(task.uid, _run_task)
-
-    # Best-effort: уведомление в Telegram, если пользователь уже привязан
+    tg_id = None
     try:
         tg_id = get_user_telegram_id_from_cookie()
-        if tg_id and TELEGRAM_BOT_TOKEN:
-            domain = _extract_site_domain(site_url) or site_url
-            msg = (
-                f"Запустили генерацию парсера для: {domain}\n"
-                f"UID: {task.uid}\n"
-                f"Прогресс: {APSP_BASE_URL}/main_page_2/{task.uid}/"
-            )
-            threading.Thread(
-                target=telegram_connect.send_bot_message,
-                kwargs={"bot_token": TELEGRAM_BOT_TOKEN, "chat_id": int(tg_id), "text": msg},
-                daemon=True,
-            ).start()
     except Exception:
-        pass
+        tg_id = None
+    user_account = None
+    try:
+        user_account = get_user_account_from_cookie()
+    except Exception:
+        user_account = None
+
+    task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account)
+    TASKS.start(task.uid, _run_task)
 
     return redirect(url_for('main_page_2_uid', uid=task.uid))
 
