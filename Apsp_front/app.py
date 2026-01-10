@@ -48,6 +48,9 @@ import atexit
 
 app = Flask(__name__) 
 
+# Время старта текущего экземпляра приложения
+APP_START_TIME = time.time() 
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -529,7 +532,7 @@ def all_tasks():
     """
     tasks_data = _load_all_tasks_data()
     
-    # Разделяем на активные (WORK) и завершенные (COMPLETED/FAILED)
+    # Разделяем на активные (WORK) и завершенные (COMPLETED/FAILED/PAUSED)
     active_tasks = [t for t in tasks_data if t['status'] == 'WORK']
     completed_tasks = [t for t in tasks_data if t['status'] != 'WORK']
     
@@ -543,6 +546,7 @@ def all_tasks():
         completed_tasks = []
     else:
         remaining = max_tasks - len(active_tasks)
+        completed_tasks = completed_tasks[:remaining]
         completed_tasks = completed_tasks[:remaining]
     
     return render_template('all_tasks.html',
@@ -577,21 +581,39 @@ def _load_all_tasks_data():
             started_at_ts = meta.get("started_at_ts", 0)
             finished_at_ts = meta.get("finished_at_ts")
             
+            # Определяем реальный статус задачи
+            # Если задача в статусе WORK, но была запущена до старта текущего App - это PAUSED
+            last_started_at_ts = meta.get("last_started_at_ts", 0)
+            is_paused = False
+            if status == "WORK" and last_started_at_ts > 0 and last_started_at_ts < APP_START_TIME:
+                is_paused = True
+            
             # Извлекаем домен
             domain = _extract_site_domain(url)
             
-            # Время начала генерации (HH:MM)
+            # Время начала генерации (HH:MM или DD.MM.YYYY HH:MM для не сегодняшних)
             start_time = ""
             if started_at_ts:
                 try:
                     dt = datetime.fromtimestamp(started_at_ts)
-                    start_time = dt.strftime("%H:%M")
+                    today = datetime.now().date()
+                    task_date = dt.date()
+                    
+                    if task_date == today:
+                        # Сегодняшняя задача - только время
+                        start_time = dt.strftime("%H:%M")
+                    else:
+                        # Задача из прошлого - дата и время
+                        start_time = dt.strftime("%d.%m.%Y %H:%M")
                 except Exception:
                     pass
             
             # Время в процессе генерации (в минутах)
             duration = ""
-            if started_at_ts:
+            if is_paused:
+                # Для приостановленных задач - прочерк
+                duration = "—"
+            elif started_at_ts:
                 end_ts = finished_at_ts if finished_at_ts else time.time()
                 duration_seconds = end_ts - started_at_ts
                 duration_minutes = int(duration_seconds / 60)
@@ -615,11 +637,15 @@ def _load_all_tasks_data():
             # Статус с эмодзи
             status_display = ""
             error_message = ""
-            if status == "COMPLETED":
-                status_display = "✅ SUCCESS"
-            elif status == "WORK":
-                status_display = "📘 WORK"
-            elif status == "FAILED":
+            display_status = "PAUSED" if is_paused else status
+            
+            if display_status == "COMPLETED":
+                status_display = "✅ COMPLETED"
+            elif display_status == "WORK":
+                status_display = "📘 IN WORK"
+            elif display_status == "PAUSED":
+                status_display = "⬛ PAUSED"
+            elif display_status == "FAILED":
                 status_display = "🟠 FAILED"
                 # Загружаем сообщение об ошибке из result_code.ts для tooltip
                 result_code_path = child / "result_code.ts"
@@ -653,7 +679,7 @@ def _load_all_tasks_data():
                     except Exception:
                         pass
             else:
-                status_display = status
+                status_display = display_status
             
             tasks.append({
                 'uid': uid,
@@ -661,7 +687,7 @@ def _load_all_tasks_data():
                 'start_time': start_time,
                 'duration': duration,
                 'current_step': current_step,
-                'status': status,
+                'status': display_status,  # Используем display_status вместо status
                 'status_display': status_display,
                 'error_message': error_message,
                 'created_at_ts': created_at_ts
