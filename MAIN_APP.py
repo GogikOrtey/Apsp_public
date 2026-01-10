@@ -12,6 +12,37 @@
 import os
 from pathlib import Path
 
+# ============================================================================
+# ВАЖНО: Загрузка .env ПЕРЕД импортом app.py
+# ============================================================================
+# Flask читает переменные окружения при импорте модуля app.py,
+# поэтому нужно загрузить .env ДО импорта.
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent / '.env'
+    if env_path.is_file():
+        load_dotenv(env_path)
+        print(f"✓ Loaded .env from {env_path}")
+    else:
+        print(f"⚠ .env file not found at {env_path}")
+        print("  Using system environment variables or defaults")
+except ImportError:
+    print("⚠ python-dotenv not installed")
+    print("  Install with: pip install python-dotenv")
+    print("  Using system environment variables or defaults")
+
+# ============================================================================
+# Опциональные дефолты для переменных (если не заданы в .env или системно)
+# ============================================================================
+os.environ.setdefault("APSP_TELEGRAM_BOT_USERNAME", "auto_gen_parsers_info_bot")
+os.environ.setdefault("APSP_BASE_URL", "http://127.0.0.1:5000")
+
+# Прочие настройки (раскомментируйте при необходимости)
+# os.environ.setdefault("APSP_TASK_TIMEOUT_SECONDS", "5")
+# os.environ.setdefault("APSP_MAX_WORKERS", "1")
+
+# ============================================================================
+
 def _env_bool(name: str, default: bool) -> bool:
     v = os.environ.get(name)
     if v is None:
@@ -20,62 +51,25 @@ def _env_bool(name: str, default: bool) -> bool:
     return v in ("1", "true", "yes", "y", "on")
 
 if __name__ == "__main__":
-    # ============================================================================
-    # Загрузка .env файла (если есть)
-    # ============================================================================
-    # Для локальной разработки можно использовать .env файл.
-    # Для Docker/продакшена переменные задаются через docker-compose / env контейнера.
-    try:
-        from dotenv import load_dotenv
-        env_path = Path(__file__).parent / '.env'
-        if env_path.is_file():
-            load_dotenv(env_path)
-            print(f"Loaded .env from {env_path}")
-    except ImportError:
-        # python-dotenv не установлен - ничего страшного, переменные могут быть заданы системно
-        pass
-    
-    # ============================================================================
-    # Telegram бот: настройки авторизации и уведомлений
-    # ============================================================================
-    # Переменные читаются из окружения (из .env файла или системных env).
-    # Если переменная не задана - используется дефолтное значение.
-    
-    # Токен бота от @BotFather
-    os.environ.setdefault(
-        "APSP_TELEGRAM_BOT_TOKEN",
-        os.getenv("APSP_TELEGRAM_BOT_TOKEN", "")
-    )
-    
-    # Username бота без @ (например: auto_gen_parsers_info_bot)
-    os.environ.setdefault(
-        "APSP_TELEGRAM_BOT_USERNAME",
-        os.getenv("APSP_TELEGRAM_BOT_USERNAME", "auto_gen_parsers_info_bot")
-    )
-    
-    # Секрет для webhook URL (любая строка, которую знаете только вы)
-    os.environ.setdefault(
-        "APSP_TELEGRAM_WEBHOOK_SECRET",
-        os.getenv("APSP_TELEGRAM_WEBHOOK_SECRET", "")
-    )
-    
-    # Базовый URL сервиса
-    os.environ.setdefault(
-        "APSP_BASE_URL",
-        os.getenv("APSP_BASE_URL", "http://127.0.0.1:5000")
-    )
-    
-    # ============================================================================
-    # Прочие настройки (опциональные)
-    # ============================================================================
-    # # Поменять переменную среды для теста можно так:
-    # os.environ.setdefault("APSP_TASK_TIMEOUT_SECONDS", "5")    
-    # # Ограничение в 1 задачу, чтобы проверить блокировку интерфейса
-    # os.environ.setdefault("APSP_MAX_WORKERS", "1")
-    
-    # ============================================================================
-
+    # Импортируем app ПОСЛЕ загрузки .env
     from Apsp_front.app import run_dev_server
+
+    # Диагностика: показываем какие переменные загружены
+    print("\n" + "="*70)
+    print("Telegram Bot Configuration:")
+    print("="*70)
+    token = os.environ.get("APSP_TELEGRAM_BOT_TOKEN", "")
+    print(f"APSP_TELEGRAM_BOT_TOKEN: {'✓ SET' if token else '✗ NOT SET'}")
+    
+    username = os.environ.get("APSP_TELEGRAM_BOT_USERNAME", "")
+    print(f"APSP_TELEGRAM_BOT_USERNAME: {username or '✗ NOT SET'}")
+    
+    secret = os.environ.get("APSP_TELEGRAM_WEBHOOK_SECRET", "")
+    print(f"APSP_TELEGRAM_WEBHOOK_SECRET: {'✓ SET' if secret else '✗ NOT SET'}")
+    
+    base_url = os.environ.get("APSP_BASE_URL", "")
+    print(f"APSP_BASE_URL: {base_url or '✗ NOT SET'}")
+    print("="*70 + "\n")
 
     host = os.environ.get("APSP_HOST", "127.0.0.1")
     port = int(os.environ.get("APSP_PORT", "5000"))
@@ -84,6 +78,3 @@ if __name__ == "__main__":
 
     # Установка аккаунта в куки реализована в Apsp_front/app.py
     # в роуте main_page_1() через response.set_cookie('user_account', '@GogikOrtey')
-
-
-
