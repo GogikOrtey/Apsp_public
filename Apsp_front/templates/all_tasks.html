@@ -87,9 +87,7 @@
 </div>
 {% endif %}
 
-<div style="margin-top: 30px; text-align: center;">
-    <a href="{{ url_for('index') }}" style="color: #667eea; text-decoration: none;">← Вернуться на главную</a>
-</div>
+<a href="{{ url_for('main_page_1') }}" class="back-button">Назад</a>
 {% endblock %}
 
 {% block extra_css %}
@@ -179,6 +177,28 @@
     /* Улучшаем отображение tooltip для длинных сообщений */
     .tasks-table td span[title]:hover::after {
         white-space: pre-wrap;
+    }
+
+    /* Фиксированная кнопка "Назад" в левом верхнем углу */
+    .back-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: white;
+        color: black;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-1px);
     }
 </style>
 {% endblock %}
