@@ -510,6 +510,11 @@ def index():
     """Главная страница"""
     return redirect(url_for('main_page_1'))
 
+@app.route('/login_page', methods=['GET'])
+def login_page():
+    """Страница входа в аккаунт"""
+    return render_template('login_page.html')
+
 @app.route('/main_page_1', methods=['GET', 'POST'])
 def main_page_1():
     """
@@ -570,12 +575,10 @@ def main_page_1():
 
     # Создаём response
     response = make_response(render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found))
-    
-    ###################################################################################### Убрать
 
-    # Устанавливаем тестовый аккаунт в куку (для демонстрации)
-    # В продакшене это должно устанавливаться после авторизации пользователя
-    set_user_account_cookie(response, '@GogikOrtey')
+    # # Устанавливаем тестовый аккаунт в куку (для демонстрации)
+    # # В продакшене это должно устанавливаться после авторизации пользователя
+    # set_user_account_cookie(response, '@GogikOrtey')
     
     return response
 

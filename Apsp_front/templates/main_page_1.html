@@ -312,6 +312,19 @@
         background: #ff7518;
         color: #ffffff;
     }
+
+    /* Стиль для кнопки входа (зелёная, когда нет аккаунта) */
+    .account-dropdown__logout--login {
+        background: #ffffff;
+        /* color: #22c55e; */
+        color: #555;
+        border: 2px solid #22c55e;
+    }
+
+    .account-dropdown__logout--login:hover {
+        background: #22c55e;
+        color: #ffffff;
+    }
 </style>
 {% endblock %}
 
@@ -414,12 +427,22 @@
                 if (accountUsernameInDropdown) {
                     accountUsernameInDropdown.textContent = username;
                 }
+                // Обновляем кнопку выхода
+                if (logoutButton) {
+                    logoutButton.textContent = 'Выйти из аккаунта';
+                    logoutButton.classList.remove('account-dropdown__logout--login');
+                }
             } else {
                 // Нет аккаунта
                 accountButton.textContent = 'no_account';
                 accountButton.classList.add('account-button--no-account');
                 if (accountUsernameInDropdown) {
                     accountUsernameInDropdown.textContent = 'no_account';
+                }
+                // Обновляем кнопку входа
+                if (logoutButton) {
+                    logoutButton.textContent = 'Войти в аккаунт';
+                    logoutButton.classList.add('account-dropdown__logout--login');
                 }
             }
         }
@@ -445,9 +468,18 @@
             e.stopPropagation();
         });
 
-        // Обработка кнопки выхода
+        // Обработка кнопки выхода/входа
         if (logoutButton) {
             logoutButton.addEventListener('click', async function() {
+                const username = getCookie('user_account');
+                
+                // Если нет аккаунта - редирект на страницу логина
+                if (!username || username === 'no_account') {
+                    window.location.href = '/login_page';
+                    return;
+                }
+                
+                // Если есть аккаунт - выполняем выход
                 console.log('Выход из аккаунта');
                 
                 // Вызываем серверный API для очистки куки
