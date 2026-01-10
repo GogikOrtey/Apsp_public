@@ -156,9 +156,11 @@
         text-decoration: none;
         text-align: center;
         cursor: pointer;
-        transition: background 0.2s;
+        /* transition: background 0.2s, width 0.3s ease; */
         display: block;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        width: 196px;
+        box-sizing: border-box;
     }
 
     .status-block__button:hover {
@@ -226,9 +228,10 @@
             }
         }
 
-        // Вызываем синхронизацию после загрузки и при изменении размера
-        syncButtonWidth();
-        window.addEventListener('resize', syncButtonWidth);
+        // // Вызываем синхронизацию два раза с разными задержками для надёжности
+        // setTimeout(syncButtonWidth, 70);
+        // setTimeout(syncButtonWidth, 500);
+        // window.addEventListener('resize', syncButtonWidth);
 
         // Опрос статуса
         async function pollStatus() {
