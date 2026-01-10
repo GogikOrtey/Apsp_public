@@ -249,6 +249,18 @@
         background: #5568d3;
     }
 
+    /* Стиль для состояния "нет аккаунта" */
+    .account-button--no-account {
+        background: #f5f5f5;
+        color: #555;
+        border: 2px solid #667eea;
+        padding: 6px 16px;
+    }
+
+    .account-button--no-account:hover {
+        background: #ececec;
+    }
+
     /* Выпадающее меню */
     .account-dropdown {
         position: fixed;
@@ -305,7 +317,8 @@
 
 {% block content %}
 <!-- Элемент аккаунта справа сверху -->
-<div class="account-button" id="account_button">@GogikOrtey</div>
+<!-- <div class="account-button" id="account_button">@GogikOrtey</div> -->
+<div class="account-button account-button--no-account" id="account_button">no_account</div>
 
 <!-- Выпадающее меню -->
 <div class="account-dropdown" id="account_dropdown">
