@@ -7,6 +7,14 @@ Telegram connect / auth helpers for APSP_public.
 - бот получает /start <token> и шлёт апдейт в наш webhook
 - сервер помечает token как authorized, сохраняет tg_user (id/username)
 - браузер опрашивает /api/telegram/auth/status и затем /api/telegram/auth/finish, чтобы поставить куки
+
+
+
+Имя и usernamne бота = auto_gen_parsers_info_bot
+
+Use this token to access the HTTP API:
+ТОКЕН
+
 """
 
 from __future__ import annotations
