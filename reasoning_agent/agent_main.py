@@ -236,6 +236,32 @@ def safe_json_dumps(obj: Any, *, indent: int | None = None) -> str:
         except Exception:  # noqa: BLE001
             return str(obj)
 
+
+def _is_error_tool_result(result: Any) -> bool:
+    """
+    Унифицированная проверка: считать ли результат инструмента "ошибкой".
+
+    В проекте большинство tools возвращают dict со схемой:
+      {"status": "ok|error", ..., "error": str|None}
+
+    Но встречаются и варианты с ok: false.
+    """
+    try:
+        if not isinstance(result, dict):
+            return False
+        status = result.get("status")
+        if isinstance(status, str) and status.strip().lower() in {"error", "failed", "fail"}:
+            return True
+        if result.get("ok") is False:
+            return True
+        # Если инструмент вернул ключ error с непустым значением — это тоже трактуем как ошибку.
+        err = result.get("error")
+        if isinstance(err, str) and err.strip():
+            return True
+        return False
+    except Exception:
+        return False
+
 # Добавляет запись в историю с автоинкрементом порядкового номера
 def add_history_entry(entry: dict[str, Any]) -> None:
     st = _ensure_agent_state()
@@ -1251,6 +1277,41 @@ def orchestrate(
 
             # 6.3 Вызов инструмента
             tool_result = run_tool(tool_name, tool_args)
+
+            # Если инструмент вернул ошибку — best-effort отправляем алерт в Telegram info_chat
+            # с UID задачи + кратким summary модели (1116-1123) + результатом инструмента.
+            try:
+                if _is_error_tool_result(tool_result):
+                    effective_uid = uid
+                    if not effective_uid:
+                        try:
+                            from task_runtime.task_context import get_current_task_uid  # noqa: WPS433
+                            effective_uid = get_current_task_uid()
+                        except Exception:
+                            effective_uid = None
+
+                    try:
+                        from telegram_connect import try_send_to_info_chat  # noqa: WPS433
+
+                        header = "🟥 tool_error: Ошибка при использовании инструмента агентом:"
+                        uid_line = f"UID: {effective_uid}" if effective_uid else "UID: —"
+                        summary_text = last_model_summary or "—"
+                        result_text = safe_json_dumps(tool_result, indent=2)
+                        text = (
+                            f"{header}\n"
+                            f"{uid_line}\n\n"
+                            f"--- MODEL SUMMARY ---\n{summary_text}\n"
+                            f"--- TOOL RESULT ---\n{result_text}"
+                        )
+                        # Telegram ограничивает размер сообщения; оставим запас.
+                        if isinstance(text, str) and len(text) > 3800:
+                            text = text[:3800] + "\n…(truncated)…"
+                        try_send_to_info_chat(text)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
             tool_log = f"🛠️  {tool_name}({tool_args})"
             print(tool_log)
             chat_print(tool_log)
@@ -1415,6 +1476,20 @@ def log_development_feedback(feedback):
     log_path = Path(__file__).resolve().parent / "development_feedback.log"
     with open(log_path, "a", encoding="utf-8") as log_file:
         log_file.write(json.dumps(feedback, ensure_ascii=False) + "\n")
+
+    # Best-effort: продублировать development_feedback в диагностический Telegram info_chat
+    # (чтобы разработчик видел сообщения без доступа к консоли/логам).
+    try:
+        from telegram_connect import try_send_to_info_chat  # локальный импорт: избегаем лишних зависимостей/циклов
+
+        text = "🟨 development_feedback\n" + safe_json_dumps(feedback, indent=2)
+        # Telegram ограничивает размер сообщения; оставим запас.
+        if isinstance(text, str) and len(text) > 3800:
+            text = text[:3800] + "\n…(truncated)…"
+        try_send_to_info_chat(text)
+    except Exception:
+        # Никогда не ломаем выполнение агента из-за уведомлений.
+        pass
 
 
 

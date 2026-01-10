@@ -199,6 +199,10 @@
 - `APSP_TELEGRAM_LOG_CHAT_ID`: (опционально) chat_id диагностического чата log_chat (int, часто -100...)
 - `APSP_TELEGRAM_INFO_CHAT_ID`: (опционально) chat_id диагностического чата info_chat (int, часто -100...)
 
+Дополнительно:
+- `reasoning_agent/agent_main.py:log_development_feedback(...)` теперь (best-effort) дублирует `development_feedback` в Telegram `info_chat` через `telegram_connect.py:try_send_to_info_chat(...)` (если заданы env `APSP_TELEGRAM_BOT_TOKEN` и `APSP_TELEGRAM_INFO_CHAT_ID`).
+- `reasoning_agent/agent_main.py:orchestrate(...)` теперь (best-effort) шлёт в Telegram `info_chat` алерт, если любой tool вернул ошибку (`status="error"`/`ok=false`/`error` непустой), включая `UID`, краткий `model_summary` и `tool_result`.
+
 ### Настройка `.env` и порядок загрузки
 
 - Для локального запуска и контейнера поддерживается `.env` в корне репозитория (`APSP_public/.env`).
