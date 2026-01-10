@@ -23,6 +23,7 @@ import time
 import shutil
 import stat
 from urllib.parse import urlparse
+import re
 
 # Корень репозитория (нужно для импорта модулей из верхнего уровня проекта).
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -519,6 +520,126 @@ def parser_exists_new_generation():
     task = TASKS.create(site_url)
     TASKS.start(task.uid, _run_task)
     return redirect(url_for('main_page_2_uid', uid=task.uid))
+
+
+@app.route('/all_tasks')
+def all_tasks():
+    """
+    Страница обзора всех задач из папки RESULT_TASKS.
+    """
+    tasks_data = _load_all_tasks_data()
+    
+    # Разделяем на активные (WORK) и завершенные (COMPLETED/FAILED)
+    active_tasks = [t for t in tasks_data if t['status'] == 'WORK']
+    completed_tasks = [t for t in tasks_data if t['status'] != 'WORK']
+    
+    # Ограничиваем до 70 задач
+    total_tasks = len(active_tasks) + len(completed_tasks)
+    max_tasks = 70
+    
+    # Берем первые задачи с учетом лимита
+    if len(active_tasks) >= max_tasks:
+        active_tasks = active_tasks[:max_tasks]
+        completed_tasks = []
+    else:
+        remaining = max_tasks - len(active_tasks)
+        completed_tasks = completed_tasks[:remaining]
+    
+    return render_template('all_tasks.html',
+                         active_tasks=active_tasks,
+                         completed_tasks=completed_tasks,
+                         total_tasks=total_tasks)
+
+
+def _load_all_tasks_data():
+    """
+    Читает все задачи из RESULT_TASKS и возвращает список с данными для таблицы.
+    """
+    if not RESULT_TASKS_DIR.exists() or not RESULT_TASKS_DIR.is_dir():
+        return []
+    
+    tasks = []
+    
+    for child in RESULT_TASKS_DIR.iterdir():
+        if not child.is_dir():
+            continue
+        
+        meta_path = child / "meta.json"
+        if not meta_path.is_file():
+            continue
+        
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            uid = child.name
+            url = meta.get("url", "")
+            status = meta.get("status", "WORK")
+            created_at_ts = meta.get("created_at_ts", 0)
+            started_at_ts = meta.get("started_at_ts", 0)
+            finished_at_ts = meta.get("finished_at_ts")
+            
+            # Извлекаем домен
+            domain = _extract_site_domain(url)
+            
+            # Время начала генерации (HH:MM)
+            start_time = ""
+            if started_at_ts:
+                try:
+                    dt = datetime.fromtimestamp(started_at_ts)
+                    start_time = dt.strftime("%H:%M")
+                except Exception:
+                    pass
+            
+            # Время в процессе генерации (в минутах)
+            duration = ""
+            if started_at_ts:
+                end_ts = finished_at_ts if finished_at_ts else time.time()
+                duration_seconds = end_ts - started_at_ts
+                duration_minutes = int(duration_seconds / 60)
+                duration = f"{duration_minutes} мин."
+            
+            # Текущий шаг (из new_page_2_state.json)
+            current_step = ""
+            state_path = child / "new_page_2_state.json"
+            if state_path.is_file():
+                try:
+                    state = json.loads(state_path.read_text(encoding="utf-8"))
+                    current_step_title = state.get("current_step_title", "")
+                    if current_step_title:
+                        # Извлекаем "Шаг 3/10" из "Шаг 3/10: Описание"
+                        match = re.match(r'(Шаг \d+/\d+)', current_step_title)
+                        if match:
+                            current_step = match.group(1)
+                except Exception:
+                    pass
+            
+            # Статус с эмодзи
+            status_display = ""
+            if status == "COMPLETED":
+                status_display = "✅ SUCCESS"
+            elif status == "WORK":
+                status_display = "📘 WORK"
+            elif status == "FAILED":
+                status_display = "🟠 FAILED"
+            else:
+                status_display = status
+            
+            tasks.append({
+                'uid': uid,
+                'domain': domain,
+                'start_time': start_time,
+                'duration': duration,
+                'current_step': current_step,
+                'status': status,
+                'status_display': status_display,
+                'created_at_ts': created_at_ts
+            })
+        except Exception:
+            continue
+    
+    # Сортируем по времени создания (новые сначала)
+    tasks.sort(key=lambda x: x['created_at_ts'], reverse=True)
+    
+    return tasks
 
 
 def _render_invalid_uid_page(uid_state: str):

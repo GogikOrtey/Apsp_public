@@ -1,0 +1,156 @@
+{% extends "layout.html" %}
+
+{% block title %}Все задачи{% endblock %}
+
+{% block content %}
+<h1>Все задачи</h1>
+
+{% if active_tasks or completed_tasks %}
+<div class="tasks-table-container" style="margin-top: 30px;">
+    <table class="tasks-table">
+        <thead>
+            <tr>
+                <th>UID задачи</th>
+                <th>Домен сайта</th>
+                <th>Время начала</th>
+                <th>Время в процессе</th>
+                <th>Текущий шаг</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in active_tasks %}
+            <tr>
+                <td>
+                    {% if task.status == 'WORK' %}
+                        <a href="{{ url_for('main_page_2_uid', uid=task.uid) }}">{{ task.uid }}</a>
+                    {% else %}
+                        <a href="{{ url_for('main_page_3_uid', uid=task.uid) }}">{{ task.uid }}</a>
+                    {% endif %}
+                </td>
+                <td>{{ task.domain }}</td>
+                <td>{{ task.start_time }}</td>
+                <td>{{ task.duration }}</td>
+                <td>{{ task.current_step }}</td>
+                <td>{{ task.status_display|safe }}</td>
+            </tr>
+            {% endfor %}
+            
+            {% if active_tasks and completed_tasks %}
+            <tr class="separator-row">
+                <td colspan="6"></td>
+            </tr>
+            {% endif %}
+            
+            {% for task in completed_tasks %}
+            <tr>
+                <td>
+                    {% if task.status == 'WORK' %}
+                        <a href="{{ url_for('main_page_2_uid', uid=task.uid) }}">{{ task.uid }}</a>
+                    {% else %}
+                        <a href="{{ url_for('main_page_3_uid', uid=task.uid) }}">{{ task.uid }}</a>
+                    {% endif %}
+                </td>
+                <td>{{ task.domain }}</td>
+                <td>{{ task.start_time }}</td>
+                <td>{{ task.duration }}</td>
+                <td>{{ task.current_step }}</td>
+                <td>{{ task.status_display|safe }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if total_tasks > 70 %}
+<div style="margin-top: 20px; text-align: center; color: #666; font-size: 14px;">
+    Более поздние задачи скрыты. Всего задач: {{ total_tasks }}
+</div>
+{% endif %}
+
+{% if not active_tasks and not completed_tasks %}
+<div style="margin-top: 30px; text-align: center; color: #666;">
+    <p>Задач пока нет</p>
+</div>
+{% endif %}
+
+<div style="margin-top: 30px; text-align: center;">
+    <a href="{{ url_for('index') }}" style="color: #667eea; text-decoration: none;">← Вернуться на главную</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 1400px !important;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        color: #2c2c2c;
+    }
+
+    .tasks-table-container {
+        overflow-x: auto;
+    }
+
+    .tasks-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+
+    .tasks-table thead {
+        background: #f8f9fa;
+    }
+
+    .tasks-table th,
+    .tasks-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border: 1px solid #d0d0d0;
+    }
+
+    .tasks-table th {
+        font-weight: 600;
+        color: #2c2c2c;
+    }
+
+    .tasks-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .tasks-table a {
+        color: #667eea;
+        text-decoration: none;
+        font-family: monospace;
+    }
+
+    .tasks-table a:hover {
+        text-decoration: underline;
+    }
+
+    .tasks-table td {
+        color: #555;
+        font-size: 14px;
+    }
+
+    .separator-row {
+        height: 8px;
+        background: #e0e0e0 !important;
+    }
+
+    .separator-row td {
+        padding: 0 !important;
+        border-top: 2px solid #b0b0b0;
+        border-bottom: 2px solid #b0b0b0;
+    }
+
+    .separator-row:hover {
+        background: #e0e0e0 !important;
+    }
+</style>
+{% endblock %}
+
