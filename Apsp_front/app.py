@@ -614,12 +614,44 @@ def _load_all_tasks_data():
             
             # Статус с эмодзи
             status_display = ""
+            error_message = ""
             if status == "COMPLETED":
                 status_display = "✅ SUCCESS"
             elif status == "WORK":
                 status_display = "📘 WORK"
             elif status == "FAILED":
                 status_display = "🟠 FAILED"
+                # Загружаем сообщение об ошибке из result_code.ts для tooltip
+                result_code_path = child / "result_code.ts"
+                if result_code_path.is_file():
+                    try:
+                        result_code = result_code_path.read_text(encoding="utf-8")
+                        lines = result_code.strip().split('\n')
+                        
+                        # Ищем последнюю строку с исключением (ValueError:, Exception:, и т.д.)
+                        exception_index = -1
+                        for i in range(len(lines) - 1, -1, -1):
+                            line = lines[i].strip()
+                            # Ищем строки с типичными исключениями Python
+                            if line and any(exc in line for exc in ['Error:', 'Exception:', 'ValueError:', 'TypeError:', 'KeyError:', 'AttributeError:']):
+                                exception_index = i
+                                break
+                        
+                        if exception_index >= 0:
+                            # Берём строку с исключением и всё что после неё
+                            error_lines = []
+                            for i in range(exception_index, len(lines)):
+                                if lines[i].strip():
+                                    error_lines.append(lines[i].strip())
+                            error_message = '\n'.join(error_lines) if error_lines else ''
+                        else:
+                            # Если не нашли traceback, берём последнюю непустую строку
+                            for line in reversed(lines):
+                                if line.strip():
+                                    error_message = line.strip()
+                                    break
+                    except Exception:
+                        pass
             else:
                 status_display = status
             
@@ -631,6 +663,7 @@ def _load_all_tasks_data():
                 'current_step': current_step,
                 'status': status,
                 'status_display': status_display,
+                'error_message': error_message,
                 'created_at_ts': created_at_ts
             })
         except Exception:

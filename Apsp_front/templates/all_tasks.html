@@ -23,16 +23,22 @@
             <tr>
                 <td>
                     {% if task.status == 'WORK' %}
-                        <a href="{{ url_for('main_page_2_uid', uid=task.uid) }}">{{ task.uid }}</a>
+                        <a href="{{ url_for('main_page_2_uid', uid=task.uid) }}" target="_blank">{{ task.uid }}</a>
                     {% else %}
-                        <a href="{{ url_for('main_page_3_uid', uid=task.uid) }}">{{ task.uid }}</a>
+                        <a href="{{ url_for('main_page_3_uid', uid=task.uid) }}" target="_blank">{{ task.uid }}</a>
                     {% endif %}
                 </td>
                 <td>{{ task.domain }}</td>
                 <td>{{ task.start_time }}</td>
                 <td>{{ task.duration }}</td>
                 <td>{{ task.current_step }}</td>
-                <td>{{ task.status_display|safe }}</td>
+                <td>
+                    {% if task.status == 'FAILED' and task.error_message %}
+                        <span title="{{ task.error_message }}">{{ task.status_display|safe }}</span>
+                    {% else %}
+                        {{ task.status_display|safe }}
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
             
@@ -46,16 +52,22 @@
             <tr>
                 <td>
                     {% if task.status == 'WORK' %}
-                        <a href="{{ url_for('main_page_2_uid', uid=task.uid) }}">{{ task.uid }}</a>
+                        <a href="{{ url_for('main_page_2_uid', uid=task.uid) }}" target="_blank">{{ task.uid }}</a>
                     {% else %}
-                        <a href="{{ url_for('main_page_3_uid', uid=task.uid) }}">{{ task.uid }}</a>
+                        <a href="{{ url_for('main_page_3_uid', uid=task.uid) }}" target="_blank">{{ task.uid }}</a>
                     {% endif %}
                 </td>
                 <td>{{ task.domain }}</td>
                 <td>{{ task.start_time }}</td>
                 <td>{{ task.duration }}</td>
                 <td>{{ task.current_step }}</td>
-                <td>{{ task.status_display|safe }}</td>
+                <td>
+                    {% if task.status == 'FAILED' and task.error_message %}
+                        <span title="{{ task.error_message }}">{{ task.status_display|safe }}</span>
+                    {% else %}
+                        {{ task.status_display|safe }}
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -150,6 +162,16 @@
 
     .separator-row:hover {
         background: #e0e0e0 !important;
+    }
+
+    .tasks-table td span[title] {
+        cursor: help;
+        border-bottom: 1px dotted #999;
+    }
+
+    /* Улучшаем отображение tooltip для длинных сообщений */
+    .tasks-table td span[title]:hover::after {
+        white-space: pre-wrap;
     }
 </style>
 {% endblock %}
