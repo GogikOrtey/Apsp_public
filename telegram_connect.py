@@ -59,7 +59,7 @@ def try_notify_task_started(*, task_dir: Path, uid: str, site_url: str, bot_toke
         msg = (
             f"🚀 Запустили генерацию парсера для: {domain}\n"
             f"UID: {uid}\n"
-            f"Наблюдат за прогрессом можно по ссылке: {str(base_url).rstrip('/')}/main_page_2/{uid}/\n"
+            f"Наблюдать за прогрессом можно по ссылке: {str(base_url).rstrip('/')}/main_page_2/{uid}/\n"
             f"После завершения генерации сюда также придёт сообщение с результатами"
         )
         send_message_to_user(bot_token=bot_token, user_telegram_id=tg_id_int, text=msg)

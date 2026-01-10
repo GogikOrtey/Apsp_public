@@ -402,6 +402,20 @@
     <button type="submit" class="btn btn-success btn-full" id="new_page_1_submit">Generate</button>
 </form>
 
+<!--
+    Кнопка "Generate" отправляет эту форму методом POST на /main_page_1 с полем site_url.
+
+    Дальше логика на сервере (Apsp_front/app.py, main_page_1):
+    - Если введено 12 hex символов (UID): генерация НЕ запускается — делается переход на страницу существующей задачи
+      (/main_page_2/<uid>/ если задача в работе, /main_page_3/<uid>/ если завершена). Если UID не найден — показываем ошибку текстом на 1й странице, тут.
+    - Если введён URL: если уже есть COMPLETED результат для этого URL — редирект на /parser_exists, где пользователь выбирает, хочет ли он открыть готовый файл результатов, или запустить генерацию заново; 
+    Иначе - создаётся новая задача:
+      (TASKS.create → создаёт UID, папку RESULT_TASKS/<uid>, meta.json) и запускается выполнение (TASKS.start(..., _run_task)).
+      После старта делается редирект на /main_page_2/<uid>/.
+
+    Реальная "генерация парсера" стартует внутри _run_task: создаётся Playwright page и вызывается new_program/main_processer.py:main_processer(...).
+-->
+
 <script>
     // ====== Функции для работы с куками ======
     function setCookie(name, value, days = 365) {

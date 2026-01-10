@@ -161,6 +161,36 @@
 - `APSP_TELEGRAM_WEBHOOK_SECRET`: секрет в URL вебхука
 - `APSP_BASE_URL`: базовый URL сервиса (используется в ссылках в сообщениях, по умолчанию `http://127.0.0.1:5000`)
 
+### Настройка `.env` и порядок загрузки
+
+- Для локального запуска и контейнера поддерживается `.env` в корне репозитория (`APSP_public/.env`).
+- Загрузка `.env` выполняется в `MAIN_APP.py` **до** импорта `Apsp_front/app.py`. Это важно, потому что `Apsp_front/app.py` читает `APSP_TELEGRAM_*` переменные **во время импорта**.
+- Пример шаблона переменных: `env.example` (его нужно копировать в `.env` и заполнить).
+- Подробная пошаговая инструкция: `TELEGRAM_SETUP.md`.
+- `.env` не коммитим (он в `.gitignore`).
+
+### Webhook: когда нужно вызывать `setWebhook`
+
+- Webhook привязан к конкретному URL.
+- **Продакшен (стабильный домен + HTTPS)**: `setWebhook` делается обычно **один раз** на рабочий домен.
+- **Локальная разработка через ngrok**: URL часто меняется → `setWebhook` нужно повторять при смене URL.
+
+### Файлы/хранилища Telegram
+
+- `Apsp_front/_telegram_auth/`: временные токены авторизации (pending/authorized).
+- `Apsp_front/_telegram_users/`: файлы пользователей Telegram (tg_id/username и др.).
+- Эти директории **не коммитятся** (добавлены в `.gitignore`).
+
+### Уведомления в Telegram по задачам
+
+- При создании задачи `TaskRegistry.create(...)` теперь принимает (best-effort) `user_telegram_id` и `user_account` и пишет их в `RESULT_TASKS/<uid>/meta.json`:
+  - `user_telegram_id`: Telegram ID пользователя (int)
+  - `user_account`: строка вида `@username`/`tg_<id>` (для справки)
+- На `main_page_1` и `parser_exists/new_generation` эти значения берутся из кук (`user_telegram_id`, `user_account`) и передаются в `TASKS.create(...)`.
+- Сообщение о старте генерации отправляется из пайплайна, а не из Flask:
+  - вызов добавлен в `new_program/main_processer.py` (после успешного `goto_url`)
+  - реализация/обёртка отправки: `telegram_connect.py` (`send_message_to_user`, `try_notify_task_started`), читает `meta.json` и отправляет пользователю сообщение по `user_telegram_id`.
+
 ## TODO для будущих дополнений (когда будет время)
 
 - описать точный пайплайн “10 шагов” и какие артефакты создаются
