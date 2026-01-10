@@ -227,7 +227,7 @@ def try_notify_task_finished(
         base_url_norm = str(base_url or "").strip() or "http://127.0.0.1:5000"
         base_url_norm = base_url_norm.rstrip("/")
 
-        status_line = "🟩 Генерация успешна" if ok else "🟠 Генерация завершилась с ошибкой"
+        status_line = "🟩 Генерация успешно завершена" if ok else "🟠 Генерация завершилась с ошибкой"
 
         extracted_err = ""
         if not ok:
@@ -249,9 +249,9 @@ def try_notify_task_finished(
             caption_lines = [
                 status_line,
                 f"Сайт: {domain}",
-                f"UID: {uid}",
+                f"UID задачи: {uid}",
                 f"Результат: {base_url_norm}/main_page_3/{uid}/",
-                f"ZIP (ссылка): {base_url_norm}/download/all_files_zip/{uid}",
+                # f"ZIP (ссылка): {base_url_norm}/download/all_files_zip/{uid}",
             ]
             caption = "\n".join(caption_lines).strip()
             caption_parse_mode = None
@@ -261,9 +261,9 @@ def try_notify_task_finished(
                 [
                     _escape_html(status_line),
                     f"Сайт: {_escape_html(domain)}",
-                    f"UID: {_escape_html(uid)}",
+                    f"UID задачи: {_escape_html(uid)}",
                     f"Результат: {_escape_html(base_url_norm + '/main_page_3/' + str(uid) + '/')}",
-                    f"ZIP (ссылка): {_escape_html(base_url_norm + '/download/all_files_zip/' + str(uid))}",
+                    # f"ZIP (ссылка): {_escape_html(base_url_norm + '/download/all_files_zip/' + str(uid))}",
                 ]
             ).strip()
 
