@@ -405,6 +405,74 @@
                 e.preventDefault();
             }
         });
+
+        // ====== Анимация placeholder ======
+        const placeholders = [
+            'http://systemarf.ru/',
+            'makitaclub.ru',
+            // 'https://kotel-nasos.ru/nastennyj-gazovyj-kotel-lemax-prime-pro-24-Grey/'
+            'https://kotel-nasos.ru/catalog/79045/'
+        ];
+        
+        let currentPlaceholderIndex = 0;
+        let isTyping = false;
+        let isDeleting = false;
+        let charIndex = 0;
+        let animationTimeout = null;
+        
+        const TYPING_SPEED = 80;       // миллисекунды на символ при вводе
+        const DELETING_SPEED = 40;     // миллисекунды на символ при удалении
+        const PAUSE_AFTER_TYPING = 3000; // пауза после полного ввода подсказки (мс)
+        
+        function animatePlaceholder() {
+            // Не анимируем, если пользователь что-то ввёл
+            if (input.value.trim() !== '') {
+                return;
+            }
+            
+            const currentText = placeholders[currentPlaceholderIndex];
+            
+            if (!isDeleting && charIndex < currentText.length) {
+                // Печатаем символ
+                input.placeholder = currentText.substring(0, charIndex + 1);
+                charIndex++;
+                animationTimeout = setTimeout(animatePlaceholder, TYPING_SPEED);
+            } else if (!isDeleting && charIndex === currentText.length) {
+                // Закончили печатать, ждём паузу, потом начинаем удалять
+                isDeleting = true;
+                animationTimeout = setTimeout(animatePlaceholder, PAUSE_AFTER_TYPING);
+            } else if (isDeleting && charIndex > 0) {
+                // Удаляем символ
+                charIndex--;
+                input.placeholder = currentText.substring(0, charIndex);
+                animationTimeout = setTimeout(animatePlaceholder, DELETING_SPEED);
+            } else if (isDeleting && charIndex === 0) {
+                // Закончили удалять, переходим к следующей подсказке
+                isDeleting = false;
+                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholders.length;
+                animationTimeout = setTimeout(animatePlaceholder, 200); // небольшая пауза перед новой подсказкой
+            }
+        }
+        
+        // Останавливаем анимацию, когда пользователь начинает вводить
+        input.addEventListener('focus', function() {
+            if (animationTimeout) {
+                clearTimeout(animationTimeout);
+            }
+        });
+        
+        // Возобновляем анимацию, когда поле пустое и потеряло фокус
+        input.addEventListener('blur', function() {
+            if (input.value.trim() === '') {
+                // Сбрасываем состояние и начинаем заново
+                isDeleting = false;
+                charIndex = 0;
+                animationTimeout = setTimeout(animatePlaceholder, 1000);
+            }
+        });
+        
+        // Запускаем анимацию через секунду после загрузки страницы
+        setTimeout(animatePlaceholder, 1000);
     })(); // Игнорировать эту ошибку линтера
 </script>
 {% endblock %}
