@@ -402,20 +402,33 @@ def try_notify_task_started(*, task_dir: Path, uid: str, site_url: str, bot_toke
         tg_id_int = int(tg_id)
         user_account = meta.get("user_account")
         domain = str(site_url or "").strip()
-        msg = (
-            f"🚀 Запустили генерацию парсера для: {domain}\n"
-            f"UID: {uid}\n"
-            f"Ожидаемое время генерации - 15 минут\n"
-            f"Наблюдать за прогрессом можно по ссылке: {str(base_url).rstrip('/')}/main_page_2/{uid}/\n"
-            f"После завершения генерации сюда также придёт сообщение с результатами"
-        )
+        base_url_norm = str(base_url or "").strip() or "http://127.0.0.1:5000"
+        base_url_norm = base_url_norm.rstrip("/")
+        task_url = f"{base_url_norm}/main_page_2/{uid}/"
+        # Важно: для корректного отображения inline-code используем HTML parse_mode.
+        # Также экранируем переменные, т.к. URL может содержать &, <, > и т.п.
+        msg = "\n".join(
+            [
+                f"🚀 Запустили генерацию парсера для: {_escape_html(domain)}",
+                f"UID задачи: <code>{_escape_html(uid)}</code>",
+                "Ожидаемое время генерации ~15 минут",
+                f"Наблюдать за прогрессом можно по ссылке: {_escape_html(task_url)}",
+                "После завершения генерации в этот чат придёт сообщение с результатом",
+            ]
+        ).strip()
         user_label = _format_user_label(user_telegram_id=tg_id_int, user_account=str(user_account) if user_account else None)
         _dup_outgoing_to_log_chat(
             header=f"Пользователь {user_label} начал генерацию:",
             body=f"Сайт: {domain}\nUID: {uid}",
             bot_token=bot_token,
         )
-        send_message_to_user(bot_token=bot_token, user_telegram_id=tg_id_int, text=msg, dup_to_log=False)
+        send_bot_message(
+            bot_token=bot_token,
+            chat_id=tg_id_int,
+            text=msg,
+            parse_mode="HTML",
+            dup_to_log=False,
+        )
     except Exception:
         return
 
