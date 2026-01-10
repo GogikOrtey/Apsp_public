@@ -1,3 +1,65 @@
+<!--
+APSP Front UI style guide (быстрые заметки, чтобы не плодить разные стили по страницам)
+
+Правило: при создании новых страниц/элементов сначала сверяйся с этим блоком и переиспользуй те же цвета/паттерны.
+
+Цвета (из реальных страниц проекта):
+- Акцентный "голубой/синий" для кнопок и акцентного текста: #667eea
+  - Часто используемый hover для синего: #5568d3
+- Негативный (ошибка/опасно) для кнопок и текста: #ff7518
+- Зелёный (success/ok-элементы): #22c55e
+- Второстепенный (не акцентный) текст: #555
+
+Готовый tooltip (uid-tooltip) из main_page_1.html:
+.uid-tooltip {
+    display: inline;
+    position: relative;
+    cursor: help;
+}
+.uid-underline {
+    border-bottom: 1px solid #bebebe;
+    display: inline-block;
+}
+.uid-tooltip .uid-tooltip-text {
+    visibility: hidden;
+    width: 320px;
+    background-color: #555;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 10000;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -160px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: normal;
+}
+.uid-tooltip .uid-tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+.uid-tooltip:hover .uid-tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+Паттерны интерактива (hover/active) из login_page.html:
+- Hover на интерактивных элементах: filter: brightness(0.95);
+- Active (нажатие): transform: scale(0.99);
+-->
+
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
