@@ -10,7 +10,7 @@ Flask-фронт APSP.
 - Часть состояния/файлов используется как "простой IPC" между Flask и `MAIN.py`/Playwright.
 """
 
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, send_file
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, send_file, make_response
 import json
 import sys
 import os
@@ -514,7 +514,16 @@ def main_page_1():
                 TASKS.start(task.uid, _run_task)
                 return redirect(url_for('main_page_2_uid', uid=task.uid))
 
-    return render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found)
+    # Создаём response
+    response = make_response(render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found))
+    
+
+    ######################################################################################### Потом убрать
+    # Устанавливаем тестовый аккаунт в куку (для демонстрации)
+    # В продакшене это должно устанавливаться после авторизации пользователя
+    response.set_cookie('user_account', '@GogikOrtey', max_age=365*24*60*60)  # на 1 год
+    
+    return response
 
 
 @app.route('/parser_exists', methods=['GET'])

@@ -369,13 +369,63 @@
 </form>
 
 <script>
+    // ====== Функции для работы с куками ======
+    function setCookie(name, value, days = 365) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        const expires = "expires=" + date.toUTCString();
+        document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+    }
+
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) {
+                return decodeURIComponent(c.substring(nameEQ.length, c.length));
+            }
+        }
+        return null;
+    }
+
+    function deleteCookie(name) {
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/";
+    }
+
     // ====== Управление меню аккаунта ======
     (function() {
         const accountButton = document.getElementById('account_button');
         const accountDropdown = document.getElementById('account_dropdown');
         const logoutButton = document.getElementById('logout_button');
+        const accountUsernameInDropdown = accountDropdown ? accountDropdown.querySelector('.account-dropdown__username') : null;
 
         if (!accountButton || !accountDropdown) return;
+
+        // Функция обновления интерфейса на основе куки
+        function updateAccountUI() {
+            const username = getCookie('user_account');
+            
+            if (username && username !== 'no_account') {
+                // Есть аккаунт
+                accountButton.textContent = username;
+                accountButton.classList.remove('account-button--no-account');
+                if (accountUsernameInDropdown) {
+                    accountUsernameInDropdown.textContent = username;
+                }
+            } else {
+                // Нет аккаунта
+                accountButton.textContent = 'no_account';
+                accountButton.classList.add('account-button--no-account');
+                if (accountUsernameInDropdown) {
+                    accountUsernameInDropdown.textContent = 'no_account';
+                }
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        updateAccountUI();
 
         // Показываем/скрываем меню при клике на кнопку
         accountButton.addEventListener('click', function(e) {
@@ -395,13 +445,21 @@
             e.stopPropagation();
         });
 
-        // Обработка кнопки выхода (логика будет добавлена позже)
+        // Обработка кнопки выхода
         if (logoutButton) {
             logoutButton.addEventListener('click', function() {
                 console.log('Выход из аккаунта');
-                // TODO: добавить логику выхода
+                deleteCookie('user_account');
+                accountDropdown.classList.remove('show');
+                updateAccountUI();
             });
         }
+
+        // Экспортируем функцию для использования извне (для установки аккаунта)
+        window.setUserAccount = function(username) {
+            setCookie('user_account', username);
+            updateAccountUI();
+        };
     })();
 
     (function () {

@@ -31,4 +31,8 @@ if __name__ == "__main__":
     debug = _env_bool("APSP_DEBUG", True)
     run_dev_server(host=host, port=port, debug=debug)
 
+    # Установка аккаунта в куки реализована в Apsp_front/app.py
+    # в роуте main_page_1() через response.set_cookie('user_account', '@GogikOrtey')
+
+
 
