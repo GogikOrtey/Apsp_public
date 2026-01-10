@@ -5,3 +5,7 @@
 /__pycache__
 /node_modules
 /RESULT_TASKS
+
+# Telegram auth/users data (не коммитим в репозиторий)
+/Apsp_front/_telegram_auth/
+/Apsp_front/_telegram_users/

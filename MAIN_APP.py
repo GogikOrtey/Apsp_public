@@ -24,6 +24,28 @@ if __name__ == "__main__":
     # # Ограничение в 1 задачу, чтобы проверить блокировку интерфейса
     # os.environ.setdefault("APSP_MAX_WORKERS", "1")
 
+    # ============================================================================
+    # Telegram бот: настройки авторизации и уведомлений
+    # ============================================================================
+    # ВАЖНО: Для продакшена замените значения ниже на реальные или задайте через env.
+    # Эти дефолты нужны для локальной разработки и тестирования.
+    
+    # Токен бота от @BotFather
+    os.environ.setdefault("APSP_TELEGRAM_BOT_TOKEN", _) # auto_gen_parsers_info_bot_access_token из env 
+    
+    # Username бота без @ (например: auto_gen_parsers_info_bot)
+    os.environ.setdefault("APSP_TELEGRAM_BOT_USERNAME", "auto_gen_parsers_info_bot")
+    
+    # Секрет для webhook URL (любая строка, которую знаете только вы)
+    os.environ.setdefault("APSP_TELEGRAM_WEBHOOK_SECRET", _) # auto_gen_parsers_info_bot_secret_keyphrase из env
+    
+    # Базовый URL сервиса (для локальной разработки http://127.0.0.1:5000, 
+    # для ngrok - замените на https://xxxx.ngrok-free.app,
+    # для продакшена - ваш реальный домен)
+    os.environ.setdefault("APSP_BASE_URL", "http://127.0.0.1:5000")
+    
+    # ============================================================================
+
     from Apsp_front.app import run_dev_server
 
     host = os.environ.get("APSP_HOST", "127.0.0.1")
