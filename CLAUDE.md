@@ -193,6 +193,8 @@
 - `APSP_TELEGRAM_BOT_USERNAME`: username бота (без `@`)
 - `APSP_TELEGRAM_WEBHOOK_SECRET`: секрет в URL вебхука
 - `APSP_BASE_URL`: базовый URL сервиса (используется в ссылках в сообщениях, по умолчанию `http://127.0.0.1:5000`)
+- `APSP_TELEGRAM_LOG_CHAT_ID`: (опционально) chat_id диагностического чата log_chat (int, часто -100...)
+- `APSP_TELEGRAM_INFO_CHAT_ID`: (опционально) chat_id диагностического чата info_chat (int, часто -100...)
 
 ### Настройка `.env` и порядок загрузки
 

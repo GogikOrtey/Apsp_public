@@ -12,6 +12,7 @@ Telegram connect / auth helpers for APSP_public.
 from __future__ import annotations
 
 import json
+import os
 import secrets
 import time
 from dataclasses import dataclass
@@ -65,7 +66,7 @@ def _extract_error_snippet_from_text(text: str) -> str:
 
 def _trim_to_max_chars(text: str, max_chars: int) -> str:
     """
-    Обрезает строку до max_chars, добавляя '…' если было обрезание.
+    Укорачивает строку до max_chars, добавляя '…' если было укорачивание.
     """
     if text is None:
         return ""
@@ -91,6 +92,78 @@ def send_message_to_user(*, bot_token: str, user_telegram_id: int, text: str) ->
     except Exception:
         return {"ok": False, "error": "bad_user_telegram_id"}
     return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "")
+
+
+def send_message_to_log_chat(*, bot_token: str, log_chat_id: int, text: str) -> dict[str, Any]:
+    """
+    Отправка сообщения в диагностический чат log_chat.
+
+    Важно: нужен числовой chat_id (в группах/супергруппах часто отрицательный, например -100...).
+    """
+    try:
+        chat_id = int(log_chat_id)
+    except Exception:
+        return {"ok": False, "error": "bad_log_chat_id"}
+    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "")
+
+
+def send_message_to_info_chat(*, bot_token: str, info_chat_id: int, text: str) -> dict[str, Any]:
+    """
+    Отправка сообщения в диагностический чат info_chat.
+    """
+    try:
+        chat_id = int(info_chat_id)
+    except Exception:
+        return {"ok": False, "error": "bad_info_chat_id"}
+    return send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text or "")
+
+
+def try_send_to_log_chat(text: str, *, bot_token: str | None = None, log_chat_id: int | None = None) -> None:
+    """
+    Best-effort: отправляет сообщение в log_chat, значения берёт из аргументов или env.
+    Ничего не рейзит.
+
+    Env:
+      - APSP_TELEGRAM_BOT_TOKEN
+      - APSP_TELEGRAM_LOG_CHAT_ID
+    """
+    try:
+        if bot_token is None:
+            bot_token = (os.environ.get("APSP_TELEGRAM_BOT_TOKEN", "") or "").strip()
+        if not bot_token:
+            return
+        if log_chat_id is None:
+            v = (os.environ.get("APSP_TELEGRAM_LOG_CHAT_ID", "") or "").strip()
+            if not v:
+                return
+            log_chat_id = int(v)
+        send_message_to_log_chat(bot_token=bot_token, log_chat_id=int(log_chat_id), text=text or "")
+    except Exception:
+        return
+
+
+def try_send_to_info_chat(text: str, *, bot_token: str | None = None, info_chat_id: int | None = None) -> None:
+    """
+    Best-effort: отправляет сообщение в info_chat, значения берёт из аргументов или env.
+    Ничего не рейзит.
+
+    Env:
+      - APSP_TELEGRAM_BOT_TOKEN
+      - APSP_TELEGRAM_INFO_CHAT_ID
+    """
+    try:
+        if bot_token is None:
+            bot_token = (os.environ.get("APSP_TELEGRAM_BOT_TOKEN", "") or "").strip()
+        if not bot_token:
+            return
+        if info_chat_id is None:
+            v = (os.environ.get("APSP_TELEGRAM_INFO_CHAT_ID", "") or "").strip()
+            if not v:
+                return
+            info_chat_id = int(v)
+        send_message_to_info_chat(bot_token=bot_token, info_chat_id=int(info_chat_id), text=text or "")
+    except Exception:
+        return
 
 
 def send_document_to_user(
