@@ -36,7 +36,8 @@
 
 - **Фронт**: `Apsp_front/` (Flask + Jinja2).
 - **Основные страницы** (см. `Apsp_front/app.py` и `Apsp_front/templates/`):
-  - `main_page_1`: ввод URL сайта (добавлен счётчик активных задач в углу)
+  - `main_page_1`: ввод URL сайта (добавлен счётчик активных задач в углу). При POST проверяет наличие готовых результатов для введённого URL.
+  - `parser_exists`: промежуточная страница, показывается если для введённого URL уже есть готовый парсер со статусом COMPLETED. Предлагает открыть существующий результат или запустить генерацию заново.
   - `main_page_2/<uid>`: наблюдение за генерацией (в UX — 10 шагов; процесс длительный, ~15 минут)
   - `main_page_3/<uid>`: выдача результата (код + статистика выполнения)
   - для `main_page_2`/`main_page_3`: отдельная страница, если UID не указан или указан неверно (см. `Apsp_front/templates/invalid_uid.html`)
@@ -117,10 +118,12 @@
 ### Основные (UI)
 
 - **`GET /`**: редирект на `GET /main_page_1`.
-- **`GET|POST /main_page_1`**: форма ввода URL; на `POST` с непустым URL создаёт задачу (UID) и редиректит на `GET /main_page_2/<uid>/`, иначе рендерит `templates/main_page_1.html`.
-- **`GET /main_page_2`** и **`GET /main_page_2/`**: если UID не указан — рендерит `templates/invalid_uid.html` (uid “не указан”).
-- **`GET /main_page_2/<uid>/`**: “дашборд” задачи; если UID неизвестен — `invalid_uid.html`, иначе `templates/main_page_2.html`.
-- **`GET /main_page_3`** и **`GET /main_page_3/`**: если UID не указан — `invalid_uid.html` (uid “не указан”).
+- **`GET|POST /main_page_1`**: форма ввода URL; на `POST` с непустым URL проверяет наличие готовых результатов (нормализует URL и ищет в `RESULT_TASKS` задачи со статусом `COMPLETED` для того же URL). Если найден — редиректит на `GET /parser_exists`, иначе создаёт задачу (UID) и редиректит на `GET /main_page_2/<uid>/`. При `GET` рендерит `templates/main_page_1.html`.
+- **`GET /parser_exists`**: промежуточная страница (параметры `?url=...&existing_uid=...`); показывает что для данного URL уже есть готовый парсер. Две кнопки: открыть существующий результат (`main_page_3/<existing_uid>`) или запустить генерацию заново (`POST /parser_exists/new_generation`). Рендерит `templates/parser_exists.html`.
+- **`POST /parser_exists/new_generation`**: принимает `site_url` из формы и запускает новую генерацию (без проверки на существующие результаты), редиректит на `GET /main_page_2/<uid>/`.
+- **`GET /main_page_2`** и **`GET /main_page_2/`**: если UID не указан — рендерит `templates/invalid_uid.html` (uid "не указан").
+- **`GET /main_page_2/<uid>/`**: "дашборд" задачи; если UID неизвестен — `invalid_uid.html`, иначе `templates/main_page_2.html`.
+- **`GET /main_page_3`** и **`GET /main_page_3/`**: если UID не указан — `invalid_uid.html` (uid "не указан").
 - **`GET /main_page_3/<uid>/`**: страница результата (статистика из `meta.json` + код); если задача ещё в работе — редирект на `GET /main_page_2/<uid>/`, если UID неизвестен — `invalid_uid.html`, иначе `templates/main_page_3.html`.
 - **`GET|POST /example2`**: тестовая/примерная форма без запуска пайплайна; рендерит `templates/example2.html`.
 

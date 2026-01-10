@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+
+{% block title %}Парсер уже готов{% endblock %}
+
+{% block content %}
+<h1>Парсер уже существует</h1>
+
+<div style="margin-bottom: 20px; color: #2c2c2c; font-size: 16px; line-height: 1.6;">
+    <p>Для сайта <strong>{{ site_domain or site_url }}</strong> уже есть готовый написанный парсер.</p>
+    <p>Вы можете открыть страницу его результата и скачать его, либо запустить новую генерацию для этого сайта.</p>
+</div>
+
+<div class="actions-container">
+    <a href="{{ url_for('main_page_3_uid', uid=existing_uid) }}" class="btn btn-success btn-full">
+        Открыть страницу результатов уже готового парсера
+    </a>
+    
+    <form method="POST" action="{{ url_for('parser_exists_new_generation') }}" style="margin-top: 15px;">
+        <input type="hidden" name="site_url" value="{{ site_url }}">
+        <button type="submit" class="btn btn-primary btn-full">
+            Начать генерацию парсера для этого сайта заново (15 минут)
+        </button>
+    </form>
+</div>
+
+<div style="margin-top: 30px; text-align: center;">
+    <a href="{{ url_for('index') }}" style="color: #667eea; text-decoration: none;">← Вернуться на главную</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 700px !important;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #2c2c2c;
+    }
+
+    .actions-container {
+        margin-top: 30px;
+    }
+
+    .btn {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        padding: 14px 28px;
+        border-radius: 5px;
+        font-size: 16px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: filter 0.2s, transform 0.06s;
+        border: none;
+        font-family: inherit;
+    }
+
+    .btn:hover {
+        filter: brightness(0.95);
+    }
+
+    .btn:active {
+        transform: scale(0.99);
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: #ffffff;
+    }
+
+    .btn-primary {
+        background: #007bff;
+        color: #ffffff;
+    }
+
+    .btn-full {
+        width: 100%;
+    }
+</style>
+{% endblock %}
+

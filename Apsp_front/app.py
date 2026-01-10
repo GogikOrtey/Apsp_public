@@ -379,6 +379,74 @@ def get_front_main_state():
     with FRONT_MAIN_STATE_LOCK:
         return dict(FRONT_MAIN_STATE)
 
+def _normalize_url_for_check(url: str) -> str:
+    """
+    Нормализует URL так же, как это делает html_toolkit.normalize_url.
+    Используется для проверки наличия готовых результатов.
+    """
+    url = url.strip()
+    
+    # Если схема не указана — добавляем https
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+    
+    parsed = urlparse(url)
+    domain = parsed.netloc.lower()
+    
+    # Убираем www.
+    if domain.startswith("www."):
+        domain = domain[4:]
+    
+    return f"https://{domain}"
+
+
+def _find_existing_completed_task(normalized_url: str):
+    """
+    Ищет существующую задачу с данным URL и статусом COMPLETED.
+    Возвращает UID последней (по времени) такой задачи, либо None.
+    """
+    if not RESULT_TASKS_DIR.exists() or not RESULT_TASKS_DIR.is_dir():
+        return None
+    
+    matching_tasks = []
+    
+    for child in RESULT_TASKS_DIR.iterdir():
+        if not child.is_dir():
+            continue
+        
+        meta_path = child / "meta.json"
+        if not meta_path.is_file():
+            continue
+        
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            meta_url = meta.get("url", "")
+            meta_status = meta.get("status", "")
+            
+            # Нормализуем URL из мета-файла
+            try:
+                normalized_meta_url = _normalize_url_for_check(meta_url)
+            except Exception:
+                continue
+            
+            # Если URL совпадает и статус COMPLETED
+            if normalized_meta_url == normalized_url and meta_status == "COMPLETED":
+                created_at_ts = meta.get("created_at_ts", 0)
+                matching_tasks.append({
+                    "uid": child.name,
+                    "created_at_ts": created_at_ts
+                })
+        except Exception:
+            continue
+    
+    # Если нашли совпадения — возвращаем последний по времени
+    if matching_tasks:
+        matching_tasks.sort(key=lambda x: x["created_at_ts"], reverse=True)
+        return matching_tasks[0]["uid"]
+    
+    return None
+
+
 @app.route('/')
 def index():
     """Главная страница"""
@@ -395,11 +463,63 @@ def main_page_1():
 
         # Если пусто — ничего не делаем (остаёмся на странице).
         if site_url.strip():
+            # Нормализуем URL и проверяем наличие готовых результатов
+            try:
+                normalized_url = _normalize_url_for_check(site_url)
+                existing_uid = _find_existing_completed_task(normalized_url)
+                
+                if existing_uid:
+                    # Есть готовый результат — показываем страницу выбора
+                    return redirect(url_for('parser_exists', url=site_url, existing_uid=existing_uid))
+            except Exception as e:
+                # Если проверка не удалась — продолжаем как обычно
+                print(f"Ошибка при проверке существующих результатов: {e}")
+            
+            # Нет готовых результатов или ошибка проверки — создаём новую задачу
             task = TASKS.create(site_url)
             TASKS.start(task.uid, _run_task)
             return redirect(url_for('main_page_2_uid', uid=task.uid))
 
     return render_template('main_page_1.html', site_url=site_url)
+
+
+@app.route('/parser_exists', methods=['GET'])
+def parser_exists():
+    """
+    Страница, показывающая что парсер для данного URL уже существует.
+    Предлагает открыть существующий результат или запустить генерацию заново.
+    """
+    site_url = request.args.get('url', '')
+    existing_uid = request.args.get('existing_uid', '')
+    
+    if not site_url or not existing_uid:
+        # Если параметры не указаны — редирект на главную
+        return redirect(url_for('index'))
+    
+    # Извлекаем красивое отображение домена (domo-terra.ru вместо https://domo-terra.ru/)
+    site_domain = _extract_site_domain(site_url)
+    
+    return render_template('parser_exists.html', 
+                         site_url=site_url, 
+                         site_domain=site_domain,
+                         existing_uid=existing_uid)
+
+
+@app.route('/parser_exists/new_generation', methods=['POST'])
+def parser_exists_new_generation():
+    """
+    Обработчик для запуска новой генерации с страницы parser_exists.
+    """
+    site_url = sanitize_text(request.form.get('site_url', ''))
+    
+    if not site_url.strip():
+        return redirect(url_for('index'))
+    
+    # Создаём новую задачу без проверки на существующие результаты
+    task = TASKS.create(site_url)
+    TASKS.start(task.uid, _run_task)
+    return redirect(url_for('main_page_2_uid', uid=task.uid))
+
 
 def _render_invalid_uid_page(uid_state: str):
     uid_phrase = "не указан" if uid_state == "missing" else "указан неверно"
