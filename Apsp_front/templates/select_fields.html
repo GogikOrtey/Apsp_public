@@ -5,38 +5,33 @@
 {% block content %}
 <h1>Выберите поля для парсинга</h1>
 
-<div class="step-indicator">
-    <div class="step active">1</div>
-    <div class="step">2</div>
-    <div class="step">3</div>
-    <div class="step">4</div>
-    <div class="step">5</div>
-    <div class="step">6</div>
-</div>
-
 <form method="POST">
-    <div class="fields-container">
-        {% set required_fields = ['name', 'link', 'price', 'stock', 'timestamp'] %}
-        {% for field_key, field_description in fields.items() %}
-        {% set is_required = field_key in required_fields %}
-        <div class="field-item {% if is_required %}field-item-required{% endif %}">
-            <div class="field-content">
-                <span class="field-description">{{ field_description }}</span>
-            </div>
-            <div class="field-checkbox">
-                {% if is_required %}
-                <div class="lock-icon-container">
-                    <img src="{{ url_for('content', filename='lock_icon.png') }}" alt="Lock" class="lock-icon">
-                    <div class="custom-tooltip">Обязательное поле</div>
+    <div class="fields-scrollbox">
+        <div class="fields-container">
+            {% set required_fields = ['name', 'link', 'price', 'stock', 'timestamp'] %}
+            {% for field_key, field_description in fields.items() %}
+            {% set is_required = field_key in required_fields %}
+            <div class="field-item {% if is_required %}field-item-required{% endif %}">
+                <div class="field-content">
+                    <span class="field-description">{{ field_description }}</span>
                 </div>
-                {% endif %}
-                <input type="checkbox" id="field_{{ field_key }}" name="selected_fields" value="{{ field_key }}" {% if
-                    is_required %}checked disabled{% elif field_key in selected_fields %}checked{% endif %}>
-                <label for="field_{{ field_key }}"></label>
+                <div class="field-checkbox">
+                    {% if is_required %}
+                    <div class="lock-icon-container">
+                        <img src="{{ url_for('content', filename='lock_icon.png') }}" alt="Lock" class="lock-icon">
+                        <div class="custom-tooltip">Обязательное поле</div>
+                    </div>
+                    {% endif %}
+                    <input type="checkbox" id="field_{{ field_key }}" name="selected_fields" value="{{ field_key }}" {% if
+                        is_required %}checked disabled{% elif field_key in selected_fields %}checked{% endif %}>
+                    <label for="field_{{ field_key }}"></label>
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
+
+    <div class="fields-below-text">Текст</div>
 
     <div class="btn-group">
         <a href="{{ url_for('main_page_1') }}" class="btn btn-secondary">← Назад</a>
@@ -83,10 +78,30 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        margin-bottom: 30px;
+        margin-bottom: 0;
         max-width: 800px;
         margin-left: auto;
         margin-right: auto;
+    }
+
+    .fields-scrollbox {
+        max-width: 800px;
+        margin: 0 auto 14px;
+        max-height: min(60vh, 520px);
+        overflow-y: auto;
+        padding: 8px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        background: #ffffff;
+    }
+
+    .fields-below-text {
+        max-width: 800px;
+        margin: 0 auto 22px;
+        color: #333;
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
     }
 
     .field-item {
