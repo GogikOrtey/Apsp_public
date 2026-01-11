@@ -529,6 +529,40 @@ def _normalize_url_for_check(url: str) -> str:
     
     return f"https://{domain}"
 
+def _is_valid_site_url_input(value: str) -> bool:
+    """
+    Строгая валидация ввода для main_page_1:
+    - разрешаем http/https URL
+    - разрешаем домен без схемы (пример: makitaclub.ru)
+    Ограничение: требуем точку в hostname (чтобы "777" не считался доменом).
+    """
+    try:
+        v = (value or "").strip()
+        if not v:
+            return False
+        if any(ch.isspace() for ch in v):
+            return False
+
+        # Если схемы нет — трактуем как домен и добавляем https://
+        if not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", v):
+            v = "https://" + v
+
+        parsed = urlparse(v)
+        if parsed.scheme not in ("http", "https"):
+            return False
+
+        hostname = (parsed.hostname or "").strip()
+        if not hostname:
+            return False
+
+        # Минимальный барьер от мусора: домен должен содержать точку (example.com)
+        if "." not in hostname:
+            return False
+
+        return True
+    except Exception:
+        return False
+
 
 def _find_existing_completed_task(normalized_url: str):
     """
@@ -595,6 +629,7 @@ def main_page_1():
     """
     site_url = ''
     uid_not_found = request.args.get('uid_not_found', 'false') == 'true'
+    invalid_format = request.args.get('invalid_format', 'false') == 'true'
     
     if request.method == 'POST':
         site_url = sanitize_text(request.form.get('site_url', ''))
@@ -628,37 +663,41 @@ def main_page_1():
                     # UID не найден — редиректим на GET с параметром ошибки
                     return redirect(url_for('main_page_1', uid_not_found='true'))
             else:
-                # Это обычный URL — проверяем наличие готовых результатов
-                try:
-                    normalized_url = _normalize_url_for_check(site_url)
-                    existing_uid = _find_existing_completed_task(normalized_url)
+                # Строгая валидация URL/домена: если не похоже на ссылку — НЕ создаём задачу
+                if not _is_valid_site_url_input(site_url):
+                    invalid_format = True
+                else:
+                    # Это обычный URL — проверяем наличие готовых результатов
+                    try:
+                        normalized_url = _normalize_url_for_check(site_url)
+                        existing_uid = _find_existing_completed_task(normalized_url)
+                        
+                        if existing_uid:
+                            # Есть готовый результат — показываем страницу выбора
+                            return redirect(url_for('parser_exists', url=site_url, existing_uid=existing_uid))
+                    except Exception as e:
+                        # Если проверка не удалась — продолжаем как обычно
+                        print(f"Ошибка при проверке существующих результатов: {e}")
                     
-                    if existing_uid:
-                        # Есть готовый результат — показываем страницу выбора
-                        return redirect(url_for('parser_exists', url=site_url, existing_uid=existing_uid))
-                except Exception as e:
-                    # Если проверка не удалась — продолжаем как обычно
-                    print(f"Ошибка при проверке существующих результатов: {e}")
-                
-                # Нет готовых результатов или ошибка проверки — создаём новую задачу
-                tg_id = None
-                try:
-                    tg_id = get_user_telegram_id_from_cookie()
-                except Exception:
+                    # Нет готовых результатов или ошибка проверки — создаём новую задачу
                     tg_id = None
-                user_account = None
-                try:
-                    user_account = get_user_account_from_cookie()
-                except Exception:
+                    try:
+                        tg_id = get_user_telegram_id_from_cookie()
+                    except Exception:
+                        tg_id = None
                     user_account = None
+                    try:
+                        user_account = get_user_account_from_cookie()
+                    except Exception:
+                        user_account = None
 
-                task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account)
-                TASKS.start(task.uid, _run_task)
+                    task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account)
+                    TASKS.start(task.uid, _run_task)
 
-                return redirect(url_for('main_page_2_uid', uid=task.uid))
+                    return redirect(url_for('main_page_2_uid', uid=task.uid))
 
     # Создаём response
-    response = make_response(render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found))
+    response = make_response(render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found, invalid_format=invalid_format))
 
     # # Устанавливаем тестовый аккаунт в куку (для демонстрации)
     # # В продакшене это должно устанавливаться после авторизации пользователя

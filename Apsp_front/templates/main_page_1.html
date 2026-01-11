@@ -373,7 +373,7 @@
 
 <a href="{{ url_for('all_tasks') }}" class="status-block__button">Просмотреть все задачи</a>
 
-<form method="POST" class="example1-form" id="new_page_1_form" data-uid-not-found="{{ '1' if uid_not_found else '0' }}">
+<form method="POST" class="example1-form" id="new_page_1_form" data-uid-not-found="{{ '1' if uid_not_found else '0' }}" data-invalid-format="{{ '1' if invalid_format else '0' }}">
     <div class="form-group">
         <label for="site_url" class="example1-label">
             Введите адрес сайта <span style="color: #bebebe;">или 
@@ -570,9 +570,10 @@
         let currentMax = 10;
         let isLoaded = false;
         let isServerOnline = false;
-        const uidNotFoundFromBackend = (form.dataset.uidNotFound === '1');
 
         if (!form || !input) return;
+        const uidNotFoundFromBackend = (form.dataset.uidNotFound === '1');
+        const invalidFormatFromBackend = (form.dataset.invalidFormat === '1');
 
         // Проверка на UID (12 hex символов)
         function isUID(value) {
@@ -600,16 +601,6 @@
             } catch (e) {
                 return false;
             }
-        }
-
-        function updateValidationUi() {
-            const v = (input.value || '').trim();
-            if (!v) {
-                if (invalidFormatError) invalidFormatError.style.display = 'none';
-                return;
-            }
-            const ok = isUID(v) || isValidUrlOrDomain(v);
-            if (invalidFormatError) invalidFormatError.style.display = ok ? 'none' : 'block';
         }
 
         // Обновление стиля кнопки в зависимости от содержимого
@@ -688,16 +679,17 @@
             if (uidNotFoundError) uidNotFoundError.style.display = 'none';
             if (invalidFormatError) invalidFormatError.style.display = 'none';
             updateButtonStyle();
-            updateValidationUi();
         });
 
         // Инициализация стиля кнопки при загрузке
         updateButtonStyle();
-        updateValidationUi();
 
         // Показываем ошибку, если UID не найден (передано из backend)
         if (uidNotFoundFromBackend && uidNotFoundError) {
             uidNotFoundError.style.display = 'block';
+        }
+        if (invalidFormatFromBackend && invalidFormatError) {
+            invalidFormatError.style.display = 'block';
         }
 
         form.addEventListener('submit', function (e) {
