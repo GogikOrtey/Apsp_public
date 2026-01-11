@@ -443,9 +443,9 @@ class TaskRegistry:
                 # Пишем лаконичную ошибку в result_code.ts
                 msg = str(final_reason or USER_STOP_MESSAGE).strip()
                 if msg.startswith(USER_STOP_MESSAGE):
-                    error_text = f"🛑 {msg}\n"
+                    error_text = f"📍 {msg}\n"
                 else:
-                    error_text = f"🛑 Остановлено пользователем: {msg}\n"
+                    error_text = f"📍 Остановлено пользователем: {msg}\n"
                 self._write_final_error_result_code(info2, error_text)
                 try:
                     self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] Остановлено пользователем: {final_reason}")

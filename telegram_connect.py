@@ -314,7 +314,7 @@ def try_notify_task_finished(
             status_line = "🟩 Генерация успешно завершена"
         else:
             if stopped_by_user:
-                status_line = "🛑 Генерация остановлена пользователем"
+                status_line = "📍 Генерация остановлена пользователем"
             elif finish_reason == "timeout":
                 status_line = "⏳ Генерация прервана по таймауту"
             else:
