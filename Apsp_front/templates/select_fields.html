@@ -32,10 +32,10 @@
     </div>
 
     <div class="fields-below-text">Текст</div>
+    <div class="fields-below-text">Время генерации ~_ минут</div>
 
-    <div class="btn-group">
-        <a href="{{ url_for('main_page_1') }}" class="btn btn-secondary">← Назад</a>
-        <button type="submit" class="btn btn-primary">Сохранить и продолжить →</button>
+    <div>
+        <button type="submit" class="btn btn-primary" style="background-color: #667eea; border-color: #667eea; width: 100%; display: block;">Подтвердить</button>
     </div>
 </form>
 {% endblock %}
@@ -288,7 +288,8 @@
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+        background:#667eea;
         color: white;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
@@ -296,6 +297,10 @@
     .btn-primary:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    .btn-primary:active {
+        transform: scale(0.98);
     }
 
     .btn-secondary {
@@ -305,7 +310,7 @@
 
     .btn-secondary:hover {
         background: #d0d0d0;
-        transform: translateY(-2px);
+        /* transform: translateY(-2px); */
     }
 </style>
 {% endblock %}
