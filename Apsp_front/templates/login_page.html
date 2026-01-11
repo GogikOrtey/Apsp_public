@@ -246,6 +246,19 @@
         const statusEl = document.getElementById('telegram-bind-status');
         if (!bindBtn || !statusEl) return;
 
+        function getSafeNextUrl() {
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const next = (params.get('next') || '').trim();
+                if (!next) return '/main_page_1';
+                // Разрешаем только относительные пути вида "/...". Запрещаем "//evil.com" и "http(s)://..."
+                if (!next.startsWith('/') || next.startsWith('//')) return '/main_page_1';
+                return next;
+            } catch (e) {
+                return '/main_page_1';
+            }
+        }
+
         function setStatus(text) {
             statusEl.textContent = text || '';
             statusEl.hidden = !text;
@@ -345,7 +358,7 @@
                             try { localStorage.removeItem('apsp_tg_auth_token'); } catch (e) {}
                             try { localStorage.removeItem('apsp_tg_auth_started_ts'); } catch (e) {}
                             setStatus('Авторизация успешна. Перенаправляем...');
-                            window.location.href = '/main_page_1';
+                            window.location.href = getSafeNextUrl();
                         }
                         return;
                     }

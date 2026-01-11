@@ -221,6 +221,90 @@ def clear_user_telegram_id_cookie(response):
 
 
 # ============================================================================
+# "Resume after login" helpers (pending input)
+# ============================================================================
+
+PENDING_SITE_URL_COOKIE_NAME = "apsp_pending_site_url"
+
+
+def _is_user_logged_in() -> bool:
+    """
+    Определяем "вход в аккаунт" по наличию куки user_account.
+    В UI `no_account` считается отсутствием аккаунта.
+    """
+    try:
+        v = get_user_account_from_cookie()
+    except Exception:
+        v = None
+    v = (v or "").strip()
+    return bool(v) and v.lower() != "no_account"
+
+
+def set_pending_site_url_cookie(response, site_url: str, max_age_seconds: int = 30 * 60):
+    v = (site_url or "").strip()
+    response.set_cookie(
+        PENDING_SITE_URL_COOKIE_NAME,
+        v,
+        max_age=max_age_seconds,
+        httponly=False,
+        secure=False,
+        samesite="Lax",
+        path="/",
+    )
+    return response
+
+
+def get_pending_site_url_from_cookie() -> str | None:
+    v = request.cookies.get(PENDING_SITE_URL_COOKIE_NAME)
+    v = (v or "").strip()
+    return v or None
+
+
+def clear_pending_site_url_cookie(response):
+    response.set_cookie(PENDING_SITE_URL_COOKIE_NAME, "", max_age=0, path="/")
+    return response
+
+
+def _safe_next_url(next_url: str | None, *, default: str = "/main_page_1") -> str:
+    """
+    Защита от open-redirect: разрешаем только относительные пути вида "/...".
+    """
+    v = (next_url or "").strip()
+    if not v:
+        return default
+    if not v.startswith("/"):
+        return default
+    # запрещаем protocol-relative //evil.com
+    if v.startswith("//"):
+        return default
+    return v
+
+
+def _request_target_path() -> str:
+    """
+    Текущий URL запроса (path + query) в виде относительного пути.
+    """
+    try:
+        p = request.full_path or request.path or "/"
+    except Exception:
+        return "/"
+    if p.endswith("?"):
+        p = p[:-1]
+    return p or "/"
+
+
+def _redirect_to_login(*, next_url: str, pending_site_url: str | None = None):
+    """
+    Редирект на /login_page с передачей next, плюс (опционально) сохраняем введённый site_url/uid.
+    """
+    safe_next = _safe_next_url(next_url)
+    resp = redirect(url_for("login_page", next=safe_next))
+    if pending_site_url is not None:
+        set_pending_site_url_cookie(resp, pending_site_url)
+    return resp
+
+
+# ============================================================================
 
 
 def _on_rm_error(func, path, exc_info):
@@ -644,9 +728,36 @@ def main_page_1():
     site_url = ''
     uid_not_found = request.args.get('uid_not_found', 'false') == 'true'
     invalid_format = request.args.get('invalid_format', 'false') == 'true'
+
+    # Если вернулись с login_page и нужно "продолжить" — берём сохранённый ввод из cookie
+    resume = request.args.get("resume", "0") == "1"
+    resume_pending_used = False
+    if request.method == "GET" and resume:
+        pending = get_pending_site_url_from_cookie()
+        if pending and _is_user_logged_in():
+            # Превращаем resume GET в обычную обработку, как будто пользователь отправил форму
+            site_url = sanitize_text(pending)
+            resume_pending_used = True
+        else:
+            # Нет pending или ещё не залогинен — просто показываем страницу.
+            site_url = pending or ""
+
+    def _maybe_clear_pending_cookie(resp):
+        """
+        Если мы реально "потребили" pending input (resume flow) — очищаем cookie,
+        чтобы не триггерить повторный запуск при следующем заходе на /main_page_1?resume=1.
+        """
+        if request.method == "GET" and resume_pending_used:
+            try:
+                resp = make_response(resp)
+                clear_pending_site_url_cookie(resp)
+            except Exception:
+                pass
+        return resp
     
-    if request.method == 'POST':
-        site_url = sanitize_text(request.form.get('site_url', ''))
+    if request.method == 'POST' or (request.method == "GET" and resume and site_url.strip()):
+        if request.method == "POST":
+            site_url = sanitize_text(request.form.get('site_url', ''))
 
         # Если пусто — ничего не делаем (остаёмся на странице).
         if site_url.strip():
@@ -657,22 +768,26 @@ def main_page_1():
                 uid = site_url.strip().lower()
                 
                 if TASKS.exists(uid):
+                    # До любых переходов — требуем авторизацию (но только если ввод корректный и UID существует)
+                    if not _is_user_logged_in():
+                        return _redirect_to_login(next_url="/main_page_1?resume=1", pending_site_url=site_url)
+
                     # Задача найдена — проверяем её статус
                     task_info = TASKS.get(uid)
                     if task_info and task_info.status:
                         status = task_info.status.upper()
                         if status == 'WORK' or status == 'RUNNING':
                             # Задача в работе — открываем страницу 2
-                            return redirect(url_for('main_page_2_uid', uid=uid))
+                            return _maybe_clear_pending_cookie(redirect(url_for('main_page_2_uid', uid=uid)))
                         elif status == 'COMPLETED' or status == 'FAILED':
                             # Задача завершена — открываем страницу 3
-                            return redirect(url_for('main_page_3_uid', uid=uid))
+                            return _maybe_clear_pending_cookie(redirect(url_for('main_page_3_uid', uid=uid)))
                         else:
                             # Неизвестный статус — открываем страницу 2
-                            return redirect(url_for('main_page_2_uid', uid=uid))
+                            return _maybe_clear_pending_cookie(redirect(url_for('main_page_2_uid', uid=uid)))
                     else:
                         # Не удалось получить информацию — всё равно пытаемся открыть
-                        return redirect(url_for('main_page_2_uid', uid=uid))
+                        return _maybe_clear_pending_cookie(redirect(url_for('main_page_2_uid', uid=uid)))
                 else:
                     # UID не найден — редиректим на GET с параметром ошибки
                     return redirect(url_for('main_page_1', uid_not_found='true'))
@@ -687,12 +802,19 @@ def main_page_1():
                         existing_uid = _find_existing_completed_task(normalized_url)
                         
                         if existing_uid:
+                            # До показа parser_exists — требуем авторизацию (но только если ввод валиден)
+                            if not _is_user_logged_in():
+                                return _redirect_to_login(next_url="/main_page_1?resume=1", pending_site_url=site_url)
                             # Есть готовый результат — показываем страницу выбора
-                            return redirect(url_for('parser_exists', url=site_url, existing_uid=existing_uid))
+                            return _maybe_clear_pending_cookie(redirect(url_for('parser_exists', url=site_url, existing_uid=existing_uid)))
                     except Exception as e:
                         # Если проверка не удалась — продолжаем как обычно
                         print(f"Ошибка при проверке существующих результатов: {e}")
                     
+                    # Перед стартом генерации — требуем авторизацию (но только если ввод валиден)
+                    if not _is_user_logged_in():
+                        return _redirect_to_login(next_url="/main_page_1?resume=1", pending_site_url=site_url)
+
                     # Нет готовых результатов или ошибка проверки — создаём новую задачу
                     tg_id = None
                     try:
@@ -708,10 +830,16 @@ def main_page_1():
                     task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account)
                     TASKS.start(task.uid, _run_task)
 
-                    return redirect(url_for('main_page_2_uid', uid=task.uid))
+                    return _maybe_clear_pending_cookie(redirect(url_for('main_page_2_uid', uid=task.uid)))
 
     # Создаём response
-    response = make_response(render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found, invalid_format=invalid_format))
+    response = make_response(
+        render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found, invalid_format=invalid_format)
+    )
+
+    # Если это resume-ветка, но pending не использовали (например, cookie пустая) — ничего не чистим.
+    # Если использовали — почистим.
+    response = _maybe_clear_pending_cookie(response)
 
     # # Устанавливаем тестовый аккаунт в куку (для демонстрации)
     # # В продакшене это должно устанавливаться после авторизации пользователя
@@ -726,6 +854,9 @@ def parser_exists():
     Страница, показывающая что парсер для данного URL уже существует.
     Предлагает открыть существующий результат или запустить генерацию заново.
     """
+    if not _is_user_logged_in():
+        return _redirect_to_login(next_url=_request_target_path())
+
     site_url = request.args.get('url', '')
     existing_uid = request.args.get('existing_uid', '')
     
@@ -747,6 +878,11 @@ def parser_exists_new_generation():
     """
     Обработчик для запуска новой генерации с страницы parser_exists.
     """
+    if not _is_user_logged_in():
+        # POST мы не можем "повторить" после логина без дополнительного состояния,
+        # поэтому просто ведём пользователя на логин и возвращаем на main_page_1.
+        return _redirect_to_login(next_url="/main_page_1")
+
     site_url = sanitize_text(request.form.get('site_url', ''))
     
     if not site_url.strip():
@@ -775,6 +911,9 @@ def all_tasks():
     """
     Страница обзора всех задач из папки RESULT_TASKS.
     """
+    if not _is_user_logged_in():
+        return _redirect_to_login(next_url=_request_target_path())
+
     tasks_data = _load_all_tasks_data()
     
     # Разделяем на активные (WORK) и завершенные (COMPLETED/FAILED/PAUSED)
@@ -999,6 +1138,9 @@ def main_page_2_no_uid():
 @app.route('/main_page_2/<uid>/', methods=['GET'])
 def main_page_2_uid(uid):
     """Дашборд конкретной задачи."""
+    if not _is_user_logged_in():
+        return _redirect_to_login(next_url=_request_target_path())
+
     info = _get_task_info(uid)
     if info is None:
         return _render_invalid_uid_page("invalid")
@@ -1029,6 +1171,9 @@ def main_page_3_uid(uid):
     """
     Страница результатов конкретной задачи.
     """
+    if not _is_user_logged_in():
+        return _redirect_to_login(next_url=_request_target_path())
+
     if _get_task_info(uid) is None:
         return _render_invalid_uid_page("invalid")
     info = TASKS.get(uid)

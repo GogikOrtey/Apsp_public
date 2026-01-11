@@ -146,6 +146,12 @@
 
 Аккаунт пользователя хранится в куке `user_account` на стороне клиента.
 
+Дополнение (flow “авторизация перед запуском”):
+- если пользователь пытается запустить генерацию/открыть задачу с `main_page_1`, но аккаунт не привязан (`user_account` отсутствует или = `no_account`),
+  то сервер сохраняет введённый текст (URL или UID) в cookie `apsp_pending_site_url` и делает редирект на `GET /login_page?next=/main_page_1?resume=1`.
+- после успешной Telegram-авторизации `login_page.html` редиректит на `next`, а `GET /main_page_1?resume=1` автоматически продолжает сценарий (UID → `main_page_2/3`, URL → `parser_exists` или старт новой задачи) без второго клика.
+- страницы `parser_exists`, `main_page_2/<uid>/`, `main_page_3/<uid>/`, `all_tasks` теперь тоже требуют авторизацию: если аккаунта нет — редирект на `/login_page?next=<текущий_url>`.
+
 ### Серверные функции (`Apsp_front/app.py`)
 
 - **`set_user_account_cookie(response, username, max_age_days=365)`**: устанавливает куку `user_account` с именем пользователя. Параметры: `httponly=False` (доступна из JS), `secure=False` (для HTTP), `samesite='Lax'`.
