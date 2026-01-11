@@ -53,6 +53,30 @@
         background: #667eea;
         color: white;
     }
+
+    .start-page-info-container {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 500px;
+        max-width: calc(100% - 40px);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 10;
+    }
+
+    .start-page-info-box {
+        width: 100%;
+        padding: 18px 20px;
+        background: white;
+        border: 2px solid #418dff;
+        border-radius: 10px;
+        font-size: 16px;
+        line-height: 1.4;
+        color: #374151;
+    }
 </style>
 {% endblock %}
 
@@ -65,6 +89,15 @@
         <a class="start-page-btn start-page-btn-blue" href="{{ url_for('auto_solving_problem_page_1') }}">
             Центр автоматизации решения проблем и починки парсеров
         </a>
+    </div>
+</div>
+
+<div class="start-page-info-container">
+    <div class="start-page-info-box">
+        Текст 1
+    </div>
+    <div class="start-page-info-box">
+        Текст 2
     </div>
 </div>
 {% endblock %}
