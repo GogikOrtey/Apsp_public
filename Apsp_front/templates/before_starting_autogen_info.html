@@ -16,9 +16,11 @@
 
 <div class="bottom-actions">
     <a class="btn btn-primary bottom-actions__btn" href="{{ url_for('main_page_1') }}">
-        Перейти к автогенератору
+        <b>Перейти к автогенератору</b>
     </a>
 </div>
+
+<a href="{{ url_for('start_page_1') }}" class="back-button">Назад</a>
 {% endblock %}
 
 {% block extra_css %}
@@ -54,12 +56,41 @@
         text-align: center;
     }
 
+    .bottom-actions__btn:active {
+        transform: scale(0.98);
+    }
+
     .h1_text {
         font-size: 22px;
     }
 
     .p-text-paragraph {
         margin: 13px 0 0 0;
+    }
+
+    /* Фиксированная кнопка "Назад" в левом верхнем углу */
+    .back-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: white;
+        color: black;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+        filter: brightness(0.95);
+    }
+
+    .back-button:active {
+        transform: scale(0.95);
     }
 </style>
 {% endblock %}

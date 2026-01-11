@@ -346,6 +346,31 @@
     .account-dropdown__logout--login:active {
         transform: scale(0.99);
     }
+
+    /* Фиксированная кнопка "Назад" в левом нижнем углу */
+    .back-button {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background: white;
+        color: black;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+        filter: brightness(0.95);
+    }
+
+    .back-button:active {
+        transform: scale(0.95);
+    }
 </style>
 {% endblock %}
 
@@ -379,7 +404,7 @@
             Введите адрес сайта <span style="color: #bebebe;">или 
             <span class="uid-tooltip">
                 <span class="uid-underline">UID задачи</span>
-                <span class="uid-tooltip-text">UID - это идентификатор задачи в текущем сервисе. Пример UID задач: ab366d8a3185, 824d6e8aba5e, f73cd2508ab0</span>
+                <span class="uid-tooltip-text">UID - это идентификатор задачи в текущем сервисе. Примеры UID задач: ab366d8a3185, 824d6e8aba5e, f73cd2508ab0</span>
             </span></span>
         </label>
         <input
@@ -787,8 +812,10 @@
         
         // Запускаем анимацию через секунду после загрузки страницы
         setTimeout(animatePlaceholder, 1000);
-    })(); // Игнорировать эту ошибку линтера
+    })();
 </script>
+
+<a href="{{ url_for('before_starting_autogen_info') }}" class="back-button">Назад</a>
 {% endblock %}
 
 
