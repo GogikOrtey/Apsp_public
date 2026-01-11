@@ -1,0 +1,125 @@
+{% extends "layout.html" %}
+
+{% block title %}ASP: Центр автоматизации решения проблем и починки парсеров{% endblock %}
+
+{% block content %}
+<h1>ASP: Центр автоматизации решения проблем и починки парсеров</h1>
+
+<h2 class="asp-h2">Типовые проблемы</h2>
+<div class="asp-btns">
+    <a class="asp-btn asp-btn--blue" href="#">Задача зависла / долго выполняется</a>
+    <a class="asp-btn asp-btn--blue" href="#">Генерация завершилась ошибкой</a>
+    <a class="asp-btn asp-btn--blue" href="#">Не открывается страница результата (page 3)</a>
+    <a class="asp-btn asp-btn--blue" href="#">Не скачивается .zip / .ts</a>
+    <a class="asp-btn asp-btn--blue" href="#">Другое (типовая проблема)</a>
+</div>
+
+<h2 class="asp-h2 asp-h2--spaced">Или опишите возникшую проблему</h2>
+<p class="asp-hint">
+    Опишите проблему и не забудьте прикрепить ссылку на сайт. ASP автоматически решит её
+</p>
+
+<form method="POST" action="{{ url_for('auto_solving_problem_page_1') }}" class="asp-form">
+    <textarea
+        name="problem_text"
+        class="asp-textarea"
+        placeholder="Например: генерация упала на шаге 3/10, сайт https://example.com, ошибка такая-то..."
+    >{{ problem_text or "" }}</textarea>
+
+    <button type="submit" class="asp-btn asp-btn--green">Решить проблему</button>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Центруем основной блок по вертикали как в before_starting_autogen_info.html */
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* Базируемся на ширине main_page_3 */
+    .container {
+        max-width: 900px !important;
+    }
+
+    h1 {
+        margin-bottom: 18px;
+    }
+
+    .asp-h2 {
+        margin-top: 12px;
+        margin-bottom: 10px;
+        font-size: 18px;
+        color: #333;
+    }
+
+    .asp-h2--spaced {
+        margin-top: 18px;
+    }
+
+    .asp-hint {
+        margin-bottom: 12px;
+        color: #2c2c2c;
+        font-size: 15px;
+        line-height: 1.45;
+    }
+
+    .asp-btns {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Кнопки стилем как start_page_1.html (но локально для этой страницы) */
+    .asp-btn {
+        width: 100%;
+        text-align: center;
+        padding: 16px 18px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: filter 0.12s ease, transform 0.08s ease;
+        user-select: none;
+    }
+
+    .asp-btn:hover {
+        filter: brightness(0.95);
+    }
+
+    .asp-btn:active {
+        transform: scale(0.98);
+    }
+
+    .asp-btn--blue {
+        background: #667eea;
+        color: #ffffff;
+    }
+
+    .asp-btn--green {
+        background: #22c55e;
+        color: #ffffff;
+    }
+
+    .asp-form {
+        margin-top: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .asp-textarea {
+        min-height: 140px;
+        resize: vertical;
+    }
+</style>
+{% endblock %}
+
+

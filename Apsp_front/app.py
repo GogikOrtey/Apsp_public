@@ -734,6 +734,22 @@ def before_starting_autogen_info():
     """Инфо-страница перед входом в автогенератор."""
     return render_template('before_starting_autogen_info.html')
 
+@app.route('/auto_solving_problem_page_1', methods=['GET', 'POST'])
+@app.route('/auto_solving_problem_page_1/', methods=['GET', 'POST'])
+def auto_solving_problem_page_1():
+    """
+    Центр автоматизации решения проблем и починки парсеров (страница 1).
+
+    Пока это UI-страница: принимает описание проблемы в textarea и повторно отображает его.
+    """
+    problem_text = ""
+    if request.method == "POST":
+        try:
+            problem_text = (request.form.get("problem_text") or "").strip()
+        except Exception:
+            problem_text = ""
+    return render_template("auto_solving_problem_page_1.html", problem_text=problem_text)
+
 @app.route('/login_page', methods=['GET'])
 def login_page():
     """Страница входа в аккаунт"""
