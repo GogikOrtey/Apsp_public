@@ -1,0 +1,27 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.idea/
+.vscode/
+.DS_Store
+
+# Large / irrelevant for container runtime
+node_modules/
+Old/
+cache/
+*.log
+*.sqlite3
+
+# Local auth data (should be mounted/created at runtime, not baked into image)
+Apsp_front/_telegram_auth/
+Apsp_front/_telegram_users/
+
+# Git / docker artifacts
+.git/
+Docker_images/
+
+

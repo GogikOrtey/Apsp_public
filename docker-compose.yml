@@ -1,0 +1,38 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    shm_size: "6gb"
+    environment:
+      # Flask bind (важно для Docker)
+      APSP_HOST: ${APSP_HOST:-0.0.0.0}
+      APSP_PORT: ${APSP_PORT:-5000}
+      APSP_DEBUG: ${APSP_DEBUG:-false}
+
+      # Telegram / base url (опционально)
+      APSP_BASE_URL: ${APSP_BASE_URL:-http://127.0.0.1:5000}
+      APSP_TELEGRAM_BOT_TOKEN: ${APSP_TELEGRAM_BOT_TOKEN:-}
+      APSP_TELEGRAM_BOT_USERNAME: ${APSP_TELEGRAM_BOT_USERNAME:-}
+      APSP_TELEGRAM_WEBHOOK_SECRET: ${APSP_TELEGRAM_WEBHOOK_SECRET:-}
+      APSP_TELEGRAM_LOG_CHAT_ID: ${APSP_TELEGRAM_LOG_CHAT_ID:-}
+      APSP_TELEGRAM_INFO_CHAT_ID: ${APSP_TELEGRAM_INFO_CHAT_ID:-}
+
+      # Runtime tuning (опционально)
+      APSP_MAX_WORKERS: ${APSP_MAX_WORKERS:-10}
+      APSP_TASK_TIMEOUT_SECONDS: ${APSP_TASK_TIMEOUT_SECONDS:-1800}
+      APSP_TASK_MAX_ATTEMPTS: ${APSP_TASK_MAX_ATTEMPTS:-1}
+
+    volumes:
+      # Persist generation results
+      - result_tasks:/RESULT_TASKS
+      # Persist telegram auth tokens/users (optional but handy)
+      - telegram_auth:/app/Apsp_front/_telegram_auth
+      - telegram_users:/app/Apsp_front/_telegram_users
+
+volumes:
+  result_tasks:
+  telegram_auth:
+  telegram_users:
+
+
