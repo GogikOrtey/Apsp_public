@@ -307,7 +307,19 @@ def try_notify_task_finished(
         except Exception:
             pass
 
-        status_line = "🟩 Генерация успешно завершена" if ok else "🟠 Генерация завершилась с ошибкой"
+        finish_reason = str(meta.get("finish_reason") or "").strip().lower()
+        stopped_by_user = bool(meta.get("stopped_by_user")) or (finish_reason == "user_stop")
+
+        if ok:
+            status_line = "🟩 Генерация успешно завершена"
+        else:
+            if stopped_by_user:
+                status_line = "🛑 Генерация остановлена пользователем"
+            elif finish_reason == "timeout":
+                status_line = "⏳ Генерация прервана по таймауту"
+            else:
+                status_line = "🟠 Генерация завершилась с ошибкой"
+
         user_label = _format_user_label(user_telegram_id=tg_id_int, user_account=str(user_account) if user_account else None)
         
         log_body_parts = [
@@ -318,11 +330,12 @@ def try_notify_task_finished(
             log_body_parts.append(f"🕑 Время генерации: {duration_minutes} минут")
         log_body_parts.append(f"Link: {_escape_html(base_url_norm + '/main_page_3/' + str(uid) + '/')}")
         
-        _dup_outgoing_to_log_chat(
-            header=f"Пользователь {user_label} завершил генерацию:",
-            body="\n".join(log_body_parts),
-            bot_token=bot_token,
-        )
+        if ok:
+            header = f"Пользователь {user_label} завершил генерацию:"
+        else:
+            header = f"Пользователь {user_label} остановил генерацию:" if stopped_by_user else f"Пользователь {user_label} завершил генерацию:"
+
+        _dup_outgoing_to_log_chat(header=header, body="\n".join(log_body_parts), bot_token=bot_token)
 
         extracted_err = ""
         if not ok:
@@ -353,6 +366,7 @@ def try_notify_task_finished(
             caption = "\n".join(caption_lines).strip()
             caption_parse_mode = None
         else:
+            reason_label = "Причина остановки" if stopped_by_user else ("Причина" if finish_reason == "timeout" else "Ошибка")
             # Базовая часть caption (HTML)
             caption_lines_err = [
                 _escape_html(status_line),
@@ -370,10 +384,10 @@ def try_notify_task_finished(
             # Держим запас под теги <pre></pre> и остальной текст.
             # Лимит Telegram caption ≈ 1024 символа; берём чуть меньше, чтобы точно влезло.
             max_caption = 950
-            overhead = len(base_caption) + len("\n\nОшибка:\n<pre></pre>")
+            overhead = len(base_caption) + len(f"\n\n{reason_label}:\n<pre></pre>")
             remaining = max(0, max_caption - overhead)
             err_trimmed = _trim_to_max_chars(err_for_block, remaining)
-            caption = f"{base_caption}\n\nОшибка:\n<pre>{_escape_html(err_trimmed)}</pre>".strip()
+            caption = f"{base_caption}\n\n{_escape_html(reason_label)}:\n<pre>{_escape_html(err_trimmed)}</pre>".strip()
             caption_parse_mode = "HTML"
 
         if zip_bytes:

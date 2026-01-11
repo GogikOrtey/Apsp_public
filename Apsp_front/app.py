@@ -997,6 +997,8 @@ def _load_all_tasks_data():
             uid = child.name
             url = meta.get("url", "")
             status = meta.get("status", "WORK")
+            finish_reason = str(meta.get("finish_reason") or "").strip().lower()
+            stopped_by_user = bool(meta.get("stopped_by_user")) or (finish_reason == "user_stop")
             created_at_ts = meta.get("created_at_ts", 0)
             started_at_ts = meta.get("started_at_ts", 0)
             finished_at_ts = meta.get("finished_at_ts")
@@ -1066,7 +1068,7 @@ def _load_all_tasks_data():
             elif display_status == "PAUSED":
                 status_display = "⬛ PAUSED"
             elif display_status == "FAILED":
-                status_display = "🟠 FAILED"
+                status_display = "🛑 STOPPED" if stopped_by_user else "🟠 FAILED"
                 # Загружаем сообщение об ошибке из result_code.ts для tooltip
                 result_code_path = child / "result_code.ts"
                 if result_code_path.is_file():

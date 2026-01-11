@@ -59,6 +59,10 @@
 - Папка результатов `RESULT_TASKS`: на Linux (в контейнере) лежит в `/RESULT_TASKS`, на Windows — на уровень выше папки проекта (рядом с репозиторием).
 - При старте Flask-фронта (`Apsp_front/app.py`) выполняется авто-очистка `RESULT_TASKS`: удаляются подпапки, где в `meta.json` поле `created_at_ts` старше **7 дней** (в консоль пишется количество удалённых, если >0).
 - Есть кнопка `Stop generation` на `main_page_2` (нижний правый угол слева от таймера). Она вызывает `POST /api/task/<uid>/stop`, который ставит stop-флаг; пайплайн периодически проверяет флаг и кидает `UserStopException` с текстом "Генерация была остановлена пользователем". TaskRegistry не делает ретраи и переводит задачу в FAILED с записью в `result_code.ts`/`meta.json`.
+  - Чтобы корректно отличать "ошибку" от "ручной остановки" в UI/Telegram, в `meta.json` при завершении также выставляются поля:
+    - `finish_reason`: `success|error|timeout|user_stop`
+    - `stopped_by_user`: `true` только для `finish_reason="user_stop"`
+  - Эти поля используются для текста/эмодзи в `all_tasks`, `main_page_3` и Telegram-уведомлениях.
 
 ## Утилиты
 

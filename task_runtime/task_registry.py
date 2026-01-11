@@ -146,6 +146,10 @@ class TaskRegistry:
             # Доп. полезные поля
             "runtime_status": "created",
             "last_error": None,
+            # Причина завершения (для корректных сообщений в UI/логах/Telegram)
+            # Возможные значения: success|error|timeout|user_stop (или None/пусто для старых задач)
+            "finish_reason": None,
+            "stopped_by_user": False,
         }
         # Связь с аккаунтом пользователя (best-effort, для уведомлений)
         if user_telegram_id is not None:
@@ -191,12 +195,22 @@ class TaskRegistry:
         meta["max_attempts"] = self.max_attempts
         meta["status"] = "WORK"
         meta["runtime_status"] = "running"
+        # Сбрасываем причину завершения при новом старте (на случай ретраев/перезапусков)
+        meta["finish_reason"] = None
+        meta["stopped_by_user"] = False
         meta.setdefault("schema_version", self._meta_schema_version)
         meta.setdefault("uid", self._normalize_uid(uid))
         self._save_meta(uid, meta)
         return meta, True
 
-    def _update_meta_on_finish(self, uid: str, *, runtime_status: str, error: str | None) -> None:
+    def _update_meta_on_finish(
+        self,
+        uid: str,
+        *,
+        runtime_status: str,
+        error: str | None,
+        finish_reason: str | None = None,
+    ) -> None:
         now = self._now()
         meta = self._load_meta(uid) or {}
         meta["finished_at_human"] = self._dt_human(now)
@@ -204,6 +218,8 @@ class TaskRegistry:
         meta["status"] = self._runtime_to_meta_status(runtime_status)
         meta["runtime_status"] = runtime_status
         meta["last_error"] = error
+        meta["finish_reason"] = finish_reason
+        meta["stopped_by_user"] = bool(finish_reason == "user_stop")
         meta.setdefault("schema_version", self._meta_schema_version)
         meta.setdefault("uid", self._normalize_uid(uid))
         self._save_meta(uid, meta)
@@ -389,7 +405,7 @@ class TaskRegistry:
             self._write_status_file(info2, "success")
 
             try:
-                self._update_meta_on_finish(uid, runtime_status="done", error=None)
+                self._update_meta_on_finish(uid, runtime_status="done", error=None, finish_reason="success")
             except Exception:
                 pass
 
@@ -425,14 +441,19 @@ class TaskRegistry:
                 self._write_status_file(info2, "failed")
 
                 # Пишем лаконичную ошибку в result_code.ts
-                self._write_final_error_result_code(info2, f"🟠{final_reason}\n")
+                msg = str(final_reason or USER_STOP_MESSAGE).strip()
+                if msg.startswith(USER_STOP_MESSAGE):
+                    error_text = f"🛑 {msg}\n"
+                else:
+                    error_text = f"🛑 Остановлено пользователем: {msg}\n"
+                self._write_final_error_result_code(info2, error_text)
                 try:
-                    self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] stopped by user: {final_reason}")
+                    self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] Остановлено пользователем: {final_reason}")
                 except Exception:
                     pass
 
                 try:
-                    self._update_meta_on_finish(uid, runtime_status="error", error=final_reason)
+                    self._update_meta_on_finish(uid, runtime_status="error", error=final_reason, finish_reason="user_stop")
                 except Exception:
                     pass
 
@@ -479,7 +500,7 @@ class TaskRegistry:
                     pass
 
                 try:
-                    self._update_meta_on_finish(uid, runtime_status="error", error=final_reason)
+                    self._update_meta_on_finish(uid, runtime_status="error", error=final_reason, finish_reason="timeout")
                 except Exception:
                     pass
 
@@ -550,7 +571,7 @@ class TaskRegistry:
                 pass
 
             try:
-                self._update_meta_on_finish(uid, runtime_status="error", error=err_str)
+                self._update_meta_on_finish(uid, runtime_status="error", error=err_str, finish_reason="error")
             except Exception:
                 pass
 

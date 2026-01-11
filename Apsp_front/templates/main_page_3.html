@@ -8,8 +8,19 @@
 {% if meta %}
     <div style="margin-bottom: 10px; color: #2c2c2c; font-size: 15px;">
     <!-- <div style="margin-bottom: 10px; font-size: 14px;"> -->
-        {% set status_text = "успешна" if meta.get('status') == 'COMPLETED' else "неудачна" %}
-        {% set status_icon = "🟩" if meta.get('status') == 'COMPLETED' else "🟠" %}
+        {% set finish_reason = (meta.get('finish_reason') or '') %}
+        {% set stopped_by_user = meta.get('stopped_by_user') or (finish_reason == 'user_stop') %}
+
+        {% if meta.get('status') == 'COMPLETED' %}
+            {% set status_text = "успешна" %}
+            {% set status_icon = "🟩" %}
+        {% elif stopped_by_user %}
+            {% set status_text = "остановлена пользователем" %}
+            {% set status_icon = "🛑" %}
+        {% else %}
+            {% set status_text = "неудачна" %}
+            {% set status_icon = "🟠" %}
+        {% endif %}
         
         {% set start_time = meta.get('started_at_display', '—') %}
         
