@@ -550,9 +550,17 @@ class TaskRegistry:
                 return
 
             # Финальный фейл (попытки исчерпаны)
-            error_text = "🟠 Ошибка генерации: 🟠\n\n" + "".join(
-                traceback.format_exception(type(exc), exc, exc.__traceback__)
-            )
+            prefix_block = ""
+            try:
+                prefix_block = str(getattr(exc, "apsp_prefix_block", "") or "").strip()
+            except Exception:
+                prefix_block = ""
+
+            error_text = "🟠 Ошибка генерации: 🟠\n\n"
+            if prefix_block:
+                error_text += prefix_block + "\n\n"
+
+            error_text += "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
             with self._lock:
                 info2 = self._tasks.get(uid)
                 if info2 is None:

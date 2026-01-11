@@ -43,6 +43,7 @@
 - Финальная точка “задача завершена” находится в `task_runtime/task_registry.py` → `TaskRegistry._on_future_done(...)` (callback на завершение future):
   - **Успех**: `main_processer` завершился без исключения → `runtime_status="done"`, в `meta.json` ставится `finished_at_*` и `status=COMPLETED`, создаётся `RESULT_SUCSESS.txt`.
   - **Ошибка/остановка/таймаут**: исключение ловится в `_on_future_done` → `runtime_status="error"`, `status=FAILED`, создаётся `RESULT_FAILED.txt`, и (важно) **всегда** записывается `RESULT_TASKS/<uid>/result_code.ts` с текстом ошибки (чтобы UI и скачивание работали предсказуемо).
+    - Можно добавить “человеческий” префикс **перед traceback**: если исключению выставить атрибут `apsp_prefix_block` (строка), то `TaskRegistry` вставит этот блок в `result_code.ts` сразу после заголовка `"🟠 Ошибка генерации: 🟠"`.
 
 ### Как показывается результат на `main_page_3`
 

@@ -79,6 +79,58 @@ def _parse_llm_json_with_status_guard(raw: Any, *, step_name: str) -> dict:
 
     return data
 
+
+def _attach_prefix_block_to_exc(exc: Exception, prefix_block: str) -> None:
+    """
+    Best-effort добавляет к исключению блок текста, который TaskRegistry
+    вставит в result_code.ts ПЕРЕД traceback (если это финальный фейл).
+    """
+    try:
+        setattr(exc, "apsp_prefix_block", str(prefix_block or "").strip())
+    except Exception:
+        return
+
+
+def _parse_hgf_json_with_step_prefix(raw: Any) -> dict:
+    """
+    Парсер именно для HGF (Шаг 1), чтобы при status != ok / невалидном JSON:
+    - сохранить привычный текст ошибки (как раньше),
+    - но дополнительно дать UI-понятный префикс (перед traceback) через apsp_prefix_block.
+    """
+    step_name = "HGF (Шаг 1)"
+    prefix_base = (
+        "Ошибка на шаге 1/10 HGF: По главной ссылке сайта открывается страница с куратором/защитой, "
+        "либо сайт не является интернет-магазином. Продробнее: "
+    )
+
+    raw_text = raw if isinstance(raw, str) else str(raw)
+    try:
+        data = json.loads(raw_text)
+    except Exception as e:
+        ve = ValueError(f"{step_name}: LLM вернула невалидный JSON.\nRAW:\n{raw_text}")
+        _attach_prefix_block_to_exc(ve, prefix_base.rstrip())
+        raise ve from e
+
+    if not isinstance(data, dict):
+        ve = ValueError(
+            f"{step_name}: ожидали JSON object (dict), получили {type(data).__name__}.\nRAW:\n{raw_text}"
+        )
+        _attach_prefix_block_to_exc(ve, prefix_base.rstrip())
+        raise ve
+
+    if "status" in data and data.get("status") != "ok":
+        # Берём analysis_message из ответа (если он есть) и выводим в префиксный блок перед traceback.
+        analysis_message = str(data.get("analysis_message") or "").strip()
+        prefix_block = prefix_base + (analysis_message if analysis_message else "")
+
+        ve = ValueError(
+            f"{step_name}: status != 'ok'.\nJSON:\n{json.dumps(data, ensure_ascii=False, indent=2, default=str)}"
+        )
+        _attach_prefix_block_to_exc(ve, prefix_block.rstrip())
+        raise ve
+
+    return data
+
 """ 
 
 Глобальный план:
@@ -302,7 +354,17 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None, started_at_
     update_content_front_current_step("Шаг 1/10: Извлечение семантики сайта и селекторов поля ввода поискового запроса")
 
     print_ul("Отправляем главную страницу сайта в модуль HGF - он вытащит из неё селекторы поля ввода поискового запроса, кнопки старта поиска, а также топ-10 запросов из семантики сайта")
-    HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+    try:
+        HGF_result = HGF_main_page_selector_and_semantic_handler(html_content_zip)
+    except Exception as e:
+        _attach_prefix_block_to_exc(
+            e,
+            (
+                "Ошибка на шаге 1/10 HGF: По главной ссылке сайта открывается страница с куратором/защитой, "
+                "либо сайт не является интернет-магазином. Продробнее:"
+            ),
+        )
+        raise
     print(f"\nHGF_result:\n")
     update_content_front_last_phase_result(HGF_result)
     print(HGF_result)
@@ -380,7 +442,7 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None, started_at_
     """
 
     # Преобразуем строку в JSON-объект, чтобы далее работать как со словарём
-    HGF_result = _parse_llm_json_with_status_guard(HGF_result, step_name="HGF (Шаг 1)")
+    HGF_result = _parse_hgf_json_with_step_prefix(HGF_result)
 
     # Удаляем первые 3 поля
     keys_to_remove = list(HGF_result.keys())[:3]
