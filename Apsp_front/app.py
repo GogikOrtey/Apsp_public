@@ -431,13 +431,6 @@ def _get_max_workers():
         return 10
 
 TASKS = TaskRegistry(result_tasks_dir=RESULT_TASKS_DIR, max_workers=_get_max_workers(), headless=True)
-try:
-    fixed_orphans = TASKS.reconcile_orphaned_running_tasks()
-    if fixed_orphans > 0:
-        print(f"[TaskRegistry] Reconciled orphaned running task(s): {fixed_orphans}")
-except Exception:
-    # best-effort: не блокируем старт фронта
-    pass
 TASKS.warmup()
 atexit.register(TASKS.shutdown)
 
@@ -1381,7 +1374,9 @@ def api_tasks_active_count():
         json.dumps({"ok": True, "active": active, "max": max_w}, ensure_ascii=False),
         mimetype='application/json; charset=utf-8'
     )
-    # Отключаем кэширование, чтобы счётчик на main_page_1 всегда был актуальным после рестартов.
+    # Важно: UI опрашивает это каждую секунду. После рестарта сервиса браузер/прокси
+    # может кратковременно отдать закэшированный ответ, из-за чего показывается "старое"
+    # значение (например 1/10 вместо 0/10). Явно запрещаем кэширование.
     resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     resp.headers["Pragma"] = "no-cache"
     return resp
