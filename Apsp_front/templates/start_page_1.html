@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+
+{% block title %}start_page_1{% endblock %}
+
+{% block extra_css %}
+<style>
+    .start-page-wrap {
+        min-height: calc(100vh - 40px); /* body has padding: 20px */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .start-page-buttons {
+        width: 500px;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 10px 0;
+    }
+
+    .start-page-btn {
+        width: 100%;
+        text-align: center;
+        padding: 18px 20px;
+        border-radius: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 1.25;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: filter 0.12s ease, transform 0.08s ease;
+        user-select: none;
+    }
+
+    .start-page-btn:hover {
+        filter: brightness(0.95);
+    }
+
+    .start-page-btn:active {
+        transform: scale(0.986);
+    }
+
+    .start-page-btn-green {
+        background: #22c55e;
+        color: white;
+    }
+
+    .start-page-btn-blue {
+        background: #667eea;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="start-page-wrap">
+    <div class="start-page-buttons">
+        <a class="start-page-btn start-page-btn-green" href="{{ url_for('main_page_1') }}">
+            Автогенератор парсеров
+        </a>
+        <a class="start-page-btn start-page-btn-blue" href="{{ url_for('all_tasks') }}">
+            Центр автоматизации решения проблем и починки парсеров
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+

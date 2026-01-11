@@ -616,6 +616,13 @@ def index():
     """Главная страница"""
     return redirect(url_for('main_page_1'))
 
+
+@app.route('/start_page_1', methods=['GET'])
+@app.route('/start_page_1/', methods=['GET'])
+def start_page_1():
+    """Стартовая страница: выбор раздела."""
+    return render_template('start_page_1.html')
+
 @app.route('/login_page', methods=['GET'])
 def login_page():
     """Страница входа в аккаунт"""
