@@ -1095,7 +1095,10 @@ def api_system_stats():
 
     if _HAS_PSUTIL:
         try:
-            cpu = {"percent": float(psutil.cpu_percent(interval=None))}
+            # Важно: cpu_percent(interval=None) возвращает "с прошлого вызова" и часто даёт 0.0
+            # (особенно на Windows и/или при многопроцессном запуске, когда прогрев не попадает
+            # в тот же worker). Небольшой interval даёт стабильное "живое" значение.
+            cpu = {"percent": float(psutil.cpu_percent(interval=0.1))}
         except Exception:
             cpu = None
         try:
