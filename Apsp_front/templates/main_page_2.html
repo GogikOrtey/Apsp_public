@@ -277,6 +277,39 @@
         gap: 7px;
     }
 
+    /* Кнопка "Назад" (фиксированная, левый верхний угол) */
+    .back-button {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 100000;
+
+        background: #ffffff;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 8px 14px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+
+        color: #555;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        line-height: 1;
+
+        user-select: none;
+        transition: filter 0.2s ease, transform 0.2s ease;
+    }
+
+    .back-button:hover {
+        /* Паттерн интерактива из layout.html */
+        filter: brightness(0.95);
+    }
+
+    .back-button:active {
+        /* Паттерн интерактива из layout.html */
+        transform: scale(0.95);
+    }
+
     .corner-stop-btn {
         padding: 6px 14px;
         /* border: 2px solid #e53935; */
@@ -318,6 +351,8 @@
 {% endblock %}
 
 {% block content %}
+<a href="{{ url_for('main_page_1') }}" class="back-button">Назад</a>
+
 <div class="page-header">
     <div class="page-title-wrap">
         <h1 class="page-title">{{ page_heading or "Генерируем парсер" }}</h1>

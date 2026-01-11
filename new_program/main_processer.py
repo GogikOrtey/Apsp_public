@@ -256,15 +256,15 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None, started_at_
 
 
 
-    # print("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨") 
-    # update_content_front_current_step("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨")
-    # # # time.sleep(50000)
-    # # Во время ожидания продолжаем пушить скриншоты раз в 5 секунд,
-    # # чтобы окно на main_page_2.html обновлялось даже без действий.
-    # from playwright_tool.shared_page import sleep_with_screenshot_push
-    # sleep_with_screenshot_push(50000, interval_s=5)
+    print("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨") 
+    update_content_front_current_step("🟨🟨🟨🟨 ТЕСТ 🟨🟨🟨🟨")
+    # # time.sleep(50000)
+    # Во время ожидания продолжаем пушить скриншоты раз в 5 секунд,
+    # чтобы окно на main_page_2.html обновлялось даже без действий.
+    from playwright_tool.shared_page import sleep_with_screenshot_push
+    sleep_with_screenshot_push(50000, interval_s=5)
 
-    # raise ValueError("Время для тестового прогона завершено")
+    raise ValueError("Время для тестового прогона завершено")
 
 
 

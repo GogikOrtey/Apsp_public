@@ -204,8 +204,13 @@
     }
 
     .back-button:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-        transform: translateY(-1px);
+        /* Паттерн интерактива из layout.html */
+        filter: brightness(0.95);
+    }
+
+    .back-button:active {
+        /* Паттерн интерактива из layout.html */
+        transform: scale(0.95);
     }
 
     .p-gray {

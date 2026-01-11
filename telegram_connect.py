@@ -55,7 +55,8 @@ def _is_diagnostic_chat_id(chat_id: int) -> bool:
 def _format_user_label(*, user_telegram_id: int, user_account: str | None = None) -> str:
     acct = (user_account or "").strip()
     if acct:
-        return f"{acct} (tg_id={int(user_telegram_id)})"
+        # return f"{acct} (tg_id={int(user_telegram_id)})"
+        return f"{acct}"
     return f"tg_id={int(user_telegram_id)}"
 
 
