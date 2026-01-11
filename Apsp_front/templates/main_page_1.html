@@ -371,6 +371,46 @@
     .back-button:active {
         transform: scale(0.95);
     }
+
+    /* Контейнер для дополнительных кнопок */
+    .additional-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+
+    /* Стили для маленьких кнопок */
+    .btn-small {
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex: 1;
+    }
+
+    .btn-small:hover {
+        filter: brightness(0.92);
+    }
+
+    .btn-small:active {
+        transform: scale(0.98);
+    }
+
+    /* Синяя кнопка */
+    .btn-blue {
+        background: #667eea;
+        color: #ffffff;
+    }
+
+    /* Жёлтая кнопка */
+    .btn-yellow {
+        background: #f59e0b;
+        color: #ffffff;
+    }
 </style>
 {% endblock %}
 
@@ -415,6 +455,13 @@
             autocomplete="url"
             inputmode="url"
         >
+        
+        <!-- Дополнительные кнопки -->
+        <div class="additional-buttons">
+            <button type="button" class="btn-small btn-blue" id="clarify_fields_btn">Уточнить поля</button>
+            <button type="button" class="btn-small btn-yellow" id="add_regions_btn">Добавить регионы</button>
+        </div>
+
         <div id="limit_error" class="limit-error" title="Нет, динамическая очередь задач ещё не реализована">
             Достигнут лимит одновременных задач. Пожалуйста, подождите завершения текущих.
         </div>

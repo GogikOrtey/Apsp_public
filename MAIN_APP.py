@@ -75,6 +75,25 @@ def _env_bool(name: str, default: bool) -> bool:
     return v in ("1", "true", "yes", "y", "on")
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
     # Импортируем app после загрузки .env
     from Apsp_front.app import run_dev_server
