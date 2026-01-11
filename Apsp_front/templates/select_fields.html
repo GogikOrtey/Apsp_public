@@ -34,10 +34,7 @@
         </div>
     </div>
 
-    <div class="fields-below-text">
-        Поля по умолчанию: {{ default_fields_human|join(', ') }}
-    </div>
-    <div class="fields-below-text">Время генерации ~_ минут</div>
+    <div class="fields-below-text" id="generation-time-estimate">🕑 Время генерации ~_ минут</div>
 
     <div>
         <button type="submit" class="btn btn-primary" style="background-color: #667eea; border-color: #667eea; width: 100%; display: block;">Подтвердить</button>
@@ -107,7 +104,7 @@
         color: #333;
         font-size: 16px;
         font-weight: 500;
-        text-align: center;
+        text-align: left;
     }
 
     .field-item {
@@ -345,6 +342,40 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const fieldItems = document.querySelectorAll('.field-item');
+        const generationTimeEl = document.getElementById('generation-time-estimate');
+
+        function _formatMinutesRu(totalMinutes) {
+            // Если получилось дробное (например 10.5) — показываем 1 знак после запятой.
+            const valueStr = Number.isInteger(totalMinutes) ? String(totalMinutes) : totalMinutes.toFixed(1);
+            // Простая форма "минут" без склонений (как в макете), чтобы не спорить о грамматике.
+            return valueStr;
+        }
+
+        function updateGenerationTimeEstimate() {
+            if (!generationTimeEl) return;
+
+            // Считаем ВСЕ выбранные поля (включая disabled-required), по чекбоксам.
+            const allCheckboxes = document.querySelectorAll('input[type="checkbox"][name="selected_fields"]');
+            let selectedCount = 0;
+            allCheckboxes.forEach((cb) => {
+                if (cb.checked) selectedCount += 1;
+            });
+
+            const baseMinutes = 4;
+            const serviceFields = 2; // минус два поля, они служебные
+
+            const n = selectedCount;
+
+            // С 8-го выбранного поля добавляем по 1.5 минуты вместо 1.
+            // То есть поля 3..7 (всего 5 штук) дают по 1 минуте, а начиная с 8-го — по 1.5.
+            const cutoff = 7; // до 7-го выбранного поля включительно — по 1 минуте
+            const normalCount = Math.max(0, Math.min(n, cutoff) - serviceFields);
+            const slowCount = Math.max(0, n - cutoff);
+
+            const totalMinutes = baseMinutes + normalCount * 1 + slowCount * 1.5;
+
+            generationTimeEl.textContent = `🕑 Время генерации ~${_formatMinutesRu(totalMinutes)} минут`;
+        }
 
         // Функция для обновления состояния выбранного элемента
         function updateSelectedState(item) {
@@ -360,6 +391,7 @@
         fieldItems.forEach(function (item) {
             updateSelectedState(item);
         });
+        updateGenerationTimeEstimate();
 
         fieldItems.forEach(function (item) {
             // Пропускаем обязательные поля - они не должны переключаться
@@ -373,6 +405,7 @@
             if (checkbox) {
                 checkbox.addEventListener('change', function () {
                     updateSelectedState(item);
+                    updateGenerationTimeEstimate();
                 });
             }
 
@@ -410,6 +443,7 @@
                 if (checkbox && !checkbox.disabled) {
                     checkbox.checked = !checkbox.checked;
                     updateSelectedState(item);
+                    updateGenerationTimeEstimate();
                 }
             });
         });
