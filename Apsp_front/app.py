@@ -777,7 +777,7 @@ def select_fields():
 
     # Поля по умолчанию: REQUIRED_FIELDS + пара необязательных "для примера"
     # (потом можно поменять на нужные)
-    DEFAULT_OPTIONAL_FIELDS = ["brand", "imageLink"]
+    DEFAULT_OPTIONAL_FIELDS = ["brand", "imageLink", "article", "oldprice"]
     DEFAULT_FIELDS = REQUIRED_FIELDS + DEFAULT_OPTIONAL_FIELDS
 
     # На случай если в all_fields отсутствуют системные поля (например link/timestamp)

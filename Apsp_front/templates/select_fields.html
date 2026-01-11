@@ -16,9 +16,6 @@
                 <div class="field-item {% if is_required %}field-item-required{% endif %}">
                     <div class="field-content">
                         <span class="field-title">{{ field.title }}</span>
-                        {% if field.description %}
-                            <span class="field-description">{{ field.description|truncate(180, True, '…') }}</span>
-                        {% endif %}
                     </div>
                     <div class="field-checkbox">
                         {% if is_required %}
