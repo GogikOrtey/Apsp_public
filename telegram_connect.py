@@ -300,7 +300,7 @@ def try_notify_task_finished(
         user_label = _format_user_label(user_telegram_id=tg_id_int, user_account=str(user_account) if user_account else None)
         _dup_outgoing_to_log_chat(
             header=f"Пользователь {user_label} завершил генерацию:",
-            body=f"{status_line}\nСайт: {domain}\nUID: {uid}",
+            body=f"{status_line}\nСайт: {domain}\nLink: {_escape_html(base_url_norm + '/main_page_3/' + str(uid) + '/')}",
             bot_token=bot_token,
         )
 
@@ -419,8 +419,8 @@ def try_notify_task_started(*, task_dir: Path, uid: str, site_url: str, bot_toke
         ).strip()
         user_label = _format_user_label(user_telegram_id=tg_id_int, user_account=str(user_account) if user_account else None)
         _dup_outgoing_to_log_chat(
-            header=f"Пользователь {user_label} начал генерацию:",
-            body=f"Сайт: {domain}\nUID: {uid}",
+            header=f"🚀 Пользователь {user_label} начал генерацию:",
+            body=f"Сайт: {domain}\nLink: {task_url}",
             bot_token=bot_token,
         )
         send_bot_message(
