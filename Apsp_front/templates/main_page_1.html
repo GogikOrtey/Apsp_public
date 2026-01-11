@@ -1043,6 +1043,18 @@
             }
         });
     })();
+
+    // Обработчик кнопки "Уточнить поля"
+    (function() {
+        const clarifyFieldsBtn = document.getElementById('clarify_fields_btn');
+        if (!clarifyFieldsBtn) return;
+        
+        clarifyFieldsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Переходим на страницу выбора полей
+            window.location.href = "{{ url_for('select_fields') }}";
+        });
+    })();
 </script>
 
 <a href="{{ url_for('before_starting_autogen_info') }}" class="back-button">Назад</a>

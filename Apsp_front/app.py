@@ -763,6 +763,47 @@ def login_page():
     """Страница входа в аккаунт"""
     return render_template('login_page.html')
 
+@app.route('/select_fields', methods=['GET', 'POST'])
+def select_fields():
+    """
+    Страница выбора полей для парсинга.
+    Пользователь может выбрать, какие поля он хочет извлекать.
+    """
+    # Определяем доступные поля с описаниями
+    fields = {
+        'name': 'Название товара',
+        'link': 'Ссылка на товар',
+        'price': 'Цена',
+        'stock': 'Наличие в магазине',
+        'timestamp': 'Дата и время парсинга',
+        'image': 'Изображение товара',
+        'description': 'Описание товара',
+        'rating': 'Рейтинг товара',
+        'reviews_count': 'Количество отзывов',
+        'brand': 'Бренд / Производитель',
+        'article': 'Артикул товара',
+        'category': 'Категория товара',
+        'delivery': 'Информация о доставке',
+        'discount': 'Размер скидки',
+        'old_price': 'Старая цена (до скидки)',
+    }
+    
+    # Получаем сохранённые выбранные поля (если есть)
+    # TODO: В будущем можно сохранять выбор пользователя в сессию или БД
+    selected_fields = request.cookies.get('selected_fields', '').split(',') if request.cookies.get('selected_fields') else []
+    
+    if request.method == 'POST':
+        # Получаем выбранные поля из формы
+        selected_fields_from_form = request.form.getlist('selected_fields')
+        
+        # Сохраняем выбор (в cookie или в БД)
+        # TODO: В будущем можно реализовать более продвинутое хранение
+        response = make_response(redirect(url_for('main_page_1')))
+        response.set_cookie('selected_fields', ','.join(selected_fields_from_form), max_age=60*60*24*365)  # На год
+        return response
+    
+    return render_template('select_fields.html', fields=fields, selected_fields=selected_fields)
+
 @app.route('/main_page_1', methods=['GET', 'POST'])
 def main_page_1():
     """

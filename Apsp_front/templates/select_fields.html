@@ -1,0 +1,410 @@
+{% extends "layout.html" %}
+
+{% block title %}Выбор полей для парсинга{% endblock %}
+
+{% block content %}
+<h1>Выберите поля для парсинга</h1>
+
+<div class="step-indicator">
+    <div class="step active">1</div>
+    <div class="step">2</div>
+    <div class="step">3</div>
+    <div class="step">4</div>
+    <div class="step">5</div>
+    <div class="step">6</div>
+</div>
+
+<form method="POST">
+    <div class="fields-container">
+        {% set required_fields = ['name', 'link', 'price', 'stock', 'timestamp'] %}
+        {% for field_key, field_description in fields.items() %}
+        {% set is_required = field_key in required_fields %}
+        <div class="field-item {% if is_required %}field-item-required{% endif %}">
+            <div class="field-content">
+                <span class="field-description">{{ field_description }}</span>
+            </div>
+            <div class="field-checkbox">
+                {% if is_required %}
+                <div class="lock-icon-container">
+                    <img src="{{ url_for('content', filename='lock_icon.png') }}" alt="Lock" class="lock-icon">
+                    <div class="custom-tooltip">Обязательное поле</div>
+                </div>
+                {% endif %}
+                <input type="checkbox" id="field_{{ field_key }}" name="selected_fields" value="{{ field_key }}" {% if
+                    is_required %}checked disabled{% elif field_key in selected_fields %}checked{% endif %}>
+                <label for="field_{{ field_key }}"></label>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="btn-group">
+        <a href="{{ url_for('main_page_1') }}" class="btn btn-secondary">← Назад</a>
+        <button type="submit" class="btn btn-primary">Сохранить и продолжить →</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+    }
+
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .step {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #666;
+        transition: all 0.3s;
+    }
+
+    .step.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .fields-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 30px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .field-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        background: #f8f9fa;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.15s;
+        cursor: pointer;
+    }
+
+    .field-item:hover:not(.field-item-selected):not(.field-item-required) {
+        border-color: #a0b4ff;
+        background: #f5f7ff;
+    }
+
+    .field-item-selected {
+        border-color: #5568d3;
+        background: #e8ebff;
+    }
+
+    .field-item-selected:hover:not(.field-item-required) {
+        border-color: #4a5bc4;
+        background: #e0e4ff;
+    }
+
+    .field-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .field-description {
+        color: #333;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .field-checkbox {
+        margin-left: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .field-checkbox input[type="checkbox"] {
+        width: 21px;
+        height: 21px;
+        cursor: pointer;
+        accent-color: #667eea;
+        position: relative;
+    }
+
+    .field-checkbox input[type="checkbox"]:disabled {
+        cursor: default;
+        opacity: 1;
+        filter: brightness(0.85) grayscale(0.2);
+        -webkit-filter: brightness(0.85) grayscale(0.2);
+        appearance: none;
+        -webkit-appearance: none;
+        background-color: #e0e0e0;
+        border: 2px solid #ccc;
+        border-radius: 3px;
+        position: relative;
+    }
+
+    .field-checkbox input[type="checkbox"]:disabled:checked {
+        background-color: #e0e0e0;
+        border-color: #ccc;
+    }
+
+    .field-checkbox input[type="checkbox"]:disabled:checked::after {
+        content: '';
+        position: absolute;
+        left: 6px;
+        top: 2px;
+        width: 5px;
+        height: 10px;
+        border: solid #414141;
+        border-width: 0 2.5px 2.5px 0;
+        transform: rotate(45deg);
+        box-sizing: border-box;
+    }
+
+    .field-checkbox label {
+        display: none;
+    }
+
+    .lock-icon-container {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        cursor: default;
+    }
+
+    .custom-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 5px;
+        padding: 6px 10px;
+        background: #333;
+        color: white;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 1000;
+    }
+
+    .custom-tooltip::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: #333;
+    }
+
+    .custom-tooltip.show {
+        opacity: 1;
+    }
+
+    .lock-icon {
+        width: 18px;
+        height: 18px;
+        display: block;
+    }
+
+    .field-item-required {
+        cursor: default;
+    }
+
+    .field-item-required.field-item-selected:hover {
+        border-color: #5568d3;
+        background: #e8ebff;
+    }
+
+    /* Увеличение насыщенности при нажатии (только для элементов без замочка) */
+    .field-item-pressed:not(.field-item-required):not(.field-item-selected) {
+        background: #e8f0ff !important;
+        border-color: #7d9aff !important;
+        transform: scale(0.986);
+        transition: none !important;
+    }
+
+    .field-item-pressed.field-item-selected:not(.field-item-required) {
+        background: #d0d9ff !important;
+        border-color: #3d52c4 !important;
+        transform: scale(0.986);
+        transition: none !important;
+    }
+
+    .btn-group {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        max-width: 800px;
+        margin: 30px auto 0;
+    }
+
+    .btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .btn-secondary {
+        background: #e0e0e0;
+        color: #333;
+    }
+
+    .btn-secondary:hover {
+        background: #d0d0d0;
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fieldItems = document.querySelectorAll('.field-item');
+
+        // Функция для обновления состояния выбранного элемента
+        function updateSelectedState(item) {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            if (checkbox && checkbox.checked) {
+                item.classList.add('field-item-selected');
+            } else {
+                item.classList.remove('field-item-selected');
+            }
+        }
+
+        // Инициализация начального состояния
+        fieldItems.forEach(function (item) {
+            updateSelectedState(item);
+        });
+
+        fieldItems.forEach(function (item) {
+            // Пропускаем обязательные поля - они не должны переключаться
+            if (item.classList.contains('field-item-required')) {
+                return;
+            }
+
+            const checkbox = item.querySelector('input[type="checkbox"]');
+
+            // Обработчик изменения чекбокса
+            if (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    updateSelectedState(item);
+                });
+            }
+
+            // Добавляем класс для эффекта нажатия
+            item.addEventListener('mousedown', function (e) {
+                // Пропускаем только если это обязательное поле или клик на чекбоксе/замочке
+                if (item.classList.contains('field-item-required')) {
+                    return;
+                }
+                if (e.target.type === 'checkbox' || e.target.closest('.lock-icon-container')) {
+                    return;
+                }
+                item.classList.add('field-item-pressed');
+            });
+
+            item.addEventListener('mouseup', function (e) {
+                if (!item.classList.contains('field-item-required')) {
+                    item.classList.remove('field-item-pressed');
+                }
+            });
+
+            // Убираем класс при уходе мыши (на случай, если пользователь уведет мышь)
+            item.addEventListener('mouseleave', function (e) {
+                if (!item.classList.contains('field-item-required')) {
+                    item.classList.remove('field-item-pressed');
+                }
+            });
+
+            item.addEventListener('click', function (e) {
+                // Предотвращаем двойное переключение, если клик был непосредственно на чекбоксе
+                if (e.target.type === 'checkbox') {
+                    return;
+                }
+
+                if (checkbox && !checkbox.disabled) {
+                    checkbox.checked = !checkbox.checked;
+                    updateSelectedState(item);
+                }
+            });
+        });
+
+        // Убеждаемся, что обязательные поля всегда отправляются
+        // Disabled чекбоксы не отправляются, поэтому добавляем скрытые поля
+        const form = document.querySelector('form');
+        const requiredFields = ['name', 'link', 'price', 'stock', 'timestamp'];
+
+        requiredFields.forEach(function (fieldKey) {
+            const checkbox = document.getElementById('field_' + fieldKey);
+            if (checkbox && checkbox.disabled) {
+                // Создаем скрытое поле для обязательных полей
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'selected_fields';
+                hiddenInput.value = fieldKey;
+                form.appendChild(hiddenInput);
+            }
+        });
+
+        // Обработка подсказки с задержкой для замочков
+        const lockIconContainers = document.querySelectorAll('.lock-icon-container');
+        let tooltipTimeout = null;
+
+        lockIconContainers.forEach(function (container) {
+            const tooltip = container.querySelector('.custom-tooltip');
+
+            container.addEventListener('mouseenter', function () {
+                tooltipTimeout = setTimeout(function () {
+                    tooltip.classList.add('show');
+                }, 200);
+            });
+
+            container.addEventListener('mouseleave', function () {
+                if (tooltipTimeout) {
+                    clearTimeout(tooltipTimeout);
+                    tooltipTimeout = null;
+                }
+                tooltip.classList.remove('show');
+            });
+        });
+    });
+</script>
+{% endblock %}
+
