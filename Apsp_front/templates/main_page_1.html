@@ -485,6 +485,54 @@
         background: #f59e0b;
         color: #ffffff;
     }
+
+    /* Стили для tooltip кнопки "Добавить регионы" */
+    .regions-tooltip-wrapper {
+        position: relative;
+        display: inline-block;
+        flex: 1;
+    }
+
+    .regions-tooltip-wrapper .btn-small {
+        width: 100%;
+    }
+
+    .regions-tooltip-text {
+        visibility: hidden;
+        width: 340px;
+        background-color: #555;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 10px;
+        position: absolute;
+        z-index: 10000;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -170px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: normal;
+        pointer-events: none;
+    }
+
+    .regions-tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #555 transparent transparent transparent;
+    }
+
+    .regions-tooltip-wrapper.show-tooltip .regions-tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
 </style>
 {% endblock %}
 
@@ -533,7 +581,10 @@
         <!-- Дополнительные кнопки -->
         <div class="additional-buttons">
             <button type="button" class="btn-small btn-blue" id="clarify_fields_btn">Уточнить поля</button>
-            <button type="button" class="btn-small btn-yellow" id="add_regions_btn">Добавить регионы</button>
+            <div class="regions-tooltip-wrapper">
+                <button type="button" class="btn-small btn-yellow" id="add_regions_btn">Добавить регионы</button>
+                <span class="regions-tooltip-text">Данный функционал находится в разработке, и скоро будет доступен. Следите за обновлениями! ✨</span>
+            </div>
         </div>
 
         <div id="limit_error" class="limit-error" title="Нет, динамическая очередь задач ещё не реализована">
@@ -548,7 +599,7 @@
     </div>
 
     <div style="display: flex; gap: 10px; align-items: stretch;">
-        <button type="button" class="btn btn-info info-btn" id="info_button" title="Информация">
+        <button type="button" class="btn btn-info info-btn" id="info_button" title="Показать дополнительные настройки">
             <i class="info-icon">i</i>
         </button>
         <button type="submit" class="btn btn-success" id="new_page_1_submit" style="flex: 1;">Generate</button>
@@ -949,6 +1000,29 @@
             e.preventDefault();
             // Переключаем класс visible для показа/скрытия дополнительных кнопок
             additionalButtons.classList.toggle('visible');
+        });
+    })();
+
+    // Обработчик tooltip для кнопки "Добавить регионы"
+    (function() {
+        const wrapper = document.querySelector('.regions-tooltip-wrapper');
+        if (!wrapper) return;
+        
+        const button = wrapper.querySelector('#add_regions_btn');
+        if (!button) return;
+        
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Переключаем отображение tooltip
+            wrapper.classList.toggle('show-tooltip');
+        });
+        
+        // Закрытие tooltip при клике вне элемента
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.regions-tooltip-wrapper')) {
+                wrapper.classList.remove('show-tooltip');
+            }
         });
     })();
 </script>
