@@ -694,7 +694,7 @@ def format_3_links(arr_links):
 
 
 
-def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links):
+def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links, *, all_fields_override=None):
     # Приводим input_data к строке
     if isinstance(used_fields_and_selectors, str):
         used_fields_and_selectors_str = used_fields_and_selectors
@@ -706,7 +706,8 @@ def get_parseCard_code(used_fields_and_selectors, host_value, random_3_links):
 
     used_3_links = format_3_links(random_3_links)
 
-    used_fields = extract_only_used_fields(all_fields, used_fields_and_selectors)
+    used_all_fields = all_fields_override if all_fields_override is not None else all_fields
+    used_fields = extract_only_used_fields(used_all_fields, used_fields_and_selectors)
 
     # input_data_str = 
     """

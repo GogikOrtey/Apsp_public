@@ -874,7 +874,27 @@ def main_processer(input_url, *, uid=None, task_dir=None, page=None, started_at_
 
     print_ul("Начинаем собирать код для parseCard")
     ######################################### > Тут 3 скрытых больших вызова
-    (parse_card_code_fragment, fields_descr)  = main_gen_parseCard(result_agent_step_6_1_get_links_for_product, url_input)
+    # Выбранные пользователем поля (best-effort) — читаем из meta.json задачи
+    selected_fields = None
+    try:
+        from pathlib import Path
+        import json as _json
+
+        meta_path = Path(task_dir) / "meta.json"
+        if meta_path.is_file():
+            meta = _json.loads(meta_path.read_text(encoding="utf-8"))
+            if isinstance(meta, dict):
+                sf = meta.get("selected_fields")
+                if isinstance(sf, list):
+                    selected_fields = [str(x).strip() for x in sf if str(x).strip()]
+    except Exception:
+        selected_fields = None
+
+    (parse_card_code_fragment, fields_descr)  = main_gen_parseCard(
+        result_agent_step_6_1_get_links_for_product,
+        url_input,
+        selected_fields=selected_fields,
+    )
     update_content_front_last_phase_result(parse_card_code_fragment) 
 
     """ 

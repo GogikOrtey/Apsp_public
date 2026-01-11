@@ -392,7 +392,7 @@ n + 3: Проверить сгенерированный код извлечен
 
 # region main_gen_parseCard
 
-def main_gen_parseCard(input_15_links, host):
+def main_gen_parseCard(input_15_links, host, selected_fields=None):
     # 1. Получаем 3 случайные ссылки
     (all_links, random_3_links) = merge_links_and_pick_random(input_15_links)
 
@@ -405,10 +405,25 @@ def main_gen_parseCard(input_15_links, host):
     print_ul("Выбрали 3 случайные ссылки из 15, с ними и будем работать")
     print_ul("Извлекаем селекторы полей на этих трёх ссылках")
 
+    # Формируем справочник полей (all_fields) с учётом выбора пользователя
+    try:
+        from Gen_parseCard.all_fields_description import all_fields as schema_all_fields
+    except Exception:
+        schema_all_fields = {}
+
+    try:
+        from Gen_parseCard.fields_filter import filter_all_fields_nested
+        used_all_fields_schema = filter_all_fields_nested(schema_all_fields, selected_fields)
+        # Если фильтр вернул пусто (например selected_fields пустой) — fallback на полный справочник
+        if not used_all_fields_schema:
+            used_all_fields_schema = schema_all_fields
+    except Exception:
+        used_all_fields_schema = schema_all_fields
+
     # Извлекем селекторы на этих трёх ссылках
     results_extract_selectors_parseCard_from_GPT: List[Dict[str, Any]] = []
     for input_url in random_3_links:
-        result_text = extract_selectors_parseCard_from_GPT(input_url)
+        result_text = extract_selectors_parseCard_from_GPT(input_url, all_fields_override=used_all_fields_schema)
 
         # extract_selectors_parseCard_from_GPT возвращает строку с JSON
         try:
@@ -469,7 +484,12 @@ def main_gen_parseCard(input_15_links, host):
     print_ul(result_extract_selectors_parseCard_from_GPT_str)
 
     # Валидирую селекторы через агента
-    result_get_parseCard_code = get_parseCard_code(result_extract_selectors_parseCard_from_GPT, host, random_3_links)
+    result_get_parseCard_code = get_parseCard_code(
+        result_extract_selectors_parseCard_from_GPT,
+        host,
+        random_3_links,
+        all_fields_override=used_all_fields_schema,
+    )
 
     print_ul("Далее собираем провалидированный код для извлечения полей в одну функцию parseCard")
 

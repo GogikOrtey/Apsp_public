@@ -780,6 +780,16 @@ def select_fields():
     DEFAULT_OPTIONAL_FIELDS = ["brand", "imageLink", "article", "oldprice"]
     DEFAULT_FIELDS = REQUIRED_FIELDS + DEFAULT_OPTIONAL_FIELDS
 
+    def _parse_selected_fields_cookie(raw: str | None) -> list[str]:
+        if not raw:
+            return []
+        parts = []
+        for p in str(raw).split(","):
+            p = p.strip()
+            if p and p not in parts:
+                parts.append(p)
+        return parts
+
     # На случай если в all_fields отсутствуют системные поля (например link/timestamp)
     REQUIRED_FIELD_FALLBACK_TITLES = {
         "name": "Наименование товара",
@@ -845,8 +855,9 @@ def select_fields():
         if ui_items:
             fields_by_category[category] = ui_items
 
-    # 3) Выбранные поля (пока без сохранения): дефолтные, или то что пользователь отметил в POST
-    selected_fields = list(DEFAULT_FIELDS)
+    # 3) Выбранные поля: берём из cookie (если есть), иначе дефолт.
+    selected_fields_cookie = _parse_selected_fields_cookie(request.cookies.get("selected_fields"))
+    selected_fields = selected_fields_cookie or list(DEFAULT_FIELDS)
     if request.method == 'POST':
         # Получаем выбранные поля из формы
         selected_fields_from_form = request.form.getlist('selected_fields') or []
@@ -855,20 +866,33 @@ def select_fields():
         selected_set = set(selected_fields_from_form) | set(REQUIRED_FIELDS)
         selected_fields = [f for f in DEFAULT_FIELDS if f in selected_set] + [f for f in selected_set if f not in DEFAULT_FIELDS]
 
+        # Сохраняем выбор в cookie и возвращаем на main_page_1
+        response = make_response(redirect(url_for('main_page_1')))
+        response.set_cookie("selected_fields", ",".join(selected_fields), max_age=60 * 60 * 24 * 365)
+        return response
+
     # Для “перечисления по умолчанию” в UI — показываем человеко-читаемые названия
     default_fields_human = []
     for field_key in DEFAULT_FIELDS:
         meta = schema_by_key.get(field_key) or {}
         default_fields_human.append(meta.get("title") or REQUIRED_FIELD_FALLBACK_TITLES.get(field_key, field_key))
 
-    return render_template(
+    response = make_response(
+        render_template(
         'select_fields.html',
         fields_by_category=fields_by_category,
         required_fields=REQUIRED_FIELDS,
         default_fields=DEFAULT_FIELDS,
         default_fields_human=default_fields_human,
         selected_fields=selected_fields,
+        )
     )
+
+    # Если cookie ещё нет — проставляем дефолтные поля (чтобы они были доступны дальше в генерации).
+    if not request.cookies.get("selected_fields"):
+        response.set_cookie("selected_fields", ",".join(DEFAULT_FIELDS), max_age=60 * 60 * 24 * 365)
+
+    return response
 
 @app.route('/main_page_1', methods=['GET', 'POST'])
 def main_page_1():
@@ -978,7 +1002,15 @@ def main_page_1():
                     except Exception:
                         user_account = None
 
-                    task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account)
+                    # selected_fields (best-effort) — сохраняем в meta.json задачи, чтобы пайплайн мог фильтровать all_fields
+                    selected_fields = []
+                    try:
+                        raw = request.cookies.get("selected_fields") or ""
+                        selected_fields = [p.strip() for p in raw.split(",") if p.strip()]
+                    except Exception:
+                        selected_fields = []
+
+                    task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account, selected_fields=selected_fields or None)
                     TASKS.start(task.uid, _run_task)
 
                     return _maybe_clear_pending_cookie(redirect(url_for('main_page_2_uid', uid=task.uid)))
@@ -987,6 +1019,17 @@ def main_page_1():
     response = make_response(
         render_template('main_page_1.html', site_url=site_url, uid_not_found=uid_not_found, invalid_format=invalid_format)
     )
+
+    # Если пользователь ещё ни разу не выбирал поля — проставляем дефолт в cookie,
+    # чтобы генерация могла опираться на selected_fields без захода на /select_fields.
+    try:
+        if not request.cookies.get("selected_fields"):
+            REQUIRED_FIELDS = ["name", "link", "price", "stock", "timestamp"]
+            DEFAULT_OPTIONAL_FIELDS = ["brand", "imageLink", "article", "oldprice"]
+            DEFAULT_FIELDS = REQUIRED_FIELDS + DEFAULT_OPTIONAL_FIELDS
+            response.set_cookie("selected_fields", ",".join(DEFAULT_FIELDS), max_age=60 * 60 * 24 * 365)
+    except Exception:
+        pass
 
     # Если это resume-ветка, но pending не использовали (например, cookie пустая) — ничего не чистим.
     # Если использовали — почистим.
@@ -1051,7 +1094,14 @@ def parser_exists_new_generation():
     except Exception:
         user_account = None
 
-    task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account)
+    selected_fields = []
+    try:
+        raw = request.cookies.get("selected_fields") or ""
+        selected_fields = [p.strip() for p in raw.split(",") if p.strip()]
+    except Exception:
+        selected_fields = []
+
+    task = TASKS.create(site_url, user_telegram_id=tg_id, user_account=user_account, selected_fields=selected_fields or None)
     TASKS.start(task.uid, _run_task)
 
     return redirect(url_for('main_page_2_uid', uid=task.uid))

@@ -126,7 +126,15 @@ class TaskRegistry:
         tmp.write_text(json.dumps(meta, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
         tmp.replace(path)
 
-    def _init_meta(self, *, uid: str, url: str, user_telegram_id: int | None = None, user_account: str | None = None) -> None:
+    def _init_meta(
+        self,
+        *,
+        uid: str,
+        url: str,
+        user_telegram_id: int | None = None,
+        user_account: str | None = None,
+        selected_fields: list[str] | None = None,
+    ) -> None:
         now = self._now()
         meta = {
             "schema_version": self._meta_schema_version,
@@ -162,6 +170,13 @@ class TaskRegistry:
                 meta["user_account"] = str(user_account)
             except Exception:
                 meta["user_account"] = None
+
+        # Выбранные пользователем поля (best-effort). Важно для фильтрации all_fields на этапе генерации.
+        if selected_fields is not None:
+            try:
+                meta["selected_fields"] = [str(x).strip() for x in selected_fields if str(x).strip()]
+            except Exception:
+                meta["selected_fields"] = None
         self._save_meta(uid, meta)
 
     def _update_meta_on_start(self, uid: str) -> tuple[dict[str, Any], bool]:
@@ -645,7 +660,14 @@ class TaskRegistry:
     def result_tasks_dir(self) -> Path:
         return self._result_tasks_dir
 
-    def create(self, url: str, *, user_telegram_id: int | None = None, user_account: str | None = None) -> TaskInfo:
+    def create(
+        self,
+        url: str,
+        *,
+        user_telegram_id: int | None = None,
+        user_account: str | None = None,
+        selected_fields: list[str] | None = None,
+    ) -> TaskInfo:
         uid = uuid4().hex[:12]
         task_dir = self._result_tasks_dir / uid
         task_dir.mkdir(parents=True, exist_ok=True)
@@ -656,7 +678,13 @@ class TaskRegistry:
             pass
         # meta.json создаём сразу, чтобы задача была видна после рестарта.
         try:
-            self._init_meta(uid=uid, url=str(url), user_telegram_id=user_telegram_id, user_account=user_account)
+            self._init_meta(
+                uid=uid,
+                url=str(url),
+                user_telegram_id=user_telegram_id,
+                user_account=user_account,
+                selected_fields=selected_fields,
+            )
         except Exception:
             pass
 

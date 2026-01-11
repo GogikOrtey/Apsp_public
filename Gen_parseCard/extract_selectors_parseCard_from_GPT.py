@@ -431,19 +431,21 @@ relations (необязательно)
 
 
 # region Внешняя функция
-def extract_selectors_parseCard_from_GPT(input_url):
+def extract_selectors_parseCard_from_GPT(input_url, *, all_fields_override=None):
     html_content = get_html_from_cache(input_url)
     html_content_zip = clean_html_universal(html_content)
 
     print("Отправляем запрос к extract_selectors_parseCard_from_GPT")
 
-    if isinstance(all_fields, str):
-        all_fields_str = all_fields
+    used_all_fields = all_fields_override if all_fields_override is not None else all_fields
+
+    if isinstance(used_all_fields, str):
+        all_fields_str = used_all_fields
     else:
         try:
-            all_fields_str = json.dumps(all_fields, ensure_ascii=False, indent=4, default=str)
+            all_fields_str = json.dumps(used_all_fields, ensure_ascii=False, indent=4, default=str)
         except Exception:
-            all_fields_str = str(all_fields)
+            all_fields_str = str(used_all_fields)
 
     request_from_LLM = f"""
     Инструкции:
