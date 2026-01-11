@@ -7,6 +7,9 @@
 
 <h1>ASP: Центр автоматизации решения проблем и починки парсеров</h1>
 
+<p class="asp-footer-text">ASP: Auto Solving Problem</p>
+<p class="asp-footer-text">100% автоматизации для решения типовых и возникающих задач</p>
+
 <h2 class="asp-h2">Типовые проблемы</h2>
 <div class="asp-btns">
     <div class="asp-tooltip-wrapper">
@@ -49,11 +52,6 @@
     </div>
 </form>
 
-<div class="asp-footer-text">
-    <p class="asp-footer-title">ASP: Auto Solving Problem</p>
-    <p class="asp-footer-subtitle">100% автоматизации для решения типовых задач</p>
-</div>
-
 <a href="{{ url_for('start_page_1') }}" class="back-button">Назад</a>
 {% endblock %}
 
@@ -71,7 +69,7 @@
     .container {
         /* max-width: 900px !important; */
         max-width: 600px !important;
-        padding-bottom: 10px;
+        /* padding-bottom: 10px; */
     }
 
     h1 {
@@ -223,8 +221,9 @@
 
     /* Футер-текст под формой */
     .asp-footer-text {
-        margin-top: 10px;
+        /* margin-top: 10px; */
         text-align: center;
+        color: #555;
     }
 
     .asp-footer-title {

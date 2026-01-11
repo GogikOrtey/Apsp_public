@@ -86,15 +86,15 @@ if __name__ == "__main__":
     # def test_code():
     #     try:            
     #         _time.sleep(1.0)  # Дать серверу подняться
-
+    #
     #         """
     #         Вот тут можно написать код для теста. Он выполнится после поднятия сервера.
     #         Это параллельный поток.
     #         """
-
+    #
     #         telegram_connect.try_send_to_log_chat("Текст для отправки в Log chat")
     #         telegram_connect.try_send_to_info_chat("Текст для отправки в Info chat")
-            
+    #       
     #     except Exception as e:
     #         print(e)
     # threading.Thread(target=test_code, daemon=True).start()
