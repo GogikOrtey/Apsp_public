@@ -541,6 +541,95 @@
         visibility: visible;
         opacity: 1;
     }
+
+    /* Tooltip справа для поля ввода site_url (показывается по клику, только когда поле пустое) */
+    .site-url-tooltip-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .site-url-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        width: 340px;
+        background-color: #555;
+        color: #fff;
+        text-align: left;
+        border-radius: 8px;
+        padding: 12px;
+        position: absolute;
+        z-index: 10000;
+        left: calc(100% + 12px);
+        top: 50%;
+        transform: translateY(-50%);
+        transition: opacity 0.2s ease;
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: normal;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+    }
+
+    .site-url-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 100%;
+        margin-top: -6px;
+        border-width: 6px;
+        border-style: solid;
+        border-color: transparent #555 transparent transparent;
+    }
+
+    .site-url-tooltip-wrapper.show-tooltip .site-url-tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .site-url-tooltip__row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    .site-url-tooltip__btn {
+        background: #667eea;
+        color: #fff;
+        border: 1px solid #667eea;
+        border-radius: 8px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background-color 0.15s ease, transform 0.05s ease;
+    }
+
+    .site-url-tooltip__btn:hover {
+        background: #5568d3;
+    }
+
+    .site-url-tooltip__btn:active {
+        transform: scale(0.99);
+    }
+
+    /* На узких экранах показываем tooltip снизу, а не справа (чтобы не вылезал за экран) */
+    @media (max-width: 640px) {
+        .site-url-tooltip {
+            left: 0;
+            top: calc(100% + 10px);
+            transform: none;
+            width: 100%;
+        }
+
+        .site-url-tooltip::after {
+            top: auto;
+            bottom: 100%;
+            right: auto;
+            left: 20px;
+            margin-top: 0;
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent transparent #555 transparent;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -576,15 +665,23 @@
                 <span class="uid-tooltip-text">UID - это идентификатор задачи в текущем сервисе. Примеры UID задач: ab366d8a3185, 824d6e8aba5e, f73cd2508ab0</span>
             </span></span>
         </label>
-        <input
-            type="text"
-            id="site_url"
-            name="site_url"
-            placeholder="http://systemarf.ru/"
-            value="{{ site_url or '' }}"
-            autocomplete="url"
-            inputmode="url"
-        >
+        <div class="site-url-tooltip-wrapper" id="site_url_tooltip_wrapper">
+            <input
+                type="text"
+                id="site_url"
+                name="site_url"
+                placeholder="http://systemarf.ru/"
+                value="{{ site_url or '' }}"
+                autocomplete="url"
+                inputmode="url"
+            >
+            <div class="site-url-tooltip" id="site_url_tooltip" aria-hidden="true">
+                <!-- Нажмите кнопку ниже — в поле автоматически подставится случайный пример. -->
+                <div class="site-url-tooltip__row">
+                    <button type="button" class="site-url-tooltip__btn" id="site_url_random_example_btn">Случайный пример</button>
+                </div>
+            </div>
+        </div>
         
         <!-- Дополнительные кнопки -->
         <div class="additional-buttons">
@@ -1041,6 +1138,72 @@
             if (!e.target.closest('.regions-tooltip-wrapper')) {
                 wrapper.classList.remove('show-tooltip');
             }
+        });
+    })();
+
+    // Tooltip справа для input#site_url: показываем по клику только когда поле пустое
+    (function() {
+        const input = document.getElementById('site_url');
+        const wrapper = document.getElementById('site_url_tooltip_wrapper');
+        const randomBtn = document.getElementById('site_url_random_example_btn');
+        if (!input || !wrapper || !randomBtn) return;
+
+        // TODO: заполнить массив реальными примерами (URL/домены) под ваши кейсы
+        const RANDOM_EXAMPLES = [];
+        const FALLBACK_EXAMPLES = [
+            'https://example.com',
+            'http://systemarf.ru/'
+        ];
+
+        function getExamples() {
+            return (Array.isArray(RANDOM_EXAMPLES) && RANDOM_EXAMPLES.length > 0)
+                ? RANDOM_EXAMPLES
+                : FALLBACK_EXAMPLES;
+        }
+
+        function showTooltipIfEmpty() {
+            if (input.value.trim() === '') {
+                wrapper.classList.add('show-tooltip');
+            } else {
+                wrapper.classList.remove('show-tooltip');
+            }
+        }
+
+        function hideTooltip() {
+            wrapper.classList.remove('show-tooltip');
+        }
+
+        // Важно: по умолчанию tooltip скрыт (показываем только по клику в пустое поле)
+        hideTooltip();
+
+        input.addEventListener('click', function(e) {
+            showTooltipIfEmpty();
+        });
+
+        input.addEventListener('input', function() {
+            // Если пользователь что-то ввёл — tooltip должен исчезнуть
+            if (input.value.trim() !== '') {
+                hideTooltip();
+            }
+        });
+
+        // Закрытие tooltip при клике вне блока
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#site_url_tooltip_wrapper')) {
+                hideTooltip();
+            }
+        });
+
+        randomBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const examples = getExamples();
+            const value = examples[Math.floor(Math.random() * examples.length)];
+            input.value = value;
+            // Триггерим обработчики, которые подписаны на input (в т.ч. смена текста/цвета кнопки Generate)
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            hideTooltip();
+            input.focus();
         });
     })();
 
