@@ -18,13 +18,14 @@ https://makita-land.ru
 https://makitatrading.ru
 https://systemarf.ru
 https://makita-snab.ru
-https://makita-line.ru
-https://makita-online.ru
-https://makitarussia.ru
-https://makitasale.ru
-https://fitomarket.ru
-https://abcsnab.ru
-https://bestceramic.ru
+
+https://makita-line.ru - окошко перекрывает обор, и не убирается через Esc
+https://makita-online.ru - Ок
+https://makitarussia.ru - Ок
+https://makitasale.ru - Ок
+https://fitomarket.ru - Генерация завершается неудачно, т.к. на сайте данные подгржаются доп. запросам. Для этого нужна логика подключения решалок. Это ок ответ. Это проверил.
+https://abcsnab.ru - проблемы с нажатием на поле ввода
+https://bestceramic.ru - ошибка генерации
 https://cleansan.ru
 https://climate-group.ru - Вылезает кастомная капча
 https://evropa-san.ru
@@ -77,8 +78,13 @@ https://trial-market.ru
 
 Проблемные:
 
+makitarussia.ru
+makita-line.ru - окошко перекрывает обор, и не убирается через Esc
 
+Почему-то при одновременном запуске 4х задач через ngrok браузер умер. Сделать его видимым, и понять почему не работает. Возможно не хватило оперативки и мощности процессора, потому что сначала он работал, и скрины шли
 
+https://abcsnab.ru - проблемы с нажатием на поле ввода
+https://bestceramic.ru - ошибка генерации
 
 
 
