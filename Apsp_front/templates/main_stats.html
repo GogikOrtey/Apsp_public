@@ -2,39 +2,37 @@
 {% block title %}Статистика{% endblock %}
 {% block content %}
 
-<div class="container" style="max-width: 1100px;">
-    <h1 style="margin-bottom: 14px;">Статистика сервера</h1>
-    <div style="color:#555; text-align:center; margin-bottom: 18px;">
-        Обновление каждые 2 секунды
+<h1 style="margin-bottom: 14px;">Статистика сервера</h1>
+<div style="color:#555; text-align:center; margin-bottom: 18px;">
+    Обновление каждые 2 секунды
+</div>
+
+<div id="err" style="color:#b00; margin: 8px 0; text-align:center;"></div>
+
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 700px; margin: 0 auto;">
+    <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+        <h3 style="margin-bottom:8px;">Uptime</h3>
+        <div id="uptime">—</div>
     </div>
 
-    <div id="err" style="color:#b00; margin: 8px 0; text-align:center;"></div>
+    <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+        <h3 style="margin-bottom:8px;">Задачи</h3>
+        <div id="tasks">—</div>
+    </div>
 
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
-            <h3 style="margin-bottom:8px;">Uptime</h3>
-            <div id="uptime">—</div>
-        </div>
+    <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+        <h3 style="margin-bottom:8px;">CPU</h3>
+        <div id="cpu">—</div>
+    </div>
 
-        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
-            <h3 style="margin-bottom:8px;">Задачи</h3>
-            <div id="tasks">—</div>
-        </div>
+    <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+        <h3 style="margin-bottom:8px;">RAM</h3>
+        <div id="mem">—</div>
+    </div>
 
-        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
-            <h3 style="margin-bottom:8px;">CPU</h3>
-            <div id="cpu">—</div>
-        </div>
-
-        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
-            <h3 style="margin-bottom:8px;">RAM</h3>
-            <div id="mem">—</div>
-        </div>
-
-        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff; grid-column: 1 / -1;">
-            <h3 style="margin-bottom:8px;">Disk (там, где RESULT_TASKS)</h3>
-            <div id="disk">—</div>
-        </div>
+    <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+        <h3 style="margin-bottom:8px;">Disk (там, где RESULT_TASKS)</h3>
+        <div id="disk">—</div>
     </div>
 </div>
 
@@ -103,6 +101,35 @@
 </script>
 
 <a href="{{ url_for('main_page_1') }}" class="back-button">Назад</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Фиксированная кнопка "Назад" в левом верхнем углу */
+    .back-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: white;
+        color: black;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+        filter: brightness(0.95);
+    }
+
+    .back-button:active {
+        transform: scale(0.95);
+    }
+</style>
 {% endblock %}
 
 
