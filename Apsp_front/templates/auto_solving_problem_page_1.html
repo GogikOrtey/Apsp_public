@@ -19,14 +19,14 @@
     Опишите проблему и не забудьте прикрепить ссылку на сайт. ASP автоматически решит её
 </p>
 
-<form method="POST" action="{{ url_for('auto_solving_problem_page_1') }}" class="asp-form">
+<form class="asp-form">
     <textarea
         name="problem_text"
         class="asp-textarea"
         placeholder="Например: генерация упала на шаге 3/10, сайт https://example.com, ошибка такая-то..."
     >{{ problem_text or "" }}</textarea>
 
-    <button type="submit" class="asp-btn asp-btn--green">Решить проблему</button>
+    <button type="button" class="asp-btn asp-btn--green">Решить проблему</button>
 </form>
 
 <a href="{{ url_for('start_page_1') }}" class="back-button">Назад</a>
