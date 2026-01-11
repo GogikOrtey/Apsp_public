@@ -296,11 +296,31 @@ def try_notify_task_finished(
         base_url_norm = str(base_url or "").strip() or "http://127.0.0.1:5000"
         base_url_norm = base_url_norm.rstrip("/")
 
+        # Расчёт времени выполнения задачи (в минутах)
+        duration_minutes = None
+        try:
+            finished_ts = meta.get("finished_at_ts")
+            started_ts = meta.get("started_at_ts")
+            if finished_ts is not None and started_ts is not None:
+                duration_seconds = float(finished_ts) - float(started_ts)
+                duration_minutes = round(duration_seconds / 60, 1)
+        except Exception:
+            pass
+
         status_line = "🟩 Генерация успешно завершена" if ok else "🟠 Генерация завершилась с ошибкой"
         user_label = _format_user_label(user_telegram_id=tg_id_int, user_account=str(user_account) if user_account else None)
+        
+        log_body_parts = [
+            status_line,
+            f"Сайт: {domain}",
+        ]
+        if duration_minutes is not None:
+            log_body_parts.append(f"🕑 Время генерации: {duration_minutes} минут")
+        log_body_parts.append(f"Link: {_escape_html(base_url_norm + '/main_page_3/' + str(uid) + '/')}")
+        
         _dup_outgoing_to_log_chat(
             header=f"Пользователь {user_label} завершил генерацию:",
-            body=f"{status_line}\nСайт: {domain}\nLink: {_escape_html(base_url_norm + '/main_page_3/' + str(uid) + '/')}",
+            body="\n".join(log_body_parts),
             bot_token=bot_token,
         )
 
@@ -325,22 +345,25 @@ def try_notify_task_finished(
                 status_line,
                 f"Сайт: {domain}",
                 f"UID задачи: {uid}",
-                f"Результат: {base_url_norm}/main_page_3/{uid}/",
-                # f"ZIP (ссылка): {base_url_norm}/download/all_files_zip/{uid}",
             ]
+            if duration_minutes is not None:
+                caption_lines.append(f"🕑 Время генерации: {duration_minutes} минут")
+            caption_lines.append(f"Результат: {base_url_norm}/main_page_3/{uid}/")
+            # f"ZIP (ссылка): {base_url_norm}/download/all_files_zip/{uid}",
             caption = "\n".join(caption_lines).strip()
             caption_parse_mode = None
         else:
             # Базовая часть caption (HTML)
-            base_caption = "\n".join(
-                [
-                    _escape_html(status_line),
-                    f"Сайт: {_escape_html(domain)}",
-                    f"UID задачи: {_escape_html(uid)}",
-                    f"Результат: {_escape_html(base_url_norm + '/main_page_3/' + str(uid) + '/')}",
-                    # f"ZIP (ссылка): {_escape_html(base_url_norm + '/download/all_files_zip/' + str(uid))}",
-                ]
-            ).strip()
+            caption_lines_err = [
+                _escape_html(status_line),
+                f"Сайт: {_escape_html(domain)}",
+                f"UID задачи: {_escape_html(uid)}",
+            ]
+            if duration_minutes is not None:
+                caption_lines_err.append(f"🕑 Время генерации: {_escape_html(str(duration_minutes))} минут")
+            caption_lines_err.append(f"Результат: {_escape_html(base_url_norm + '/main_page_3/' + str(uid) + '/')}")
+            # f"ZIP (ссылка): {_escape_html(base_url_norm + '/download/all_files_zip/' + str(uid))}",
+            base_caption = "\n".join(caption_lines_err).strip()
 
             err_for_block = extracted_err or (str(error_text).strip() if error_text else "")
             err_for_block = err_for_block.strip()
