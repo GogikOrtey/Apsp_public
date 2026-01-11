@@ -54,6 +54,15 @@
         return `${h} ч ${m} мин ${s} сек`;
     }
 
+    function getStatusEmoji(percent) {
+        if (percent == null) return '';
+        const p = Number(percent);
+        if (p < 50) return '🟢';
+        if (p < 75) return '🟡';
+        if (p < 90) return '🟠';
+        return '🟥';
+    }
+
     async function tick() {
         const errEl = document.getElementById('err');
         errEl.textContent = '';
@@ -72,11 +81,16 @@
             return;
         }
 
-        document.getElementById('uptime').textContent = fmtUptime(data.uptime_seconds);
+        document.getElementById('uptime').textContent = '🟢 ' + fmtUptime(data.uptime_seconds);
 
         const t = data.tasks || {};
+        const taskLoadPercent = (t.max_workers && t.active_runtime != null) 
+            ? (t.active_runtime / t.max_workers * 100) 
+            : null;
+        const taskEmoji = taskLoadPercent != null ? getStatusEmoji(taskLoadPercent) : '🟢';
+        
         document.getElementById('tasks').innerHTML =
-            `Активно задач: <b>${t.active_runtime ?? '—'}</b><br>` +
+            `${taskEmoji} Активно задач: <b>${t.active_runtime ?? '—'}</b><br>` +
             `Max workers:   <b>${t.max_workers ?? '—'}</b><br><br>` +
             `В работе: <b>${t.work ?? '—'}</b><br>` +
             `На паузе: <b>${t.paused ?? '—'}</b><br>` +
@@ -85,18 +99,33 @@
             `Всего: <b>${t.total ?? '—'}</b>`;
 
         const cpu = data.cpu;
-        document.getElementById('cpu').textContent =
-            cpu ? (Number(cpu.percent).toFixed(1) + '%') : (data.psutil_available ? '—' : 'psutil не установлен');
+        if (cpu) {
+            const cpuPercent = Number(cpu.percent);
+            const cpuEmoji = getStatusEmoji(cpuPercent);
+            document.getElementById('cpu').textContent = `${cpuEmoji} ${cpuPercent.toFixed(1)}%`;
+        } else {
+            document.getElementById('cpu').textContent = data.psutil_available ? '—' : 'psutil не установлен';
+        }
 
         const mem = data.memory;
-        document.getElementById('mem').innerHTML =
-            mem ? `${Number(mem.percent).toFixed(1)}% (used ${fmtBytes(mem.used)} / total ${fmtBytes(mem.total)})`
-                : (data.psutil_available ? '—' : 'psutil не установлен');
+        if (mem) {
+            const memPercent = Number(mem.percent);
+            const memEmoji = getStatusEmoji(memPercent);
+            document.getElementById('mem').innerHTML = 
+                `${memEmoji} ${memPercent.toFixed(1)}% (used ${fmtBytes(mem.used)} / total ${fmtBytes(mem.total)})`;
+        } else {
+            document.getElementById('mem').innerHTML = data.psutil_available ? '—' : 'psutil не установлен';
+        }
 
         const disk = data.disk;
-        document.getElementById('disk').innerHTML =
-            disk ? `${Number(disk.percent).toFixed(1)}% (used ${fmtBytes(disk.used)} / total ${fmtBytes(disk.total)})`
-                : (data.psutil_available ? '—' : 'psutil не установлен');
+        if (disk) {
+            const diskPercent = Number(disk.percent);
+            const diskEmoji = getStatusEmoji(diskPercent);
+            document.getElementById('disk').innerHTML = 
+                `${diskEmoji} ${diskPercent.toFixed(1)}% (used ${fmtBytes(disk.used)} / total ${fmtBytes(disk.total)})`;
+        } else {
+            document.getElementById('disk').innerHTML = data.psutil_available ? '—' : 'psutil не установлен';
+        }
     }
 
     tick();
