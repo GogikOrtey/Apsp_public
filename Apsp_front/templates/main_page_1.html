@@ -26,8 +26,56 @@
         /* font-weight: 600; */
     }
 
+    .btn-success {
+        border-radius: 8px;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(9, 255, 0, 0.3);
+    }
+
     .btn-full:active {
         transform: scale(0.99);
+    }
+
+    .btn-success:active {
+        transform: scale(0.99);
+    }
+
+    /* Синяя квадратная кнопка информации */
+    .btn-info.info-btn {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #667eea;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-info.info-btn:hover {
+        /* background: #0056b3; */
+        filter: brightness(0.95);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-info.info-btn:active {
+        transform: scale(0.98);
+    }
+
+    .info-icon {
+        font-style: normal;
+        font-weight: 700;
+        font-size: 20px;
+        color: #ffffff;
+        line-height: 1;
     }
 
     .form-group {
@@ -486,7 +534,12 @@
         </div>
     </div>
 
-    <button type="submit" class="btn btn-success btn-full" id="new_page_1_submit">Generate</button>
+    <div style="display: flex; gap: 10px; align-items: stretch;">
+        <button type="button" class="btn btn-info info-btn" id="info_button" title="Информация">
+            <i class="info-icon">i</i>
+        </button>
+        <button type="submit" class="btn btn-success" id="new_page_1_submit" style="flex: 1;">Generate</button>
+    </div>
 </form>
 
 <!--
@@ -872,6 +925,18 @@
         // Запускаем анимацию через секунду после загрузки страницы
         setTimeout(animatePlaceholder, 1000);
     })();
+
+    // // Обработчик кнопки информации
+    // (function() {
+    //     const infoBtn = document.getElementById('info_button');
+    //     if (!infoBtn) return;
+        
+    //     infoBtn.addEventListener('click', function(e) {
+    //         e.preventDefault();
+    //         // Открываем страницу с информацией о возможностях автогенератора
+    //         window.location.href = "{{ url_for('before_starting_autogen_info') }}";
+    //     });
+    // })();
 </script>
 
 <a href="{{ url_for('before_starting_autogen_info') }}" class="back-button">Назад</a>
