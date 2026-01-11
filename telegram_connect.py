@@ -822,7 +822,7 @@ def handle_telegram_update(
         text_ok = "Авторизация успешна"
         # лёгкий UX: подсказываем вернуться на сайт
         if base_url:
-            text_ok += f"\n\nВернитесь в браузер: {base_url}/login_page"
+            text_ok += f"\n\n👉 Вернитесь в браузер - нажмите на эту ссылку: {base_url}/login_page"
         send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text_ok)
         return {"ok": True, "handled": True, "status": "authorized", "token": t, "tg_id": tg_id}
 

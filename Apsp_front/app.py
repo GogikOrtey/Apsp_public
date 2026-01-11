@@ -225,6 +225,7 @@ def clear_user_telegram_id_cookie(response):
 # ============================================================================
 
 PENDING_SITE_URL_COOKIE_NAME = "apsp_pending_site_url"
+SKIP_AUTH_COOKIE_NAME = "apsp_skip_auth"
 
 
 def _is_user_logged_in() -> bool:
@@ -238,6 +239,22 @@ def _is_user_logged_in() -> bool:
         v = None
     v = (v or "").strip()
     return bool(v) and v.lower() != "no_account"
+
+
+def _is_skip_auth_enabled() -> bool:
+    """
+    Если пользователь явно выбрал "продолжить без авторизации" — не требуем login.
+    """
+    try:
+        v = request.cookies.get(SKIP_AUTH_COOKIE_NAME)
+    except Exception:
+        v = None
+    v = (v or "").strip().lower()
+    return v in {"1", "true", "yes", "on"}
+
+
+def _require_login() -> bool:
+    return not _is_skip_auth_enabled()
 
 
 def set_pending_site_url_cookie(response, site_url: str, max_age_seconds: int = 30 * 60):
@@ -297,6 +314,9 @@ def _redirect_to_login(*, next_url: str, pending_site_url: str | None = None):
     """
     Редирект на /login_page с передачей next, плюс (опционально) сохраняем введённый site_url/uid.
     """
+    if not _require_login():
+        # Пользователь выбрал режим "без авторизации" — сразу возвращаем на целевую страницу.
+        return redirect(_safe_next_url(next_url))
     safe_next = _safe_next_url(next_url)
     resp = redirect(url_for("login_page", next=safe_next))
     if pending_site_url is not None:
@@ -734,7 +754,7 @@ def main_page_1():
     resume_pending_used = False
     if request.method == "GET" and resume:
         pending = get_pending_site_url_from_cookie()
-        if pending and _is_user_logged_in():
+        if pending and (_is_user_logged_in() or not _require_login()):
             # Превращаем resume GET в обычную обработку, как будто пользователь отправил форму
             site_url = sanitize_text(pending)
             resume_pending_used = True
@@ -769,7 +789,7 @@ def main_page_1():
                 
                 if TASKS.exists(uid):
                     # До любых переходов — требуем авторизацию (но только если ввод корректный и UID существует)
-                    if not _is_user_logged_in():
+                    if _require_login() and not _is_user_logged_in():
                         return _redirect_to_login(next_url="/main_page_1?resume=1", pending_site_url=site_url)
 
                     # Задача найдена — проверяем её статус
@@ -803,7 +823,7 @@ def main_page_1():
                         
                         if existing_uid:
                             # До показа parser_exists — требуем авторизацию (но только если ввод валиден)
-                            if not _is_user_logged_in():
+                            if _require_login() and not _is_user_logged_in():
                                 return _redirect_to_login(next_url="/main_page_1?resume=1", pending_site_url=site_url)
                             # Есть готовый результат — показываем страницу выбора
                             return _maybe_clear_pending_cookie(redirect(url_for('parser_exists', url=site_url, existing_uid=existing_uid)))
@@ -812,7 +832,7 @@ def main_page_1():
                         print(f"Ошибка при проверке существующих результатов: {e}")
                     
                     # Перед стартом генерации — требуем авторизацию (но только если ввод валиден)
-                    if not _is_user_logged_in():
+                    if _require_login() and not _is_user_logged_in():
                         return _redirect_to_login(next_url="/main_page_1?resume=1", pending_site_url=site_url)
 
                     # Нет готовых результатов или ошибка проверки — создаём новую задачу
@@ -854,7 +874,7 @@ def parser_exists():
     Страница, показывающая что парсер для данного URL уже существует.
     Предлагает открыть существующий результат или запустить генерацию заново.
     """
-    if not _is_user_logged_in():
+    if _require_login() and not _is_user_logged_in():
         return _redirect_to_login(next_url=_request_target_path())
 
     site_url = request.args.get('url', '')
@@ -878,7 +898,7 @@ def parser_exists_new_generation():
     """
     Обработчик для запуска новой генерации с страницы parser_exists.
     """
-    if not _is_user_logged_in():
+    if _require_login() and not _is_user_logged_in():
         # POST мы не можем "повторить" после логина без дополнительного состояния,
         # поэтому просто ведём пользователя на логин и возвращаем на main_page_1.
         return _redirect_to_login(next_url="/main_page_1")
@@ -911,7 +931,7 @@ def all_tasks():
     """
     Страница обзора всех задач из папки RESULT_TASKS.
     """
-    if not _is_user_logged_in():
+    if _require_login() and not _is_user_logged_in():
         return _redirect_to_login(next_url=_request_target_path())
 
     tasks_data = _load_all_tasks_data()
@@ -1138,7 +1158,7 @@ def main_page_2_no_uid():
 @app.route('/main_page_2/<uid>/', methods=['GET'])
 def main_page_2_uid(uid):
     """Дашборд конкретной задачи."""
-    if not _is_user_logged_in():
+    if _require_login() and not _is_user_logged_in():
         return _redirect_to_login(next_url=_request_target_path())
 
     info = _get_task_info(uid)
@@ -1171,7 +1191,7 @@ def main_page_3_uid(uid):
     """
     Страница результатов конкретной задачи.
     """
-    if not _is_user_logged_in():
+    if _require_login() and not _is_user_logged_in():
         return _redirect_to_login(next_url=_request_target_path())
 
     if _get_task_info(uid) is None:

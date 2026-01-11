@@ -18,7 +18,7 @@ https://fitomarket.ru
 https://abcsnab.ru
 https://bestceramic.ru
 https://cleansan.ru
-https://climate-group.ru
+https://climate-group.ru - Вылезает кастомная капча
 https://evropa-san.ru
 https://gazovik-omsk.ru
 https://gaz-shop78.ru
