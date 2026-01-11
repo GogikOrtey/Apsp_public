@@ -28,6 +28,8 @@
 
     <button type="submit" class="asp-btn asp-btn--green">Решить проблему</button>
 </form>
+
+<a href="{{ url_for('start_page_1') }}" class="back-button">Назад</a>
 {% endblock %}
 
 {% block extra_css %}
@@ -123,6 +125,31 @@
     .asp-textarea {
         min-height: 140px;
         resize: vertical;
+    }
+
+    /* Фиксированная кнопка "Назад" в левом верхнем углу (как в before_starting_autogen_info.html) */
+    .back-button {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: white;
+        color: black;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        transition: all 0.2s ease;
+    }
+
+    .back-button:hover {
+        filter: brightness(0.95);
+    }
+
+    .back-button:active {
+        transform: scale(0.95);
     }
 </style>
 {% endblock %}
