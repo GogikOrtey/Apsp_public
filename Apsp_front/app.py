@@ -769,40 +769,106 @@ def select_fields():
     Страница выбора полей для парсинга.
     Пользователь может выбрать, какие поля он хочет извлекать.
     """
-    # Определяем доступные поля с описаниями
-    fields = {
-        'name': 'Название товара',
-        'link': 'Ссылка на товар',
-        'price': 'Цена',
-        'stock': 'Наличие в магазине',
-        'timestamp': 'Дата и время парсинга',
-        'image': 'Изображение товара',
-        'description': 'Описание товара',
-        'rating': 'Рейтинг товара',
-        'reviews_count': 'Количество отзывов',
-        'brand': 'Бренд / Производитель',
-        'article': 'Артикул товара',
-        'category': 'Категория товара',
-        'delivery': 'Информация о доставке',
-        'discount': 'Размер скидки',
-        'old_price': 'Старая цена (до скидки)',
+    # NOTE: Источник правды по полям — Gen_parseCard/all_fields_description.py:all_fields
+    # Здесь мы только формируем UI-список + дефолтные значения.
+    #
+    # Обязательные поля: всегда включены и заблокированы в UI
+    REQUIRED_FIELDS = ["name", "link", "price", "stock", "timestamp"]
+
+    # Поля по умолчанию: REQUIRED_FIELDS + пара необязательных "для примера"
+    # (потом можно поменять на нужные)
+    DEFAULT_OPTIONAL_FIELDS = ["brand", "imageLink"]
+    DEFAULT_FIELDS = REQUIRED_FIELDS + DEFAULT_OPTIONAL_FIELDS
+
+    # На случай если в all_fields отсутствуют системные поля (например link/timestamp)
+    REQUIRED_FIELD_FALLBACK_TITLES = {
+        "name": "Наименование товара",
+        "link": "Ссылка на товар",
+        "price": "Цена",
+        "stock": "Наличие товара",
+        "timestamp": "Дата и время парсинга",
     }
-    
-    # Получаем сохранённые выбранные поля (если есть)
-    # TODO: В будущем можно сохранять выбор пользователя в сессию или БД
-    selected_fields = request.cookies.get('selected_fields', '').split(',') if request.cookies.get('selected_fields') else []
-    
+
+    # 1) Грузим schema из all_fields и делаем удобную flat-структуру
+    try:
+        from Gen_parseCard.all_fields_description import all_fields as schema_all_fields
+    except Exception:
+        schema_all_fields = {}
+
+    schema_by_key = {}
+    for category, category_fields in (schema_all_fields or {}).items():
+        if not isinstance(category_fields, dict):
+            continue
+        for field_key, meta in category_fields.items():
+            if not isinstance(meta, dict):
+                continue
+            schema_by_key[field_key] = {
+                "key": field_key,
+                "title": meta.get("title") or field_key,
+                "description": meta.get("description") or "",
+                "category": category,
+            }
+
+    # 2) Строим список полей для UI, сгруппированный по категориям
+    fields_by_category = {}
+
+    # Обязательные — отдельным блоком сверху (берём метаданные из schema, если есть)
+    required_ui_fields = []
+    for field_key in REQUIRED_FIELDS:
+        meta = schema_by_key.get(field_key) or {}
+        required_ui_fields.append(
+            {
+                "key": field_key,
+                "title": meta.get("title") or REQUIRED_FIELD_FALLBACK_TITLES.get(field_key, field_key),
+                "description": meta.get("description") or "",
+            }
+        )
+    fields_by_category["Обязательные поля"] = required_ui_fields
+
+    # Остальные — в порядке категорий из all_fields
+    for category, category_fields in (schema_all_fields or {}).items():
+        if not isinstance(category_fields, dict):
+            continue
+        ui_items = []
+        for field_key, meta in category_fields.items():
+            if field_key in REQUIRED_FIELDS:
+                continue
+            if not isinstance(meta, dict):
+                continue
+            ui_items.append(
+                {
+                    "key": field_key,
+                    "title": meta.get("title") or field_key,
+                    "description": meta.get("description") or "",
+                }
+            )
+        if ui_items:
+            fields_by_category[category] = ui_items
+
+    # 3) Выбранные поля (пока без сохранения): дефолтные, или то что пользователь отметил в POST
+    selected_fields = list(DEFAULT_FIELDS)
     if request.method == 'POST':
         # Получаем выбранные поля из формы
-        selected_fields_from_form = request.form.getlist('selected_fields')
-        
-        # Сохраняем выбор (в cookie или в БД)
-        # TODO: В будущем можно реализовать более продвинутое хранение
-        response = make_response(redirect(url_for('main_page_1')))
-        response.set_cookie('selected_fields', ','.join(selected_fields_from_form), max_age=60*60*24*365)  # На год
-        return response
-    
-    return render_template('select_fields.html', fields=fields, selected_fields=selected_fields)
+        selected_fields_from_form = request.form.getlist('selected_fields') or []
+
+        # Важно: disabled чекбоксы (обязательные) не отправляются — добавляем их обратно.
+        selected_set = set(selected_fields_from_form) | set(REQUIRED_FIELDS)
+        selected_fields = [f for f in DEFAULT_FIELDS if f in selected_set] + [f for f in selected_set if f not in DEFAULT_FIELDS]
+
+    # Для “перечисления по умолчанию” в UI — показываем человеко-читаемые названия
+    default_fields_human = []
+    for field_key in DEFAULT_FIELDS:
+        meta = schema_by_key.get(field_key) or {}
+        default_fields_human.append(meta.get("title") or REQUIRED_FIELD_FALLBACK_TITLES.get(field_key, field_key))
+
+    return render_template(
+        'select_fields.html',
+        fields_by_category=fields_by_category,
+        required_fields=REQUIRED_FIELDS,
+        default_fields=DEFAULT_FIELDS,
+        default_fields_human=default_fields_human,
+        selected_fields=selected_fields,
+    )
 
 @app.route('/main_page_1', methods=['GET', 'POST'])
 def main_page_1():

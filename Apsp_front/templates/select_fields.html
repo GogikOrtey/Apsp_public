@@ -8,30 +8,38 @@
 <form method="POST">
     <div class="fields-scrollbox">
         <div class="fields-container">
-            {% set required_fields = ['name', 'link', 'price', 'stock', 'timestamp'] %}
-            {% for field_key, field_description in fields.items() %}
-            {% set is_required = field_key in required_fields %}
-            <div class="field-item {% if is_required %}field-item-required{% endif %}">
-                <div class="field-content">
-                    <span class="field-description">{{ field_description }}</span>
-                </div>
-                <div class="field-checkbox">
-                    {% if is_required %}
-                    <div class="lock-icon-container">
-                        <img src="{{ url_for('content', filename='lock_icon.png') }}" alt="Lock" class="lock-icon">
-                        <div class="custom-tooltip">Обязательное поле</div>
+            {% for category_name, category_fields in fields_by_category.items() %}
+                <div class="field-category">{{ category_name }}</div>
+                {% for field in category_fields %}
+                {% set field_key = field.key %}
+                {% set is_required = field_key in required_fields %}
+                <div class="field-item {% if is_required %}field-item-required{% endif %}">
+                    <div class="field-content">
+                        <span class="field-title">{{ field.title }}</span>
+                        {% if field.description %}
+                            <span class="field-description">{{ field.description|truncate(180, True, '…') }}</span>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                    <input type="checkbox" id="field_{{ field_key }}" name="selected_fields" value="{{ field_key }}" {% if
-                        is_required %}checked disabled{% elif field_key in selected_fields %}checked{% endif %}>
-                    <label for="field_{{ field_key }}"></label>
+                    <div class="field-checkbox">
+                        {% if is_required %}
+                        <div class="lock-icon-container">
+                            <img src="{{ url_for('content', filename='lock_icon.png') }}" alt="Lock" class="lock-icon">
+                            <div class="custom-tooltip">Обязательное поле</div>
+                        </div>
+                        {% endif %}
+                        <input type="checkbox" id="field_{{ field_key }}" name="selected_fields" value="{{ field_key }}" {% if
+                            is_required %}checked disabled{% elif field_key in selected_fields %}checked{% endif %}>
+                        <label for="field_{{ field_key }}"></label>
+                    </div>
                 </div>
-            </div>
+                {% endfor %}
             {% endfor %}
         </div>
     </div>
 
-    <div class="fields-below-text">Текст</div>
+    <div class="fields-below-text">
+        Поля по умолчанию: {{ default_fields_human|join(', ') }}
+    </div>
     <div class="fields-below-text">Время генерации ~_ минут</div>
 
     <div>
@@ -119,6 +127,40 @@
         cursor: pointer;
     }
 
+    .field-category {
+        max-width: 800px;
+        margin: 14px auto 6px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #4a5568;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .field-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding-right: 10px;
+        flex: 1;
+        align-items: flex-start;
+    }
+
+    .field-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #2d3748;
+        overflow-wrap: anywhere;
+    }
+
+    .field-description {
+        font-size: 13px;
+        font-weight: 500;
+        color: #718096;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
     .field-item:hover:not(.field-item-selected):not(.field-item-required) {
         border-color: #a0b4ff;
         background: #f5f7ff;
@@ -132,19 +174,6 @@
     .field-item-selected:hover:not(.field-item-required) {
         border-color: #4a5bc4;
         background: #e0e4ff;
-    }
-
-    .field-content {
-        flex: 1;
-        display: flex;
-        align-items: center;
-    }
-
-    .field-description {
-        color: #333;
-        font-size: 16px;
-        font-weight: 500;
-        overflow-wrap: anywhere;
     }
 
     .field-checkbox {
