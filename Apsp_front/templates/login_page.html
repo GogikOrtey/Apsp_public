@@ -21,9 +21,7 @@
         Аккаунт будет сохраняться в текущем браузере (на других устройствах нужно будет зайти заново).
     </p>
  
-     <div class="skip-auth-wrap">
-         <span id="skip-auth-link" class="skip-auth-link">Продолжить без авторизации</span>
-     </div>
+
 
     <button type="button" id="learn-more-btn" class="learn-more-btn">Узнать больше</button>
     <div id="learn-more-text" class="learn-more-text" hidden>
@@ -48,7 +46,9 @@
             и что в Телеграме разрешены сообщения от ботов. При необходимости попробуйте снова или зайдите с другого устройства.
         </p>
 
-        <!--  -->
+        <div class="skip-auth-wrap">
+            <span id="skip-auth-link" class="skip-auth-link">Продолжить без авторизации</span>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -207,15 +207,15 @@
     }
 
     .skip-auth-link {
-        color: rgba(120, 120, 120, 0.55);
-        font-size: 12px;
+        color: rgba(110, 110, 110, 0.130);
+        font-size: 14px;
         text-decoration: underline;
         cursor: pointer;
         user-select: none;
     }
 
     .skip-auth-link:hover {
-        color: rgba(110, 110, 110, 0.75);
+        color: rgba(110, 110, 110, 0.300);
     }
 
     .learn-more-paragraph {
