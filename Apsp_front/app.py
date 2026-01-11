@@ -27,6 +27,14 @@ import re
 
 import telegram_connect
 
+# System stats (CPU/RAM/Disk). Optional dependency.
+try:
+    import psutil  # type: ignore
+    _HAS_PSUTIL = True
+except Exception:
+    psutil = None
+    _HAS_PSUTIL = False
+
 # Корень репозитория (нужно для импорта модулей из верхнего уровня проекта).
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
@@ -973,6 +981,163 @@ def all_tasks():
                          active_tasks=active_tasks,
                          completed_tasks=completed_tasks,
                          total_tasks=total_tasks)
+
+
+@app.route('/main_stats')
+@app.route('/main_stats/')
+def main_stats():
+    """
+    Страница системной статистики + статистики по задачам.
+    """
+    if _require_login() and not _is_user_logged_in():
+        return _redirect_to_login(next_url=_request_target_path())
+    return render_template("main_stats.html")
+
+
+def _count_tasks_from_result_dir() -> dict:
+    """
+    Считаем задачи по папке RESULT_TASKS (meta.json).
+    Это нужно для "сколько всего/сколько выполнено/сколько в работе/сколько paused".
+    """
+    counts = {
+        "total": 0,
+        "work": 0,
+        "paused": 0,
+        "completed": 0,
+        "failed": 0,
+    }
+    if not RESULT_TASKS_DIR.exists() or not RESULT_TASKS_DIR.is_dir():
+        return counts
+
+    for child in RESULT_TASKS_DIR.iterdir():
+        if not child.is_dir():
+            continue
+        meta_path = child / "meta.json"
+        if not meta_path.is_file():
+            continue
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8")) or {}
+            if not isinstance(meta, dict):
+                continue
+        except Exception:
+            continue
+
+        counts["total"] += 1
+        status = str(meta.get("status") or "WORK").upper()
+
+        # PAUSED логика как в /all_tasks: WORK, но запуск был ДО старта текущего процесса Flask
+        last_started_at_ts = meta.get("last_started_at_ts", 0) or 0
+        is_paused = False
+        try:
+            is_paused = (
+                status == "WORK"
+                and float(last_started_at_ts) > 0
+                and float(last_started_at_ts) < float(APP_START_TIME)
+            )
+        except Exception:
+            is_paused = False
+
+        if status == "COMPLETED":
+            counts["completed"] += 1
+        elif status == "FAILED":
+            counts["failed"] += 1
+        else:
+            if is_paused:
+                counts["paused"] += 1
+            else:
+                counts["work"] += 1
+
+    return counts
+
+
+def _get_disk_usage_for_path(p: Path) -> dict | None:
+    """
+    Диск считаем по тому месту, где лежит RESULT_TASKS (это то, что обычно "забивается").
+    """
+    if not _HAS_PSUTIL:
+        return None
+    try:
+        du = psutil.disk_usage(str(p))
+        return {
+            "total": int(du.total),
+            "used": int(du.used),
+            "free": int(du.free),
+            "percent": float(du.percent),
+        }
+    except Exception:
+        return None
+
+
+@app.route('/api/system/stats')
+def api_system_stats():
+    """
+    JSON со статистикой:
+    - uptime (с момента запуска текущего Flask-процесса)
+    - CPU/RAM/Disk (psutil)
+    - счётчики задач (runtime + по папке RESULT_TASKS)
+    """
+    if _require_login() and not _is_user_logged_in():
+        return FlaskResponse(
+            json.dumps({"ok": False, "error": "auth_required"}, ensure_ascii=False),
+            mimetype="application/json; charset=utf-8",
+            status=401,
+        )
+
+    now_ts = time.time()
+    uptime_s = max(0.0, now_ts - float(APP_START_TIME))
+
+    tasks_dir_counts = _count_tasks_from_result_dir()
+    active_runtime = TASKS.get_active_count()
+
+    cpu = None
+    mem = None
+    disk = None
+
+    if _HAS_PSUTIL:
+        try:
+            cpu = {"percent": float(psutil.cpu_percent(interval=None))}
+        except Exception:
+            cpu = None
+        try:
+            vm = psutil.virtual_memory()
+            mem = {
+                "total": int(vm.total),
+                "available": int(vm.available),
+                "used": int(vm.used),
+                "percent": float(vm.percent),
+            }
+        except Exception:
+            mem = None
+
+        try:
+            disk = _get_disk_usage_for_path(RESULT_TASKS_DIR)
+        except Exception:
+            disk = None
+
+    payload = {
+        "ok": True,
+        "now_ts": now_ts,
+        "uptime_seconds": uptime_s,
+        "uptime_minutes": uptime_s / 60.0,
+        "uptime_hours": uptime_s / 3600.0,
+        "cpu": cpu,
+        "memory": mem,
+        "disk": disk,
+        "tasks": {
+            "active_runtime": int(active_runtime),
+            "max_workers": int(TASKS.max_workers),
+            **tasks_dir_counts,
+        },
+        "psutil_available": bool(_HAS_PSUTIL),
+    }
+
+    resp = FlaskResponse(
+        json.dumps(payload, ensure_ascii=False),
+        mimetype="application/json; charset=utf-8",
+    )
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 
 def _load_all_tasks_data():

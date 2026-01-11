@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+{% block title %}Статистика{% endblock %}
+{% block content %}
+
+<div class="container" style="max-width: 1100px;">
+    <h1 style="margin-bottom: 14px;">Статистика сервера</h1>
+    <div style="color:#555; text-align:center; margin-bottom: 18px;">
+        Обновление каждые 2 секунды
+    </div>
+
+    <div id="err" style="color:#b00; margin: 8px 0; text-align:center;"></div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+            <h3 style="margin-bottom:8px;">Uptime</h3>
+            <div id="uptime">—</div>
+        </div>
+
+        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+            <h3 style="margin-bottom:8px;">Задачи</h3>
+            <div id="tasks">—</div>
+        </div>
+
+        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+            <h3 style="margin-bottom:8px;">CPU</h3>
+            <div id="cpu">—</div>
+        </div>
+
+        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff;">
+            <h3 style="margin-bottom:8px;">RAM</h3>
+            <div id="mem">—</div>
+        </div>
+
+        <div style="padding:12px; border:1px solid #ddd; border-radius:8px; background:#fff; grid-column: 1 / -1;">
+            <h3 style="margin-bottom:8px;">Disk (там, где RESULT_TASKS)</h3>
+            <div id="disk">—</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function fmtBytes(n) {
+        if (n == null) return '—';
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        let x = Number(n);
+        let i = 0;
+        while (x >= 1024 && i < units.length - 1) { x /= 1024; i++; }
+        return x.toFixed(2) + ' ' + units[i];
+    }
+
+    function fmtUptime(sec) {
+        sec = Math.max(0, Math.floor(sec || 0));
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        return `${h} ч ${m} мин ${s} сек`;
+    }
+
+    async function tick() {
+        const errEl = document.getElementById('err');
+        errEl.textContent = '';
+
+        let r, data;
+        try {
+            r = await fetch('/api/system/stats', { cache: 'no-store' });
+            data = await r.json();
+        } catch (e) {
+            errEl.textContent = 'Не удалось получить /api/system/stats';
+            return;
+        }
+
+        if (!data || !data.ok) {
+            errEl.textContent = 'Ошибка: ' + ((data && data.error) ? data.error : 'unknown');
+            return;
+        }
+
+        document.getElementById('uptime').textContent = fmtUptime(data.uptime_seconds);
+
+        const t = data.tasks || {};
+        document.getElementById('tasks').innerHTML =
+            `active_runtime: <b>${t.active_runtime ?? '—'}</b> / max_workers: <b>${t.max_workers ?? '—'}</b><br>` +
+            `work: <b>${t.work ?? '—'}</b>, paused: <b>${t.paused ?? '—'}</b><br>` +
+            `completed: <b>${t.completed ?? '—'}</b>, failed: <b>${t.failed ?? '—'}</b><br>` +
+            `total: <b>${t.total ?? '—'}</b>`;
+
+        const cpu = data.cpu;
+        document.getElementById('cpu').textContent =
+            cpu ? (Number(cpu.percent).toFixed(1) + '%') : (data.psutil_available ? '—' : 'psutil не установлен');
+
+        const mem = data.memory;
+        document.getElementById('mem').innerHTML =
+            mem ? `${Number(mem.percent).toFixed(1)}% (used ${fmtBytes(mem.used)} / total ${fmtBytes(mem.total)})`
+                : (data.psutil_available ? '—' : 'psutil не установлен');
+
+        const disk = data.disk;
+        document.getElementById('disk').innerHTML =
+            disk ? `${Number(disk.percent).toFixed(1)}% (used ${fmtBytes(disk.used)} / total ${fmtBytes(disk.total)})`
+                : (data.psutil_available ? '—' : 'psutil не установлен');
+    }
+
+    tick();
+    setInterval(tick, 2000);
+</script>
+
+<a href="{{ url_for('main_page_1') }}" class="back-button">Назад</a>
+{% endblock %}
+
+

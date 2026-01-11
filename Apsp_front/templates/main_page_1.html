@@ -240,6 +240,13 @@
         flex-direction: column;
         gap: 8px;
         width: fit-content;
+        cursor: pointer;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .status-block:hover {
+        border-color: #667eea;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.10);
     }
 
     .status-block__server {
@@ -548,7 +555,7 @@
     <button class="account-dropdown__logout" id="logout_button">Выйти из аккаунта</button>
 </div>
 
-<div class="status-block">
+<div class="status-block" id="main_stats_block" title="Открыть статистику сервера (CPU/RAM/Disk, uptime, задачи)" role="button" aria-label="Открыть статистику сервера">
     <div class="status-block__server" id="server_status_indicator" title="Статус сервера">
         <span id="server_status_value">Status: ...</span>
     </div>
@@ -767,6 +774,7 @@
         const statusValue = document.getElementById('server_status_value');
         const statusBlock = document.querySelector('.status-block');
         const statusButton = document.querySelector('.status-block__button');
+        const mainStatsUrl = "{{ url_for('main_stats') }}";
         
         let currentActive = 0;
         let currentMax = 10;
@@ -825,6 +833,13 @@
                 const blockWidth = statusBlock.offsetWidth;
                 statusButton.style.width = blockWidth + 'px';
             }
+        }
+
+        // Переход на страницу статистики по клику на status-block
+        if (statusBlock) {
+            statusBlock.addEventListener('click', function () {
+                window.location.href = mainStatsUrl;
+            });
         }
 
         // // Вызываем синхронизацию два раза с разными задержками для надёжности

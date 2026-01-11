@@ -291,6 +291,7 @@
   - Если введён URL: нормализует URL и ищет в `RESULT_TASKS` задачи со статусом `COMPLETED` для того же URL. Если найден — редиректит на `GET /parser_exists`, иначе создаёт задачу (UID) и редиректит на `GET /main_page_2/<uid>/`.
   - При `GET` рендерит `templates/main_page_1.html`. 
   - Кнопка отправки динамически меняется: при вводе UID текст становится "Проверить задачу по UID" и цвет меняется на синий, при обычном URL — "Generate" зелёного цвета.
+- **`GET /main_stats`**: страница статистики сервера (CPU/RAM/Disk, uptime) и статистики по задачам (сколько в работе/paused/завершено/ошибка). На `main_page_1` по клику на левый верхний `status-block` делается переход на эту страницу.
 - **`GET /all_tasks`**: страница обзора всех задач из `RESULT_TASKS`. Читает `meta.json` и `new_page_2_state.json` для каждой задачи, формирует таблицу с данными (UID, домен, время, текущий шаг, статус). Показывает первые 70 задач, разделённых на активные (`WORK`) и завершённые (`COMPLETED/FAILED`). Рендерит `templates/all_tasks.html`.
 - **`GET /parser_exists`**: промежуточная страница (параметры `?url=...&existing_uid=...`); показывает что для данного URL уже есть готовый парсер. Две кнопки: открыть существующий результат (`main_page_3/<existing_uid>`) или запустить генерацию заново (`POST /parser_exists/new_generation`). Рендерит `templates/parser_exists.html`.
 - **`POST /parser_exists/new_generation`**: принимает `site_url` из формы и запускает новую генерацию (без проверки на существующие результаты), редиректит на `GET /main_page_2/<uid>/`.
@@ -312,6 +313,10 @@
 #### API (общие / статистика)
 
 - **`GET /api/tasks/active_count`**: JSON `{"ok":true,"active":N,"max":M}` — количество текущих задач в статусе `running` и максимальный лимит.
+- **`GET /api/system/stats`**: JSON со статистикой сервера и задач:
+  - uptime текущего Flask-процесса (`uptime_seconds/minutes/hours`)
+  - CPU/RAM/Disk (через `psutil`, если установлен; иначе `psutil_available=false`)
+  - задачи: `active_runtime`, `max_workers`, `total/work/paused/completed/failed` (по папке `RESULT_TASKS/<uid>/meta.json`)
 - **`POST /api/account/logout`**: удаляет куку `user_account` через `clear_user_account_cookie()` и возвращает `{"ok": true}`.
 
 #### API (по UID задачи)
