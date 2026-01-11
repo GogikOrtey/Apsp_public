@@ -40,7 +40,7 @@
     <textarea
         name="problem_text"
         class="asp-textarea"
-        placeholder="Например: генерация упала на шаге 3/10, сайт https://example.com, ошибка такая-то..."
+        placeholder=""
     >{{ problem_text or "" }}</textarea>
 
     <div class="asp-tooltip-wrapper">
@@ -250,5 +250,79 @@
             }
         });
     });
+    
+    // ====== Анимация placeholder для textarea ======
+    (function() {
+        const textarea = document.querySelector('.asp-textarea');
+        if (!textarea) return;
+        
+        const placeholders = [
+            'Генерация упала на шаге 3/10, сайт https://example.com, ошибка: "Element not found"...',
+            'Парсер не собирает цены с сайта https://myshop.ru, нужно исправить...',
+            'Нужно добавить поле "артикул" в парсер для сайта https://catalog.com...',
+            'Парсер работает без ошибок, но данных нет. Сайт: https://store.ru...',
+            'Добавить поддержку регионов для сайта https://regional-shop.com...'
+        ];
+        
+        let currentPlaceholderIndex = 0;
+        let isTyping = false;
+        let isDeleting = false;
+        let charIndex = 0;
+        let animationTimeout = null;
+        
+        const TYPING_SPEED = 40;       // миллисекунды на символ при вводе
+        const DELETING_SPEED = 20;     // миллисекунды на символ при удалении
+        const PAUSE_AFTER_TYPING = 3000; // пауза после полного ввода подсказки (мс)
+        
+        function animatePlaceholder() {
+            // Не анимируем, если пользователь что-то ввёл
+            if (textarea.value.trim() !== '') {
+                return;
+            }
+            
+            const currentText = placeholders[currentPlaceholderIndex];
+            
+            if (!isDeleting && charIndex < currentText.length) {
+                // Печатаем символ
+                textarea.placeholder = currentText.substring(0, charIndex + 1);
+                charIndex++;
+                animationTimeout = setTimeout(animatePlaceholder, TYPING_SPEED);
+            } else if (!isDeleting && charIndex === currentText.length) {
+                // Закончили печатать, ждём паузу, потом начинаем удалять
+                isDeleting = true;
+                animationTimeout = setTimeout(animatePlaceholder, PAUSE_AFTER_TYPING);
+            } else if (isDeleting && charIndex > 0) {
+                // Удаляем символ
+                charIndex--;
+                textarea.placeholder = currentText.substring(0, charIndex);
+                animationTimeout = setTimeout(animatePlaceholder, DELETING_SPEED);
+            } else if (isDeleting && charIndex === 0) {
+                // Закончили удалять, переходим к следующей подсказке
+                isDeleting = false;
+                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholders.length;
+                animationTimeout = setTimeout(animatePlaceholder, 200); // небольшая пауза перед новой подсказкой
+            }
+        }
+        
+        // Останавливаем анимацию, когда пользователь начинает вводить
+        textarea.addEventListener('focus', function() {
+            if (animationTimeout) {
+                clearTimeout(animationTimeout);
+            }
+        });
+        
+        // Возобновляем анимацию, когда поле пустое и потеряло фокус
+        textarea.addEventListener('blur', function() {
+            if (textarea.value.trim() === '') {
+                // Сбрасываем состояние и начинаем заново
+                isDeleting = false;
+                charIndex = 0;
+                animationTimeout = setTimeout(animatePlaceholder, 1000);
+            }
+        });
+        
+        // Запускаем анимацию через секунду после загрузки страницы
+        setTimeout(animatePlaceholder, 1000);
+    })();
 </script>
 {% endblock %}
