@@ -99,8 +99,8 @@ def _parse_hgf_json_with_step_prefix(raw: Any) -> dict:
     """
     step_name = "HGF (Шаг 1)"
     prefix_base = (
-        "Ошибка на шаге 1/10 HGF: По главной ссылке сайта открывается страница с куратором/защитой, "
-        "либо сайт не является интернет-магазином. Продробнее: "
+        "Ошибка на шаге 1 (HGF): По главной ссылке сайта открывается страница с куратором/защитой, "
+        f"либо сайт не является интернет-магазином. \n\nПродробнее: "
     )
 
     raw_text = raw if isinstance(raw, str) else str(raw)
@@ -121,7 +121,7 @@ def _parse_hgf_json_with_step_prefix(raw: Any) -> dict:
     if "status" in data and data.get("status") != "ok":
         # Берём analysis_message из ответа (если он есть) и выводим в префиксный блок перед traceback.
         analysis_message = str(data.get("analysis_message") or "").strip()
-        prefix_block = prefix_base + (analysis_message if analysis_message else "")
+        prefix_block = prefix_base + f"\n\n" + (analysis_message if analysis_message else "") + f"\n\n————————————————————————"
 
         ve = ValueError(
             f"{step_name}: status != 'ok'.\nJSON:\n{json.dumps(data, ensure_ascii=False, indent=2, default=str)}"
