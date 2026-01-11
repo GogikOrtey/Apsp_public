@@ -63,12 +63,8 @@ except ImportError:
 
 
 # Опциональные дефолты для переменных (если не заданы в .env или системно)
-os.environ.setdefault("APSP_TELEGRAM_BOT_USERNAME", "auto_gen_parsers_info_bot")
+# os.environ.setdefault("APSP_TELEGRAM_BOT_USERNAME", "auto_gen_parsers_info_bot")
 os.environ.setdefault("APSP_BASE_URL", "http://127.0.0.1:5000")
-
-# Прочие настройки (раскомментируйте при необходимости)
-# os.environ.setdefault("APSP_TASK_TIMEOUT_SECONDS", "5")
-# os.environ.setdefault("APSP_MAX_WORKERS", "1")
 
 def _env_bool(name: str, default: bool) -> bool:
     v = os.environ.get(name)

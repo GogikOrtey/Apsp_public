@@ -623,6 +623,13 @@ def start_page_1():
     """Стартовая страница: выбор раздела."""
     return render_template('start_page_1.html')
 
+
+@app.route('/before_starting_autogen_info', methods=['GET'])
+@app.route('/before_starting_autogen_info/', methods=['GET'])
+def before_starting_autogen_info():
+    """Инфо-страница перед входом в автогенератор."""
+    return render_template('before_starting_autogen_info.html')
+
 @app.route('/login_page', methods=['GET'])
 def login_page():
     """Страница входа в аккаунт"""
