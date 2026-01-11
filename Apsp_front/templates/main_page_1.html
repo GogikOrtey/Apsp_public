@@ -55,7 +55,8 @@
         align-items: center;
         justify-content: center;
         background: #ffffff;
-        border: 2px solid #667eea;
+        /* border: 2px solid #667eea; */
+        border: 2px solid #667eeac4;
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s ease;
@@ -75,7 +76,7 @@
         font-style: normal;
         font-weight: 700;
         font-size: 20px;
-        color: #555;
+        color: #888;
         line-height: 1;
         transition: color 0.2s ease;
     }
@@ -431,11 +432,16 @@
 
     /* Контейнер для дополнительных кнопок */
     .additional-buttons {
-        display: flex;
+        display: none; /* Скрыто по умолчанию */
         gap: 8px;
         margin-top: 12px;
         /* margin-bottom: 8px; */
         margin-bottom: 0px;
+    }
+
+    /* Видимое состояние дополнительных кнопок */
+    .additional-buttons.visible {
+        display: flex;
     }
 
     /* Стили для маленьких кнопок */
@@ -933,17 +939,18 @@
         setTimeout(animatePlaceholder, 1000);
     })();
 
-    // // Обработчик кнопки информации
-    // (function() {
-    //     const infoBtn = document.getElementById('info_button');
-    //     if (!infoBtn) return;
+    // Обработчик кнопки информации - показать/скрыть дополнительные кнопки
+    (function() {
+        const infoBtn = document.getElementById('info_button');
+        const additionalButtons = document.querySelector('.additional-buttons');
+        if (!infoBtn || !additionalButtons) return;
         
-    //     infoBtn.addEventListener('click', function(e) {
-    //         e.preventDefault();
-    //         // Открываем страницу с информацией о возможностях автогенератора
-    //         window.location.href = "{{ url_for('before_starting_autogen_info') }}";
-    //     });
-    // })();
+        infoBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Переключаем класс visible для показа/скрытия дополнительных кнопок
+            additionalButtons.classList.toggle('visible');
+        });
+    })();
 </script>
 
 <a href="{{ url_for('before_starting_autogen_info') }}" class="back-button">Назад</a>
