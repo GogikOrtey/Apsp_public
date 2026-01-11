@@ -76,10 +76,13 @@
 
         const t = data.tasks || {};
         document.getElementById('tasks').innerHTML =
-            `active_runtime: <b>${t.active_runtime ?? '—'}</b> / max_workers: <b>${t.max_workers ?? '—'}</b><br>` +
-            `work: <b>${t.work ?? '—'}</b>, paused: <b>${t.paused ?? '—'}</b><br>` +
-            `completed: <b>${t.completed ?? '—'}</b>, failed: <b>${t.failed ?? '—'}</b><br>` +
-            `total: <b>${t.total ?? '—'}</b>`;
+            `Активно задач: <b>${t.active_runtime ?? '—'}</b><br>` +
+            `Max workers:   <b>${t.max_workers ?? '—'}</b><br><br>` +
+            `В работе: <b>${t.work ?? '—'}</b><br>` +
+            `На паузе: <b>${t.paused ?? '—'}</b><br>` +
+            `Завершены: <b>${t.completed ?? '—'}</b><br>` + 
+            `Failed: <b>${t.failed ?? '—'}</b><br>` + 
+            `Всего: <b>${t.total ?? '—'}</b>`;
 
         const cpu = data.cpu;
         document.getElementById('cpu').textContent =
@@ -128,6 +131,10 @@
 
     .back-button:active {
         transform: scale(0.95);
+    }
+
+    h3 {
+        color: #222;
     }
 </style>
 {% endblock %}
