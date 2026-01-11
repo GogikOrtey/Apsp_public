@@ -7,14 +7,14 @@
 
 <h2 class="asp-h2">Типовые проблемы</h2>
 <div class="asp-btns">
-    <a class="asp-btn asp-btn--blue" href="#">Задача зависла / долго выполняется</a>
-    <a class="asp-btn asp-btn--blue" href="#">Генерация завершилась ошибкой</a>
-    <a class="asp-btn asp-btn--blue" href="#">Не открывается страница результата (page 3)</a>
-    <a class="asp-btn asp-btn--blue" href="#">Не скачивается .zip / .ts</a>
-    <a class="asp-btn asp-btn--blue" href="#">Другое (типовая проблема)</a>
+    <a class="asp-btn asp-btn--blue" href="#">Проблема с полем (не собирается / собирается неправильно / собирает не те значения)</a>
+    <a class="asp-btn asp-btn--blue" href="#">Добавить новое поле</a>
+    <a class="asp-btn asp-btn--blue" href="#">100% ошибок</a>
+    <a class="asp-btn asp-btn--blue" href="#">Отрабатывает без ошибок, но данных нет</a>
+    <a class="asp-btn asp-btn--blue" href="#">Добавить регионы в парсер</a>
 </div>
 
-<h2 class="asp-h2 asp-h2--spaced">Или опишите возникшую проблему</h2>
+<h2 class="asp-h2 asp-h2--spaced">Или просто опишите возникшую проблему</h2>
 <p class="asp-hint">
     Опишите проблему и не забудьте прикрепить ссылку на сайт. ASP автоматически решит её
 </p>
@@ -42,11 +42,13 @@
 
     /* Базируемся на ширине main_page_3 */
     .container {
-        max-width: 900px !important;
+        /* max-width: 900px !important; */
+        max-width: 600px !important;
     }
 
     h1 {
         margin-bottom: 18px;
+        font-size: 27px;
     }
 
     .asp-h2 {
@@ -71,13 +73,16 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        width: 500px;
+        margin: auto;
     }
 
     /* Кнопки стилем как start_page_1.html (но локально для этой страницы) */
     .asp-btn {
         width: 100%;
         text-align: center;
-        padding: 16px 18px;
+        /* padding: 16px 18px; */
+        padding: 14px 18px;
         border-radius: 10px;
         font-size: 16px;
         font-weight: 600;
