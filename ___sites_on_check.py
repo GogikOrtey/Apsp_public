@@ -10,12 +10,11 @@
 https://makitaclub.ru - Ок
 https://domo-terra.ru/ - Ок
 https://domplitok.ru - сайт жутко лагает, но работает. Потом проверить на автомате
-https://makitatrading.ru
+https://makitatrading.ru - Ок
 https://galleryceramics.ru
 https://kotel-nasos.ru
 https://makita.one - Есть всплывающее окно (но оно проходится). Сам сайт не работает - поиск выдаёт ошибку Bitrix\Main\DB\Mysql
-https://makita-land.ru
-https://makitatrading.ru
+https://makita-land.ru - Ок
 https://systemarf.ru
 https://makita-snab.ru
 

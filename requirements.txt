@@ -1,0 +1,41 @@
+# APSP_public — unified Python dependencies (single source of truth)
+#
+# Install:
+#   pip install -r requirements.txt
+#
+# Note for Docker/Linux build (Playwright):
+#   python -m playwright install --with-deps chromium
+#
+
+# Web UI (Flask)
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# HTTP clients
+requests==2.31.0
+httpx>=0.25.0,<1
+
+# Env loading (.env in repo root)
+python-dotenv==1.2.1
+
+# Browser automation
+playwright>=1.41.0,<2
+
+# LLM client
+openai>=1.0.0,<2
+
+# System stats (/main_stats)
+psutil==5.9.8
+
+# Screenshot / images
+Pillow==10.2.0
+
+# HTML parsing / selectors
+beautifulsoup4==4.12.3
+lxml==4.9.3
+parsel==1.10.0
+
+# JS formatting
+jsbeautifier>=1.15.0,<2
+
+

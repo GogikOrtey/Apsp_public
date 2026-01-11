@@ -1,5 +1,0 @@
-Flask==3.0.0
-Werkzeug==3.0.1
-numpy<2.0.0,>=1.23.5
-Pillow==10.2.0
-psutil==5.9.8
