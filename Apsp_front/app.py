@@ -1348,7 +1348,7 @@ def api_task_status(uid):
     info = _get_task_info(uid)
     if info is None:
         return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
-    return FlaskResponse(
+    resp = FlaskResponse(
         json.dumps(
             {
                 "uid": info.uid,
@@ -1360,6 +1360,10 @@ def api_task_status(uid):
         ),
         mimetype='application/json; charset=utf-8',
     )
+    # Отключаем кэширование, чтобы polling всегда получал актуальный статус
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 
 @app.route('/api/tasks/active_count')
@@ -1495,13 +1499,17 @@ def api_telegram_webhook(secret: str):
 
 @app.route('/api/task/<uid>/stop', methods=['POST'])
 def api_task_stop(uid):
+    print(f"[api_task_stop] Stop requested for uid={uid}")
     info = _get_task_info(uid)
     if info is None:
+        print(f"[api_task_stop] Task not found for uid={uid}")
         return FlaskResponse('{"ok":false,"error":"not_found"}', mimetype='application/json; charset=utf-8', status=404)
 
     try:
         request_stop(uid, reason=USER_STOP_MESSAGE)
-    except Exception:
+        print(f"[api_task_stop] Stop flag set for uid={uid}")
+    except Exception as e:
+        print(f"[api_task_stop] Failed to set stop flag for uid={uid}: {e}")
         return FlaskResponse('{"ok":false,"error":"stop_failed"}', mimetype='application/json; charset=utf-8', status=500)
 
     # best-effort лог в output.log, чтобы видно было в UI.

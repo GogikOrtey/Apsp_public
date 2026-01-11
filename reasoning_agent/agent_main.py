@@ -31,6 +31,9 @@ from reasoning_agent.runtime_state import (
     set_long_term_memory as _set_runtime_long_term_memory,
 )
 
+# Stop-флаг: чтобы агент быстрее реагировал на остановку пользователем
+from task_runtime.stop_store import raise_if_stop_requested
+
 
 
 
@@ -1114,6 +1117,12 @@ def orchestrate(
             pass
 
         for step in range(1, max_steps + 1):
+            # Проверяем stop-флаг в начале каждого шага
+            try:
+                raise_if_stop_requested(uid)
+            except Exception:
+                raise
+
             step_banner = f"\n———————————   Шаг {step}   ———————————\n"
             print(step_banner)
             chat_print(step_banner)
@@ -1277,6 +1286,12 @@ def orchestrate(
 
             # 6.3 Вызов инструмента
             tool_result = run_tool(tool_name, tool_args)
+
+            # Проверяем stop-флаг после выполнения инструмента
+            try:
+                raise_if_stop_requested(uid)
+            except Exception:
+                raise
 
             # Если инструмент вернул ошибку — best-effort отправляем алерт в Telegram info_chat
             # с UID задачи + кратким summary модели (1116-1123) + результатом инструмента.

@@ -411,13 +411,16 @@ class TaskRegistry:
 
             if isinstance(exc, UserStopException) or (stop_reason and stop_reason in err_str) or (err_str == USER_STOP_MESSAGE):
                 final_reason = stop_reason or (err_str or USER_STOP_MESSAGE)
+                print(f"[TaskRegistry] User stop detected for uid={uid}, setting status='error'")
                 with self._lock:
                     info2 = self._tasks.get(uid)
                     if info2 is None:
+                        print(f"[TaskRegistry] WARNING: info2 is None for uid={uid}, cannot set status")
                         return
                     info2.status = "error"
                     info2.finished_at = self._now()
                     info2.error = final_reason
+                    print(f"[TaskRegistry] Status set to 'error' for uid={uid}")
 
                 self._write_status_file(info2, "failed")
 

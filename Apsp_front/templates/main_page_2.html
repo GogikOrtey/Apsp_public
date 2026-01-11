@@ -808,14 +808,19 @@
         if (!TASK_UID) return;
         try {
             const resp = await fetch(`/api/task/${TASK_UID}/status`, { cache: 'no-store' });
-            if (!resp.ok) return;
+            if (!resp.ok) {
+                console.log('[pollTaskStatus] resp not ok:', resp.status);
+                return;
+            }
             const status = await resp.json();
+            console.log('[pollTaskStatus] status:', status);
             if (status && (status.status === 'done' || status.status === 'error')) {
+                console.log('[pollTaskStatus] redirecting to main_page_3...');
                 redirectTriggered = true;
                 window.location.href = `/main_page_3/${TASK_UID}/`;
             }
         } catch (e) {
-            // тихо игнорируем
+            console.log('[pollTaskStatus] error:', e);
         }
     }
 

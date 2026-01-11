@@ -66,8 +66,16 @@ def get_stop_reason_current_task() -> str | None:
 
 
 def raise_if_stop_requested(uid: str | None) -> None:
-    reason = get_stop_reason(uid) if uid else get_stop_reason_current_task()
+    effective_uid = uid
+    if not effective_uid:
+        # Получаем uid из контекста текущей задачи
+        try:
+            effective_uid = get_current_task_uid()
+        except Exception:
+            effective_uid = None
+    reason = get_stop_reason(effective_uid) if effective_uid else None
     if reason:
+        print(f"[raise_if_stop_requested] Stop detected for uid={effective_uid}, reason={reason}")
         raise UserStopException(reason)
 
 
