@@ -344,8 +344,28 @@
 
     /* Адаптив: на узких экранах — одна колонка */
     @media (max-width: 1100px) {
-        .container { max-width: 900px !important; }
+        /* На узком экране колонки становятся в столбик и контент может быть выше viewport.
+           Поэтому отключаем фиксированную высоту/обрезание и даём странице нормально скроллиться. */
+        body {
+            display: block;            /* вместо flex-центровки */
+            align-items: initial;
+            justify-content: initial;
+            min-height: 100vh;         /* фон/общая высота как минимум на весь экран */
+            padding: 60px 15px 67px 15px;       /* запас снизу под фиксированные контролы */
+        }
+
+        .container {
+            max-width: 900px !important;
+            height: auto;              /* вместо 90vh */
+            overflow: visible;         /* вместо hidden */
+            margin: 0 auto !important; /* центрируем по горизонтали */
+        }
+
         .main-grid { grid-template-columns: 1fr; }
+
+        .col {
+            width: 100%;               /* вместо фиксированных 550px */
+        }
     }
 </style>
 {% endblock %}
