@@ -62,6 +62,11 @@
         transition: all 0.2s ease;
     }
 
+    /* Активное состояние кнопки информации (когда дополнительные элементы видимы) */
+    .btn-info.info-btn.active {
+        border: 2px solid #667eea;
+    }
+
     .btn-info.info-btn:hover {
         background: #667eea;
         transform: translateY(-1px);
@@ -996,6 +1001,8 @@
             e.preventDefault();
             // Переключаем класс visible для показа/скрытия дополнительных кнопок
             additionalButtons.classList.toggle('visible');
+            // Переключаем класс active на кнопке информации для изменения границы
+            infoBtn.classList.toggle('active');
         });
     })();
 
