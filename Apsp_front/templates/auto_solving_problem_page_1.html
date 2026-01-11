@@ -3,15 +3,32 @@
 {% block title %}ASP: Центр автоматизации решения проблем и починки парсеров{% endblock %}
 
 {% block content %}
+{% set tooltip_text = "Данный функционал находится в разработке, и скоро будет доступен. Следите за обновлениями! ✨" %}
+
 <h1>ASP: Центр автоматизации решения проблем и починки парсеров</h1>
 
 <h2 class="asp-h2">Типовые проблемы</h2>
 <div class="asp-btns">
-    <a class="asp-btn asp-btn--blue" href="#">Проблема с полем (не собирается / собирается неправильно / собирает не те значения)</a>
-    <a class="asp-btn asp-btn--blue" href="#">Добавить новое поле</a>
-    <a class="asp-btn asp-btn--blue" href="#">100% ошибок</a>
-    <a class="asp-btn asp-btn--blue" href="#">Отрабатывает без ошибок, но данных нет</a>
-    <a class="asp-btn asp-btn--blue" href="#">Добавить регионы в парсер</a>
+    <div class="asp-tooltip-wrapper">
+        <a class="asp-btn asp-btn--blue" href="#" onclick="return false;">Проблема с полем (не собирается / собирается неправильно / собирает не те значения)</a>
+        <span class="asp-tooltip-text">{{ tooltip_text }}</span>
+    </div>
+    <div class="asp-tooltip-wrapper">
+        <a class="asp-btn asp-btn--blue" href="#" onclick="return false;">Добавить новое поле</a>
+        <span class="asp-tooltip-text">{{ tooltip_text }}</span>
+    </div>
+    <div class="asp-tooltip-wrapper">
+        <a class="asp-btn asp-btn--blue" href="#" onclick="return false;">100% ошибок</a>
+        <span class="asp-tooltip-text">{{ tooltip_text }}</span>
+    </div>
+    <div class="asp-tooltip-wrapper">
+        <a class="asp-btn asp-btn--blue" href="#" onclick="return false;">Отрабатывает без ошибок, но данных нет</a>
+        <span class="asp-tooltip-text">{{ tooltip_text }}</span>
+    </div>
+    <div class="asp-tooltip-wrapper">
+        <a class="asp-btn asp-btn--blue" href="#" onclick="return false;">Добавить регионы в парсер</a>
+        <span class="asp-tooltip-text">{{ tooltip_text }}</span>
+    </div>
 </div>
 
 <h2 class="asp-h2 asp-h2--spaced">Или просто опишите возникшую проблему</h2>
@@ -26,7 +43,10 @@
         placeholder="Например: генерация упала на шаге 3/10, сайт https://example.com, ошибка такая-то..."
     >{{ problem_text or "" }}</textarea>
 
-    <button type="button" class="asp-btn asp-btn--green">Решить проблему</button>
+    <div class="asp-tooltip-wrapper">
+        <button type="button" class="asp-btn asp-btn--green">Решить проблему</button>
+        <span class="asp-tooltip-text">{{ tooltip_text }}</span>
+    </div>
 </form>
 
 <a href="{{ url_for('start_page_1') }}" class="back-button">Назад</a>
@@ -151,7 +171,84 @@
     .back-button:active {
         transform: scale(0.95);
     }
+
+    /* Подсказки (tooltip) при клике */
+    .asp-tooltip-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .asp-tooltip-text {
+        visibility: hidden;
+        width: 340px;
+        background-color: #555;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 10px;
+        position: absolute;
+        z-index: 10000;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -160px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 13px;
+        line-height: 1.4;
+        font-weight: normal;
+        pointer-events: none;
+    }
+
+    .asp-tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #555 transparent transparent transparent;
+    }
+
+    .asp-tooltip-wrapper.show-tooltip .asp-tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
 </style>
 {% endblock %}
 
-
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Обработка кликов на кнопки с подсказками
+        const tooltipWrappers = document.querySelectorAll('.asp-tooltip-wrapper');
+        
+        tooltipWrappers.forEach(function(wrapper) {
+            const button = wrapper.querySelector('.asp-btn');
+            
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Закрываем все другие подсказки
+                tooltipWrappers.forEach(function(w) {
+                    if (w !== wrapper) {
+                        w.classList.remove('show-tooltip');
+                    }
+                });
+                
+                // Переключаем текущую подсказку
+                wrapper.classList.toggle('show-tooltip');
+            });
+        });
+        
+        // Закрытие подсказки при клике вне элемента
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.asp-tooltip-wrapper')) {
+                tooltipWrappers.forEach(function(wrapper) {
+                    wrapper.classList.remove('show-tooltip');
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}
