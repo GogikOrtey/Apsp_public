@@ -315,7 +315,7 @@
                 const res = await fetch('/api/telegram/auth/start', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
+                    body: JSON.stringify({ next: getSafeNextUrl() })
                 });
                 const data = await res.json().catch(() => ({}));
                 if (!res.ok || !data || !data.ok) {
@@ -366,7 +366,23 @@
 
         async function maybeResumeAuth() {
             let token = null;
-            try { token = localStorage.getItem('apsp_tg_auth_token'); } catch (e) {}
+            // 1) если токен пришёл в URL (например, пользователь вернулся по ссылке из Telegram) — используем его
+            try {
+                const params = new URLSearchParams(window.location.search || '');
+                const t = (params.get('token') || '').trim();
+                if (t) {
+                    token = t;
+                    try {
+                        localStorage.setItem('apsp_tg_auth_token', token);
+                        localStorage.setItem('apsp_tg_auth_started_ts', String(Date.now()));
+                    } catch (e) {}
+                }
+            } catch (e) {}
+
+            // 2) иначе пробуем продолжить из localStorage (обычный флоу)
+            if (!token) {
+                try { token = localStorage.getItem('apsp_tg_auth_token'); } catch (e) {}
+            }
             if (!token) return;
 
             bindBtn.disabled = true;

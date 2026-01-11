@@ -465,11 +465,32 @@ def _safe_token(token: str) -> str | None:
     return t.lower()
 
 
+def _safe_next_url(next_url: str | None, *, default: str = "/main_page_1") -> str:
+    """
+    Защита от open-redirect: разрешаем только относительные пути вида "/...".
+    """
+    v = (next_url or "").strip()
+    if not v:
+        return default
+    if not v.startswith("/"):
+        return default
+    # запрещаем protocol-relative //evil.com
+    if v.startswith("//"):
+        return default
+    return v
+
+
 def _token_path(auth_dir: Path, token: str) -> Path:
     return auth_dir / f"{token}.json"
 
 
-def create_pending_auth(auth_dir: Path, token: str, *, ttl_seconds: int = DEFAULT_TOKEN_TTL_SECONDS) -> None:
+def create_pending_auth(
+    auth_dir: Path,
+    token: str,
+    *,
+    ttl_seconds: int = DEFAULT_TOKEN_TTL_SECONDS,
+    next_url: str | None = None,
+) -> None:
     auth_dir.mkdir(parents=True, exist_ok=True)
     now = time.time()
     payload = {
@@ -479,6 +500,8 @@ def create_pending_auth(auth_dir: Path, token: str, *, ttl_seconds: int = DEFAUL
         "expires_at_ts": now + float(ttl_seconds),
         "authorized_at_ts": None,
         "tg_user": None,
+        # куда вернуться в браузере после подтверждения в Telegram
+        "next_url": _safe_next_url(next_url),
     }
     _token_path(auth_dir, token).write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -822,7 +845,14 @@ def handle_telegram_update(
         text_ok = "✅ Авторизация успешна"
         # лёгкий UX: подсказываем вернуться на сайт
         if base_url:
-            text_ok += f"\n\n👉 Вернитесь в браузер - нажмите на эту ссылку: \n{base_url}/login_page"
+            try:
+                rec = _read_auth_record(auth_dir, t) or {}
+                next_url = _safe_next_url(rec.get("next_url"))
+                qs = urlencode({"next": next_url, "token": t})
+                login_url = f"{base_url.rstrip('/')}/login_page?{qs}"
+                text_ok += f"\n\n👉 Вернитесь в браузер — нажмите на эту ссылку:\n{login_url}"
+            except Exception:
+                text_ok += f"\n\n👉 Вернитесь в браузер — нажмите на эту ссылку:\n{base_url.rstrip('/')}/login_page"
         send_bot_message(bot_token=bot_token, chat_id=chat_id, text=text_ok)
         return {"ok": True, "handled": True, "status": "authorized", "token": t, "tg_id": tg_id}
 

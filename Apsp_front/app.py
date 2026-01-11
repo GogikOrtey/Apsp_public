@@ -1411,8 +1411,11 @@ def api_telegram_auth_start():
             status=500,
         )
 
+    payload = request.get_json(silent=True) or {}
+    next_url = _safe_next_url(payload.get("next"))
+
     token = telegram_connect.create_auth_token()
-    telegram_connect.create_pending_auth(TELEGRAM_AUTH_DIR, token)
+    telegram_connect.create_pending_auth(TELEGRAM_AUTH_DIR, token, next_url=next_url)
     telegram_url = f"https://t.me/{TELEGRAM_BOT_USERNAME}?start={token}"
 
     return FlaskResponse(

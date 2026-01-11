@@ -192,6 +192,7 @@
 - Пользователь нажимает **Start** у бота → в Telegram приходит сообщение `/start <token>`.
 - Бот отправляет апдейт в наш webhook `POST /api/telegram/webhook/<secret>`.
 - Сервер помечает token как **authorized**, отправляет пользователю сообщение **"Авторизация успешна"** и сохраняет данные пользователя.
+  - в сообщении бот даёт ссылку “вернуться в браузер” вида `.../login_page?next=<...>&token=<...>` — чтобы не терялся `next` (например `/main_page_1?resume=1`) и можно было продолжить даже если localStorage недоступен
 - Браузер опрашивает `GET /api/telegram/auth/status?token=...`, затем вызывает `POST /api/telegram/auth/finish` и получает куки:
   - `user_account` (для UI; строка вида `@username` или `tg_<id>`)
   - `user_telegram_id` (HttpOnly; Telegram ID пользователя)
