@@ -373,7 +373,7 @@
 
 <a href="{{ url_for('all_tasks') }}" class="status-block__button">Просмотреть все задачи</a>
 
-<form method="POST" class="example1-form" id="new_page_1_form">
+<form method="POST" class="example1-form" id="new_page_1_form" data-uid-not-found="{{ '1' if uid_not_found else '0' }}">
     <div class="form-group">
         <label for="site_url" class="example1-label">
             Введите адрес сайта <span style="color: #bebebe;">или 
@@ -396,6 +396,9 @@
         </div>
         <div id="uid_not_found_error" class="uid-not-found-error">
             Задача не найдена по введённому UID
+        </div>
+        <div id="invalid_format_error" class="uid-not-found-error">
+            Некорректный ввод. Введите ссылку на сайт (например: example.com или https://example.com) или UID задачи (12 символов).
         </div>
     </div>
 
@@ -555,6 +558,7 @@
         const input = document.getElementById('site_url');
         const errorDiv = document.getElementById('limit_error');
         const uidNotFoundError = document.getElementById('uid_not_found_error');
+        const invalidFormatError = document.getElementById('invalid_format_error');
         const submitButton = document.getElementById('new_page_1_submit');
         const counterValue = document.getElementById('active_tasks_value');
         const statusIndicator = document.getElementById('server_status_indicator');
@@ -566,7 +570,7 @@
         let currentMax = 10;
         let isLoaded = false;
         let isServerOnline = false;
-        const uidNotFoundFromBackend = {{ 'true' if uid_not_found else 'false' }}; // Игнорировать эту ошибку линтера
+        const uidNotFoundFromBackend = (form.dataset.uidNotFound === '1');
 
         if (!form || !input) return;
 
@@ -574,6 +578,38 @@
         function isUID(value) {
             const trimmed = value.trim();
             return /^[a-f0-9]{12}$/i.test(trimmed);
+        }
+
+        // Проверка на "похоже на ссылку": разрешаем http/https URL, а также домен без схемы (пример: makitaclub.ru)
+        function isValidUrlOrDomain(value) {
+            const v = (value || '').trim();
+            if (!v) return false;
+            if (/\s/.test(v)) return false;
+
+            // Если пользователь ввёл без схемы — пробуем как https://<ввод>
+            const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(v);
+            const candidate = hasScheme ? v : `https://${v}`;
+
+            try {
+                const u = new URL(candidate);
+                if (u.protocol !== 'http:' && u.protocol !== 'https:') return false;
+                const host = (u.hostname || '').trim();
+                // Базовая защита от мусора: требуем хотя бы одну точку в хосте
+                if (!host || host.indexOf('.') === -1) return false;
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function updateValidationUi() {
+            const v = (input.value || '').trim();
+            if (!v) {
+                if (invalidFormatError) invalidFormatError.style.display = 'none';
+                return;
+            }
+            const ok = isUID(v) || isValidUrlOrDomain(v);
+            if (invalidFormatError) invalidFormatError.style.display = ok ? 'none' : 'block';
         }
 
         // Обновление стиля кнопки в зависимости от содержимого
@@ -650,11 +686,14 @@
         input.addEventListener('input', function() {
             if (errorDiv) errorDiv.style.display = 'none';
             if (uidNotFoundError) uidNotFoundError.style.display = 'none';
+            if (invalidFormatError) invalidFormatError.style.display = 'none';
             updateButtonStyle();
+            updateValidationUi();
         });
 
         // Инициализация стиля кнопки при загрузке
         updateButtonStyle();
+        updateValidationUi();
 
         // Показываем ошибку, если UID не найден (передано из backend)
         if (uidNotFoundFromBackend && uidNotFoundError) {
@@ -663,8 +702,22 @@
 
         form.addEventListener('submit', function (e) {
             const v = (input.value || '').trim();
-            
-            // Проверка лимита (только для не-UID)
+
+            if (!v) {
+                // По требованию: если пусто — по нажатию кнопки "ничего не происходит"
+                e.preventDefault();
+                if (invalidFormatError) invalidFormatError.style.display = 'none';
+                return;
+            }
+
+            // Валидация формата: либо UID, либо ссылка/домен
+            if (!isUID(v) && !isValidUrlOrDomain(v)) {
+                e.preventDefault();
+                if (invalidFormatError) invalidFormatError.style.display = 'block';
+                return;
+            }
+
+            // Проверка лимита (только для не-UID и только для валидного URL/домена)
             if (!isUID(v) && isLoaded && currentActive >= currentMax) {
                 e.preventDefault();
                 if (errorDiv) {
@@ -672,11 +725,6 @@
                     errorDiv.textContent = `Достигнут лимит задач (${currentActive}/${currentMax}). Пожалуйста, подождите завершения текущих.`;
                 }
                 return;
-            }
-
-            if (!v) {
-                // По требованию: если пусто — по нажатию кнопки "ничего не происходит"
-                e.preventDefault();
             }
         });
 
