@@ -22,6 +22,8 @@
     .btn-full {
         width: 100%;
         display: block;
+        border-radius: 8px;
+        /* font-weight: 600; */
     }
 
     .btn-full:active {
@@ -387,15 +389,14 @@
         padding: 6px 14px;
         font-size: 13px;
         font-weight: 500;
-        border: none;
-        border-radius: 5px;
+        border: 2px solid;
+        border-radius: 7px;
         cursor: pointer;
         transition: all 0.2s ease;
+        /* transition: all 0.1s ease; */
         flex: 1;
-    }
-
-    .btn-small:hover {
-        filter: brightness(0.92);
+        background: #ffffff;
+        color: #777;
     }
 
     .btn-small:active {
@@ -404,12 +405,22 @@
 
     /* Синяя кнопка */
     .btn-blue {
+        /* border-color: #667eea; */
+        border-color: #667eea8c;
+    }
+
+    .btn-blue:hover {
         background: #667eea;
         color: #ffffff;
     }
 
     /* Жёлтая кнопка */
     .btn-yellow {
+        /* border-color: #f59e0b; */
+        border-color: #f59f0b79;
+    }
+
+    .btn-yellow:hover {
         background: #f59e0b;
         color: #ffffff;
     }
