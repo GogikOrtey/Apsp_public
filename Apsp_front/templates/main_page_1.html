@@ -657,7 +657,7 @@
         // Опрос статуса
         async function pollStatus() {
             try {
-                const res = await fetch('/api/tasks/active_count');
+                const res = await fetch('/api/tasks/active_count', { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
                     if (data.ok) {

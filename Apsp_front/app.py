@@ -431,6 +431,13 @@ def _get_max_workers():
         return 10
 
 TASKS = TaskRegistry(result_tasks_dir=RESULT_TASKS_DIR, max_workers=_get_max_workers(), headless=True)
+try:
+    fixed_orphans = TASKS.reconcile_orphaned_running_tasks()
+    if fixed_orphans > 0:
+        print(f"[TaskRegistry] Reconciled orphaned running task(s): {fixed_orphans}")
+except Exception:
+    # best-effort: не блокируем старт фронта
+    pass
 TASKS.warmup()
 atexit.register(TASKS.shutdown)
 
@@ -1370,10 +1377,14 @@ def api_task_status(uid):
 def api_tasks_active_count():
     active = TASKS.get_active_count()
     max_w = TASKS.max_workers
-    return FlaskResponse(
+    resp = FlaskResponse(
         json.dumps({"ok": True, "active": active, "max": max_w}, ensure_ascii=False),
         mimetype='application/json; charset=utf-8'
     )
+    # Отключаем кэширование, чтобы счётчик на main_page_1 всегда был актуальным после рестартов.
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    return resp
 
 
 @app.route('/api/account/logout', methods=['POST'])
