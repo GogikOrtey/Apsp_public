@@ -33,7 +33,8 @@
 
 Нюансы:
 - Flask по умолчанию слушает `127.0.0.1` (см. `MAIN_APP.py`), поэтому в контейнере нужно `APSP_HOST=0.0.0.0`.
-- На Linux/в контейнере результаты задач пишутся в `/RESULT_TASKS` (см. `Apsp_front/app.py:_resolve_result_tasks_dir()`), поэтому в compose сделан bind-mount на этот путь (по умолчанию хост=`/RESULT_TASKS`, либо через `APSP_RESULT_TASKS_HOST_PATH`).
+- В Docker-контейнере результаты задач пишутся в `/RESULT_TASKS` (см. `Apsp_front/app.py:_resolve_result_tasks_dir()`), поэтому в compose сделан bind-mount на этот путь (по умолчанию хост=`/RESULT_TASKS`, либо через `APSP_RESULT_TASKS_HOST_PATH`).
+- При локальном запуске на Linux результаты пишутся в `~/RESULT_TASKS` (в домашней директории пользователя), чтобы не требовался `sudo`.
 - Для стабильной работы Chromium в контейнере нужен увеличенный `/dev/shm` → в `docker-compose.yml` задан `shm_size`.
 - Для “прод-качества” контейнер запускается через **Gunicorn** (`docker-entrypoint.sh` → `gunicorn wsgi:app`), а `wsgi.py` загружает `.env` до импорта `Apsp_front.app`.
 - Важно: для этого проекта по умолчанию **`GUNICORN_WORKERS=1`** (иначе будет несколько независимых `TaskRegistry`/Playwright-pool и возможны конфликты по задачам/файлам). Параллельность UI обеспечивается `GUNICORN_THREADS`.
@@ -80,7 +81,10 @@
 ## Важное:
 - Количество попыток на перезапуск задачи при падении с ошибкой задаётся в `task_runtime/task_registry.py` (TaskRegistry), по умолчанию = **1** (без автоповторов). Быстро вернуть ретраи можно через env `APSP_TASK_MAX_ATTEMPTS`.
 - Дедлайн выполнения задачи — **30 минут** (env `APSP_TASK_TIMEOUT_SECONDS`). При превышении кидается `TaskTimeoutException`, задача сразу переводится в `FAILED` без ретраев, в `result_code.ts` пишется лаконичное сообщение об ошибке.
-- Папка результатов `RESULT_TASKS`: на Linux (в контейнере) лежит в `/RESULT_TASKS`, на Windows — на уровень выше папки проекта (рядом с репозиторием).
+- Папка результатов `RESULT_TASKS`:
+  - в Docker-контейнере: `/RESULT_TASKS`
+  - на Linux (локально): `~/RESULT_TASKS`
+  - на Windows: на уровень выше папки проекта (рядом с репозиторием).
 - При старте Flask-фронта (`Apsp_front/app.py`) выполняется авто-очистка `RESULT_TASKS`: удаляются подпапки, где в `meta.json` поле `created_at_ts` старше **7 дней** (в консоль пишется количество удалённых, если >0).
 - При старте Flask-фронта (`Apsp_front/app.py`) также выполняется автоподхват “висящих” задач прошлого процесса:
   - критерий: `meta.status="WORK"` и `meta.last_started_at_ts < APP_START_TIME`

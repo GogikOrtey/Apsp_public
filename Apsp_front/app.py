@@ -111,12 +111,37 @@ NEW_PAGE_2_STATE_FILE_PATH = RESULT_OUTPUT_DIR / 'new_page_2_state.json'
 
 def _resolve_result_tasks_dir() -> Path:
     """
-    На Linux (контейнер) складываем результаты в /RESULT_TASKS.
-    На Windows — на уровень выше папки проекта (рядом с репозиторием).
+    Где храним результаты задач (RESULT_TASKS).
+
+    Требование:
+    - В Docker-контейнере: /RESULT_TASKS (под bind-mount из docker-compose)
+    - На обычном Linux: ~/RESULT_TASKS (в домашней директории пользователя, без sudo)
+    - На Windows: на уровень выше папки проекта (рядом с репозиторием)
     """
+    def _is_running_in_docker() -> bool:
+        # Самый надёжный и дешёвый признак в большинстве окружений Docker.
+        try:
+            if Path("/.dockerenv").exists():
+                return True
+        except Exception:
+            pass
+
+        # Fallback: проверка cgroup (может быть полезно на некоторых хостах/рантаймах).
+        try:
+            cgroup = Path("/proc/1/cgroup")
+            if cgroup.exists():
+                txt = cgroup.read_text(encoding="utf-8", errors="ignore")
+                if ("docker" in txt) or ("containerd" in txt) or ("kubepods" in txt):
+                    return True
+        except Exception:
+            pass
+        return False
+
     if os.name == "nt":
         return PROJECT_ROOT.parent / "RESULT_TASKS"
-    return Path("/RESULT_TASKS")
+    if _is_running_in_docker():
+        return Path("/RESULT_TASKS")
+    return Path.home() / "RESULT_TASKS"
 
 
 RESULT_TASKS_DIR = _resolve_result_tasks_dir()
