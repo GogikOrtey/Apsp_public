@@ -6,6 +6,12 @@
 /node_modules
 /RESULT_TASKS
 
+# Build / release artifacts (avoid committing large archives)
+*.tar
+*.tar.*
+*.tgz
+.tmp-apsp-*.tar*
+
 # Telegram auth/users data (не коммитим в репозиторий)
 /Apsp_front/_telegram_auth/
 /Apsp_front/_telegram_users/

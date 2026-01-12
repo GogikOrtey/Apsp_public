@@ -827,6 +827,201 @@ class TaskRegistry:
 
         self._submit_run(uid, runner, info)
 
+    def resume_stale_work_task(
+        self,
+        uid: str,
+        runner: Any,
+        *,
+        max_total_attempts: int = 2,
+        app_start_time_ts: float | None = None,
+    ) -> str:
+        """
+        Форсированный "подхват" зависшей задачи после рестарта сервиса.
+
+        Задача считается кандидатом на подхват снаружи (в Flask), если в meta.json:
+        - status == "WORK"
+        - last_started_at_ts < APP_START_TIME (время старта текущего процесса)
+
+        Здесь мы дополнительно:
+        - строго ограничиваем общее число запусков по meta["attempts"] (по умолчанию 2: старт + 1 перезапуск)
+        - НЕ опираемся на TaskRegistry.max_attempts (он может быть = 1 и это ок)
+
+        Returns:
+            "restarted" | "failed" | "skipped"
+        """
+        uid = self._normalize_uid(uid)
+        if not self._is_valid_uid(uid):
+            return "skipped"
+
+        # Подтянем задачу в память (best-effort).
+        info = self.get(uid)
+        if info is None:
+            return "skipped"
+
+        meta = self._load_meta(uid) or {}
+        meta_status = str(meta.get("status") or "").strip().upper()
+        if meta_status != "WORK":
+            return "skipped"
+
+        # Проверка "действительно stale": last_started_at_ts должен быть меньше старта текущего процесса.
+        if app_start_time_ts is not None:
+            try:
+                last_started_at_ts = float(meta.get("last_started_at_ts") or 0)
+            except Exception:
+                last_started_at_ts = 0.0
+            if not (last_started_at_ts > 0 and last_started_at_ts < float(app_start_time_ts)):
+                return "skipped"
+
+        try:
+            max_total_attempts = int(max_total_attempts)
+        except Exception:
+            max_total_attempts = 2
+        max_total_attempts = max(1, max_total_attempts)
+
+        # attempts в meta — источник правды для этой логики.
+        attempts = meta.get("attempts")
+        try:
+            attempts = int(attempts)
+        except Exception:
+            attempts = 0
+
+        # Если уже был старт + перезапуск (attempts>=2) и задача всё ещё WORK — считаем сервис упал повторно.
+        if attempts >= max_total_attempts:
+            reason = (
+                "Генерация неудачна по причине падения сервиса: "
+                "задача была в статусе WORK при рестарте приложения и уже перезапускалась."
+            )
+            self._finalize_task_as_service_crash_failed(uid, info, reason)
+            return "failed"
+
+        # Иначе — делаем ровно один форсированный рестарт (attempts += 1).
+        allowed = self._force_update_meta_on_start(uid, max_total_attempts=max_total_attempts)
+        if not allowed:
+            reason = (
+                "Генерация неудачна по причине падения сервиса: "
+                "не удалось выполнить перезапуск зависшей задачи."
+            )
+            self._finalize_task_as_service_crash_failed(uid, info, reason)
+            return "failed"
+
+        # Best-effort: уведомление пользователю (Telegram), что сервис перезапущен и задача стартует заново.
+        try:
+            bot_token = (os.environ.get("APSP_TELEGRAM_BOT_TOKEN", "") or "").strip()
+            if bot_token:
+                base_url = (os.environ.get("APSP_BASE_URL", "http://127.0.0.1:5000") or "").strip()
+                import telegram_connect  # noqa: WPS433
+
+                telegram_connect.try_notify_task_service_restarted_resume(
+                    task_dir=info.task_dir,
+                    uid=str(uid),
+                    bot_token=bot_token,
+                    base_url=base_url,
+                )
+        except Exception:
+            pass
+
+        # Перед рестартом сбрасываем stop-флаг, чтобы задача не упала мгновенно как user_stop.
+        try:
+            clear_stop(uid)
+        except Exception:
+            pass
+
+        # Обходим защиту start(): у stale-задач meta.runtime_status часто "running",
+        # и start() бы не запустил её повторно.
+        with self._lock:
+            info2 = self._tasks.get(uid) or info
+            info2.status = "running"
+            info2.started_at = self._now()
+            info2.error = None
+            self._tasks[uid] = info2
+            self._runners[uid] = runner
+
+        self._submit_run(uid, runner, info2)
+        return "restarted"
+
+    def _force_update_meta_on_start(self, uid: str, *, max_total_attempts: int) -> bool:
+        """
+        Инкрементирует meta["attempts"] и переводит задачу в WORK/running,
+        ограничивая общее число попыток значением max_total_attempts.
+
+        В отличие от _update_meta_on_start(), не опирается на self.max_attempts.
+        """
+        now = self._now()
+        meta = self._load_meta(uid) or {}
+
+        attempts = meta.get("attempts")
+        try:
+            attempts = int(attempts)
+        except Exception:
+            attempts = 0
+
+        if attempts >= int(max_total_attempts):
+            return False
+
+        attempts += 1
+
+        # started_at — первый старт, last_started_at — последний (доп. поле)
+        if not meta.get("started_at_ts"):
+            meta["started_at_human"] = self._dt_human(now)
+            meta["started_at_ts"] = self._dt_ts(now)
+        meta["last_started_at_human"] = self._dt_human(now)
+        meta["last_started_at_ts"] = self._dt_ts(now)
+
+        meta["attempts"] = attempts
+        # Для отображения/отладки (best-effort): пусть в meta будет видно, что допускаем 2 попытки.
+        try:
+            prev_max = int(meta.get("max_attempts") or 0)
+        except Exception:
+            prev_max = 0
+        meta["max_attempts"] = max(prev_max, int(max_total_attempts))
+
+        meta["status"] = "WORK"
+        meta["runtime_status"] = "running"
+        meta["finish_reason"] = None
+        meta["stopped_by_user"] = False
+        meta.setdefault("schema_version", self._meta_schema_version)
+        meta.setdefault("uid", self._normalize_uid(uid))
+        try:
+            self._save_meta(uid, meta)
+            return True
+        except Exception:
+            return False
+
+    def _finalize_task_as_service_crash_failed(self, uid: str, info: TaskInfo, reason: str) -> None:
+        """
+        Финализирует задачу как FAILED из-за рестарта/падения сервиса.
+        """
+        reason = str(reason or "").strip() or "Генерация неудачна по причине падения сервиса."
+
+        with self._lock:
+            info2 = self._tasks.get(uid) or info
+            info2.status = "error"
+            info2.finished_at = self._now()
+            info2.error = reason
+            self._tasks[uid] = info2
+
+        self._write_status_file(info2, "failed")
+
+        # Лаконичный текст, чтобы UI/Telegram показывали понятную причину.
+        error_text = f"🟠 {reason}\n"
+        self._write_final_error_result_code(info2, error_text)
+        try:
+            self._append_task_output_log(info2, f"[{self._dt_human(self._now())}] service_crash: {reason}")
+        except Exception:
+            pass
+
+        try:
+            self._update_meta_on_finish(uid, runtime_status="error", error=reason, finish_reason="error")
+        except Exception:
+            pass
+
+        # Best-effort: уведомление в Telegram + ZIP (если настроено)
+        self._try_notify_task_finished_telegram(info2, ok=False, error_text=reason)
+
+        with self._lock:
+            self._runners.pop(uid, None)
+        self._note_task_finished_and_maybe_restart(reason="service_crash_failed")
+
     def shutdown(self) -> None:
         self._pool.close()
         self._pool.join(timeout=10)

@@ -123,7 +123,18 @@ docker save -o apsp-main_v0.1.tar apsp-main:0.1
 
 ```
 docker load -i apsp-main.tar
-docker run --rm -p 5000:5000 --name apsp-web apsp-main:latest
+#
+# ВАЖНО:
+# - `--rm` удаляет контейнер после остановки → результаты внутри контейнера пропадут.
+# - без `-d` контейнер работает в текущем терминале (foreground).
+# - автоперезапуск при падениях включается через `--restart ...` (или через docker-compose).
+#
+# PROD-вариант (рекомендуется): фон + автоперезапуск + вынос результатов на хост
+mkdir -p /RESULT_TASKS
+docker run -d -p 5000:5000 --name apsp-web \
+  --restart unless-stopped \
+  -v /RESULT_TASKS:/RESULT_TASKS \
+  apsp-main:latest
 ```
 
 

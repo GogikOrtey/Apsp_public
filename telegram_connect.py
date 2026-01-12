@@ -471,6 +471,51 @@ def try_notify_task_started(*, task_dir: Path, uid: str, site_url: str, bot_toke
         return
 
 
+def try_notify_task_service_restarted_resume(*, task_dir: Path, uid: str, bot_token: str, base_url: str) -> None:
+    """
+    Best-effort: уведомляет пользователя, что сервис был перезапущен и задача начнёт выполняться заново.
+    Ничего не рейзит.
+    """
+    try:
+        meta_path = Path(task_dir) / "meta.json"
+        if not meta_path.is_file():
+            return
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        if not isinstance(meta, dict):
+            return
+        tg_id = meta.get("user_telegram_id")
+        if tg_id is None:
+            return
+        tg_id_int = int(tg_id)
+        user_account = meta.get("user_account")
+
+        base_url_norm = str(base_url or "").strip() or "http://127.0.0.1:5000"
+        base_url_norm = base_url_norm.rstrip("/")
+        task_url = f"{base_url_norm}/main_page_2/{uid}/"
+
+        # Dev-заглушка по запросу: короткое понятное сообщение + ссылка на 2ю страницу.
+        msg = (
+            f"[dev-заглушка]: Сервис был перезапущен, данная задача {_escape_html(task_url)} "
+            f"начнёт выполняться с начала"
+        ).strip()
+
+        user_label = _format_user_label(user_telegram_id=tg_id_int, user_account=str(user_account) if user_account else None)
+        _dup_outgoing_to_log_chat(
+            header=f"🔄 Пользователь {user_label}: сервис перезапущен, задача будет перезапущена:",
+            body=f"UID: {uid}\nLink: {task_url}",
+            bot_token=bot_token,
+        )
+        send_bot_message(
+            bot_token=bot_token,
+            chat_id=tg_id_int,
+            text=msg,
+            parse_mode=None,
+            dup_to_log=False,
+        )
+    except Exception:
+        return
+
+
 @dataclass(frozen=True)
 class TelegramUser:
     id: int

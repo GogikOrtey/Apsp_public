@@ -469,19 +469,25 @@ def _run_task(browser, info: TaskInfo):
 
     # Важно для повторных попыток: не затираем логи на следующем запуске по тому же uid.
     attempt_n = 1
+    max_attempts_for_display = TASKS.max_attempts
     try:
         meta_path = info.task_dir / "meta.json"
         if meta_path.is_file():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
             attempt_n = int((meta or {}).get("attempts") or 1)
+            try:
+                max_attempts_for_display = int((meta or {}).get("max_attempts") or TASKS.max_attempts)
+            except Exception:
+                max_attempts_for_display = TASKS.max_attempts
     except Exception:
         attempt_n = 1
+        max_attempts_for_display = TASKS.max_attempts
 
     out_mode = "w" if attempt_n <= 1 else "a"
     out_file = open(info.task_dir / "output.log", out_mode, encoding="utf-8")
     if attempt_n > 1:
         try:
-            out_file.write(f"\n\n--- RETRY attempt {attempt_n}/{TASKS.max_attempts} ---\n")
+            out_file.write(f"\n\n--- RETRY attempt {attempt_n}/{max_attempts_for_display} ---\n")
             out_file.flush()
         except Exception:
             pass
@@ -549,6 +555,86 @@ def _run_task(browser, info: TaskInfo):
         except Exception:
             pass
         clear_current_task()
+
+
+def _boot_restart_stale_work_tasks() -> None:
+    """
+    При старте приложения подхватываем "висящие" задачи из прошлого процесса.
+
+    Критерий stale (как в all_tasks):
+    - meta.status == "WORK"
+    - meta.last_started_at_ts > 0
+    - meta.last_started_at_ts < APP_START_TIME
+
+    Политика попыток:
+    - запускаем 1 раз и перезапускаем тоже 1 раз (итого attempts <= 2)
+    - если attempts уже >= 2, переводим задачу в FAILED с причиной "падение сервиса"
+    """
+    try:
+        root = RESULT_TASKS_DIR
+        if not root.exists() or not root.is_dir():
+            return
+
+        restarted = 0
+        failed = 0
+        skipped = 0
+
+        for child in root.iterdir():
+            if not child.is_dir():
+                continue
+
+            uid = child.name.strip().lower()
+            meta_path = child / "meta.json"
+            if not meta_path.is_file():
+                continue
+
+            try:
+                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+
+            status = str((meta or {}).get("status") or "").strip().upper()
+            if status != "WORK":
+                continue
+
+            try:
+                last_started_at_ts = float((meta or {}).get("last_started_at_ts") or 0)
+            except Exception:
+                last_started_at_ts = 0.0
+
+            if not (last_started_at_ts > 0 and last_started_at_ts < APP_START_TIME):
+                continue
+
+            # Подхват/фейл делаем через TaskRegistry, чтобы корректно записались meta/result_code/status-files.
+            try:
+                action = TASKS.resume_stale_work_task(
+                    uid,
+                    _run_task,
+                    max_total_attempts=2,
+                    app_start_time_ts=APP_START_TIME,
+                )
+            except Exception:
+                action = "skipped"
+
+            if action == "restarted":
+                restarted += 1
+            elif action == "failed":
+                failed += 1
+            else:
+                skipped += 1
+
+        if restarted or failed:
+            print(
+                f"[boot] stale WORK tasks: restarted={restarted}, failed={failed}, skipped={skipped} "
+                f"(app_start_ts={APP_START_TIME})"
+            )
+    except Exception:
+        # best-effort: не блокируем старт сервиса
+        return
+
+
+# Одноразово при импорте модуля (старт процесса) — подхватим stale-задачи.
+_boot_restart_stale_work_tasks()
 
 def sanitize_text(value):
     """
