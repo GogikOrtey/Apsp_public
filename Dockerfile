@@ -6,6 +6,17 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
+# Node.js deps (нужны для инструментов в `new_program/html_toolkit.py`, которые запускают `node -e ...` и `require('cheerio')`)
+# NOTE: берем nodejs из репозитория Debian (для bookworm это Node 18.x, что достаточно для cheerio ^1.1.x).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends nodejs npm \
+    && rm -rf /var/lib/apt/lists/*
+
+# NPM deps (cheerio и др.) — ставим до копирования всего репозитория, чтобы Docker-cache работал лучше
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev \
+    && npm cache clean --force
+
 # Python deps
 COPY requirements.txt .
 

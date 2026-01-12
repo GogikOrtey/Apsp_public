@@ -27,7 +27,7 @@
 ## Сборка и запуск в контейнере (Docker)
 
 В корне репозитория лежат файлы для контейнеризации:
-- `Dockerfile` — сборка Python-окружения + установка Chromium для Playwright
+- `Dockerfile` — сборка Python-окружения + установка Chromium для Playwright **и Node.js + npm-зависимостей** (нужно для инструментов `new_program/html_toolkit.py`, которые выполняют проверки через `node -e ...` и `require('cheerio')`)
 - `.dockerignore` — исключает тяжёлые/локальные директории (например `node_modules/`, кэши, локальные telegram token/users)
 - `docker-compose.yml` — удобный запуск с bind-mount хостовой папки результатов в `/RESULT_TASKS` (по умолчанию хост=`/RESULT_TASKS`, см. `APSP_RESULT_TASKS_HOST_PATH`) и опционально тома для `Apsp_front/_telegram_auth`, `Apsp_front/_telegram_users`
 
