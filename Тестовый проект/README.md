@@ -274,6 +274,7 @@ apsp-test-simple_v0.8.tar - последняя версия теста, с во�
 Загрузить снимок:
 docker load -i НАЗВАНИЕ_СНИМКА.tar
 docker load -i apsp-test-simple_v0.3.tar
+docker load -i apsp-main_v1.2.tar
 
 Просмотреть все загруженные снимки в докере:
 docker images
@@ -281,6 +282,13 @@ docker images
 Запустить снимок в контейнер:
 docker run -d -p 8000:8000 --name КОРОТКОЕ_НАЗВАНИЕ_ДЛЯ_УДОБСТВА НАЗВАНИЕ_СНИМКА:ВЕРСИЯ_СНИМКА
 docker run -d -p 8000:8000 --name apsp-test-simple_v0.3 apsp-test-simple:0.3
+docker run -d -p 5000:5000 --name apsp-main_v1.2 apsp-main:1.2
+
+docker run -d -p 5000:5000 --name apsp-main_v1.2 \
+  --restart unless-stopped \
+  -v /RESULT_TASKS:/RESULT_TASKS \
+  apsp-main:1.2
+
 
 Просмотреть запущенные контейнеры:
 docker ps
