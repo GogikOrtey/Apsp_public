@@ -25,13 +25,14 @@ services:
 
     volumes:
       # Persist generation results
-      - result_tasks:/RESULT_TASKS
+      # ВАЖНО: bind-mount хостовой папки, чтобы результаты лежали вне контейнера.
+      # По умолчанию на Linux это /RESULT_TASKS (можно переопределить переменной окружения).
+      - ${APSP_RESULT_TASKS_HOST_PATH:-/RESULT_TASKS}:/RESULT_TASKS
       # Persist telegram auth tokens/users (optional but handy)
       - telegram_auth:/app/Apsp_front/_telegram_auth
       - telegram_users:/app/Apsp_front/_telegram_users
 
 volumes:
-  result_tasks:
   telegram_auth:
   telegram_users:
 

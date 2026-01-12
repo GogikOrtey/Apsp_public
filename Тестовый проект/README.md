@@ -122,8 +122,8 @@ docker save -o apsp-main_v0.1.tar apsp-main:0.1
 Перенеси apsp-test-simple.tar на Linux, затем на Linux:
 
 ```
-docker load -i apsp-test-simple.tar
-docker run --rm -p 5000:5000 --name apsp-web apsp-test-simple:latest
+docker load -i apsp-main.tar
+docker run --rm -p 5000:5000 --name apsp-web apsp-main:latest
 ```
 
 
