@@ -35,6 +35,8 @@
 - Flask по умолчанию слушает `127.0.0.1` (см. `MAIN_APP.py`), поэтому в контейнере нужно `APSP_HOST=0.0.0.0`.
 - На Linux/в контейнере результаты задач пишутся в `/RESULT_TASKS` (см. `Apsp_front/app.py:_resolve_result_tasks_dir()`), поэтому в compose заведён volume на этот путь.
 - Для стабильной работы Chromium в контейнере нужен увеличенный `/dev/shm` → в `docker-compose.yml` задан `shm_size`.
+- Для “прод-качества” контейнер запускается через **Gunicorn** (`docker-entrypoint.sh` → `gunicorn wsgi:app`), а `wsgi.py` загружает `.env` до импорта `Apsp_front.app`.
+- Важно: для этого проекта по умолчанию **`GUNICORN_WORKERS=1`** (иначе будет несколько независимых `TaskRegistry`/Playwright-pool и возможны конфликты по задачам/файлам). Параллельность UI обеспечивается `GUNICORN_THREADS`.
 
 ## Старт и финиш задачи генерации (человеческая схема)
 

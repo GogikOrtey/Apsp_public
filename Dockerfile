@@ -27,8 +27,10 @@ ENV APSP_DEBUG=false
 # Result tasks folder (Linux/container path used by Apsp_front/app.py)
 RUN mkdir -p /RESULT_TASKS
 
+RUN chmod +x /app/docker-entrypoint.sh
+
 EXPOSE 5000
 
-CMD ["python", "MAIN_APP.py"]
+CMD ["/app/docker-entrypoint.sh"]
 
 

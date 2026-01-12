@@ -106,6 +106,9 @@ docker run --rm -p 8000:8000 --name apsp-web apsp-test-simple:latest
 ```
 docker build -t apsp-test-simple:0.1 .
 docker save -o apsp-test-simple_v0.1.tar apsp-test-simple:0.1
+
+docker build -t apsp-main:0.1 .
+docker save -o apsp-main_v0.1.tar apsp-main:0.1
 ```
 
 
@@ -120,7 +123,7 @@ docker save -o apsp-test-simple_v0.1.tar apsp-test-simple:0.1
 
 ```
 docker load -i apsp-test-simple.tar
-docker run --rm -p 8000:8000 --name apsp-web apsp-test-simple:latest
+docker run --rm -p 5000:5000 --name apsp-web apsp-test-simple:latest
 ```
 
 
