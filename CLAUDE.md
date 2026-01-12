@@ -37,6 +37,11 @@
 - Для стабильной работы Chromium в контейнере нужен увеличенный `/dev/shm` → в `docker-compose.yml` задан `shm_size`.
 - Для “прод-качества” контейнер запускается через **Gunicorn** (`docker-entrypoint.sh` → `gunicorn wsgi:app`), а `wsgi.py` загружает `.env` до импорта `Apsp_front.app`.
 - Важно: для этого проекта по умолчанию **`GUNICORN_WORKERS=1`** (иначе будет несколько независимых `TaskRegistry`/Playwright-pool и возможны конфликты по задачам/файлам). Параллельность UI обеспечивается `GUNICORN_THREADS`.
+- Автоперезапуск контейнера:
+  - `docker-compose.yml`: `restart: unless-stopped`
+  - После **N завершённых задач** (success/failed/timeout/user_stop) процесс просит перезапуск контейнера (дефолт `APSP_RESTART_AFTER_TASKS=50`, реализовано в `task_runtime/task_registry.py`).
+  - При **фатальном падении Playwright/Chromium** процесс тоже просит перезапуск контейнера (`task_runtime/playwright_pool.py`).
+  - Низкоуровневая реализация “попросить рестарт” (SIGTERM PID 1) — `task_runtime/container_restart.py` (вне Docker ничего не делает).
 
 ## Старт и финиш задачи генерации (человеческая схема)
 

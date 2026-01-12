@@ -1,6 +1,7 @@
 services:
   web:
     build: .
+    restart: unless-stopped
     ports:
       - "5000:5000"
     shm_size: "6gb"
@@ -22,6 +23,13 @@ services:
       APSP_MAX_WORKERS: ${APSP_MAX_WORKERS:-10}
       APSP_TASK_TIMEOUT_SECONDS: ${APSP_TASK_TIMEOUT_SECONDS:-1800}
       APSP_TASK_MAX_ATTEMPTS: ${APSP_TASK_MAX_ATTEMPTS:-1}
+
+      # Self-restart policy (для автоперезапуска контейнера)
+      # - после N завершённых задач (success/failed/timeout/user_stop) процесс завершится,
+      #   Docker перезапустит контейнер по restart-policy.
+      # - при фатальных сбоях Playwright процесс тоже завершится.
+      APSP_RESTART_AFTER_TASKS: ${APSP_RESTART_AFTER_TASKS:-50}
+      APSP_RESTART_ON_PLAYWRIGHT_FAIL: ${APSP_RESTART_ON_PLAYWRIGHT_FAIL:-1}
 
     volumes:
       # Persist generation results

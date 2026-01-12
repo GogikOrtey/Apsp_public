@@ -1,11 +1,64 @@
 from __future__ import annotations
 
 from concurrent.futures import Future
+import os
 import queue
 import threading
 from typing import Callable, Any
 
-from playwright.sync_api import sync_playwright, Browser, Playwright
+from playwright.sync_api import sync_playwright, Browser, Playwright, Error as PlaywrightError
+
+
+def _env_bool(name: str, default: bool = False) -> bool:
+    v = os.environ.get(name)
+    if v is None:
+        return bool(default)
+    v = str(v).strip().lower()
+    return v in {"1", "true", "yes", "y", "on"}
+
+
+def _maybe_request_container_restart(reason: str) -> None:
+    """
+    Best-effort: если включено, просим Docker перезапустить контейнер.
+    """
+    try:
+        from task_runtime.container_restart import is_running_in_container, request_container_restart  # noqa: WPS433
+
+        # По умолчанию включаем только в контейнере.
+        default = True if is_running_in_container() else False
+        if not _env_bool("APSP_RESTART_ON_PLAYWRIGHT_FAIL", default):
+            return
+        request_container_restart(f"playwright_fatal: {reason}")
+    except Exception:
+        return
+
+
+def _is_playwright_fatal_error(exc: BaseException) -> bool:
+    """
+    Эвристика: отличаем "обычную ошибку задачи" от состояния, когда сам Playwright/Browser отвалился.
+    """
+    msg = (str(exc) or "").strip().lower()
+
+    # Наши внутренние сигналы из пула.
+    if isinstance(exc, RuntimeError) and (
+        msg == "pool_not_started"
+        or msg == "worker is closed"
+        or msg.startswith("browser_not_started")
+    ):
+        return True
+
+    if isinstance(exc, PlaywrightError):
+        fatal_substrings = [
+            "target page, context or browser has been closed",
+            "browser has been closed",
+            "playwright connection closed",
+            "connection closed",
+            "browser closed",
+            "crashed",
+        ]
+        return any(s in msg for s in fatal_substrings)
+
+    return False
 
 
 class _Worker:
@@ -15,6 +68,7 @@ class _Worker:
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._ready = threading.Event()
         self._closed = False
+        self._startup_error: BaseException | None = None
 
     def start(self) -> None:
         self._thread.start()
@@ -43,6 +97,10 @@ class _Worker:
         try:
             pw = sync_playwright().start()
             browser = pw.chromium.launch(headless=self._headless)
+        except Exception as exc:  # noqa: BLE001
+            # Это уже инфраструктурная ошибка: Playwright/Chromium не стартанул.
+            self._startup_error = exc
+            _maybe_request_container_restart(f"startup_failed: {exc}")
         finally:
             self._ready.set()
 
@@ -54,10 +112,14 @@ class _Worker:
                 fut, fn = item
                 try:
                     if browser is None:
+                        if self._startup_error is not None:
+                            raise RuntimeError(f"browser_not_started: {self._startup_error}") from self._startup_error
                         raise RuntimeError("browser_not_started")
                     res = fn(browser)
                     fut.set_result(res)
                 except Exception as exc:  # noqa: BLE001
+                    if _is_playwright_fatal_error(exc):
+                        _maybe_request_container_restart(str(exc))
                     fut.set_exception(exc)
         finally:
             try:

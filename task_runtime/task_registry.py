@@ -48,6 +48,70 @@ class TaskRegistry:
         self._meta_schema_version = 1
         self._runners: dict[str, Any] = {}
         self._max_attempts = self._normalize_max_attempts(max_attempts)
+        # Self-restart policy (для Docker): после N завершённых задач — перезапуск контейнера.
+        self._finished_tasks_since_boot = 0
+        self._restart_pending_reason: str | None = None
+        self._restart_after_tasks = self._normalize_restart_after_tasks()
+
+    def _normalize_restart_after_tasks(self) -> int:
+        """
+        После скольких завершённых задач просить рестарт контейнера.
+
+        Управляется env `APSP_RESTART_AFTER_TASKS` (в docker-compose по умолчанию = 50).
+        Вне контейнера по умолчанию выключено (0), чтобы не мешать локальной разработке.
+        """
+        try:
+            from task_runtime.container_restart import is_running_in_container  # noqa: WPS433
+        except Exception:
+            is_running_in_container = lambda: False  # type: ignore
+
+        default = 50 if bool(is_running_in_container()) else 0
+        raw = os.environ.get("APSP_RESTART_AFTER_TASKS")
+        if raw is None:
+            return int(default)
+        try:
+            v = int(str(raw).strip())
+        except Exception:
+            v = int(default)
+        return max(0, int(v))
+
+    def _note_task_finished_and_maybe_restart(self, *, reason: str) -> None:
+        """
+        Учитывает факт финального завершения задачи и (опционально) инициирует рестарт контейнера.
+        """
+        threshold = int(self._restart_after_tasks or 0)
+        if threshold <= 0:
+            return
+
+        should_restart_now = False
+        restart_reason = ""
+        with self._lock:
+            self._finished_tasks_since_boot += 1
+            finished = int(self._finished_tasks_since_boot)
+
+            active = sum(1 for t in self._tasks.values() if t.status == "running")
+
+            # Если ранее уже накопили рестарт — выполняем при первой возможности (когда активных 0).
+            if self._restart_pending_reason and active <= 0:
+                should_restart_now = True
+                restart_reason = self._restart_pending_reason
+                self._restart_pending_reason = None
+            # Новый триггер: достигли порога.
+            elif finished >= threshold:
+                if active <= 0:
+                    should_restart_now = True
+                    restart_reason = f"restart_after_tasks reached: {finished}/{threshold}; last_reason={reason}"
+                else:
+                    # Ждём, пока активные задачи закончатся, чтобы не ронять их посередине.
+                    self._restart_pending_reason = f"restart_after_tasks reached: {finished}/{threshold}; pending; last_reason={reason}"
+
+        if should_restart_now:
+            try:
+                from task_runtime.container_restart import request_container_restart  # noqa: WPS433
+
+                request_container_restart(restart_reason)
+            except Exception:
+                return
 
     def _normalize_max_attempts(self, max_attempts: int | None) -> int:
         """
@@ -429,6 +493,8 @@ class TaskRegistry:
             # runner больше не нужен
             with self._lock:
                 self._runners.pop(uid, None)
+            # Self-restart (docker): after N finished tasks
+            self._note_task_finished_and_maybe_restart(reason="success")
             return
         except Exception as exc:  # noqa: BLE001
             err_str = str(exc)
@@ -477,6 +543,7 @@ class TaskRegistry:
 
                 with self._lock:
                     self._runners.pop(uid, None)
+                self._note_task_finished_and_maybe_restart(reason="user_stop")
                 return
 
             # Таймаут выполнения: без ретраев, сразу финальный error/FAILED.
@@ -524,6 +591,7 @@ class TaskRegistry:
 
                 with self._lock:
                     self._runners.pop(uid, None)
+                self._note_task_finished_and_maybe_restart(reason="timeout")
                 return
 
             # Сохраняем причину последней ошибки, не переводя задачу в FAILED раньше времени
@@ -603,6 +671,7 @@ class TaskRegistry:
 
             with self._lock:
                 self._runners.pop(uid, None)
+            self._note_task_finished_and_maybe_restart(reason="error")
 
     def _rehydrate_from_disk(self, uid: str) -> TaskInfo | None:
         """
